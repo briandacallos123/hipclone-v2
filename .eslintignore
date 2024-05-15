@@ -1,0 +1,8 @@
+// .eslintignore
+**/node_modules/*
+**/out/*
+**/.next/*
+next.config.js
+**/generated/*
+**/src/pages/api/auth/*
+**/src/libs/*

@@ -1,0 +1,1 @@
+export {default as QueuePatientList} from './queuePatient-list-view'

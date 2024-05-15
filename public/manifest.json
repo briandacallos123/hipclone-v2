@@ -1,0 +1,32 @@
+{
+    "theme_color": "#e12328",
+    "background_color": "#e12328",
+    "display": "standalone",
+    "scope": "/",
+    "start_url": "/dashboard/",
+    "name": "HIPS",
+    "short_name": "HIPS",
+    "description": "HIPS is a virtual clinic that connects patients to validated doctors nationwide with extensive selection of specialties.",
+    "icons": [
+        {
+            "src": "/logo/logo_single.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/logo/logo_single.png",
+            "sizes": "256x256",
+            "type": "image/png"
+        },
+        {
+            "src": "/logo/logo_single.png",
+            "sizes": "384x384",
+            "type": "image/png"
+        },
+        {
+            "src": "/logo/logo_single.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

@@ -1,0 +1,335 @@
+import { gql } from '@apollo/client';
+
+export const get_note_soap = gql`
+  query getOneSoapNotes($data: NoteSoapObjInputType!) {
+    QueryNoteSoap(data: $data) {
+      clinicInfo {
+        clinic_name
+        Province
+        doctor_idno
+        id
+        isDeleted
+        location
+        number
+      }
+      doctorInfo {
+        EMPID
+        SpecializationInfo {
+          id
+          name
+        }
+        ClinicList {
+          clinic_name
+          location
+          number
+        }
+        EMP_FULLNAME
+        EMP_ID
+        EMP_TITLE
+        LIC_NUMBER
+        S2_LIC
+        PTR_LIC
+        SPECIALIZATION
+        esig_dp{
+          type
+          doctorID
+          filename
+        }
+      }
+      patientInfo {
+        FNAME
+        AGE
+        HOME_ADD
+        LNAME
+        MNAME
+        SEX
+        STATUS
+        EMAIL
+        CONTACT_NO
+      }
+
+      physicalInfo {
+        doctorID
+        abdomen_comment
+        abdomen_status
+        backspine_comment
+        backspine_status
+        bmi_comment
+        bmi_status
+        clinic
+        date
+        glasses_lenses
+        gusystem_comment
+        gusystem_status
+        hearing
+        heart_comment
+        heart_status
+        heent_comment
+        heent_status
+        id
+        lungs_comment
+        lungs_status
+        musculoskeletal_comment
+        musculoskeletal_status
+        neck_comment
+        neck_status
+        neurological_comment
+        neurological_status
+        patientID
+        psychiatric_comment
+        psychiatric_status
+        pupils
+        report_id
+        skin_comment
+        skin_status
+        teeth_comment
+        teeth_status
+        vision_l
+        vision_r
+      }
+
+      vitalInfo {
+        doctor
+        bt
+        bp
+        bmi
+        bp1
+        bp2
+        chiefcomplaint
+        clinic
+        dateCreated
+        date
+        doctorID
+        emrPatientID
+        hr
+        ht
+        id
+        isDeleted
+        isEMR
+        patientID
+        patient
+        report_id
+        rr
+        spo2
+        wt
+      }
+      spo2
+      bmi
+      bp
+      bp1
+      bp2
+      bt
+      clinic
+      complaint
+      dateCreated
+      diagnosis
+      doctorID
+      hr
+      ht
+      id
+      illness
+      patientID
+      plan
+      remarks0
+      remarks1
+      remarks2
+      report_id
+      rr
+      wt
+    }
+  }
+`;
+
+export const POST_NOTES_SOAP = gql`
+  mutation POST_NOTES_SOAP($data: NoteSoapObjInputType!) {
+    PostNotesSoap(data: $data) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteSoapInfo {
+        bmi
+        bp
+        bp1
+        bp2
+        bt
+        clinic
+        complaint
+        dateCreated
+        diagnosis
+        doctorID
+        hr
+        ht
+        id
+        illness
+        isDeleted
+        patientID
+        plan
+        remarks1
+        remarks0
+        report_id
+        rr
+        wt
+        physicalInfo {
+          abdomen_comment
+          abdomen_status
+          backspine_comment
+          backspine_status
+          bmi_comment
+          bmi_status
+          clinic
+          date
+          doctorID
+          glasses_lenses
+          gusystem_comment
+          gusystem_status
+          hearing
+          heart_comment
+          heart_status
+          heent_comment
+          heent_status
+          id
+          lungs_comment
+          lungs_status
+          musculoskeletal_comment
+          musculoskeletal_status
+          neck_comment
+          neck_status
+          neurological_comment
+          neurological_status
+          patientID
+          psychiatric_comment
+          psychiatric_status
+          pupils
+          report_id
+          skin_comment
+          skin_status
+          teeth_comment
+          teeth_status
+          vision_l
+          vision_r
+        }
+      }
+      prescriptionInfo {
+        CLINIC
+        ID
+        PATIENTEMR
+        PR_ID
+        doctorID
+        patientID
+        prescriptions_child4Soap {
+          DOSE
+          DURATION
+          FORM
+          FREQUENCY
+          MEDICINE
+          MED_BRAND
+          PR_ID
+          QUANTITY
+        }
+      }
+    }
+  }
+`;
+
+export const POST_NOTES_SOAP_EMR = gql`
+  mutation POST_NOTES_SOAP_EMR($data: NoteSoapObjInputType!) {
+    PostNotesSoapEMR(data: $data) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteSoapInfo {
+        bmi
+        bp
+        bp1
+        bp2
+        bt
+        clinic
+        complaint
+        dateCreated
+        diagnosis
+        doctorID
+        hr
+        ht
+        id
+        illness
+        isDeleted
+        patientID
+        plan
+        remarks1
+        remarks0
+        report_id
+        rr
+        wt
+        physicalInfo {
+          abdomen_comment
+          abdomen_status
+          backspine_comment
+          backspine_status
+          bmi_comment
+          bmi_status
+          clinic
+          date
+          doctorID
+          glasses_lenses
+          gusystem_comment
+          gusystem_status
+          hearing
+          heart_comment
+          heart_status
+          heent_comment
+          heent_status
+          id
+          lungs_comment
+          lungs_status
+          musculoskeletal_comment
+          musculoskeletal_status
+          neck_comment
+          neck_status
+          neurological_comment
+          neurological_status
+          patientID
+          psychiatric_comment
+          psychiatric_status
+          pupils
+          report_id
+          skin_comment
+          skin_status
+          teeth_comment
+          teeth_status
+          vision_l
+          vision_r
+        }
+      }
+      prescriptionInfo {
+        CLINIC
+        ID
+        PATIENTEMR
+        PR_ID
+        doctorID
+        patientID
+        prescriptions_child4Soap {
+          DOSE
+          DURATION
+          FORM
+          FREQUENCY
+          MEDICINE
+          MED_BRAND
+          PR_ID
+          QUANTITY
+        }
+      }
+    }
+  }
+`;

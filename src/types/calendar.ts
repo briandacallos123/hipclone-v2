@@ -1,0 +1,19 @@
+import { EventInput } from '@fullcalendar/core';
+
+// ----------------------------------------------------------------------
+
+export type ICalendarFilterValue = string | Date | null;
+
+export type ICalendarFilters = {
+  status: string;
+  startDate: Date | null;
+  endDate: Date | null;
+};
+
+// ----------------------------------------------------------------------
+
+export type ICalendarView = 'dayGridMonth' | 'timeGridWeek' | 'timeGridDay' | 'listWeek';
+
+export type ICalendarState = {
+  events: EventInput[];
+};

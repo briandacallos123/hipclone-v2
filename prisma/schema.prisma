@@ -1,0 +1,1771 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id                Int     @id @default(autoincrement())
+  userId            Int
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+  user              user    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId], map: "accounts_userId_fkey")
+  @@map("accounts")
+}
+
+model Session {
+  id           Int      @id @default(autoincrement())
+  sessionToken String   @unique
+  userId       Int
+  expires      DateTime
+  user         user     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId], map: "sessions_userId_fkey")
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+  deleted    Boolean? @default(false)
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+model activity_logs {
+  id         Int      @id @default(autoincrement())
+  user_id    BigInt?
+  type       Int?
+  actions    String?  @db.Text
+  created_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+model allergy {
+  id              Int          @id @default(autoincrement())
+  patientID       Int?
+  emrPatientID    Int?
+  doctorID        Int?
+  isEMR           Int?
+  patient         String       @db.VarChar(250)
+  doctor          String       @db.VarChar(250)
+  dateCreated     DateTime     @default(now()) @db.DateTime(0)
+  allergy         String?      @db.Text
+  isDeleted       Int          @default(0)
+  patientRelation patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "allergy_ibfk_1")
+  emr_patient     emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "allergy_ibfk_2")
+  doctorInfo      employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "allergy_ibfk_3")
+
+  @@index([patientID], map: "allergy_ibfk_1")
+  @@index([emrPatientID], map: "allergy_ibfk_2")
+  @@index([doctorID], map: "allergy_ibfk_3")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model appointments {
+  id                      Int                       @id @default(autoincrement())
+  patientID               Int?
+  doctorID                Int?
+  clinic                  Int?
+  patient_no              String?                   @db.VarChar(255)
+  doctor_no               String?                   @db.VarChar(255)
+  ref_by                  String?                   @db.VarChar(255)
+  scheduledId             Int?
+  room                    String?                   @db.VarChar(255)
+  date                    DateTime?                 @db.Date
+  time_slot               DateTime?                 @db.Time(0)
+  s_time                  DateTime?                 @db.Time(0)
+  e_time                  DateTime?                 @db.Time(0)
+  symptoms                String?                   @db.VarChar(500)
+  comment                 String?                   @db.Text
+  remarks                 String?                   @db.Text
+  add_date                DateTime?                 @default(now()) @updatedAt @db.DateTime(0)
+  status                  Int?                      @default(0)
+  type                    Int?                      @default(1)
+  AddRequest              String?                   @db.VarChar(255)
+  Others                  String?                   @db.Text
+  payment_status          Int?                      @default(0)
+  photo                   String?                   @db.LongText
+  p_ref                   String?                   @db.VarChar(500)
+  p_desc                  String?                   @db.LongText
+  notified                Int?                      @default(0)
+  hmo                     String?                   @default("N/A") @db.Text
+  voucherId               String?                   @unique(map: "voucherId") @db.VarChar(255)
+  member_id               String?                   @db.VarChar(255)
+  loa_num                 String                    @db.VarChar(100)
+  otp                     String?                   @db.VarChar(100)
+  otp_status              Int                       @default(0)
+  email_stat              Int                       @default(0)
+  other_payment           String?                   @db.VarChar(255)
+  isDeleted               Int?                      @default(0)
+  patientInfo             patient?                  @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "appointments_ibfk_1")
+  doctorInfo              employees?                @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "appointments_ibfk_2")
+  clinicInfo              clinic?                   @relation("appointments_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "appointments_ibfk_3")
+  appt_hmo_attachment     appt_hmo_attachment[]
+  appt_payment_attachment appt_payment_attachment[]
+  appt_queue              appt_queue[]
+  hmo_claims              hmo_claims[]
+
+  @@index([patientID], map: "appointments_ibfk_1")
+  @@index([doctorID], map: "appointments_ibfk_2")
+  @@index([clinic], map: "idx_appointments_clinic")
+  @@index([doctor_no], map: "idx_appointments_doctor_no")
+  @@index([patient_no, doctor_no], map: "idx_appointments_patient_doctor")
+  @@index([patient_no], map: "idx_appointments_patient_no")
+}
+
+model appt_hmo_attachment {
+  id              Int           @id @default(autoincrement())
+  patientID       Int?
+  doctorID        Int?
+  clinic          Int?
+  appt_hmo_id     Int?
+  patient         String?       @db.VarChar(250)
+  doctor          String?       @db.VarChar(250)
+  filename        String?       @db.Text
+  file_url        String?       @db.Text
+  file_size       String?       @db.VarChar(250)
+  file_type       String?       @db.VarChar(250)
+  date            DateTime?     @default(now()) @db.DateTime(0)
+  isDeleted       Int?          @default(0)
+  patientRelation patient?      @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "appt_hmo_attachment_ibfk_1")
+  doctorInfo      employees?    @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "appt_hmo_attachment_ibfk_2")
+  clinicInfo      clinic?       @relation("appt_hmo_attachment_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "appt_hmo_attachment_ibfk_3")
+  AppointmentInfo appointments? @relation(fields: [appt_hmo_id], references: [id], onDelete: Cascade, map: "appt_hmo_attachment_ibfk_4")
+
+  @@index([patientID], map: "appt_hmo_attachment_ibfk_1")
+  @@index([doctorID], map: "appt_hmo_attachment_ibfk_2")
+  @@index([clinic], map: "appt_hmo_attachment_ibfk_3")
+  @@index([appt_hmo_id], map: "appt_hmo_attachment_ibfk_4")
+}
+
+model appt_payment_attachment {
+  id              Int           @id @default(autoincrement())
+  patientID       Int?
+  doctorID        Int?
+  clinic          Int?
+  appt_id         Int?
+  patient         String?       @db.VarChar(250)
+  doctor          String?       @db.VarChar(250)
+  filename        String?       @db.Text
+  file_url        String?       @db.Text
+  file_size       String?       @db.VarChar(250)
+  file_type       String?       @db.VarChar(250)
+  date            DateTime?     @default(now()) @db.DateTime(0)
+  isDeleted       Int?          @default(0)
+  patientRelation patient?      @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "appt_payment_attachment_ibfk_1")
+  doctorInfo      employees?    @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "appt_payment_attachment_ibfk_2")
+  clinicInfo      clinic?       @relation("appt_payment_attachment_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "appt_payment_attachment_ibfk_3")
+  AppointmentInfo appointments? @relation(fields: [appt_id], references: [id], onDelete: Cascade, map: "appt_payment_attachment_ibfk_4")
+
+  @@index([patientID], map: "appt_payment_attachment_ibfk_1")
+  @@index([doctorID], map: "appt_payment_attachment_ibfk_2")
+  @@index([clinic], map: "appt_payment_attachment_ibfk_3")
+  @@index([appt_id], map: "appt_payment_attachment_ibfk_4")
+}
+
+model bloodtype {
+  id   Int     @id @unique(map: "id") @default(autoincrement())
+  name String? @db.VarChar(255)
+}
+
+model brands {
+  bid        Int            @id @default(autoincrement())
+  brand_name String?        @unique(map: "brand_name") @db.VarChar(255)
+  status     brands_status?
+}
+
+model browsing_logs {
+  id          Int      @id @default(autoincrement())
+  href        String?  @db.Text
+  patharray   String?  @db.Text
+  pathname    String?  @db.Text
+  user        String?  @db.Text
+  ip_address  String?  @db.Text
+  device_info String?  @db.Text
+  created_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model civilstatus {
+  id   Int     @id @unique(map: "id") @default(autoincrement())
+  name String? @db.VarChar(255)
+}
+
+model posts {
+  id             Int              @id @unique(map: "id") @default(autoincrement())
+  text           String?          @db.LongText
+  likes          Int              @default(0)
+  userID         Int?
+  isPublic       Int?
+  createdAt      DateTime?        @default(now())
+  isDeleted      Int              @default(0)
+  likesData      likes[]
+  postattachment postattachment[]
+  userData       employees?       @relation(fields: [userID], references: [EMP_ID])
+
+  @@index([userID], map: "posts_userID_fkey")
+}
+
+model likes {
+  id        Int      @id @unique(map: "id") @default(autoincrement())
+  liker     Int?
+  postsId   Int?
+  unlike    Boolean? @default(true)
+  likerData patient? @relation(fields: [liker], references: [S_ID])
+  postID    posts?   @relation(fields: [postsId], references: [id])
+
+  @@index([liker], map: "likes_liker_fkey")
+  @@index([postsId], map: "likes_postsId_fkey")
+}
+
+model clinic {
+  id                                                                 Int                         @id @unique(map: "id") @default(autoincrement())
+  doctorID                                                           Int?
+  doctor_idno                                                        String?                     @db.VarChar(255)
+  clinic_name                                                        String?                     @db.VarChar(255)
+  schedule                                                           String?                     @default("a:3:{i:0;s:1:\"2\";i:1;s:1:\"4\";i:2;s:1:\"6\";}") @db.VarChar(255)
+  s_clinicschedule                                                   DateTime?                   @db.Date
+  e_clinicschedule                                                   DateTime?                   @db.Date
+  location                                                           String?                     @db.VarChar(255)
+  number                                                             String?                     @db.VarChar(255)
+  Province                                                           String?                     @db.VarChar(255)
+  date                                                               DateTime?                   @default(now()) @db.DateTime(0)
+  isDeleted                                                          Int?                        @default(0)
+  uuid                                                               String                      @unique(map: "uuid") @default(dbgenerated("(uuid())")) @db.Char(36)
+  AppointmentInfo                                                    appointments[]              @relation("appointments_clinicToclinic")
+  appt_hmo_attachment_appt_hmo_attachment_clinicToclinic             appt_hmo_attachment[]       @relation("appt_hmo_attachment_clinicToclinic")
+  appt_payment_attachment_appt_payment_attachment_clinicToclinic     appt_payment_attachment[]   @relation("appt_payment_attachment_clinicToclinic")
+  doctorInfo                                                         employees?                  @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "clinic_ibfk_1")
+  ClinicSchedInfo                                                    clinic_schedule[]           @relation("clinic_schedule_clinicToclinic")
+  clinicDPInfo                                                       clinicdp[]                  @relation("clinicdp_clinicToclinic")
+  labreport_labreport_clinicToclinic                                 labreport[]                 @relation("labreport_clinicToclinic")
+  labreport_attachments_labreport_attachments_clinicToclinic         labreport_attachments[]     @relation("labreport_attachments_clinicToclinic")
+  notes_abstract_notes_abstract_clinicToclinic                       notes_abstract[]            @relation("notes_abstract_clinicToclinic")
+  notes_labrequest_notes_labrequest_clinicToclinic                   notes_labrequest[]          @relation("notes_labrequest_clinicToclinic")
+  notes_medicalcertificate_notes_medicalcertificate_clinicToclinic   notes_medicalcertificate[]  @relation("notes_medicalcertificate_clinicToclinic")
+  notes_medicalclearance_notes_medicalclearance_clinicToclinic       notes_medicalclearance[]    @relation("notes_medicalclearance_clinicToclinic")
+  notes_pediamedcertvaccine_notes_pediamedcertvaccine_clinicToclinic notes_pediamedcertvaccine[] @relation("notes_pediamedcertvaccine_clinicToclinic")
+  notes_physical_notes_physical_clinicToclinic                       notes_physical[]            @relation("notes_physical_clinicToclinic")
+  notes_soap_notes_soap_clinicToclinic                               notes_soap[]                @relation("notes_soap_clinicToclinic")
+  notes_text_notes_text_clinicToclinic                               notes_text[]                @relation("notes_text_clinicToclinic")
+  notes_text_attachments_notes_text_attachments_clinicToclinic       notes_text_attachments[]    @relation("notes_text_attachments_clinicToclinic")
+  notes_vitals_notes_vitals_clinicToclinic                           notes_vitals[]              @relation("notes_vitals_clinicToclinic")
+  patient                                                            patient[]
+  prescriptions                                                      prescriptions[]
+  prescriptions_child                                                prescriptions_child[]
+  records                                                            records[]
+
+  @@index([doctorID], map: "clinic_ibfk_1")
+  @@index([clinic_name], map: "clinic_name")
+  @@index([clinic_name], map: "idx_clinic_clinic_name")
+  @@index([doctor_idno], map: "idx_clinic_doctor_idno")
+  @@index([id], map: "idx_clinic_id")
+  @@index([uuid], map: "idx_uuid_clinic")
+  @@index([isDeleted], map: "idx_clinic_isDeleted")
+}
+
+model clinic_schedule {
+  id            Int        @id @default(autoincrement())
+  doctorID      Int?
+  clinic        Int?
+  clinic_id     Int?
+  doctor_idno   Int?
+  SchedName     String?    @db.LongText
+  days          String?    @db.LongText
+  type          String?    @db.LongText
+  time_interval String?    @db.LongText
+  start_time    String?    @db.LongText
+  end_time      String?    @db.LongText
+  isDeleted     Int?       @default(0)
+  doctorInfo    employees? @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "clinic_schedule_ibfk_1")
+  clinicInfo    clinic?    @relation("clinic_schedule_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "clinic_schedule_ibfk_2")
+
+  @@index([doctorID], map: "clinic_schedule_ibfk_1")
+  @@index([clinic], map: "clinic_schedule_ibfk_2")
+}
+
+model clinicdp {
+  id         Int        @id @unique(map: "id") @default(autoincrement())
+  doctorID   Int?
+  clinic     Int?
+  filename   String?    @db.VarChar(255)
+  doctor     String?    @db.VarChar(255)
+  date       DateTime?  @default(now()) @db.DateTime(0)
+  doctorInfo employees? @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "clinicdp_ibfk_1")
+  clinicInfo clinic?    @relation("clinicdp_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "clinicdp_ibfk_2")
+
+  @@index([doctorID], map: "clinicdp_ibfk_1")
+  @@index([clinic], map: "clinicdp_ibfk_2")
+  @@index([id], map: "idx_clinicdp_id")
+}
+
+model days {
+  id   Int     @id @unique(map: "id") @default(autoincrement())
+  name String? @db.VarChar(255)
+}
+
+model dentalxray {
+  TXRAYID        Int     @id @default(autoincrement())
+  IDNO           Int?
+  XRAYNO         Int?
+  RECOMMENDATION String? @db.VarChar(255)
+  FILELOCATION   String? @db.VarChar(255)
+}
+
+model display_picture {
+  id       Int       @id @unique(map: "id") @default(autoincrement())
+  userID   Int?
+  idno     String?   @db.VarChar(255)
+  filename String?   @db.VarChar(255)
+  uploaded DateTime? @default(now()) @db.DateTime(0)
+  user     user?     @relation(fields: [userID], references: [id], onDelete: Cascade, map: "display_picture_ibfk_1")
+
+  @@index([userID], map: "display_picture_ibfk_1")
+  @@index([idno], map: "idx_display_picture_idno")
+  @@index([idno, uploaded], map: "idx_display_picture_idno_uploaded")
+}
+
+model doctor_payment {
+  id          Int        @id @default(autoincrement())
+  doctorID    Int?
+  doctor      String?    @db.VarChar(255)
+  title       String?    @db.VarChar(255)
+  acct        String?    @db.VarChar(250)
+  description String?    @db.VarChar(255)
+  isDisable   Int?       @default(0)
+  isDeleted   Int?       @default(0)
+  doctorInfo  employees? @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "doctor_payment_ibfk_1")
+
+  @@index([doctorID], map: "doctor_payment_ibfk_1")
+}
+
+model doctor_payment_dp {
+  id         Int        @id @default(autoincrement())
+  doctorID   Int?
+  dp_id      String?    @db.VarChar(255)
+  doctor     String?    @db.VarChar(255)
+  date       DateTime?  @default(now()) @db.DateTime(0)
+  filename   String?    @db.VarChar(255)
+  doctorInfo employees? @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "doctor_payment_dp_ibfk_1")
+
+  @@index([doctorID], map: "doctor_payment_dp_ibfk_1")
+}
+
+model employees {
+  EMP_ID                    Int                         @id @default(autoincrement())
+  userType                  Int                         @default(2)
+  EMP_EMAIL                 String?                     @db.VarChar(255)
+  LIC_NUMBER                String?                     @db.VarChar(255)
+  VALIDITY                  String?                     @db.VarChar(100)
+  PTR_LIC                   String?                     @db.VarChar(255)
+  S2_LIC                    String?                     @db.VarChar(255)
+  PRACTICING_SINCE          String?                     @db.VarChar(255)
+  MEDICAL_SCHOOL            String?                     @db.VarChar(255)
+  MED_YEAR_COMPLETED        String?                     @db.VarChar(255)
+  RESIDENCY                 String?                     @db.VarChar(255)
+  RESIDENCY_YEAR_COMPLETED  String?                     @db.VarChar(255)
+  FSHIP_TR0                 String?                     @db.VarChar(255)
+  FSHIP_TR0_COMPLETED       String?                     @db.VarChar(255)
+  FSHIP_TR1                 String?                     @db.VarChar(255)
+  FSHIP_TR1_COMPLETED       String?                     @db.VarChar(255)
+  DISPLAY_PICTURE           String?                     @db.VarChar(255)
+  EMPID                     Int?
+  EMP_FULLNAME              String?                     @db.VarChar(255)
+  EMP_FNAME                 String?                     @db.VarChar(25)
+  EMP_MNAME                 String?                     @db.VarChar(255)
+  EMP_LNAME                 String?                     @db.VarChar(255)
+  EMP_SUFFIX                String?                     @db.VarChar(255)
+  EMP_TITLE                 String?                     @default("MD") @db.VarChar(255)
+  FEES                      Decimal?                    @default(0.00) @db.Decimal(11, 2)
+  signature                 Int?                        @default(0)
+  isFeeShow                 Int?                        @default(0)
+  isPaySchedShow            Int?                        @default(0)
+  isAddReqFeeShow           Int?                        @default(0)
+  MEDCERT_FEE               Decimal?                    @default(0.00) @db.Decimal(11, 2)
+  MEDCLEAR_FEE              Decimal?                    @default(0.00) @db.Decimal(11, 2)
+  MEDABSTRACT_FEE           Decimal?                    @default(0.00) @db.Decimal(11, 2)
+  EMP_DOB                   String?                     @db.VarChar(255)
+  EMP_NATIONALITY           String?                     @db.VarChar(255)
+  EMP_DESCRIPTION           String?                     @db.VarChar(500)
+  EMP_ADDRESS               String?                     @db.VarChar(255)
+  CONTACT_NO                String?                     @db.VarChar(255)
+  EMP_SEX                   String?                     @default("1") @db.VarChar(255)
+  EMP_STATUS                String?                     @default("Single") @db.VarChar(255)
+  SPECIALIZATION            Int?                        @default(52)
+  SUBSPECIALTY              String?                     @db.VarChar(299)
+  EMPLOYMENT_STATUS         String?                     @default("Probationary") @db.VarChar(255)
+  OFFICELOAD                Int?
+  LOADDESCRIPTION           String?                     @db.VarChar(500)
+  HMO                       String?                     @db.LongText
+  coco_status               Int                         @default(0)
+  med_status                Int                         @default(0)
+  isDeleted                 Int?                        @default(0)
+  allergy                   allergy[]
+  AppointmentInfo           appointments[]
+  appt_hmo_attachment       appt_hmo_attachment[]
+  appt_payment_attachment   appt_payment_attachment[]
+  clinicInfo                clinic[]
+  ClinicSchedInfo           clinic_schedule[]
+  clinicDPInfo              clinicdp[]
+  doctor_payment            doctor_payment[]
+  doctor_payment_dp         doctor_payment_dp[]
+  user                      user?                       @relation(fields: [EMP_EMAIL, userType], references: [email, userType], onDelete: Cascade)
+  SpecializationInfo        specialization?             @relation(fields: [SPECIALIZATION], references: [id], onDelete: Cascade, map: "employees_ibfk_1")
+  emr_patient               emr_patient[]
+  esig_dp                   esig_dp[]
+  family_history            family_history[]
+  hmo_claims                hmo_claims[]
+  labreport                 labreport[]
+  medicalhistory            medicalhistory[]
+  medication                medication[]
+  notes_abstract            notes_abstract[]
+  notes_labrequest          notes_labrequest[]
+  notes_medicalcertificate  notes_medicalcertificate[]
+  notes_medicalclearance    notes_medicalclearance[]
+  notes_pediamedcertvaccine notes_pediamedcertvaccine[]
+  notes_physical            notes_physical[]
+  notes_soap                notes_soap[]
+  notes_text                notes_text[]
+  notes_text_attachments    notes_text_attachments[]
+  notes_vitals              notes_vitals[]
+  posts                     posts[]
+  prescriptions             prescriptions[]
+  prescriptions_child       prescriptions_child[]
+  records                   records[]
+  smoking                   smoking[]
+  smslogs                   smslogs[]
+  subAccountDoctorInfo      sub_account_doctor[]
+
+  @@index([EMPID], map: "EMPID")
+  @@index([EMP_EMAIL, userType], map: "employees_EMP_EMAIL_userType_fkey")
+  @@index([EMPID], map: "idx_employees_EMPID")
+  @@index([SPECIALIZATION], map: "idx_employees_SPECIALIZATION")
+  @@index([EMP_EMAIL], map: "idx_employees_email")
+}
+
+model emr_patient {
+  id                        Int                         @id @default(autoincrement())
+  patientID                 Int?
+  doctorID                  Int?
+  isEMR                     Int                         @default(1)
+  link                      Int?
+  idno                      BigInt
+  fname                     String?                     @db.VarChar(255)
+  mname                     String?                     @db.VarChar(255)
+  lname                     String?                     @db.VarChar(255)
+  suffix                    String?                     @db.VarChar(255)
+  gender                    Int?
+  contact_no                String?                     @db.VarChar(255)
+  email                     String?                     @db.VarChar(255)
+  doctor                    String?                     @db.VarChar(255)
+  patient                   String?                     @db.VarChar(255)
+  date_added                DateTime                    @default(now()) @db.DateTime(0)
+  dateofbirth               String                      @default(dbgenerated("(current_timestamp())")) @db.VarChar(255)
+  address                   String?                     @db.VarChar(255)
+  status                    Int?                        @default(1)
+  isdeleted                 Int?                        @default(0)
+  allergy                   allergy[]
+  doctorInfo                employees?                  @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "emr_patient_ibfk_1")
+  patientRelation           patient?                    @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "emr_patient_ibfk_2")
+  family_history            family_history[]
+  labreport                 labreport[]
+  labreport_attachments     labreport_attachments[]
+  medicalhistory            medicalhistory[]
+  medication                medication[]
+  notes_abstract            notes_abstract[]
+  notes_labrequest          notes_labrequest[]
+  notes_medicalcertificate  notes_medicalcertificate[]
+  notes_medicalclearance    notes_medicalclearance[]
+  notes_pediamedcertvaccine notes_pediamedcertvaccine[]
+  notes_physical            notes_physical[]
+  notes_soap                notes_soap[]
+  notes_text                notes_text[]
+  notes_text_attachments    notes_text_attachments[]
+  notes_vitals              notes_vitals[]
+  prescriptions             prescriptions[]
+  prescriptions_child       prescriptions_child[]
+  records                   records[]
+  smoking                   smoking[]
+
+  @@unique([id, isEMR])
+  @@index([doctorID], map: "emr_patient_ibfk_1")
+  @@index([patientID], map: "emr_patient_ibfk_2")
+  @@index([doctor], map: "idx_emr_patient_doctor")
+  @@index([email], map: "idx_emr_patient_email")
+  @@index([idno], map: "idx_emr_patient_id")
+  @@index([lname], map: "idx_emr_patient_lname")
+  @@index([patient], map: "idx_emr_patient_patient")
+  @@index([id, isEMR], map: "idx_patient_ID_isEMR")
+}
+
+model esig_dp {
+  id         Int        @id @default(autoincrement())
+  doctorID   Int?
+  idno       Int?
+  filename   String?    @db.VarChar(255)
+  type       Int?       @default(0)
+  uploaded   DateTime?  @default(now()) @db.DateTime(0)
+  doctorInfo employees? @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "esig_dp_ibfk_1")
+
+  @@index([doctorID], map: "esig_dp_ibfk_1")
+}
+
+model family_history {
+  id              Int          @id @default(autoincrement())
+  patientID       Int?
+  emrPatientID    Int?
+  doctorID        Int?
+  isEMR           Int?
+  patient         String?
+  doctor          String       @db.VarChar(250)
+  dateCreated     DateTime     @default(now()) @db.DateTime(0)
+  family_history  String?      @db.Text
+  isDeleted       Int          @default(0)
+  patientRelation patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "family_history_ibfk_1")
+  emr_patient     emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "family_history_ibfk_2")
+  doctorInfo      employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "family_history_ibfk_3")
+
+  @@index([patientID], map: "family_history_ibfk_1")
+  @@index([emrPatientID], map: "family_history_ibfk_2")
+  @@index([doctorID], map: "family_history_ibfk_3")
+}
+
+model gender {
+  id     Int     @id @unique(map: "id") @default(autoincrement())
+  gender String? @db.VarChar(255)
+}
+
+model hmo {
+  id             Int           @id @unique(map: "id") @default(autoincrement())
+  name           String?       @db.VarChar(255)
+  hmoClaimsInfo  hmo_claims[]  @relation("hmoInfo")
+  patientHmoInfo patient_hmo[] @relation("patientHmoInfo")
+}
+
+model hmo_claims {
+  id              Int           @id @default(autoincrement())
+  doctorID        Int?
+  appt_id         Int?
+  hmo             Int?
+  claim_status    Int           @default(0)
+  member_name     String        @db.VarChar(250)
+  member_id       String        @db.VarChar(250)
+  doctor          String        @db.VarChar(250)
+  date_appt       DateTime      @db.Date
+  time_appt       String        @db.VarChar(250)
+  diagnosis_code  String        @db.VarChar(250)
+  diagnosis       String        @db.Text
+  dispo_code      String        @db.VarChar(250)
+  disposition     String        @db.VarChar(255)
+  ver_code        String        @db.VarChar(250)
+  treatment       String        @db.Text
+  approval_no     String        @db.VarChar(255)
+  c_email         String        @db.VarChar(100)
+  c_contact       String        @db.VarChar(100)
+  c_clinic        String        @db.VarChar(100)
+  c_caddress      String        @db.Text
+  payment_type    String        @db.VarChar(100)
+  dateCreated     String        @default(dbgenerated("(current_timestamp())")) @db.VarChar(255)
+  export_stat     Int           @default(0)
+  isDeleted       Int           @default(0)
+  doctorInfo      employees?    @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "hmo_claims_ibfk_1")
+  appointmentInfo appointments? @relation(fields: [appt_id], references: [id], onDelete: Cascade, map: "hmo_claims_ibfk_2")
+  hmoInfo         hmo?          @relation("hmoInfo", fields: [hmo], references: [id], onDelete: Cascade, map: "hmo_claims_ibfk_3")
+  patientHmoInfo  patient_hmo   @relation(fields: [member_id], references: [member_id], onDelete: Cascade, map: "hmo_claims_ibfk_4")
+
+  @@index([doctorID], map: "hmo_claims_ibfk_1")
+  @@index([appt_id], map: "hmo_claims_ibfk_2")
+  @@index([hmo], map: "hmo_claims_ibfk_3")
+  @@index([member_id], map: "hmo_claims_ibfk_4")
+}
+
+model icd10 {
+  id          Int    @id @default(autoincrement())
+  code        String @db.VarChar(250)
+  description String @db.Text
+
+  @@index([id], map: "id")
+}
+
+model invoice {
+  invoice_no      Int               @id @default(autoincrement())
+  customer_name   String?           @db.VarChar(100)
+  order_date      DateTime?         @db.Date
+  sub_total       Float?
+  gst             Float?
+  discount        Float?
+  net_total       Float?
+  paid            Float?
+  due             Float?
+  payment_type    String?           @db.TinyText
+  invoice_details invoice_details[]
+}
+
+model invoice_details {
+  id           Int      @id @default(autoincrement())
+  invoice_no   Int?
+  product_name String?  @db.VarChar(100)
+  price        Float?
+  qty          Int?
+  invoice      invoice? @relation(fields: [invoice_no], references: [invoice_no], onDelete: Restrict, onUpdate: Restrict, map: "invoice_details_ibfk_1")
+
+  @@index([invoice_no], map: "invoice_no")
+}
+
+model labreport {
+  id                    Int                     @id @unique(map: "id") @default(autoincrement())
+  patientID             Int?
+  emrPatientID          Int?
+  doctorID              Int?
+  isEMR                 Int
+  patient               String?                 @db.VarChar(255)
+  doctor                String?                 @db.VarChar(255)
+  clinic                Int?
+  dateCreated           DateTime?               @default(now()) @db.DateTime(0)
+  type                  String?                 @db.VarChar(255)
+  labName               String?                 @db.VarChar(255)
+  resultDate            String?                 @db.VarChar(255)
+  remarks               String?                 @db.VarChar(255)
+  isDeleted             Int?                    @default(0)
+  emrPatientInfo        emr_patient?            @relation(fields: [emrPatientID, isEMR], references: [id, isEMR], onDelete: Cascade, map: "labreport_emrPatientID_isEMR")
+  doctorInfo            employees?              @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "labreport_ibfk_1")
+  clinicInfo            clinic?                 @relation("labreport_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "labreport_ibfk_2")
+  patientInfo           patient?                @relation(fields: [patientID, isEMR], references: [S_ID, isEMR], onDelete: Cascade, map: "labreport_patientID_isEMR")
+  labreport_attachments labreport_attachments[]
+
+  @@index([clinic], map: "clinic")
+  @@index([emrPatientID, isEMR], map: "labreport_emrPatientID_isEMR")
+  @@index([doctorID], map: "labreport_ibfk_1")
+  @@index([patientID, isEMR], map: "labreport_patientID_isEMR")
+}
+
+model labreport_attachments {
+  id           Int          @id @default(autoincrement())
+  patientID    Int?
+  emrPatientID Int?
+  doctorID     Int?
+  isEMR        Int?
+  patient      String?      @db.VarChar(255)
+  doctor       String?      @db.VarChar(255)
+  clinic       Int?
+  labreport_id Int?
+  file_name    String?      @db.VarChar(255)
+  file_url     String?      @db.VarChar(255)
+  file_size    String?      @db.VarChar(255)
+  file_type    String?      @db.VarChar(255)
+  date         DateTime?    @default(now()) @db.DateTime(0)
+  isDeleted    Int?         @default(0)
+  clinicInfo   clinic?      @relation("labreport_attachments_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade)
+  emr_patient  emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade)
+  labreport    labreport?   @relation(fields: [labreport_id], references: [id], onDelete: Cascade)
+  patientInfo  patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade)
+
+  @@index([clinic], map: "labreport_attachments_clinic_fkey")
+  @@index([emrPatientID], map: "labreport_attachments_emrPatientID_fkey")
+  @@index([labreport_id], map: "labreport_attachments_labreport_id_fkey")
+  @@index([patientID], map: "labreport_attachments_patientID_fkey")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model log_action {
+  id             Int          @id @default(autoincrement())
+  secretaryID    Int?
+  patientID      Int?
+  idno           Int?
+  request        String?      @db.VarChar(255)
+  patient        String?      @db.VarChar(255)
+  log_type       String       @db.VarChar(255)
+  date           DateTime?    @default(now()) @db.Timestamp(0)
+  type           Int?         @default(0)
+  patientInfo    patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "log_action_ibfk_1")
+  subAccountInfo sub_account? @relation(fields: [secretaryID], references: [id], onDelete: Cascade, map: "log_action_ibfk_2")
+
+  @@index([patientID], map: "log_action_ibfk_1")
+  @@index([secretaryID], map: "log_action_ibfk_2")
+}
+
+model medicalhistory {
+  id              Int          @id @default(autoincrement())
+  patientID       Int?
+  emrPatientID    Int?
+  doctorID        Int?
+  isEMR           Int?
+  patient         String?      @db.VarChar(250)
+  doctor          String?      @db.VarChar(250)
+  dateCreated     DateTime     @default(now()) @db.DateTime(0)
+  medhistory      String?      @db.Text
+  isDeleted       Int          @default(0)
+  patientRelation patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "medicalhistory_ibfk_1")
+  emr_patient     emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "medicalhistory_ibfk_2")
+  doctorInfo      employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "medicalhistory_ibfk_3")
+
+  @@index([patientID], map: "medicalhistory_ibfk_1")
+  @@index([emrPatientID], map: "medicalhistory_ibfk_2")
+  @@index([doctorID], map: "medicalhistory_ibfk_3")
+}
+
+model medication {
+  id             Int          @id @default(autoincrement())
+  patientID      Int?
+  emrPatientID   Int?
+  doctorID       Int?
+  isEMR          Int?
+  patient        String?      @db.VarChar(250)
+  doctor         String?      @db.VarChar(250)
+  dateCreated    DateTime     @default(now()) @db.DateTime(0)
+  medication     String?      @db.Text
+  isDeleted      Int          @default(0)
+  patientInfo    patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "medication_ibfk_1")
+  emrPatientInfo emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "medication_ibfk_2")
+  doctorInfo     employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "medication_ibfk_3")
+
+  @@index([patientID], map: "medication_ibfk_1")
+  @@index([emrPatientID], map: "medication_ibfk_2")
+  @@index([doctorID], map: "medication_ibfk_3")
+}
+
+model medicationmedicine {
+  MMID        Int       @id @default(autoincrement())
+  IDNO        Int?
+  MED_ID      Int?
+  MEDNAME     String?   @db.VarChar(150)
+  MEDQUANTITY Int?
+  MEDDATE     DateTime? @db.Date
+  MEDTIME     String?   @db.VarChar(255)
+}
+
+model medicine {
+  ID          Int     @id @unique(map: "ID") @default(autoincrement())
+  GenericName String? @db.VarChar(255)
+  Dose        String? @db.VarChar(255)
+  Form        String? @db.VarChar(255)
+  Price       String? @db.VarChar(255)
+}
+
+model notes_abstract {
+  id            Int          @id @default(autoincrement())
+  patientID     Int?
+  emrPatientID  Int?
+  doctorID      Int?
+  isEMR         Int?
+  patient       String?      @db.VarChar(255)
+  doctor        String?      @db.VarChar(255)
+  clinic        Int?
+  dateCreated   DateTime?    @default(now()) @db.DateTime(0)
+  report_id     Int?
+  complaint     String?      @db.Text
+  illness       String?      @db.Text
+  symptoms      String?      @db.Text
+  pastmed       String?      @db.Text
+  persoc        String?      @db.Text
+  physical      String?      @db.Text
+  labdiag       String?      @db.Text
+  findings      String?      @db.Text
+  finaldiag     String?      @db.Text
+  complications String?      @db.Text
+  procedures    String?      @db.Text
+  treatplan     String?      @db.Text
+  isDeleted     Int?         @default(0)
+  patientInfo   patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_abstract_ibfk_1")
+  emr_patient   emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_abstract_ibfk_2")
+  doctorInfo    employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_abstract_ibfk_3")
+  clinicInfo    clinic?      @relation("notes_abstract_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_abstract_ibfk_4")
+  records       records?     @relation(fields: [report_id], references: [R_ID], onDelete: Cascade, map: "notes_abstract_ibfk_5")
+
+  @@index([patientID], map: "notes_abstract_ibfk_1")
+  @@index([emrPatientID], map: "notes_abstract_ibfk_2")
+  @@index([doctorID], map: "notes_abstract_ibfk_3")
+  @@index([clinic], map: "notes_abstract_ibfk_4")
+  @@index([report_id], map: "notes_abstract_ibfk_5")
+}
+
+model notes_colonoscopy {
+  id                      Int     @id @unique(map: "id") @default(autoincrement())
+  record_id               String? @db.VarChar(255)
+  patient_no              String? @db.VarChar(255)
+  doctor_no               String? @db.VarChar(255)
+  clinic                  String? @db.VarChar(255)
+  hospital                String? @db.VarChar(255)
+  address                 String? @db.VarChar(255)
+  hmo                     String? @db.VarChar(255)
+  hmotext                 String? @db.VarChar(255)
+  isprivate               String? @db.VarChar(255)
+  outpatient              String? @db.VarChar(255)
+  philhealth              String? @db.VarChar(255)
+  housecase               String? @db.VarChar(255)
+  others                  String? @db.VarChar(255)
+  otherstext              String? @db.VarChar(255)
+  bleeding                String? @db.VarChar(255)
+  occultblood             String? @db.VarChar(255)
+  freshbleeding           String? @db.VarChar(255)
+  melena                  String? @db.VarChar(255)
+  hematochezia            String? @db.VarChar(255)
+  mass                    String? @db.VarChar(255)
+  executivecheckup        String? @db.VarChar(255)
+  others2                 String? @db.Text
+  otherstext2             String? @db.Text
+  preendoscopicimpression String? @db.VarChar(255)
+  othermedicalconditions  String? @db.VarChar(255)
+  anoscopy                String? @db.VarChar(255)
+  proctosigmoidoscopy     String? @db.VarChar(255)
+  colonoscopy             String? @db.VarChar(255)
+  colonoscopytext         String? @db.VarChar(255)
+  interventions           String? @db.VarChar(255)
+  impression              String? @db.VarChar(255)
+  suggestions             String? @db.VarChar(255)
+  isDeleted               Int?    @default(0)
+}
+
+model notes_labrequest {
+  id           Int          @id @default(autoincrement())
+  patientID    Int?
+  emrPatientID Int?
+  doctorID     Int?
+  isEMR        Int?
+  patient      String?      @db.VarChar(30)
+  doctor       String?      @db.VarChar(30)
+  clinic       Int?
+  procedures   String?      @db.VarChar(999)
+  fasting      Int?
+  record_id    Int?
+  others       String?      @db.VarChar(255)
+  dateCreated  DateTime?    @default(now()) @db.Timestamp(0)
+  isDeleted    Int?         @default(0)
+  patientInfo  patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_labrequest_ibfk_1")
+  emr_patient  emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_labrequest_ibfk_2")
+  doctorInfo   employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_labrequest_ibfk_3")
+  clinicInfo   clinic?      @relation("notes_labrequest_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_labrequest_ibfk_4")
+  records      records?     @relation(fields: [record_id], references: [R_ID], onDelete: Cascade, map: "notes_labrequest_ibfk_5")
+
+  @@index([patientID], map: "notes_labrequest_ibfk_1")
+  @@index([emrPatientID], map: "notes_labrequest_ibfk_2")
+  @@index([doctorID], map: "notes_labrequest_ibfk_3")
+  @@index([clinic], map: "notes_labrequest_ibfk_4")
+  @@index([record_id], map: "notes_labrequest_ibfk_5")
+}
+
+model notes_medicalcertificate {
+  id           Int          @id @unique(map: "id") @default(autoincrement())
+  patientID    Int?
+  emrPatientID Int?
+  doctorID     Int?
+  isEMR        Int?
+  InOutPatient Int?
+  patient      String?      @db.VarChar(255)
+  doctor       String?      @db.VarChar(255)
+  clinic       Int?
+  report_id    Int?
+  hospital     String?      @db.VarChar(255)
+  dateCreated  String?      @db.VarChar(255)
+  s_date       String?      @db.VarChar(255)
+  e_date       String?      @db.VarChar(255)
+  barring      String?      @db.VarChar(20)
+  diagnosis    String?      @db.VarChar(255)
+  remarks      String?      @db.VarChar(255)
+  VISIBILITY   Int?         @default(0)
+  isDeleted    Int?         @default(0)
+  patientInfo  patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_medicalcertificate_ibfk_1")
+  emr_patient  emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_medicalcertificate_ibfk_2")
+  doctorInfo   employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_medicalcertificate_ibfk_3")
+  clinicInfo   clinic?      @relation("notes_medicalcertificate_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_medicalcertificate_ibfk_4")
+  records      records?     @relation(fields: [report_id], references: [R_ID], onDelete: Cascade, map: "notes_medicalcertificate_ibfk_5")
+
+  @@index([patientID], map: "notes_medicalcertificate_ibfk_1")
+  @@index([emrPatientID], map: "notes_medicalcertificate_ibfk_2")
+  @@index([doctorID], map: "notes_medicalcertificate_ibfk_3")
+  @@index([clinic], map: "notes_medicalcertificate_ibfk_4")
+  @@index([report_id], map: "notes_medicalcertificate_ibfk_5")
+}
+
+model notes_medicalclearance {
+  id           Int          @id @default(autoincrement())
+  patientID    Int?
+  emrPatientID Int?
+  doctorID     Int?
+  isEMR        Int?
+  patient      String?      @db.VarChar(255)
+  doctor       String?      @db.VarChar(255)
+  clinic       Int?
+  dateCreated  String?      @db.VarChar(255)
+  report_id    Int?
+  dateExamined String?      @db.VarChar(255)
+  VISIBILITY   Int?         @default(0)
+  remarks      String?      @db.VarChar(255)
+  isDeleted    Int?         @default(0)
+  patientInfo  patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_medicalclearance_ibfk_1")
+  emr_patient  emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_medicalclearance_ibfk_2")
+  doctorInfo   employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_medicalclearance_ibfk_3")
+  clinicInfo   clinic?      @relation("notes_medicalclearance_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_medicalclearance_ibfk_4")
+  records      records?     @relation(fields: [report_id], references: [R_ID], onDelete: Cascade, map: "notes_medicalclearance_ibfk_5")
+
+  @@index([patientID], map: "notes_medicalclearance_ibfk_1")
+  @@index([emrPatientID], map: "notes_medicalclearance_ibfk_2")
+  @@index([doctorID], map: "notes_medicalclearance_ibfk_3")
+  @@index([clinic], map: "notes_medicalclearance_ibfk_4")
+  @@index([report_id], map: "notes_medicalclearance_ibfk_5")
+}
+
+model notes_pediamedcertvaccine {
+  id           Int          @id @default(autoincrement())
+  patientID    Int?
+  emrPatientID Int?
+  doctorID     Int?
+  isEMR        Int?
+  InOutPatient Int?
+  patient      String?      @db.VarChar(255)
+  doctor       String?      @db.VarChar(255)
+  clinic       Int?
+  report_id    Int?
+  dateCreated  String?      @db.VarChar(255)
+  diagnosis    String?      @db.Text
+  eval         String?      @db.VarChar(255)
+  VISIBILITY   Int          @default(0)
+  isDeleted    Int          @default(0)
+  patientInfo  patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_pediamedcertvaccine_ibfk_1")
+  emr_patient  emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_pediamedcertvaccine_ibfk_2")
+  doctorInfo   employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_pediamedcertvaccine_ibfk_3")
+  clinicInfo   clinic?      @relation("notes_pediamedcertvaccine_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_pediamedcertvaccine_ibfk_4")
+  records      records?     @relation(fields: [report_id], references: [R_ID], onDelete: Cascade, map: "notes_pediamedcertvaccine_ibfk_5")
+
+  @@index([patientID], map: "notes_pediamedcertvaccine_ibfk_1")
+  @@index([emrPatientID], map: "notes_pediamedcertvaccine_ibfk_2")
+  @@index([doctorID], map: "notes_pediamedcertvaccine_ibfk_3")
+  @@index([clinic], map: "notes_pediamedcertvaccine_ibfk_4")
+  @@index([report_id], map: "notes_pediamedcertvaccine_ibfk_5")
+}
+
+model notes_physical {
+  id                      Int          @id @unique(map: "id") @default(autoincrement())
+  patientID               Int?
+  emrPatientID            Int?
+  doctorID                Int?
+  isEMR                   Int?
+  patient                 String?      @db.VarChar(255)
+  doctor                  String?      @db.VarChar(255)
+  clinic                  Int?
+  date                    DateTime?    @default(now()) @db.DateTime(0)
+  report_id               String?      @db.VarChar(255)
+  vision_r                String?      @db.VarChar(255)
+  vision_l                String?      @db.VarChar(255)
+  pupils                  String?      @db.VarChar(255)
+  glasses_lenses          String?      @db.VarChar(255)
+  hearing                 String?      @db.VarChar(255)
+  bmi_status              String?      @db.VarChar(255)
+  bmi_comment             String?      @db.Text
+  skin_status             String?      @db.VarChar(255)
+  skin_comment            String?      @db.Text
+  heent_status            String?      @db.VarChar(255)
+  heent_comment           String?      @db.Text
+  teeth_status            String?      @db.VarChar(255)
+  teeth_comment           String?      @db.Text
+  neck_status             String?      @db.VarChar(255)
+  neck_comment            String?      @db.Text
+  lungs_status            String?      @db.VarChar(255)
+  lungs_comment           String?      @db.Text
+  heart_status            String?      @db.VarChar(255)
+  heart_comment           String?      @db.Text
+  abdomen_status          String?      @db.VarChar(255)
+  abdomen_comment         String?      @db.Text
+  gusystem_status         String?      @db.VarChar(255)
+  gusystem_comment        String?      @db.Text
+  musculoskeletal_status  String?      @db.VarChar(255)
+  musculoskeletal_comment String?      @db.Text
+  backspine_status        String?      @db.VarChar(255)
+  backspine_comment       String?      @db.Text
+  neurological_status     String?      @db.VarChar(255)
+  neurological_comment    String?      @db.Text
+  psychiatric_status      String?      @db.VarChar(255)
+  psychiatric_comment     String?      @db.Text
+  patientRelation         patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_physical_ibfk_1")
+  emr_patient             emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_physical_ibfk_2")
+  doctorInfo              employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_physical_ibfk_3")
+  clinicInfo              clinic?      @relation("notes_physical_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_physical_ibfk_4")
+
+  @@index([patientID], map: "notes_physical_ibfk_1")
+  @@index([emrPatientID], map: "notes_physical_ibfk_2")
+  @@index([doctorID], map: "notes_physical_ibfk_3")
+  @@index([clinic], map: "notes_physical_ibfk_4")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model notes_soap {
+  id           Int          @id @default(autoincrement())
+  patientID    Int?
+  emrPatientID Int?
+  doctorID     Int?
+  isEMR        Int?
+  patient      String?      @db.VarChar(255)
+  doctor       String?      @db.VarChar(255)
+  clinic       Int?
+  dateCreated  DateTime?    @default(now()) @db.DateTime(0)
+  report_id    Int?
+  complaint    String?      @db.Text
+  illness      String?      @db.Text
+  wt           String?      @db.VarChar(255)
+  hr           String?      @db.VarChar(255)
+  rr           String?      @db.VarChar(255)
+  bmi          String?      @db.VarChar(255)
+  ht           String?      @db.VarChar(255)
+  bt           String?      @db.VarChar(255)
+  spo2         String?      @db.VarChar(255)
+  bp           String?      @db.VarChar(255)
+  bp1          String?      @db.VarChar(20)
+  bp2          String?      @db.VarChar(20)
+  remarks0     String?      @db.Text
+  diagnosis    String?      @db.Text
+  remarks1     String?      @db.Text
+  plan         String?      @db.Text
+  remarks2     String?      @db.Text
+  isDeleted    Int?         @default(0)
+  patientInfo  patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_soap_ibfk_1")
+  emr_patient  emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_soap_ibfk_2")
+  doctorInfo   employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_soap_ibfk_3")
+  clinicInfo   clinic?      @relation("notes_soap_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_soap_ibfk_4")
+  records      records?     @relation(fields: [report_id], references: [R_ID], onDelete: Cascade, map: "notes_soap_ibfk_5")
+
+  @@index([patientID], map: "notes_soap_ibfk_1")
+  @@index([emrPatientID], map: "notes_soap_ibfk_2")
+  @@index([doctorID], map: "notes_soap_ibfk_3")
+  @@index([clinic], map: "notes_soap_ibfk_4")
+  @@index([report_id], map: "notes_soap_ibfk_5")
+}
+
+model notes_text {
+  id           Int          @id @default(autoincrement())
+  patientID    Int?
+  emrPatientID Int?
+  doctorID     Int?
+  isEMR        Int?
+  patient      String?      @db.VarChar(255)
+  doctor       String?      @db.VarChar(255)
+  clinic       Int?
+  dateCreated  String?      @db.VarChar(255)
+  report_id    Int?
+  title        String?      @db.VarChar(255)
+  text_data    String?      @db.Text
+  isDeleted    Int?         @default(0)
+  patientInfo  patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_text_ibfk_1")
+  emr_patient  emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_text_ibfk_2")
+  doctorInfo   employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_text_ibfk_3")
+  clinicInfo   clinic?      @relation("notes_text_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_text_ibfk_4")
+  records      records?     @relation(fields: [report_id], references: [R_ID], onDelete: Cascade, map: "notes_text_ibfk_5")
+
+  @@index([patientID], map: "notes_text_ibfk_1")
+  @@index([emrPatientID], map: "notes_text_ibfk_2")
+  @@index([doctorID], map: "notes_text_ibfk_3")
+  @@index([clinic], map: "notes_text_ibfk_4")
+  @@index([report_id], map: "notes_text_ibfk_5")
+}
+
+model notes_text_attachments {
+  id              Int          @id @default(autoincrement())
+  patientID       Int?
+  emrPatientID    Int?
+  doctorID        Int?
+  isEMR           Int?
+  patient         String?      @db.VarChar(255)
+  doctor          String?      @db.VarChar(255)
+  clinic          Int?
+  notes_text_id   Int?
+  file_name       String?      @db.VarChar(255)
+  file_url        String?      @db.VarChar(255)
+  file_size       String?      @db.VarChar(255)
+  file_type       String?      @db.VarChar(255)
+  date            DateTime?    @default(now()) @db.DateTime(0)
+  isDeleted       Int?         @default(0)
+  patientRelation patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_text_attachments_ibfk_1")
+  emr_patient     emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_text_attachments_ibfk_2")
+  doctorInfo      employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_text_attachments_ibfk_3")
+  clinicInfo      clinic?      @relation("notes_text_attachments_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_text_attachments_ibfk_4")
+
+  @@index([patientID], map: "notes_text_attachments_ibfk_1")
+  @@index([emrPatientID], map: "notes_text_attachments_ibfk_2")
+  @@index([doctorID], map: "notes_text_attachments_ibfk_3")
+  @@index([clinic], map: "notes_text_attachments_ibfk_4")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model notes_vitals {
+  id              Int          @id @unique(map: "id") @default(autoincrement())
+  patientID       Int?
+  emrPatientID    Int?
+  doctorID        Int?
+  isEMR           Int?
+  patient         String?      @db.VarChar(255)
+  doctor          String?      @db.VarChar(255)
+  clinic          Int?
+  date            DateTime?    @default(now()) @db.DateTime(0)
+  dateCreated     String?      @db.VarChar(255)
+  report_id       Int?
+  wt              String?      @db.VarChar(255)
+  ht              String?      @db.VarChar(255)
+  hr              String?      @db.VarChar(255)
+  rr              String?      @db.VarChar(255)
+  bmi             String?      @db.VarChar(255)
+  bt              String?      @db.VarChar(255)
+  spo2            String?      @db.VarChar(255)
+  bp              String?      @db.VarChar(255)
+  bp1             String?      @db.VarChar(20)
+  bp2             String?      @db.VarChar(20)
+  chiefcomplaint  String?      @db.VarChar(255)
+  isDeleted       String?      @default("0") @db.VarChar(255)
+  patientRelation patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "notes_vitals_ibfk_1")
+  emr_patient     emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "notes_vitals_ibfk_2")
+  doctorInfo      employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "notes_vitals_ibfk_3")
+  clinicInfo      clinic?      @relation("notes_vitals_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "notes_vitals_ibfk_4")
+  records         records?     @relation(fields: [report_id], references: [R_ID], onDelete: Cascade, map: "notes_vitals_ibfk_5")
+
+  @@index([patientID], map: "notes_vitals_ibfk_1")
+  @@index([emrPatientID], map: "notes_vitals_ibfk_2")
+  @@index([doctorID], map: "notes_vitals_ibfk_3")
+  @@index([clinic], map: "notes_vitals_ibfk_4")
+  @@index([report_id], map: "notes_vitals_ibfk_5")
+}
+
+model patient {
+  S_ID                      Int                         @id @default(autoincrement())
+  IDNO                      Int?                        @unique(map: "IDNO")
+  userType                  Int                         @default(0)
+  isEMR                     Int                         @default(0)
+  EMAIL                     String?                     @unique(map: "EMAIL") @db.VarChar(255)
+  DOCIDNO                   String?                     @db.VarChar(255)
+  CLINIC                    Int?                        @default(0)
+  FULLNAME                  String?                     @db.VarChar(255)
+  FNAME                     String?                     @db.VarChar(255)
+  LNAME                     String?                     @db.VarChar(255)
+  MNAME                     String?                     @db.VarChar(255)
+  SUFFIX                    String?                     @default("") @db.VarChar(255)
+  SEX                       Int?                        @default(1)
+  BDAY                      String?                     @default(dbgenerated("(current_timestamp())")) @db.VarChar(255)
+  BPLACE                    String?                     @db.Text
+  BLOOD_TYPE                Int?                        @default(9)
+  STATUS                    Int?                        @default(1)
+  AGE                       Int?
+  NATIONALITY               String?                     @db.VarChar(255)
+  RELIGION                  String?                     @db.VarChar(255)
+  CONTACT_NO                String?                     @db.VarChar(255)
+  TELEPHONE_NO              String?                     @db.VarChar(255)
+  HOME_ADD                  String?                     @db.VarChar(255)
+  PROVINCE                  String?                     @db.VarChar(255)
+  OCCUPATION                String?                     @db.VarChar(255)
+  EMPLOYERSNAME             String?                     @db.VarChar(255)
+  EMPLOYERSPHONENO          String?                     @db.VarChar(255)
+  EMPLOYERSADDRESS          String?                     @db.VarChar(255)
+  EMERGENCYNAME             String?                     @db.VarChar(255)
+  EMERGENCYADDRESS          String?                     @db.VarChar(255)
+  EMERGENCYCONTACTNO        String?                     @db.VarChar(255)
+  EMERGENCYRELATIONSHIP     String?                     @db.VarChar(255)
+  REFFERINGPHYSICIAN        String?                     @db.VarChar(255)
+  PRIMARYCAREPHYSICIAN      String?                     @db.VarChar(255)
+  OTHERPHYSICIAN            String?                     @db.VarChar(255)
+  ACC_PASSWORD              String?                     @db.Text
+  PATIENT_STATUS            String?                     @db.Text
+  HMO                       String?                     @default("N;") @db.VarChar(255)
+  HMO_CARD                  String?                     @db.VarChar(255)
+  isDeleted                 Int?                        @default(0)
+  allergy                   allergy[]
+  AppointmentInfo           appointments[]
+  appt_hmo_attachment       appt_hmo_attachment[]
+  appt_payment_attachment   appt_payment_attachment[]
+  emr_patient               emr_patient[]
+  family_history            family_history[]
+  labreport                 labreport[]
+  labreport_attachments     labreport_attachments[]
+  likes                     likes[]
+  logActionInfo             log_action[]
+  medicalhistory            medicalhistory[]
+  medication                medication[]
+  notes_abstract            notes_abstract[]
+  notes_labrequest          notes_labrequest[]
+  notes_medicalcertificate  notes_medicalcertificate[]
+  notes_medicalclearance    notes_medicalclearance[]
+  notes_pediamedcertvaccine notes_pediamedcertvaccine[]
+  notes_physical            notes_physical[]
+  notes_soap                notes_soap[]
+  notes_text                notes_text[]
+  notes_text_attachments    notes_text_attachments[]
+  notes_vitals              notes_vitals[]
+  userInfo                  user?                       @relation(fields: [EMAIL, userType], references: [email, userType], onDelete: Cascade)
+  clinicInfo                clinic?                     @relation(fields: [CLINIC], references: [id], onDelete: Cascade, map: "patient_ibfk_1")
+  patientHmoInfo            patient_hmo[]
+  prescriptions             prescriptions[]
+  prescriptions_child       prescriptions_child[]
+  records                   records[]
+  smoking                   smoking[]
+  smslogs                   smslogs[]
+
+  @@unique([EMAIL, userType])
+  @@unique([S_ID, isEMR])
+  @@index([S_ID, isEMR], map: "idx_patient_S_ID_isEMR")
+  @@index([EMAIL], map: "idx_patient_email")
+  @@index([IDNO], map: "idx_patient_idno")
+  @@index([LNAME], map: "idx_patient_lname")
+  @@index([EMAIL, userType], map: "patient_EMAIL_userType_fkey")
+  @@index([CLINIC], map: "patient_ibfk_1")
+}
+
+model patient_hmo {
+  id         Int          @id @default(autoincrement())
+  patientID  Int?
+  idno       String       @db.VarChar(250)
+  hmo        Int?
+  member_id  String?      @unique @db.VarChar(250)
+  isDeleted  Int          @default(0)
+  hmo_claims hmo_claims[]
+  patient    patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "patient_hmo_ibfk_1")
+  hmoInfo    hmo?         @relation("patientHmoInfo", fields: [hmo], references: [id], onDelete: Cascade, map: "patient_hmo_ibfk_2")
+
+  @@index([member_id], map: "member_id")
+  @@index([patientID], map: "patient_hmo_ibfk_1")
+  @@index([hmo], map: "patient_hmo_ibfk_2")
+}
+
+model patient_registrations {
+  id       BigInt   @id @default(autoincrement())
+  email    String   @db.VarChar(255)
+  reg_date DateTime @default(now()) @db.DateTime(0)
+}
+
+model payment_procedures {
+  id                          Int                          @id @unique(map: "id") @default(autoincrement())
+  name                        String?                      @db.VarChar(255)
+  description                 String?                      @db.VarChar(255)
+  category_name               String?                      @unique(map: "category_name") @db.VarChar(255)
+  price                       Decimal?                     @db.Decimal(10, 0)
+  reg_price                   Decimal?                     @db.Decimal(10, 0)
+  hmo                         Decimal?                     @db.Decimal(10, 0)
+  sendout                     Decimal?                     @db.Decimal(10, 0)
+  comission                   String?                      @db.VarChar(255)
+  category                    Int?
+  type                        Int?
+  isDeleted                   Int?                         @default(0)
+  payment_procedures_category payment_procedures_category? @relation(fields: [category], references: [id], onDelete: Cascade, map: "payment_procedures_ibfk_1")
+
+  @@index([category], map: "payment_procedures_ibfk_1")
+}
+
+model payment_procedures_category {
+  id                 Int                  @id @default(autoincrement())
+  name               String?              @db.VarChar(255)
+  payment_procedures payment_procedures[]
+}
+
+model prescriptions {
+  ID                  Int                   @id @unique(map: "ID") @default(autoincrement())
+  patientID           Int?
+  emrPatientID        Int?
+  doctorID            Int?
+  isEMR               Int?
+  DATE                DateTime?             @default(now()) @db.DateTime(0)
+  DOCTOR              String?               @db.VarChar(255)
+  PATIENT             String?               @db.VarChar(255)
+  PATIENTEMR          String?               @db.VarChar(255)
+  CLINIC              Int?                  @default(0)
+  REPORT_ID           Int?
+  isFavorite          Int?                  @default(0)
+  FollowUp            String?               @db.VarChar(30)
+  REMARKS             String?               @db.Text
+  VISIBILITY          Int?                  @default(0)
+  isDeleted           Int?                  @default(0)
+  presCode            String?               @db.VarChar(6)
+  patient             patient?              @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "prescriptions_ibfk_1")
+  emr_patient         emr_patient?          @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "prescriptions_ibfk_2")
+  doctorInfo          employees?            @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "prescriptions_ibfk_3")
+  clinicInfo          clinic?               @relation(fields: [CLINIC], references: [id], onDelete: Cascade, map: "prescriptions_ibfk_4")
+  records             records?              @relation(fields: [REPORT_ID], references: [R_ID], onDelete: Cascade, map: "prescriptions_ibfk_5")
+  prescriptions_child prescriptions_child[]
+
+  @@index([ID], map: "idx_prescriptions_id")
+  @@index([patientID], map: "prescriptions_ibfk_1")
+  @@index([emrPatientID], map: "prescriptions_ibfk_2")
+  @@index([doctorID], map: "prescriptions_ibfk_3")
+  @@index([CLINIC], map: "prescriptions_ibfk_4")
+  @@index([REPORT_ID], map: "prescriptions_ibfk_5")
+}
+
+model prescriptions_child {
+  ID            Int            @id @unique(map: "ID") @default(autoincrement())
+  patientID     Int?
+  emrPatientID  Int?
+  doctorID      Int?
+  isEMR         Int?
+  DATE          DateTime?      @default(now()) @db.DateTime(0)
+  DOCTOR        String?        @db.VarChar(255)
+  PATIENT       String?        @db.VarChar(255)
+  PATIENTEMR    String?        @db.Text
+  CLINIC        Int?
+  PR_ID         Int?
+  MEDICINE      String?        @db.VarChar(255)
+  MED_BRAND     String?        @db.VarChar(255)
+  DOSE          String?        @db.VarChar(255)
+  FORM          String?        @db.VarChar(255)
+  QUANTITY      String?        @db.VarChar(255)
+  FREQUENCY     String?        @db.VarChar(255)
+  DURATION      String?        @db.VarChar(255)
+  NOTES         String?        @db.Text
+  HISTORY       String?        @db.Text
+  MEDICATION    String?        @db.Text
+  isDeleted     Int?           @default(0)
+  patient       patient?       @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "prescriptions_child_ibfk_1")
+  emr_patient   emr_patient?   @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "prescriptions_child_ibfk_2")
+  doctorInfo    employees?     @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "prescriptions_child_ibfk_3")
+  clinicInfo    clinic?        @relation(fields: [CLINIC], references: [id], onDelete: Cascade, map: "prescriptions_child_ibfk_4")
+  prescriptions prescriptions? @relation(fields: [PR_ID], references: [ID], onDelete: Cascade, map: "prescriptions_child_ibfk_5")
+
+  @@index([MEDICINE], map: "MEDICINE")
+  @@index([PR_ID], map: "idx_prescriptions_child_pr_id")
+  @@index([patientID], map: "prescriptions_child_ibfk_1")
+  @@index([emrPatientID], map: "prescriptions_child_ibfk_2")
+  @@index([doctorID], map: "prescriptions_child_ibfk_3")
+  @@index([CLINIC], map: "prescriptions_child_ibfk_4")
+}
+
+model records {
+  R_ID                      Int                         @id @default(autoincrement())
+  patientID                 Int?
+  emrPatientID              Int?
+  doctorID                  Int?
+  isEMR                     Int?
+  PATIENT                   BigInt?
+  PATIENTEMR                String?                     @db.VarChar(255)
+  DOCTOR                    String?                     @db.VarChar(255)
+  CLINIC                    Int?
+  R_TYPE                    String?                     @default("0") @db.VarChar(255)
+  R_DATE                    DateTime?                   @default(now()) @db.DateTime(0)
+  RECORD_ID                 Int?
+  APPID                     String?                     @db.VarChar(255)
+  ALLERGIES                 String?                     @db.VarChar(255)
+  EXERCISE                  String?                     @db.VarChar(255)
+  SMOKE                     String?                     @db.VarChar(255)
+  ALCOHOL                   String?                     @db.VarChar(255)
+  BLOOD                     String?                     @db.VarChar(255)
+  HEART                     String?                     @db.VarChar(255)
+  APPEARANCE                String?                     @db.VarChar(255)
+  EYES                      String?                     @db.VarChar(255)
+  EAR                       String?                     @db.VarChar(255)
+  NOSE                      String?                     @db.VarChar(255)
+  MOUTH                     String?                     @db.VarChar(255)
+  THROAT                    String?                     @db.VarChar(255)
+  RESPIRATORY               String?                     @db.VarChar(255)
+  CARDIOVASCULAR            String?                     @db.VarChar(255)
+  SKIN                      String?                     @db.VarChar(255)
+  MEDCONDITION              String?                     @db.VarChar(255)
+  ABDOMINAL                 String?                     @db.VarChar(255)
+  HAIR                      String?                     @db.VarChar(255)
+  BLOODCOUNT                String?                     @db.VarChar(255)
+  CHOLESTEROL               String?                     @db.VarChar(255)
+  DIABETES                  String?                     @db.VarChar(255)
+  HEIGHT                    String?                     @db.VarChar(255)
+  WEIGTH                    String?                     @db.VarChar(255)
+  BMI                       String?                     @db.VarChar(255)
+  PULSE                     String?                     @db.VarChar(255)
+  BP                        String?                     @db.VarChar(255)
+  OXYGENSATURATION          String?                     @db.VarChar(255)
+  RESPIRATORYRATE           String?                     @db.VarChar(255)
+  BODYTEMPERATURE           String?                     @db.VarChar(255)
+  TSITE                     String?                     @db.VarChar(255)
+  CAPILLARYBLOODGLUCOSE     String?                     @db.VarChar(255)
+  isHidden                  Int?                        @default(0)
+  isDeleted                 Int?                        @default(0)
+  notes_abstract            notes_abstract[]
+  notes_labrequest          notes_labrequest[]
+  notes_medicalcertificate  notes_medicalcertificate[]
+  notes_medicalclearance    notes_medicalclearance[]
+  notes_pediamedcertvaccine notes_pediamedcertvaccine[]
+  notes_soap                notes_soap[]
+  notes_text                notes_text[]
+  notes_vitals              notes_vitals[]
+  prescriptions             prescriptions[]
+  patientInfo               patient?                    @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "records_NEW_PATIENT_fkey")
+  emr_patient               emr_patient?                @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "records_ibfk_1")
+  doctorInfo                employees?                  @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "records_ibfk_2")
+  clinicInfo                clinic?                     @relation(fields: [CLINIC], references: [id], onDelete: Cascade, map: "records_ibfk_3")
+
+  @@index([R_ID], map: "idx_records_r_id")
+  @@index([patientID], map: "records_NEW_PATIENT_fkey")
+  @@index([emrPatientID], map: "records_ibfk_1")
+  @@index([doctorID], map: "records_ibfk_2")
+  @@index([CLINIC], map: "records_ibfk_3")
+}
+
+model smoking {
+  id             Int          @id @default(autoincrement())
+  patientID      Int?
+  emrPatientID   Int?
+  doctorID       Int?
+  isEMR          Int?
+  patient        String       @db.VarChar(250)
+  doctor         String       @db.VarChar(250)
+  dateCreated    DateTime     @default(now()) @db.DateTime(0)
+  smoking        String?      @db.Text
+  isDeleted      Int          @default(0)
+  patientInfo    patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "smoking_ibfk_1")
+  emrPatientInfo emr_patient? @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "smoking_ibfk_2")
+  doctorInfo     employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "smoking_ibfk_3")
+
+  @@index([patientID], map: "smoking_ibfk_1")
+  @@index([emrPatientID], map: "smoking_ibfk_2")
+  @@index([doctorID], map: "smoking_ibfk_3")
+}
+
+model sms_action_logs {
+  id           Int      @id @default(autoincrement())
+  userinfo     String?  @db.Text
+  origin       String?  @db.Text
+  request_uri  String?  @db.VarChar(255)
+  mobile_no    String?  @db.VarChar(255)
+  description  String?  @db.Text
+  api_response String?  @db.Text
+  created_at   DateTime @default(now()) @db.Timestamp(0)
+  isdeleted    Int      @default(0)
+}
+
+model smslogs {
+  id             Int        @id @default(autoincrement())
+  patientID      Int?
+  doctorID       Int?
+  user_id        String?    @db.VarChar(255)
+  doctor_name    String?    @db.VarChar(255)
+  doctor_contact String?    @db.VarChar(255)
+  description    String?    @db.Text
+  dateCreated    DateTime?  @default(now()) @db.DateTime(0)
+  dateExecuted   String?    @default("0") @db.VarChar(255)
+  appointment_id String?    @db.VarChar(255)
+  patient        patient?   @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "smslogs_ibfk_1")
+  doctorInfo     employees? @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "smslogs_ibfk_2")
+
+  @@index([patientID], map: "smslogs_ibfk_1")
+  @@index([doctorID], map: "smslogs_ibfk_2")
+}
+
+model soap_attachments {
+  id          Int       @id @unique(map: "id") @default(autoincrement())
+  patient     String?   @db.VarChar(255)
+  doctor      String?   @db.VarChar(255)
+  clinic      String?   @db.VarChar(255)
+  dateCreated String?   @db.VarChar(255)
+  date        DateTime? @default(now()) @db.DateTime(0)
+  destination String?   @db.VarChar(255)
+  type        Int?
+}
+
+model specialization {
+  id          Int         @id @unique(map: "id") @default(autoincrement())
+  image       String?     @db.VarChar(255)
+  name        String?     @db.VarChar(255)
+  description String?     @db.VarChar(255)
+  isDeleted   Int?        @default(0)
+  doctorInfo  employees[]
+
+  @@index([id], map: "idx_specialization_id")
+}
+
+model sub_account {
+  id                   Int                  @id @default(autoincrement())
+  userType             Int                  @default(1)
+  email                String?              @db.VarChar(250)
+  idno                 String?              @db.VarChar(250)
+  fname                String?              @db.VarChar(250)
+  mname                String?              @db.VarChar(250)
+  lname                String?              @db.VarChar(250)
+  suffix               String?              @db.VarChar(20)
+  gender               String?              @default("0") @db.VarChar(25)
+  mobile_no            String?              @db.VarChar(250)
+  bday                 String?              @db.VarChar(250)
+  occupation           String?              @db.VarChar(250)
+  logActionInfo        log_action[]
+  userInfo             user?                @relation(fields: [email, userType], references: [email, userType], onDelete: Cascade)
+  subAccountDoctorInfo sub_account_doctor[]
+
+  @@index([idno], map: "idx_sub_account_idno")
+  @@index([email, userType], map: "sub_account_email_userType_fkey")
+}
+
+model sub_account_doctor {
+  id             Int          @id @default(autoincrement())
+  secretaryID    Int?
+  doctorID       Int?
+  idno           String?      @db.VarChar(250)
+  docidno        String?      @db.VarChar(250)
+  status         Int          @default(0)
+  appt_all       Int          @default(0)
+  appt_approve   Int          @default(0)
+  appt_cancel    Int          @default(0)
+  appt_done      Int          @default(0)
+  appt_type      Int          @default(0)
+  appt_pay       Int          @default(0)
+  lab_result     Int          @default(0)
+  hmo_claim      Int          @default(0)
+  pres_view      Int          @default(0)
+  doctorInfo     employees?   @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade)
+  subAccountInfo sub_account? @relation(fields: [secretaryID], references: [id], onDelete: Cascade, map: "sub_account_doctor_subAccountID_fkey")
+
+  @@index([doctorID], map: "sub_account_doctor_doctorID_fkey")
+  @@index([secretaryID], map: "sub_account_doctor_subAccountID_fkey")
+}
+
+model time {
+  id   Int     @id @unique(map: "id") @default(autoincrement())
+  time String? @db.VarChar(255)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model user {
+  id                                            Int                 @id @default(autoincrement())
+  username                                      String?             @db.VarChar(255)
+  uname                                         String?             @unique(map: "uname") @db.VarChar(255)
+  mobile_number                                 String?             @db.VarChar(14)
+  email                                         String?             @unique(map: "email") @db.VarChar(255)
+  password                                      String?             @db.VarChar(300)
+  userType                                      Int?                @default(0)
+  register_date                                 DateTime?           @db.Date
+  last_login                                    DateTime?           @db.DateTime(0)
+  last_activity                                 String?             @db.VarChar(255)
+  notes                                         String?             @db.VarChar(255)
+  code                                          String?             @db.VarChar(6)
+  userTries                                     Int?                @default(3)
+  isFirstLogin                                  Int?                @default(1)
+  userSkin                                      String?             @default("white") @db.VarChar(22)
+  isOnline                                      Int?                @default(0)
+  isActivated                                   Int?                @default(1)
+  isDeleted                                     Int?                @default(0)
+  uuid                                          String              @unique(map: "uuid") @default(dbgenerated("(uuid())")) @db.Char(36)
+  userStatus                                    UserStatuses?       @default(OFFLINE)
+  accounts                                      Account[]
+  message                                       Message[]
+  participant                                   Participant[]
+  display_picture                               display_picture[]
+  doctorInfo                                    employees[]
+  notification                                  notification[]
+  notification_notification_notifiable_idTouser notification[]      @relation("notification_notifiable_idTouser")
+  notification_read                             notification_read[]
+  patientInfo                                   patient?
+  sessions                                      Session[]
+  subAccountInfo                                sub_account[]
+
+  @@unique([email, userType], map: "unique_user_email_userType")
+  @@index([email, userType], map: "idx_user_email_userType")
+  @@index([uuid], map: "idx_uuid_user")
+}
+
+model users {
+  id       Int     @id @default(autoincrement())
+  fullname String? @db.VarChar(200)
+  username String? @db.VarChar(200)
+  email    String? @db.VarChar(200)
+  password String? @db.VarChar(200)
+  photo    String? @db.VarChar(200)
+  date     String? @db.VarChar(200)
+}
+
+model Attachment {
+  id         String   @id @default(uuid())
+  name       String
+  size       Int
+  type       String
+  path       String
+  preview    String
+  createdAt  DateTime @default(now())
+  modifiedAt DateTime @updatedAt
+  messageId  String
+  message    Message  @relation(fields: [messageId], references: [id], onDelete: Cascade)
+
+  @@index([messageId], map: "conversation_attachments_messageId_fkey")
+  @@map("conversation_attachments")
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  body           String
+  createdAt      DateTime?    @default(now())
+  contentType    String
+  senderId       Int
+  conversationId String
+  lastActivity   DateTime     @updatedAt
+  read_ids       String?      @db.LongText
+  attachments    Attachment[]
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender         user         @relation(fields: [senderId], references: [id])
+
+  @@index([conversationId], map: "conversation_messages_conversationId_fkey")
+  @@index([senderId], map: "conversation_messages_senderId_fkey")
+  @@map("conversation_messages")
+}
+
+model Participant {
+  id               String       @id @default(uuid())
+  userId           Int
+  conversationId   String
+  createdAt        DateTime?    @default(now())
+  conversationInfo Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  contactInfo      user         @relation(fields: [userId], references: [id])
+
+  @@index([conversationId], map: "conversation_participants_conversationId_fkey")
+  @@index([userId], map: "conversation_participants_userId_fkey")
+  @@map("conversation_participants")
+}
+
+model Conversation {
+  id           String        @id @default(uuid())
+  type         String
+  unreadCount  Int           @default(0)
+  lastActivity DateTime      @updatedAt
+  messages     Message[]
+  participants Participant[]
+
+  @@map("conversations")
+}
+
+model notification {
+  id                                    BigInt               @id @default(autoincrement())
+  user_id                               Int
+  notifiable_id                         Int
+  notification_type_id                  Int
+  notification_content_id               BigInt
+  appt_id                               Int?
+  chat_id                               String?
+  conversation_id                       String?              @db.VarChar(255)
+  notif_group_id                        Int?
+  is_read                               Int                  @default(0)
+  updated_at                            DateTime?            @db.DateTime(0)
+  created_at                            DateTime             @default(now()) @db.DateTime(0)
+  is_deleted                            Int                  @default(0)
+  notification_content                  notification_content @relation(fields: [notification_content_id], references: [id], onUpdate: Restrict, map: "notification_ibfk_1")
+  notification_type                     notification_type    @relation(fields: [notification_type_id], references: [id], onUpdate: Restrict, map: "notification_ibfk_2")
+  user                                  user                 @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "notification_ibfk_3")
+  user_notification_notifiable_idTouser user                 @relation("notification_notifiable_idTouser", fields: [notifiable_id], references: [id], onUpdate: Restrict, map: "notification_ibfk_4")
+  notification_group                    notification_group?  @relation(fields: [notif_group_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_5")
+  notification_read                     notification_read[]
+
+  @@index([notification_content_id], map: "notification_content_id")
+  @@index([notification_type_id], map: "notification_type_id")
+  @@index([user_id], map: "user_id")
+  @@index([notifiable_id], map: "notifiable_id")
+  @@index([appt_id], map: "appt_id")
+  @@index([notif_group_id], map: "notif_group_id")
+}
+
+model notification_content {
+  id           BigInt         @id @default(autoincrement())
+  content      String         @db.VarChar(255)
+  updated_at   DateTime?      @db.DateTime(0)
+  created_at   DateTime       @default(now()) @db.DateTime(0)
+  is_deleted   Int            @default(0)
+  notification notification[]
+}
+
+model notification_read {
+  id              BigInt       @id @default(autoincrement())
+  notification_id BigInt
+  reader_id       Int
+  is_read         Int          @default(0)
+  updated_at      DateTime?    @db.DateTime(0)
+  created_at      DateTime     @db.DateTime(0)
+  is_deleted      Int          @default(0)
+  notification    notification @relation(fields: [notification_id], references: [id], onUpdate: Restrict, map: "notification_read_ibfk_1")
+  user            user         @relation(fields: [reader_id], references: [id], onUpdate: Restrict, map: "notification_read_ibfk_2")
+
+  @@index([notification_id], map: "notification_id")
+  @@index([reader_id], map: "reader_id")
+}
+
+model notification_type {
+  id           Int            @id @default(autoincrement())
+  title        String         @db.VarChar(255)
+  updated_at   DateTime?      @db.DateTime(0)
+  created_at   DateTime       @default(now()) @db.DateTime(0)
+  is_deleted   Int            @default(0)
+  notification notification[]
+}
+
+model postattachment {
+  id        Int      @id @default(autoincrement())
+  fileName  String?  @db.VarChar(255)
+  imagePath String?  @db.VarChar(255)
+  type      String?  @db.VarChar(255)
+  fileSize  Int?
+  createdAt DateTime @default(now())
+  createdBy Int?
+  updatedAt DateTime @default(now())
+  updatedBy Int?
+  postID    Int
+  posts     posts    @relation(fields: [postID], references: [id], map: "postAttachment_postID_fkey")
+
+  @@index([postID], map: "postAttachment_postID_fkey")
+}
+
+model notification_group {
+  id               Int            @id @default(autoincrement())
+  notification_ids String         @db.LongText
+  is_read          Int            @default(0)
+  created_at       Int            @default(dbgenerated("(current_timestamp())"))
+  is_deleted       Int            @default(0)
+  notification     notification[]
+}
+
+model vital_category {
+  id         Int          @id @default(autoincrement())
+  title      String       @db.VarChar(255)
+  patientId  Int
+  doctorId   Int
+  createdBy  Int
+  isCategory Int          @default(1)
+  createdAt  DateTime     @default(now()) @db.DateTime(0)
+  isDeleted  Int          @default(0)
+  vital_data vital_data[]
+}
+
+model vital_data {
+  id             Int            @id @default(autoincrement())
+  patientId      Int?
+  doctorId       Int?
+  categoryId     Int
+  value          Int
+  isEMR          Int?
+  clinicId       Int?
+  reportId       Int?
+  createdAt      DateTime       @default(now()) @db.DateTime(0)
+  isDeleted      Int            @default(0)
+  vital_category vital_category @relation(fields: [categoryId], references: [id], onUpdate: Restrict, map: "vital_data_ibfk_1")
+
+  @@index([categoryId], map: "categoryId")
+}
+
+model appt_queue {
+  id           Int          @id @default(autoincrement())
+  appt_id      Int
+  ticket       String       @db.VarChar(255)
+  created_at   Int          @default(dbgenerated("(current_timestamp())"))
+  is_deleted   Int          @default(0)
+  appointments appointments @relation(fields: [appt_id], references: [id], onUpdate: Restrict, map: "appt_queue_ibfk_1")
+
+  @@index([appt_id], map: "appt_id")
+}
+
+enum UserStatuses {
+  ONLINE
+  OFFLINE
+  BUSY
+  AWAY
+  DONOTDISTURB
+}
+
+enum brands_status {
+  ONE  @map("1")
+  ZERO @map("0")
+}

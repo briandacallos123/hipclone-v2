@@ -1,0 +1,163 @@
+/* eslint-disable no-else-return */
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import { GraphQLError } from 'graphql/error/GraphQLError';
+// import { PrismaClient } from '@prisma/client';
+import { unserialize } from 'php-serialize';
+import { extendType, inputObjectType, objectType } from 'nexus';
+import client from '../../../prisma/prismaClient';
+import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import { useUpload } from '../../hooks/use-upload';
+
+/// ////////////////////////////////////////////////////
+export const appt_payment_attachment_obj = objectType({
+  name: 'appt_payment_attachment_obj',
+  definition(t) {
+    t.nullable.int('id');
+    t.nullable.int('patientID');
+    t.nullable.int('doctorID');
+    t.nullable.int('clinic');
+    t.nullable.int('appt_id');
+    t.nullable.string('patient');
+    t.nullable.string('doctor');
+    t.nullable.string('filename');
+    t.nullable.string('file_url');
+    t.nullable.date('date');
+    t.nullable.int('isDeleted');
+  },
+});
+/// ////////////////////////////////////////////////////
+
+/// ////////////////////////////////////////////////////
+export const patient_payment_request = inputObjectType({
+  name: 'patient_payment_request',
+  definition(t) {
+    t.nullable.int('patientID');
+    t.nullable.int('doctorID');
+    t.nullable.int('clinic');
+    t.nullable.int('appt_id');
+    t.nullable.string('patient');
+    t.nullable.string('doctor');
+    t.nullable.string('p_ref');
+    t.nullable.string('p_desc');
+  },
+});
+/// ////////////////////////////////////////////////////
+
+/// ////////////////////////////////////////////////////
+export const patient_payment_transactions = objectType({
+  name: 'patient_payment_transactions',
+  definition(t) {
+    t.nullable.field('status', {
+      type: 'String',
+    });
+    t.nullable.field('message', {
+      type: 'String',
+    });
+    // t.nullable.field('patient_payment_data', {
+    //   type: 'String',
+    // });
+    // t.string('patient_payment_data');
+    t.list.field('patient_payment_data', {
+      type: appt_payment_attachment_obj,
+    });
+  },
+});
+/// ////////////////////////////////////////////////////
+
+export const mutation_patient_payment = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nonNull.field('mutation_patient_payment', {
+      type: patient_payment_transactions,
+      args: {
+        data: patient_payment_request!,
+        file: 'Upload',
+      },
+      async resolve(_, args, ctx) {
+        const { patientID, doctorID, clinic, appt_id, patient, doctor, p_ref, p_desc }: any =
+          args.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(
+          client,
+          session?.user?.id,
+          '`mutation_patient_payment`',
+          'patient_payment_request'
+        );
+
+        console.log(session, 'session');
+        let res: any;
+
+        try {
+          if (session.user.role === 'patient') {
+            const findfirst_appt = await client.appt_payment_attachment.findFirst({
+              where: {
+                appt_id: appt_id,
+              },
+            });
+
+            if (findfirst_appt) {
+              res = {
+                status: 'Failed',
+                message: 'Create Payment Is Already Inserted',
+              };
+            } 
+            
+              res = await client.appointments.update({
+                where: {
+                  id: Number(appt_id),
+                },
+                data: {
+                  p_ref,
+                  p_desc,
+                  payment_status: 1,
+                },
+              });
+
+              // const labReportID = res.id;
+
+              const sFile = await args?.file;
+              if (sFile) {
+                const currentDate = new Date();
+                const formattedDate = currentDate.toISOString();
+
+                const uploadResult = await useUpload(sFile, 'public/documents/');
+                uploadResult.map(async (v: any) => {
+                  await client.appt_payment_attachment.create({
+                    data: {
+                      patientID,
+                      doctorID,
+                      clinic,
+                      appt_id,
+                      patient,
+                      doctor,
+                      filename: String(v.fileName),
+                      file_url: String(v.path),
+                      file_size: String(v.fileSize),
+                      file_type: String(v.fileType),
+                      date: formattedDate,
+                    },
+                  });
+                });
+              }
+              res = {
+                status: 'Success',
+                message: 'Create Payment Successfully',
+                // patient_payment_data: "",
+                patient_payment_data: [res],
+              };
+            
+          } else {
+            res = {
+              status: 'Failed',
+              message: 'You are not permitted to perform this action',
+              patient_payment_data: [],
+            };
+          }
+        } catch (error) {
+          throw new GraphQLError(error);
+        }
+        return res;
+      },
+    });
+  },
+});
