@@ -67,7 +67,7 @@ export function useNavData() {
       {
         subheader: t('HIPS'),
         items: [
-          { title: t('Home'), path: paths.dashboard.root, icon: ICONS.dashboard },
+          { title: t('Homes'), path: paths.dashboard.root, icon: ICONS.dashboard },
           // { title: t('overview'), path: paths.dashboard.overview.root, icon: ICONS.overview },
           // remove temporary
           // {
