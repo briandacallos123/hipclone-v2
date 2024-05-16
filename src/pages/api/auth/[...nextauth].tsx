@@ -27,44 +27,50 @@ export const authOptions: AuthOptions = {
       credentials: {
         username: { label: 'Username', type: 'text', placeholder: 'jsmith' },
         password: { label: 'Password', type: 'password' },
-        voucher:{}
+        type:{}
       },
       authorize: async (credentials, _req) => {
-        const voucher = credentials?.voucher;
-        let patient:any;
-
-        // // find user that equals the voucher code on appt
-
-        if(!credentials?.username && !credentials?.password){
-       
-          const appt = await client.appointments.findFirst({
-            where:{
-              voucherId:voucher
-            }
-          })
-  
-           patient = await client.patient.findFirst({
-            where:{
-              S_ID:Number(appt?.patientID)
-            }
-          })
-        }
+        const type = credentials?.type;
         const { username, password }: any = credentials;
+        let user:any;
 
-        const user: any = await client.user.findFirst({
-          select: {
-            uname: true,
-            password: true,
-            email: true,
-            username: true,
-            userType: true,
-          },
-          where: {
-            OR: [{ email: username || patient?.EMAIL}, { uname: username }],
-          },
-        });
+        console.log(username, password,'??')
 
-        // console.log(user,'?')
+        switch(type){
+          case "admin":
+
+          // client.admin.findFirst({
+          //   select:{
+          //     pa
+          //   }
+          // })
+
+            user = await client.admin.findFirst({
+           
+              where:{
+                email:username
+              }
+            })
+            user = {...user, isAdmin:true}
+            break;
+            default:
+
+            user =  await client.user.findFirst({
+              select: {
+                uname: true,
+                password: true,
+                email: true,
+                username: true,
+                userType: true,
+              },
+              where: {  
+                OR: [{ email: username}, { uname: username }],
+              },
+            });
+
+        }
+
+        console.log(user,'USER@@@@@@@')
 
         if (!user) {
           return null;
@@ -74,8 +80,8 @@ export const authOptions: AuthOptions = {
           : user.password;
         const valid = bcrypt.compareSync(password, hashPass);
 
-        if (!valid && !patient) {
-          return null;
+        if (!valid) {
+          throw new Error("Invalid Credentials")
         }
         return user;
       },
@@ -139,6 +145,9 @@ export const authOptions: AuthOptions = {
       return true;
     },
     async session({ session, user, token, account }: any) {
+
+      console.log(session,'session')
+      console.log(token,'token')
       /* const _user = {
         name: 'demo minimals',
         email: 'demo@minimals.cc',
@@ -172,6 +181,20 @@ export const authOptions: AuthOptions = {
       session.user.coverURL =
         'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg';
       session.user.occupation = 'UX / UI Designer'; */
+
+      if(token?.isAdmin){
+        const {email, id, first_name, last_name, middle_name, contact} = token;
+
+        // session.role = "admin"
+        session.user.displayName = middle_name ? `${first_name} ${middle_name} ${last_name}` : `${first_name} ${last_name}`;
+        session.user.lastName = last_name;
+        session.user.firstName = first_name;
+        session.user.middleName = middle_name;
+        session.user.contact = contact;
+        session.user.username = email;
+        session.user.role = "admin"
+        return session;
+      }
 
       if (token) {
         let userTypeString = 'patient';

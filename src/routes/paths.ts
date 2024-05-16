@@ -3,7 +3,8 @@
 const ROOTS = {
   AUTH: '/auth',
   DASHBOARD: '/dashboard',
-  QUEUE:'/queue'
+  QUEUE:'/queue',
+  ADMIN:'/workforce'
 };
 
 // ----------------------------------------------------------------------
@@ -35,6 +36,14 @@ export const paths: any = {
   queue:{
     // root:ROOTS.QUEUE, 
     root: (id: string) => `${ROOTS.QUEUE}/${id}`,
+  },
+  admin:{
+    login:`${ROOTS.ADMIN}/login`,
+    dashboard:`${ROOTS.ADMIN}/dashboard`,
+
+    merchant:{
+      root:`${ROOTS.ADMIN}/dashboard/merchant`,
+    }
   },
   // DASHBOARD
   dashboard: {

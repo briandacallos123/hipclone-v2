@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useCallback, useState } from 'react';
 // routes
 import { paths } from 'src/routes/paths';
@@ -11,38 +13,28 @@ type AuthGuardProps = {
   children: React.ReactNode;
 };
 
-export default function AuthGuard({ children }: AuthGuardProps) {
+export default function AdminGuard({ children }: AuthGuardProps) {
   const router = useRouter();
 
-  const { authenticated, user} = useAuthContext();
+  const { authenticated, user } = useAuthContext();
 
   const [checked, setChecked] = useState(false);
 
   const check = useCallback(() => {
-
-    if (!authenticated) {
-      const searchParams = new URLSearchParams({ returnTo: window.location.href }).toString();
-
-      const homePath = paths.home;
-
-      // const href = `${homePath}?${searchParams}`;
-      const href = `${homePath}`;
-
-      router.replace(href);
-    } else if(authenticated && user?.role === 'admin'){
-      
-      const homePath = paths.admin.dashboard;
-
-      // const href = `${homePath}?${searchParams}`;
-      const href = `${homePath}`;
-
-      router.replace(href);
-    }else {
-      setChecked(true);
-    } 
     // setChecked(true);
 
-   
+    if (!authenticated && user?.role !== 'admin') {
+      const searchParams = new URLSearchParams({ returnTo: window.location.href }).toString();
+
+      const homePath = paths.admin.login;
+
+      // const href = `${homePath}?${searchParams}`;
+      const href = `${homePath}`;
+
+      router.replace(href);
+    } else {
+      setChecked(true);
+    }
   }, [authenticated, router]);
 
   useEffect(() => {

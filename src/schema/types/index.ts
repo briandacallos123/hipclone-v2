@@ -65,3 +65,5 @@ export * from './Feeds';
 // AYUSIN MO YUNG RECORD TABLE YUNG CLINIC ID null mo yung mga 0
 
 export * from './Notification';
+
+export * from './Merchant';

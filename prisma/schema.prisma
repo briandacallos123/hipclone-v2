@@ -1757,6 +1757,28 @@ model appt_queue {
   @@index([appt_id], map: "appt_id")
 }
 
+model admin {
+  id            Int      @id @default(autoincrement())
+  first_name    String?  @db.VarChar(255)
+  last_name     String?  @db.VarChar(255)
+  middle_name   String?  @db.VarChar(255)
+  contact       String   @db.VarChar(255)
+  email         String   @db.VarChar(255)
+  password      String   @db.VarChar(255)
+  register_date DateTime @default(now()) @db.DateTime(0)
+  user_status   String   @default("OFFLINE") @db.VarChar(255)
+  is_deleted    Int      @default(0)
+}
+
+model merchant_user {
+  id            Int      @id @default(autoincrement())
+  email         String   @db.VarChar(255)
+  password      String   @db.VarChar(255)
+  register_date DateTime @default(now()) @db.DateTime(0)
+  is_deleted    Int      @default(0)
+  user_status   String   @default("OFFLINE") @db.VarChar(255)
+}
+
 enum UserStatuses {
   ONLINE
   OFFLINE

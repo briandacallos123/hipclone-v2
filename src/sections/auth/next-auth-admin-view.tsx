@@ -51,7 +51,7 @@ type Props = {
 
 // ----------------------------------------------------------------------
 
-export default function NextAuthMerchantView({ setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
+export default function NextAuthAdminView({ setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
   const { login, user } = useAuthContext();
   const path = usePathname();
 
@@ -103,17 +103,21 @@ export default function NextAuthMerchantView({ setLoggedIn, isLoggedIn, open, on
          }).then(()=>{
           window.location.href = returnTo || PATH_AFTER_LOGIN;
          }); */
-        await login?.(data.email, data.password);
-        // setLoggedIn((isLoggedIn = true));
-        window.location.href =
-          returnTo ||
-          (id && path === `/find-doctor/${id}/`
-            ? (() => {
-                if (user?.role !== 'doctor') {
-                  return paths.dashboard.appointment.book(id);
-                }
-              })()
-            : PATH_AFTER_LOGIN);
+        await login?.(data.email, data.password, 'admin');
+
+        
+        
+        // // setLoggedIn((isLoggedIn = true));
+        // window.location.href =
+        //   returnTo ||
+        //   (id && path === `/find-doctor/${id}/`
+        //     ? (() => {
+        //         if (user?.role !== 'doctor') {
+        //           return paths.dashboard.appointment.book(id);
+        //         }
+        //       })()
+        //     : PATH_AFTER_LOGIN);
+        window.location.href = paths.admin.dashboard
       } catch (error) {
         console.error(error);
         reset();
@@ -228,7 +232,7 @@ export default function NextAuthMerchantView({ setLoggedIn, isLoggedIn, open, on
         }}
       >
         {/* {renderHead} */}
-        <DialogTitle>Sign in as merchant to HIPS</DialogTitle>
+        <DialogTitle>Sign in as Admin</DialogTitle>
 
         <DialogContent sx={{ pb: 3 }}>
           <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>

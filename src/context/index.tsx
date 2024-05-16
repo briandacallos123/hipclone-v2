@@ -1,0 +1,1 @@
+export {default as MerchantProvider} from './workforce/merchant/MerchantContext'

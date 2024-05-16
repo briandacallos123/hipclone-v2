@@ -6,3 +6,4 @@ export { default as AmplifyNewPasswordView } from './amplify-new-password-view';
 export { default as AmplifyForgotPasswordView } from './amplify-forgot-password-view';
 export {default as QueueLoginView} from './next-queue-login-view'
 export {default as MerchantView} from './next-auth-merchant-view'
+export {default as AdminView} from './next-auth-admin-view'

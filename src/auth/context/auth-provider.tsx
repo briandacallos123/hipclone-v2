@@ -158,13 +158,13 @@ function NextAuthProvider({ children }: Props) {
   };
 
   // LOGIN
-  const login = useCallback(async (username: string, password: string, voucher?:string) => {
+  const login = useCallback(async (username: string, password: string, type?:string) => {
     // console.log('PATHHHHHHH: ', path);
     const result = await signIn('credentials', {
       redirect: false,
       username,
       password,
-      voucher
+      type
     });
     if (result?.error) {
       // throw new Error(`Invalid Username / Email or Password`);
