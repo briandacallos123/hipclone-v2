@@ -27,35 +27,45 @@ export const authOptions: AuthOptions = {
       credentials: {
         username: { label: 'Username', type: 'text', placeholder: 'jsmith' },
         password: { label: 'Password', type: 'password' },
-        type:{}
+        type: {}
       },
       authorize: async (credentials, _req) => {
         const type = credentials?.type;
         const { username, password }: any = credentials;
-        let user:any;
+        let user: any;
 
-        console.log(username, password,'??')
+        console.log(username, password, '??')
 
-        switch(type){
+        switch (type) {
           case "admin":
 
-          // client.admin.findFirst({
-          //   select:{
-          //     pa
-          //   }
-          // })
+            // client.admin.findFirst({
+            //   select:{
+            //     pa
+            //   }
+            // })
 
             user = await client.admin.findFirst({
-           
+
+              where: {
+                email: username
+              }
+            })
+            user = { ...user, isAdmin: true }
+            break;
+          case "merchant":
+            user = await client.merchant_user.findFirst({
               where:{
                 email:username
               }
             })
-            user = {...user, isAdmin:true}
-            break;
-            default:
 
-            user =  await client.user.findFirst({
+            user = { ...user, isMerchant: true }
+
+            break;
+          default:
+
+            user = await client.user.findFirst({
               select: {
                 uname: true,
                 password: true,
@@ -63,14 +73,15 @@ export const authOptions: AuthOptions = {
                 username: true,
                 userType: true,
               },
-              where: {  
-                OR: [{ email: username}, { uname: username }],
+              where: {
+                OR: [{ email: username }, { uname: username }],
               },
             });
 
+
         }
 
-        console.log(user,'USER@@@@@@@')
+        console.log(user, 'USER@@@@@@@')
 
         if (!user) {
           return null;
@@ -85,7 +96,7 @@ export const authOptions: AuthOptions = {
         }
         return user;
       },
-      
+
     }),
   ],
   debug: false,
@@ -146,8 +157,8 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, user, token, account }: any) {
 
-      console.log(session,'session')
-      console.log(token,'token')
+      
+      console.log(token,'HEHE')
       /* const _user = {
         name: 'demo minimals',
         email: 'demo@minimals.cc',
@@ -182,10 +193,10 @@ export const authOptions: AuthOptions = {
         'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg';
       session.user.occupation = 'UX / UI Designer'; */
 
-      if(token?.isAdmin){
-        const {email, id, first_name, last_name, middle_name, contact} = token;
+      if (token?.isAdmin) {
+        const { email, id, first_name, last_name, middle_name, contact } = token;
 
-        // session.role = "admin"
+     
         session.user.displayName = middle_name ? `${first_name} ${middle_name} ${last_name}` : `${first_name} ${last_name}`;
         session.user.lastName = last_name;
         session.user.firstName = first_name;
@@ -193,6 +204,18 @@ export const authOptions: AuthOptions = {
         session.user.contact = contact;
         session.user.username = email;
         session.user.role = "admin"
+        return session;
+      }else if(token?.isMerchant){
+        const { email, id, first_name, last_name, middle_name, contact } = token;
+
+     
+        session.user.displayName = middle_name ? `${first_name} ${middle_name} ${last_name}` : `${first_name} ${last_name}`;
+        session.user.lastName = last_name;
+        session.user.firstName = first_name;
+        session.user.middleName = middle_name;
+        session.user.contact = contact;
+        session.user.username = email;
+        session.user.role = "merchant"
         return session;
       }
 

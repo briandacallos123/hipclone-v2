@@ -1,6 +1,7 @@
 
 import { Box, Stack, TextField, Typography, Button, Tooltip, Divider } from '@mui/material'
 import React from 'react'
+import { useAuthContext } from '@/auth/hooks'
 
 type MerchantHeaderProps = {
     handleChangeVoucher:(e:string)=>string;
@@ -8,6 +9,10 @@ type MerchantHeaderProps = {
 }
 
 const MerchantHeader = ({handleChangeVoucher, setOpenScanner}:MerchantHeaderProps) => {
+   const {user} = useAuthContext()
+   
+   console.log(user,'USER??????????')
+   
     return (
         <Stack direction="row" alignItems="center" justifyContent="space-between" sx={{
             color:'black',
@@ -17,23 +22,25 @@ const MerchantHeader = ({handleChangeVoucher, setOpenScanner}:MerchantHeaderProp
         }}>
             <Box>
                 <Stack direction="row" alignItems="center">
-                    <Typography sx={{mr:1}} variant='body2'>Name: </Typography>
+                    <Typography sx={{mr:1}} variant='body2'>Name:</Typography>
                     <Typography sx={{
-                        fontWeight:'bold'
-                    }} variant="body1">Juan Dela Cruz: </Typography>
+                        fontWeight:'bold',
+                        textTransform:'capitalize'
+                    }} variant="body1">{user?.displayName} </Typography>
                 </Stack>
                 <Stack direction="row" alignItems="center">
                     <Typography sx={{mr:1}} variant='body2'>User Type: </Typography>
                     <Typography sx={{
-                        fontWeight:'bold'
-                    }} variant="body1">Merchant </Typography>
+                        fontWeight:'bold',
+                        textTransform:'capitalize'
+                    }} variant="body1">{user?.role} </Typography>
                 </Stack>
-                <Stack direction="row" alignItems="center">
+                {/* <Stack direction="row" alignItems="center">
                     <Typography sx={{mr:1}} variant='body2'>Date: </Typography>
                     <Typography sx={{
                         fontWeight:'bold'
                     }} variant="body1">5/15/2024 </Typography>
-                </Stack>
+                </Stack> */}
             </Box>
             <Box>
                 <Box sx={{

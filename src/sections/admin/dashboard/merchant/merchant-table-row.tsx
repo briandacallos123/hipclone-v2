@@ -21,8 +21,11 @@ import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import { TableMobileRow } from 'src/components/table';
 import { useAuthContext } from '@/auth/hooks';
-import { Box } from '@mui/material';
+import { Box, Button, MenuItem } from '@mui/material';
 import { useSnackbar } from 'src/components/snackbar';
+import CustomPopover, { usePopover } from '@/components/custom-popover';
+import { ConfirmDialog } from '@/components/custom-dialog';
+import { useBoolean } from '@/hooks/use-boolean';
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -63,6 +66,9 @@ export default function MerchantTableRow({
     }
     return `${hour}:${min} ${AMPM}`;
   };
+
+  const popover = usePopover();
+
 
 //   if (!upMd) {
 //     return (
@@ -132,40 +138,105 @@ export default function MerchantTableRow({
     enqueueSnackbar('Copied to clipboard');
   }
 
+  const confirm = useBoolean();
+
+  const renderConfirm = (
+    <ConfirmDialog
+      open={confirm.value}
+      onClose={confirm.onFalse}
+      title="Delete"
+      content="Are you sure want to delete?"
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            // onDeleteRow();
+            confirm.onFalse();
+          }}
+        >
+          Delete
+        </Button>
+      }
+    />
+  );
+
   return (
     <TableRow hover selected={selected}>
-        <TableCell>
+        <TableCell sx={{
+          display:'flex',
+          alignItems:'center'
+        }}>
                 <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
-                {row?.first_name.charAt(0).toUpperCase()}
+                {row?.first_name?.charAt(0)?.toUpperCase()}
               </Avatar>
               <ListItemText
                 primary={fullName}
                 primaryTypographyProps={{ typography: 'subtitle2' }}
                 sx={{
                   cursor: 'pointer',
-                  textDecoration: 'underline',
-                  ':hover': {
-                    color: 'primary.main',
-                  },
+                  // textDecoration: 'underline',
+                  // ':hover': {
+                  //   color: 'primary.main',
+                  // },
+                  textTransform:'capitalize'
                 }}
                 // onClick={() => onViewPatient(row?.patientInfo?.userInfo?.uuid)}
               />
         </TableCell>
-        <TableCell>
+        <TableCell >
             <Label variant="soft" color={'info'}>
                 {row?.contact}
             </Label>
         </TableCell>
-        <TableCell>
+        <TableCell align='center'>
             <Label variant="soft" color={'success'}>
                 {row?.email}
             </Label>
         </TableCell>
-        <TableCell>
+        <TableCell align='center'>
             <Label variant="soft" color={'success'}>
-                {row?.use_status}
+                {row?.user_status}
             </Label>
         </TableCell>
+
+        <TableCell align="center">
+          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+                <Iconify icon="eva:more-vertical-fill" />
+              </IconButton>
+          {/* <Tooltip title="actions" placement="top" arrow>
+            <IconButton onClick={() => onViewRow()}>
+              <Iconify icon="solar:clipboard-text-bold" />
+            </IconButton>
+          </Tooltip> */}
+      </TableCell>
+
+      <Stack direction="row" justifyContent="flex-end">
+          <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+            <MenuItem
+              onClick={() => {
+                // onAddSchedule();
+                popover.onClose();
+              }}
+            >
+              <Iconify icon="solar:pen-bold" />
+              Edit
+            </MenuItem>
+
+            <MenuItem
+              onClick={() => {
+                confirm.onTrue();
+                popover.onClose();
+              }}
+              sx={{ color: 'error.main' }}
+            >
+              <Iconify icon="solar:trash-bin-trash-bold" />
+              Delete
+            </MenuItem>
+
+            
+          </CustomPopover>
+        </Stack>
     </TableRow>
   );
 }

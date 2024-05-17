@@ -4,7 +4,8 @@ const ROOTS = {
   AUTH: '/auth',
   DASHBOARD: '/dashboard',
   QUEUE:'/queue',
-  ADMIN:'/workforce'
+  ADMIN:'/workforce',
+  MERCHANT:'/merchant'
 };
 
 // ----------------------------------------------------------------------
@@ -40,10 +41,14 @@ export const paths: any = {
   admin:{
     login:`${ROOTS.ADMIN}/login`,
     dashboard:`${ROOTS.ADMIN}/dashboard`,
-
     merchant:{
       root:`${ROOTS.ADMIN}/dashboard/merchant`,
-    }
+    },
+    
+  },
+  merchant:{
+    dashboard:`${ROOTS.MERCHANT}/dashboard`,
+    login:`${ROOTS.MERCHANT}/login`,
   },
   // DASHBOARD
   dashboard: {

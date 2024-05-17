@@ -3,6 +3,8 @@ import { extendType, objectType, inputObjectType, intArg, stringArg } from 'nexu
 import { useUpload } from '../../hooks/use-upload';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import client from '../../../prisma/prismaClient';
+import bcrypt from 'bcryptjs';
+import { GraphQLError } from 'graphql';
 
 export const merchantType = objectType({
     name:'merchantType',
@@ -12,6 +14,7 @@ export const merchantType = objectType({
         t.string('middle_name');
         t.string('contact');
         t.string('email');
+        t.string('user_status');
     },
 })
 
@@ -45,6 +48,8 @@ export const QueryAllMerchant = extendType({
 
             try {
                 const result = await client.merchant_user.findMany({
+                    take,
+                    skip,
                     where:{
                         is_deleted:0
                     }
@@ -56,6 +61,63 @@ export const QueryAllMerchant = extendType({
                 }
             } catch (error) {
                 console.log(error)
+            }
+
+        }
+    })
+}
+})
+
+export const CreateMerchantInp = inputObjectType({
+    name:"CreateMerchantInp",
+    definition(t) {
+        t.nonNull.string('email');
+        t.nonNull.string('password');
+        t.nonNull.string('firstName');
+        t.nullable.string('middleName');
+        t.nonNull.string('lastName');
+        t.nonNull.string('contact');
+    },
+})
+
+// export const CreateMerchantRes = objectType({
+//     name:"CreateMerchantRes",
+//     definition(t) {
+//         t.field('merchantUser',{
+//             type:merchantType
+//         })
+//     },
+// })
+
+
+export const CreateMerchant = extendType({
+    type: 'Mutation',
+    definition(t) {
+      t.nullable.field('CreateMerchant', {
+        type: merchantType,
+        args: { data:CreateMerchantInp },
+        async resolve(_root, args, ctx) {
+
+            const {email, password, firstName, lastName, middleName, contact}:any = args?.data;
+
+            const hashpassword = await bcrypt.hash(password, 8);
+
+            try {
+               const result = await client.merchant_user.create({
+                    data:{
+                        email,
+                        password:hashpassword,
+                        first_name:firstName,
+                        last_name:lastName,
+                        middle_name:middleName,
+                        contact
+                     
+                    }
+                })
+
+                return result
+            } catch (error) {
+                throw new GraphQLError(error)
             }
 
         }

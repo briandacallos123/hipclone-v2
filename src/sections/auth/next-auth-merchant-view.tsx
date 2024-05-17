@@ -103,17 +103,9 @@ export default function NextAuthMerchantView({ setLoggedIn, isLoggedIn, open, on
          }).then(()=>{
           window.location.href = returnTo || PATH_AFTER_LOGIN;
          }); */
-        await login?.(data.email, data.password);
-        // setLoggedIn((isLoggedIn = true));
-        window.location.href =
-          returnTo ||
-          (id && path === `/find-doctor/${id}/`
-            ? (() => {
-                if (user?.role !== 'doctor') {
-                  return paths.dashboard.appointment.book(id);
-                }
-              })()
-            : PATH_AFTER_LOGIN);
+        await login?.(data.email, data.password, 'merchant');
+       
+        window.location.href = paths.merchant.dashboard
       } catch (error) {
         console.error(error);
         reset();

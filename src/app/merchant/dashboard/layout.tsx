@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react'
+import MerchantGuard from '@/auth/guard/merchant-guard';
 
 type LayoutProps = {
     children:React.ReactNode
@@ -8,7 +9,9 @@ type LayoutProps = {
 
 const layout = ({children}:LayoutProps) => {
   return (
-    <div>{children}</div>
+    <MerchantGuard>
+      {children}
+    </MerchantGuard>
   )
 }
 

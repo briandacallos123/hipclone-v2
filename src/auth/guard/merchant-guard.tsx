@@ -1,3 +1,5 @@
+"use client"
+
 import { useEffect, useCallback, useState } from 'react';
 // routes
 import { paths } from 'src/routes/paths';
@@ -11,7 +13,7 @@ type AuthGuardProps = {
   children: React.ReactNode;
 };
 
-export default function AuthGuard({ children }: AuthGuardProps) {
+export default function MerchantGuard({ children }: AuthGuardProps) {
   const router = useRouter();
 
   const { authenticated, user } = useAuthContext();
@@ -19,25 +21,24 @@ export default function AuthGuard({ children }: AuthGuardProps) {
   const [checked, setChecked] = useState(false);
 
   const check = useCallback(() => {
+    // setChecked(true);
 
-    if (!authenticated) {
+    if (!authenticated ) {
       const searchParams = new URLSearchParams({ returnTo: window.location.href }).toString();
 
-      const homePath = paths.home;
+      const homePath = paths.admin.login;
 
       // const href = `${homePath}?${searchParams}`;
       const href = `${homePath}`;
 
       router.replace(href);
-    } else if (authenticated && user?.role !== 'doctor' && user?.role !== 'patient' && user?.role !== 'secretary') {
+    }else if(authenticated && user?.role !== 'merchant'){
       window.location.href = paths.page403
     }
+    
     else {
       setChecked(true);
     }
-    // setChecked(true);
-
-
   }, [authenticated, router]);
 
   useEffect(() => {

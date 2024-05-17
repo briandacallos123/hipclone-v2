@@ -23,7 +23,7 @@ export default function AdminGuard({ children }: AuthGuardProps) {
   const check = useCallback(() => {
     // setChecked(true);
 
-    if (!authenticated && user?.role !== 'admin') {
+    if (!authenticated) {
       const searchParams = new URLSearchParams({ returnTo: window.location.href }).toString();
 
       const homePath = paths.admin.login;
@@ -32,7 +32,11 @@ export default function AdminGuard({ children }: AuthGuardProps) {
       const href = `${homePath}`;
 
       router.replace(href);
-    } else {
+    }else if(authenticated && user?.role !=='admin'){
+      window.location.href = paths.page403
+    }
+    
+    else {
       setChecked(true);
     }
   }, [authenticated, router]);
