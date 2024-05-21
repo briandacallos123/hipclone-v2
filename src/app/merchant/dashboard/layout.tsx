@@ -2,15 +2,20 @@
 
 import React from 'react'
 import MerchantGuard from '@/auth/guard/merchant-guard';
+import MerchantLayout from '@/layouts/merchant/layout';
+
 
 type LayoutProps = {
-    children:React.ReactNode
+  children: React.ReactNode
 }
 
-const layout = ({children}:LayoutProps) => {
+const layout = ({ children }: LayoutProps) => {
   return (
+
     <MerchantGuard>
-      {children}
+      <MerchantLayout>
+        {children}
+      </MerchantLayout>
     </MerchantGuard>
   )
 }

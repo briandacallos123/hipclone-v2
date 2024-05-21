@@ -2,7 +2,7 @@
 
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -49,40 +49,55 @@ type Props = {
     id?: NULL | string;
     isLoggedIn?: any;
     setLoggedIn?: any;
+    editRow?:any;
+    isEdit?:boolean
 };
 
 // ----------------------------------------------------------------------
 
-export default function MerchantCreateView({ setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
+export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
     const { login, user } = useAuthContext();
     const path = usePathname();
-    const {createMerchantFunc} = UseMerchantContext()
+    const {createMerchantFunc, UpdateMerchantFunc}:any = UseMerchantContext()
     const [errorMsg, setErrorMsg] = useState('');
 
     const searchParams: any = useSearchParams();
+
+    console.log(isEdit,'??')
 
     const returnTo = searchParams.get('returnTo');
 
     const openReg = useBoolean();
 
     const password = useBoolean();
+    
+    const isYupCreate = !editRow && {
+        password: Yup.string().required('Password is required'),
+        repassword: Yup.string().test('passwords-match', 'Passwords do not match', function (value) {
+            return this.parent.password === value;}).required('Please confirm your password')
+    }
+    
 
     const LoginSchema = Yup.object().shape({
         email: Yup.string().required('Username / Email is required'),
-        password: Yup.string().required('Password is required'),
-        repassword: Yup.string().test('passwords-match', 'Passwords do not match', function (value) {
-            return this.parent.password === value;
-        }).required('Please confirm your password')
+        ...isYupCreate
+        
     });
 
-    const defaultValues = {
-        email: '',
+    const defaultValues = useMemo(()=>{
+       return {
+        email:   '',
         password: '',
-        firstName:"",
+        firstName: "",
         lastName:"",
         contact:"",
-        middleName:""
-    };
+        middleName:"",
+        repassword:"",
+        id:""
+       }
+    },[editRow?.id, editRow])
+
+
 
 
 //     <Stack spacing={1} direction="row" alignItems="center">
@@ -104,8 +119,23 @@ export default function MerchantCreateView({ setLoggedIn, isLoggedIn, open, onCl
     const {
         reset,
         handleSubmit,
+        setValue,
         formState: { isSubmitting },
     } = methods;
+
+    useEffect(()=>{
+        if(editRow?.id){
+            setValue('email', editRow?.email)
+            setValue('firstName', editRow?.first_name)
+            setValue('lastName', editRow?.last_name)
+            setValue('middleName', editRow?.middle_name)
+            setValue('contact', editRow?.contact)
+            setValue('id', editRow?.id)
+        }else{
+            reset()
+        }
+        // setValue('contact', editRow?.contact)
+    },[editRow?.id, editRow])
 
     // useEffect(() => {
     //   if (user) {
@@ -119,7 +149,16 @@ export default function MerchantCreateView({ setLoggedIn, isLoggedIn, open, onCl
         async (data: FormValuesProps) => {
             try {
                 delete data.repassword
-                await createMerchantFunc(data)
+
+                if(isEdit){
+                    // alert("bakit")
+                    delete data.password
+                    await UpdateMerchantFunc(data)
+                }else{
+
+                    delete data.id
+                    await createMerchantFunc(data)
+                }
                 onClose()
             } catch (error) {
                 console.error(error);
@@ -127,7 +166,7 @@ export default function MerchantCreateView({ setLoggedIn, isLoggedIn, open, onCl
                 setErrorMsg(typeof error === 'string' ? error : error.message);
             }
         },
-        [id, login, path, reset, returnTo, user]
+        [id, login, path, reset, returnTo, user, isEdit]
     );
 
     // const renderHead = (
@@ -192,6 +231,7 @@ export default function MerchantCreateView({ setLoggedIn, isLoggedIn, open, onCl
 
 
 
+         {!editRow && <>
             <RHFTextField
                 name="password"
                 label="Password"
@@ -221,6 +261,7 @@ export default function MerchantCreateView({ setLoggedIn, isLoggedIn, open, onCl
                     ),
                 }}
             />
+         </>}
 
             {/* <Link
         variant="body2"
@@ -260,7 +301,7 @@ export default function MerchantCreateView({ setLoggedIn, isLoggedIn, open, onCl
                 }}
             >
                 {/* {renderHead} */}
-                <DialogTitle>Create Merchant Account</DialogTitle>
+                <DialogTitle>{editRow? "Update":"Create"} Merchant Account</DialogTitle>
 
                 <DialogContent sx={{ pb: 3 }}>
                     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>

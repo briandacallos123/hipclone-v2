@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useReducer, useCallback } from 'react'
 import { useLazyQuery, useMutation } from '@apollo/client'
-import { QueryAllMerchant, CreateMerchant } from '@/libs/gqls/merchant';
+import { QueryAllMerchant, CreateMerchant, DeleteMerchant, EditMerchant } from '@/libs/gqls/merchant';
 import { useSnackbar } from 'src/components/snackbar';
 import {
     useTable,
@@ -62,6 +62,7 @@ const reducer = (state:stateProps, action:actionProps) => {
 
 const MerchantContext = ({children}:MerchantContextProps) => {
     const [state, dispatch] = useReducer(reducer, initialState)
+    const [toRefetch, setToRefetch] = useState<number>(0);
 
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
  
@@ -97,7 +98,7 @@ const MerchantContext = ({children}:MerchantContextProps) => {
                
             }
         })
-    },[table.page, table.rowsPerPage])
+    },[table.page, table.rowsPerPage, toRefetch])
 
     // end of fetching merchant user
 
@@ -116,20 +117,88 @@ const MerchantContext = ({children}:MerchantContextProps) => {
             }
         }).then((res)=>{
             const {data} = res;
-            dispatch({
-                type:"Create",
-                payload:data.CreateMerchant
+            setToRefetch((prev)=>{
+                return prev += 1
             })
+            // dispatch({
+            //     type:"Create",
+            //     payload:data.CreateMerchant
+            // })
             enqueueSnackbar("Created Merchant Succesfully")
           
         })
     },[])
 
+
     // end of create merchant user
+
+    // delete merchant
+    const [DeleteMerchantF] = useMutation(DeleteMerchant, {
+        context: {
+          requestTrackerId: 'Delete_Merchant[Merchant_User_Delete]',
+        },
+        notifyOnNetworkStatusChange: true,
+      });
+    
+    const DeleteMerchantFunc = useCallback((id:any)=>{
+        DeleteMerchantF({
+            variables:{
+                data:{
+                    id
+                }
+            }
+        }).then((res)=>{
+            const {data} = res;
+            setToRefetch((prev)=>{
+                return prev += 1
+            })
+            // dispatch({
+            //     type:"Delete",
+            //     payload:data.CreateMerchant
+            // })
+            enqueueSnackbar("Deleted Merchant Succesfully")
+          
+        })
+    },[])
+
+
+    // end of delete merchant
+
+      // delete merchant
+      const [UpdateMerchantF] = useMutation(EditMerchant, {
+        context: {
+          requestTrackerId: 'Update_Merchant[Merchant_User_Update]',
+        },
+        notifyOnNetworkStatusChange: true,
+      });
+    
+    const UpdateMerchantFunc = useCallback((user:any)=>{
+        UpdateMerchantF({
+            variables:{
+                data:{
+                    ...user
+                }
+            }
+        }).then((res)=>{
+            const {data} = res;
+            setToRefetch((prev)=>{
+                return prev += 1
+            })
+            // dispatch({
+            //     type:"Delete",
+            //     payload:data.CreateMerchant
+            // })
+            enqueueSnackbar("Updated Succesfully")
+          
+        })
+    },[])
+
+
+    // end of delete merchant
 
 
   return (
-    <MerchatProvider.Provider value={{state, createMerchantFunc, table}}>
+    <MerchatProvider.Provider value={{state, UpdateMerchantFunc, createMerchantFunc,DeleteMerchantFunc, table}}>
         {children}
     </MerchatProvider.Provider> 
   )

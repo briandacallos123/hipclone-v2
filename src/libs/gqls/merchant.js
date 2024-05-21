@@ -4,6 +4,7 @@ export const QueryAllMerchant = gql`
   query QueryAllMerchant($data: merchantInputType!) {
     QueryAllMerchant(data: $data) {
         merchantType {
+            id
             contact
             email
             first_name
@@ -30,3 +31,22 @@ export const CreateMerchant = gql`
   }
 `;
 
+export const DeleteMerchant = gql`
+  mutation DeleteMerchant($data: DeleteMerchInp!) {
+    DeleteMerchant(data: $data) {
+    
+     message
+      
+      }
+  }
+`;
+
+
+
+export const EditMerchant = gql`
+  mutation EditMerchant($data: EditMerchInp!) {
+    EditMerchant(data: $data) {
+        message
+      }
+  }
+`;

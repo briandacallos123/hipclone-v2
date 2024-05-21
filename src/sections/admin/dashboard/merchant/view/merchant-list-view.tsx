@@ -104,7 +104,7 @@ export default function MerchantListView() {
   // const isPatient = user?.role === 'patient';
   const settings = useSettingsContext();
   const confirmApprove = useBoolean();
-
+  const confirmEdit = useBoolean();
   const opencreate = useBoolean();
 
   const [isClinic, setIsClinic] = useState(0);
@@ -124,7 +124,7 @@ export default function MerchantListView() {
 
   const [filters, setFilters]: any = useState(defaultFilters);
 
-  const {state, table}: any = UseMerchantContext();
+  const {state, table, DeleteMerchantFunc, UpdateMerchantFunc}: any = UseMerchantContext();
   const { page, rowsPerPage, order, orderBy } = table;
   // const {merchantData, isLoading} = state;
 
@@ -384,6 +384,16 @@ export default function MerchantListView() {
     // },
   ] as const;
 
+  const [editRow, setEditRow] = useState(null)
+
+  
+
+  const handleEditRow = (row:any)=> {
+    opencreate.onTrue()
+    setEditRow(row)
+
+  }
+
   const handleFilters = useCallback(
     (name: string, value: IAppointmentTableFilterValue) => {
       table.onResetPage();
@@ -445,6 +455,12 @@ export default function MerchantListView() {
     },
     [router]
   );
+
+  const handleDeleteRow = (id:string) => {
+    DeleteMerchantFunc(id)
+  }
+
+
 
 
   return (
@@ -669,6 +685,8 @@ export default function MerchantListView() {
                           onSelectRow={() => table.onSelectRow(String(row.id))}
                           onViewRow={() => handleViewRow(row)}
                           onViewPatient={() => handleViewPatient(row)}
+                          onDeleteRow={()=>handleDeleteRow(row?.id)}
+                          onEditRow={()=>handleEditRow(row)}
                         />
                       ))}
 
@@ -689,14 +707,17 @@ export default function MerchantListView() {
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}
             onRowsPerPageChange={table.onChangeRowsPerPage}
-            //
+            
             dense={table.dense}
             onChangeDense={table.onChangeDense}
           />
         </Card>
       </Container>
 
-      <MerchantCreateView onClose={opencreate.onFalse} open={opencreate.value}/>
+      <MerchantCreateView editRow={editRow} isEdit={editRow && true} onClose={()=>{
+        opencreate.onFalse();
+        setEditRow(null)
+      }} open={opencreate.value}/>
 
       {/* {viewId && <AppointmentDetailsView
         updateRow={updateRow}

@@ -34,7 +34,9 @@ type Props = {
   selected: boolean;
   onSelectRow: VoidFunction;
   onViewRow: VoidFunction;
+  onDeleteRow:()=>void;
   onViewPatient: VoidFunction;
+  onEditRow:()=>void;
 };
 
 export default function MerchantTableRow({
@@ -43,6 +45,8 @@ export default function MerchantTableRow({
   onSelectRow,
   onViewRow,
   onViewPatient,
+  onDeleteRow,
+  onEditRow
 }: Props) {
   /*  const { patient, hospital, schedule, isPaid, type } = row; */
   const upMd = useResponsive('up', 'md');
@@ -151,7 +155,7 @@ export default function MerchantTableRow({
           variant="contained"
           color="error"
           onClick={() => {
-            // onDeleteRow();
+            onDeleteRow();
             confirm.onFalse();
           }}
         >
@@ -215,7 +219,7 @@ export default function MerchantTableRow({
           <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
             <MenuItem
               onClick={() => {
-                // onAddSchedule();
+                onEditRow();
                 popover.onClose();
               }}
             >
@@ -237,6 +241,7 @@ export default function MerchantTableRow({
             
           </CustomPopover>
         </Stack>
+        {renderConfirm}
     </TableRow>
   );
 }

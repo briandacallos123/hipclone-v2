@@ -9,6 +9,7 @@ import { GraphQLError } from 'graphql';
 export const merchantType = objectType({
     name:'merchantType',
     definition(t) {
+        t.int('id')
         t.string('first_name');
         t.string('last_name');
         t.string('middle_name');
@@ -120,6 +121,104 @@ export const CreateMerchant = extendType({
                 throw new GraphQLError(error)
             }
 
+        }
+    })
+}
+})
+
+export const DeleteMerchInp = inputObjectType({
+    name:"DeleteMerchInp",
+    definition(t) {
+        t.int('id');
+    },
+})
+
+export const DeleteMerchObj = objectType({
+    name:"DeleteMerchObj",
+    definition(t) {
+        t.string("message")
+    },
+})
+
+export const DeleteMerchant = extendType({
+    type: 'Mutation',
+    definition(t) {
+      t.nullable.field('DeleteMerchant', {
+        type: DeleteMerchObj,
+        args: { data:DeleteMerchInp },
+        async resolve(_root, args, ctx) {
+
+            try {
+                await client.merchant_user.update({
+                    data:{
+                        is_deleted:1
+                    },
+                    where:{
+                        id:args?.data?.id
+                    }
+                })
+
+                return {
+                    message:"Successfully deleted"
+                }
+            } catch (error) {
+                throw new GraphQLError(error)
+            }
+        }
+    })
+}
+})
+
+export const EditMerchInp = inputObjectType({
+    name:"EditMerchInp",
+    definition(t) {
+        t.nonNull.int('id');
+        t.nonNull.string('email');
+        t.nonNull.string('firstName');
+        t.nullable.string('middleName');
+        t.nonNull.string('lastName');
+        t.nonNull.string('contact');
+    },
+})
+
+export const EditeMerchObj = objectType({
+    name:"EditeMerchObj",
+    definition(t) {
+        t.string("message")
+    },
+})
+
+export const EditMerchant = extendType({
+    type: 'Mutation',
+    definition(t) {
+      t.nullable.field('EditMerchant', {
+        type: EditeMerchObj,
+        args: { data:EditMerchInp },
+        async resolve(_root, args, ctx) {
+
+            const {id, email, firstName, middleName, lastName, contact}:any = args?.data;
+
+
+            try {
+                await client.merchant_user.update({
+                    data:{
+                        email,
+                        first_name:firstName,
+                        middle_name:middleName,
+                        last_name:lastName,
+                        contact
+                    },
+                    where:{
+                        id:args?.data?.id
+                    }
+                })
+
+                return {
+                    message:"Successfully Updated"
+                }
+            } catch (error) {
+                throw new GraphQLError(error)
+            }
         }
     })
 }
