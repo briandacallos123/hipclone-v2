@@ -3,6 +3,7 @@
 import React from 'react'
 import MerchantGuard from '@/auth/guard/merchant-guard';
 import MerchantLayout from '@/layouts/merchant/layout';
+import MerchantUserContext from '@/context/merchant/Merchant';
 
 
 type LayoutProps = {
@@ -14,7 +15,9 @@ const layout = ({ children }: LayoutProps) => {
 
     <MerchantGuard>
       <MerchantLayout>
-        {children}
+        <MerchantUserContext>
+          {children}
+        </MerchantUserContext>
       </MerchantLayout>
     </MerchantGuard>
   )

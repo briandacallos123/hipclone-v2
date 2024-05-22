@@ -126,24 +126,28 @@ export default function AccountPopover() {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
+        {user?.role !== 'merchant' && user?.role !== 'admin' && 
+        <>
+          <Stack sx={{ p: 1 }}>
+        {OPTIONS.map((option) => (
+          <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
+            {option.label}
+          </MenuItem>
+        ))}
+      </Stack>
+
+      {user?.role === 'doctor' && (
         <Stack sx={{ p: 1 }}>
-          {OPTIONS.map((option) => (
+          {DOCTOR_OPTIONS.map((option) => (
             <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
               {option.label}
             </MenuItem>
           ))}
         </Stack>
+      )}
+        </>
 
-        {user?.role === 'doctor' && (
-          <Stack sx={{ p: 1 }}>
-            {DOCTOR_OPTIONS.map((option) => (
-              <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
-                {option.label}
-              </MenuItem>
-            ))}
-          </Stack>
-        )}
-
+        }
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <MenuItem

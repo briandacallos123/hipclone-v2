@@ -7,7 +7,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 import { useSettingsContext } from 'src/components/settings';
 //
 import Main from './main';
-// import Header from './header';
+import Header from './header';
 import FooterNav from './footer-nav';
 import NavMini from './nav-mini';
 import NavVertical from './nav-vertical';
@@ -75,7 +75,7 @@ export default function MerchantLayout({ children }: Props) {
 
   return (
     <>
-      {/* <Header onOpenNav={nav.onTrue} /> */}
+      <Header onOpenNav={nav.onTrue} />
 
       <Box
         sx={{

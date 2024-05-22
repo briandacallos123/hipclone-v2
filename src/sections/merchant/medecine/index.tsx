@@ -1,0 +1,1 @@
+export {default as MerchantMedicineView} from './view/medicine-list-view'

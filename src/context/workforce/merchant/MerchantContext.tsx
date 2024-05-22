@@ -22,12 +22,12 @@ export const UseMerchantContext = () => {
 }
 
 // types
-type stateProps = {
+export type stateProps = {
     merchantData:any;
     isLoading:boolean
 }
 
-type actionProps = {
+export type actionProps = {
     type:'Create' | 'Edit' | 'Delete' | 'Fetch',
     payload:any
 }

@@ -3,7 +3,8 @@ import { MerchatView } from '@/sections/merchant'
 
 const MerchantListView = () => {
   return (
-    <MerchatView/>
+    // <MerchatView/>
+    <></>
   )
 }
 

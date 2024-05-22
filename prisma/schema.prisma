@@ -1771,16 +1771,33 @@ model admin {
 }
 
 model merchant_user {
-  id            Int      @id @default(autoincrement())
-  first_name    String   @db.VarChar(255)
-  middle_name   String?  @db.VarChar(255)
-  last_name     String   @db.VarChar(255)
-  contact       String   @db.VarChar(255)
-  email         String   @db.VarChar(255)
-  password      String   @db.VarChar(255)
-  register_date DateTime @default(now()) @db.DateTime(0)
-  is_deleted    Int      @default(0)
-  user_status   String   @default("OFFLINE") @db.VarChar(255)
+  id                Int                 @id @default(autoincrement())
+  first_name        String              @db.VarChar(255)
+  middle_name       String?             @db.VarChar(255)
+  last_name         String              @db.VarChar(255)
+  contact           String              @db.VarChar(255)
+  email             String              @db.VarChar(255)
+  password          String              @db.VarChar(255)
+  register_date     DateTime            @default(now()) @db.DateTime(0)
+  is_deleted        Int                 @default(0)
+  user_status       String              @default("OFFLINE") @db.VarChar(255)
+  merchant_medicine merchant_medicine[]
+}
+
+model merchant_medicine {
+  id            Int           @id @default(autoincrement())
+  generic_name  String        @db.VarChar(255)
+  brand_name    String        @db.VarChar(255)
+  dose          String        @db.VarChar(255)
+  form          String        @db.VarChar(255)
+  price         Float
+  manufacturer  String?       @db.VarChar(255)
+  merchant_id   Int
+  created_at    DateTime      @default(now()) @db.Date
+  is_deleted    Int           @default(0)
+  merchant_user merchant_user @relation(fields: [merchant_id], references: [id], onUpdate: Restrict, map: "merchant_medicine_ibfk_1")
+
+  @@index([merchant_id], map: "merchant_id")
 }
 
 enum UserStatuses {

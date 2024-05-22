@@ -204,6 +204,7 @@ export const authOptions: AuthOptions = {
         session.user.contact = contact;
         session.user.username = email;
         session.user.role = "admin"
+        session.user.id = id;
         return session;
       }else if(token?.isMerchant){
         const { email, id, first_name, last_name, middle_name, contact } = token;
@@ -216,6 +217,7 @@ export const authOptions: AuthOptions = {
         session.user.contact = contact;
         session.user.username = email;
         session.user.role = "merchant"
+        session.user.id = id;
         return session;
       }
 

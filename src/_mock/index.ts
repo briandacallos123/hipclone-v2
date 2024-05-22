@@ -15,3 +15,15 @@ export * from './_prescription';
 export * from './_document';
 export * from './_note';
 export * from './_others';
+
+export * from './_job';
+export * from './_user';
+export * from './_tour';
+export * from './_blog';
+// export * from './_files';
+// export * from './_order';
+export * from './_others';
+// export * from './_invoice';
+// export * from './_product';
+export * from './_overview';
+// export * from './_calendar';

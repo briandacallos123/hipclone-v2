@@ -67,3 +67,5 @@ export * from './Feeds';
 export * from './Notification';
 
 export * from './Merchant';
+export * from './Medicine';
+

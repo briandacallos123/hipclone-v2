@@ -67,8 +67,8 @@ export function useNavData() {
       {
         subheader: t('HIPS'),
         items: [
-          { title: t('Dashboard'), path: paths.admin.dashboard, icon: ICONS.dashboard },
-          { title: t('Merchant'), path: paths.admin.merchant.root, icon: ICONS.dashboard },
+          { title: t('Dashboard'), path: paths.merchant.dashboard, icon: ICONS.dashboard },
+          { title: t('Medicines'), path: paths.merchant.medicine, icon: ICONS.dashboard },
        
        
         ],
