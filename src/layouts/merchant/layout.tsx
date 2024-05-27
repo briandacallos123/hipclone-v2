@@ -76,7 +76,7 @@ export default function MerchantLayout({ children }: Props) {
   return (
     <>
       <Header onOpenNav={nav.onTrue} />
-
+  
       <Box
         sx={{
           display: { lg: 'flex' },

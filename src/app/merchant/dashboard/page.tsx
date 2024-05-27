@@ -1,10 +1,12 @@
 import React from 'react'
 // old 
-import { MerchantList } from '@/sections/merchant'
+// import { MerchantList } from '@/sections/merchant'
 // new
-import { DashboardView } from '@/sections/merchant/dashboard'
+// import { DashboardView } from '@/sections/merchant/dashboard'
+// import {DashboardV}
+import DashboardView from '../../../sections/merchant/dashboard/view/dashboard'
 
-const page = () => {
+const DashboardViewParent = () => {
   return (
     <>
     <DashboardView/>
@@ -12,4 +14,4 @@ const page = () => {
   )
 }
 
-export default page
+export default DashboardViewParent

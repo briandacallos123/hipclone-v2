@@ -10,6 +10,7 @@ type layoutProps = {
 const layout = ({children}:layoutProps) => {
   return (
     <div>
+     
         <div style={{ position: 'absolute', top: 20, left: 20 }}>
             <LogoFull />
         </div>

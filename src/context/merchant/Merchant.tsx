@@ -81,7 +81,7 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
            }).then((res:any)=>{
                const {data} = res;
                if(data){
-                //    console.log(data,'REFETCH@@@@@')
+                   console.log(data,'REFETCH@@@@@')
                 dispatch({
                     type:"Fetch",
                     payload:data?.QueryAllMerchantMedicine?.MedicineType

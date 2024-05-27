@@ -30,11 +30,13 @@ export const authOptions: AuthOptions = {
         type: {}
       },
       authorize: async (credentials, _req) => {
+
+        
         const type = credentials?.type;
         const { username, password }: any = credentials;
         let user: any;
 
-        console.log(username, password, '??')
+        console.log(username, password,type, '??')
 
         switch (type) {
           case "admin":
@@ -81,7 +83,7 @@ export const authOptions: AuthOptions = {
 
         }
 
-        console.log(user, 'USER@@@@@@@')
+        // console.log(user,'USE_______________')
 
         if (!user) {
           return null;

@@ -21,12 +21,12 @@ export default function MerchantGuard({ children }: AuthGuardProps) {
   const [checked, setChecked] = useState(false);
 
   const check = useCallback(() => {
-    // setChecked(true);
+  
 
     if (!authenticated ) {
       const searchParams = new URLSearchParams({ returnTo: window.location.href }).toString();
-
-      const homePath = paths.merchant.login;
+     
+      const homePath = paths.auth.login;
 
       // const href = `${homePath}?${searchParams}`;
       const href = `${homePath}`;

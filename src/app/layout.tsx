@@ -24,7 +24,7 @@ import 'react-lazy-load-image-component/src/effects/blur.css';
 
 // others
 import './styles.css';
-
+import MerchantContext from '@/context/workforce/merchant/MerchantContext';
 // ----------------------------------------------------------------------
 
 // redux
@@ -111,7 +111,11 @@ export default function RootLayout({ children }: Props) {
                       <ProgressBar />
                       <AuthConsumer>
                         <ServiceWorker/>
-                        <Search>{children}</Search>
+                        <Search>
+                          <MerchantContext>
+                            {children}
+                          </MerchantContext>
+                        </Search>
                       </AuthConsumer>
                     </SnackbarProvider>
                   </MotionLazy>

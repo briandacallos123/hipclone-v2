@@ -128,6 +128,7 @@ export function useNavData() {
             // roles: ['doctor', 'secretary'],
             roles: ['doctor','secretary'],
           },
+          
           {
             title: t('medical record'),
             path: paths.dashboard.user.profile,
@@ -138,6 +139,13 @@ export function useNavData() {
             title: t('prescription'),
             path: paths.dashboard.prescription,
             icon: ICONS.prescription,
+            roles: ['patient'],
+          },
+          {
+            title: t('medecines'),
+            path: paths.dashboard.medecine.root,
+            icon: ICONS.patient,
+            // roles: ['doctor'],
             roles: ['patient'],
           },
         ],

@@ -4,6 +4,7 @@ import { MerchantMedicineView } from '@/sections/merchant/medecine'
 const page = () => {
   return (
     <MerchantMedicineView/>
+    // <></>
   )
 }
 

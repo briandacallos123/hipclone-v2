@@ -354,17 +354,10 @@ const patient_lab_clinicDPInfos_Qr = objectType({
 export const AllPrescriptionInputUserQr = inputObjectType({
   name: 'AllPrescriptionInputUserQr',
   definition(t) {
-    // t.nullable.int('sex');
-    // t.nullable.int('take');
-    // t.nullable.int('skip');
     t.nullable.int('id')
     t.nullable.string('presCode');
-    // t.nullable.string('orderBy');
-    // t.nullable.string('orderDir');
-    // t.nullable.string('startDate');
-    // t.nullable.string('endDate');
-    // t.list.field('clinicID', { type: 'Int' });
-    // t.nullable.int('searchKeyword');
+    t.nullable.string('childCode')
+   
   },
 });
 
@@ -441,6 +434,8 @@ export const QueryAllPrescriptionUserQr = extendType({
             return { presCode:args?.data?.presCode}
           }
         })()
+
+        console.log(condition,'CONDITION???')
         try {
           const [prescriptionsData]: any = await client.$transaction([
             client.prescriptions.findFirst({
@@ -468,7 +463,7 @@ export const QueryAllPrescriptionUserQr = extendType({
             })
           ]);
 
-          // console.log('_count', _count);
+          console.log('_count_________', prescriptionsData);
           const result = prescriptionsData;
 
           const response: any = {

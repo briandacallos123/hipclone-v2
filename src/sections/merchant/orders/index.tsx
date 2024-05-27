@@ -1,0 +1,1 @@
+export {default as MerchantOrdersView} from './view/merchant-orders-view'

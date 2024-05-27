@@ -1,0 +1,1 @@
+export {default as MedecineList} from './Medecine-list-view'

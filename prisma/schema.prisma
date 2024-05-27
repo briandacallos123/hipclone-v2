@@ -1200,6 +1200,7 @@ model patient {
   notes_text                notes_text[]
   notes_text_attachments    notes_text_attachments[]
   notes_vitals              notes_vitals[]
+  orders                    orders[]
   userInfo                  user?                       @relation(fields: [EMAIL, userType], references: [email, userType], onDelete: Cascade)
   clinicInfo                clinic?                     @relation(fields: [CLINIC], references: [id], onDelete: Cascade, map: "patient_ibfk_1")
   patientHmoInfo            patient_hmo[]
@@ -1283,6 +1284,7 @@ model prescriptions {
   VISIBILITY          Int?                  @default(0)
   isDeleted           Int?                  @default(0)
   presCode            String?               @db.VarChar(6)
+  orders              orders[]
   patient             patient?              @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "prescriptions_ibfk_1")
   emr_patient         emr_patient?          @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "prescriptions_ibfk_2")
   doctorInfo          employees?            @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "prescriptions_ibfk_3")
@@ -1778,10 +1780,14 @@ model merchant_user {
   contact           String              @db.VarChar(255)
   email             String              @db.VarChar(255)
   password          String              @db.VarChar(255)
+  store_id          Int?
   register_date     DateTime            @default(now()) @db.DateTime(0)
   is_deleted        Int                 @default(0)
   user_status       String              @default("OFFLINE") @db.VarChar(255)
   merchant_medicine merchant_medicine[]
+  merchant_store    merchant_store?     @relation(fields: [store_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_user_ibfk_1")
+
+  @@index([store_id], map: "store_id")
 }
 
 model merchant_medicine {
@@ -1798,6 +1804,49 @@ model merchant_medicine {
   merchant_user merchant_user @relation(fields: [merchant_id], references: [id], onUpdate: Restrict, map: "merchant_medicine_ibfk_1")
 
   @@index([merchant_id], map: "merchant_id")
+}
+
+model orders {
+  id              Int            @id @default(autoincrement())
+  generic_name    String?        @db.VarChar(255)
+  brand_name      String?        @db.VarChar(255)
+  dose            String?        @db.VarChar(255)
+  form            String?        @db.VarChar(255)
+  quantity        Int
+  patient_id      Int
+  prescription_id Int?
+  merchant_id     Int
+  store_id        Int?
+  is_paid         Int            @default(0)
+  is_deliver      Int            @default(0)
+  status_id       Int
+  is_deleted      Int            @default(0)
+  prescriptions   prescriptions? @relation(fields: [prescription_id], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_1")
+  patient         patient        @relation(fields: [patient_id], references: [S_ID], onUpdate: Restrict, map: "orders_ibfk_2")
+  status          status         @relation(fields: [status_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_3")
+
+  @@index([patient_id], map: "patient_id")
+  @@index([prescription_id], map: "prescription_id")
+  @@index([status_id], map: "status_id")
+}
+
+model merchant_store {
+  id            Int             @id @default(autoincrement())
+  name          String          @db.VarChar(255)
+  lat           Float           @db.Float
+  lng           Decimal         @db.Decimal(11, 0)
+  address       String          @db.VarChar(255)
+  is_deliver    Int             @default(0)
+  created_at    DateTime        @db.Date
+  is_active     Int?            @default(1)
+  is_deleted    Int
+  merchant_user merchant_user[]
+}
+
+model status {
+  id     Int      @id @default(autoincrement())
+  name   String   @db.VarChar(255)
+  orders orders[]
 }
 
 enum UserStatuses {

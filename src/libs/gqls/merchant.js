@@ -3,15 +3,22 @@ import { gql } from '@apollo/client';
 export const QueryAllMerchant = gql`
   query QueryAllMerchant($data: merchantInputType!) {
     QueryAllMerchant(data: $data) {
-        merchantType {
-            id
-            contact
-            email
-            first_name
-            last_name
-            middle_name
-            user_status
-          }
+      merchantType {
+        contact
+        email
+        first_name
+        id
+        last_name
+        middle_name
+        store {
+          id
+          address
+          lat
+          lng
+          name
+        }
+        user_status
+      }
       }
   }
 `;

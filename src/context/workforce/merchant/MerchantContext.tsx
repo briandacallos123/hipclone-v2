@@ -71,7 +71,7 @@ const MerchantContext = ({children}:MerchantContextProps) => {
     // get all merchant user
     const [getMerchant, getMerchantResult] = useLazyQuery(QueryAllMerchant, {
      context: {
-        requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
+        requestTrackerId: 'merchant[QueryAllMerchantUsers]',
         },
         // notifyOnNetworkStatusChange: true,
         fetchPolicy:'no-cache'

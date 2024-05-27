@@ -16,6 +16,20 @@ export const merchantType = objectType({
         t.string('contact');
         t.string('email');
         t.string('user_status');
+        t.field('store',{
+            type:merchantStoreType
+        })
+    },
+})
+
+export const merchantStoreType = objectType({
+    name:"merchantStoreType",
+    definition(t) {
+        t.int('id')
+        t.string('name');
+        t.string('lat');
+        t.string('lng');
+        t.string('address');
     },
 })
 
@@ -55,10 +69,21 @@ export const QueryAllMerchant = extendType({
                         is_deleted:0
                     }
                 })
-                console.log(result,'result@')
+
+                const store2 = result.map(async(u:any)=>{
+                    const storeRes = await client.merchant_store.findUnique({
+                        where:{
+                            id:Number(u.store_id)
+                        }
+                    })
+                    return {...u, store:{...storeRes}}
+                })
+                const res = await Promise.all(store2)
+
+
 
                 return {
-                    merchantType:result
+                    merchantType:res
                 }
             } catch (error) {
                 console.log(error)

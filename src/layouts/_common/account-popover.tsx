@@ -32,6 +32,17 @@ const OPTIONS = [
   },
 ];
 
+const OPTIONS_MERCHANT = [
+  {
+    label: 'Manage Account',
+    linkTo: paths.merchant.user.account,
+  },
+  {
+    label: 'Manage Log-in',
+    linkTo: paths.merchant.user.login,
+  },
+];
+
 const DOCTOR_OPTIONS = [
   {
     label: 'Manage Clinic',
@@ -54,7 +65,7 @@ export default function AccountPopover() {
   const { user, logout, socket } = useAuthContext();
 
   /* console.log(user?.photoURL); */
-  
+
 
   const { enqueueSnackbar } = useSnackbar();
 
@@ -62,17 +73,17 @@ export default function AccountPopover() {
 
   const handleLogout = async () => {
     try {
-      
-      
+
+
       await logout();
-      socket.emit('logout',user?.id);
+      socket.emit('logout', user?.id);
       popover.onClose();
       router.replace('/');
 
       // const urlWithoutParams = window.location.pathname;
       // window.history.replaceState({}, document.title, urlWithoutParams);
 
-   
+
     } catch (error) {
       console.error(error);
       enqueueSnackbar('Unable to logout!', { variant: 'error' });
@@ -126,28 +137,53 @@ export default function AccountPopover() {
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {user?.role !== 'merchant' && user?.role !== 'admin' && 
-        <>
-          <Stack sx={{ p: 1 }}>
-        {OPTIONS.map((option) => (
-          <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
-            {option.label}
-          </MenuItem>
-        ))}
-      </Stack>
+        {user?.role === 'patient' &&  <Stack sx={{ p: 1 }}>
+              {OPTIONS.map((option) => (
+                <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Stack>}
 
-      {user?.role === 'doctor' && (
-        <Stack sx={{ p: 1 }}>
-          {DOCTOR_OPTIONS.map((option) => (
-            <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
-              {option.label}
-            </MenuItem>
-          ))}
-        </Stack>
-      )}
-        </>
+            {user?.role === 'merchant' &&  <Stack sx={{ p: 1 }}>
+              {OPTIONS_MERCHANT.map((option) => (
+                <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Stack>}
 
-        }
+            {user?.role === 'doctor' &&    <Stack sx={{ p: 1 }}>
+                {DOCTOR_OPTIONS.map((option) => (
+                  <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Stack>}
+
+        {/* {user?.role !== 'admin' &&
+          <> */}
+            {/* <Stack sx={{ p: 1 }}>
+              {OPTIONS.map((option) => (
+                <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
+                  {option.label}
+                </MenuItem>
+              ))}
+            </Stack> */}
+
+{/* 
+            {user?.role === 'doctor' && (
+              <Stack sx={{ p: 1 }}>
+                {DOCTOR_OPTIONS.map((option) => (
+                  <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
+                    {option.label}
+                  </MenuItem>
+                ))}
+              </Stack>
+            )}
+          </>
+
+        } */}
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <MenuItem

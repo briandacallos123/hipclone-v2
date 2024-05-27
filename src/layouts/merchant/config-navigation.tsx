@@ -69,7 +69,7 @@ export function useNavData() {
         items: [
           { title: t('Dashboard'), path: paths.merchant.dashboard, icon: ICONS.dashboard },
           { title: t('Medicines'), path: paths.merchant.medicine, icon: ICONS.dashboard },
-       
+          { title: t('Orders'), path: paths.merchant.orders, icon: ICONS.dashboard },
        
         ],
       },
