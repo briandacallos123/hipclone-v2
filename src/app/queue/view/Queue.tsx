@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
 import { TableNoData } from '@/components/table';
 import { useAuthContext } from '@/auth/hooks';
+import { fDate, formatMilitaryTime } from '@/utils/format-time';
+import { RouterLink } from '@/routes/components';
 
 type QueueProps = {
     data:any;
@@ -13,14 +15,61 @@ type QueueProps = {
     position:any;
     remainingP:any;
     newPosition:any;
+    dataToday?:any;
 }
 
-const Queue = ({data, loading, position, remainingP, newPosition}:QueueProps) => {
+const Queue = ({data, dataToday, loading, position, remainingP, newPosition}:QueueProps) => {
     // let voucherId = localStorage.getItem('voucherId');
     const {id} = useParams();
     const activePatient = data[0];
     const navigate = useRouter();
     const {user} = useAuthContext()
+
+    // console.log(dataToday,'TODAY@@@@@@@@')
+    // console.log(fDate(dataToday?.date),'TODAY DATE @@@@@@@@')
+   
+
+    // if(dataToday?.time_slot){
+    //     console.log(formatMilitaryTime(dataToday?.time_slot),'TIME SLOT@@@')
+    // }
+
+    const RenderNotToday = () => {
+        return (
+            <Box sx={{
+                height:500,
+                width: '100%',
+                borderRadius: '10px',
+                boxShadow: '5px 5px 30px #d3cec8',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                // bgcolor:'red'
+            }}>
+
+                <Box sx={{
+
+                    display:'flex',
+                    flexDirection:'column',
+                    alignItems:"center",
+                    justifyContent:"center",
+                    mb:5
+                }}>
+                 <Typography variant="body2">Your Schedule is not today, please wait 
+                    until </Typography>
+                   <Typography variant="h5">{`${fDate(dataToday?.date)} ${formatMilitaryTime(dataToday?.time_slot)}`}</Typography>
+                  
+                    
+                </Box>
+                <Box>
+                <Button component={RouterLink} href="/" size="large" variant="contained">
+          Go to Home
+        </Button>
+                </Box>
+                
+            </Box>
+        )
+    }
 
     const RenderLoadingContent = () => {
         return (
@@ -61,6 +110,11 @@ const Queue = ({data, loading, position, remainingP, newPosition}:QueueProps) =>
             </Box>
         )
     }
+
+    if(dataToday){
+        return <RenderNotToday/>
+    }
+
 
   
   return (
@@ -189,6 +243,7 @@ const Position = ({pos,v, loading}:{
         return <RenderLoading/>
     }
 
+  
     return(
         <Box
         sx={{

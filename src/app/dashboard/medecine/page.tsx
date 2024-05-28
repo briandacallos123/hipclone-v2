@@ -1,15 +1,9 @@
-
 import React from 'react'
-import { MedecineList } from '@/sections/medecine/view'
-import OrderContext from '@/context/dashboard/medecine/Medecine'
-
+import { MedicineListView } from '@/sections/medecineFull/view'
 
 const page = () => {
   return (
-    <OrderContext>
-         <MedecineList/>
-    </OrderContext>
-   
+    <MedicineListView/>
   )
 }
 

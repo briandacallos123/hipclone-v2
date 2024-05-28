@@ -40,8 +40,10 @@ export const QueryQueuePatient = gql`
                 patient_no
                 payment_status
                 patientID
+                date
             }
             position
+            is_not_today
         }
     }
 `

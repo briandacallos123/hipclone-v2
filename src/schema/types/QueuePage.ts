@@ -126,8 +126,7 @@ export const QueueReadCountPage = extendType({
           }),
         ]);
 
-        console.log(queueDone, 'AWITTTT@@@@@@');
-        console.log(queueCancelled, 'AWITTTT@@@@@@');
+    
         return {
           queueCount: queueAll?.length,
           queueDone: queueDone?.length,
@@ -147,7 +146,8 @@ export const queue_data = objectType({
     t.nullable.list.field('appointments_data',{
       type:DoctorAppointments
     }),
-    t.int('position')
+    t.int('position');
+    t.boolean('is_not_today')
   },
 })
 
@@ -191,7 +191,6 @@ export const QueuePatient = extendType({
           }
         })
 
-        console.log(patient,'patient')
 
         // get clinic based on id of clinic on appt
         const clinicInfo = await client.clinic.findFirst({
@@ -199,7 +198,28 @@ export const QueuePatient = extendType({
             id:Number(appt?.clinic)
           }
         })
-        console.log(clinicInfo,'clinicInfo')
+
+        const resultFirst = await client.appointments.findMany({
+          where:{
+            isDeleted:0,
+            status:1,
+            clinicInfo: {
+              uuid:clinicInfo?.uuid,
+              isDeleted: 0,
+              NOT: [{ clinic_name: null }, { clinic_name: '' }],
+            },
+            date: {
+              gte: formattedDateAsDate,
+              // lte: currentDateBackward,
+            },
+            
+          },
+          include: {
+            clinicInfo: true,
+          }
+        })
+
+        console.log(resultFirst,'HEHHE')
 
         const result = await client.appointments.findMany({
           where:{
@@ -217,12 +237,10 @@ export const QueuePatient = extendType({
             
           },
           include: {
-            // patientInfo: true,
             clinicInfo: true,
           }
         })
 
-        console.log(result,'resultttt__')
 
         const position = result.map(async(it:any)=>{
           return await client.patient.findFirst({
@@ -237,11 +255,22 @@ export const QueuePatient = extendType({
         const patientPos = teka.findIndex((item:any)=>item.EMAIL === patient?.EMAIL)
         
      
+        const haveSchedNotToday = () => {
+          if(resultFirst?.length){
+            return true
+          }else{
+            false
+          }
+        
+        }
+
+        // console.log(haveSchedNotToday(),'MERON BA?')
 
 
         return {
-          appointments_data:result,
-          position:patientPos
+          appointments_data: resultFirst,
+          position:patientPos !== -1 ? patientPos : (resultFirst && 1),
+          is_not_today:haveSchedNotToday()
         }
        }catch(err){
         console.log(err,'__ERORR')

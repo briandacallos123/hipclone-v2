@@ -199,10 +199,10 @@ export default function DashboardAppointmentList({
 
   useEffect(()=>{
     if(socket?.connected){
+      console.log("connected____________________________________________________________________________________________")
       socket.on('appointmentStatus',async(r:any)=>{
-       
+        console.log(r, "socket payload")
         if(Number(r?.recepient) === Number(user?.id) && Number(r?.notification_type) === 1){
-          console.log("AYAW@@@")
           await refetch()
         }
       })

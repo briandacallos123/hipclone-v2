@@ -49,3 +49,20 @@ export function fToNow(date: InputValue) {
       })
     : '';
 }
+
+export function formatMilitaryTime(militaryTime:string) {
+  // Extract hours and minutes
+  let hours = parseInt(militaryTime.substring(0, 2));
+  let minutes = militaryTime.substring(3, 5);
+  
+  // Determine AM/PM and adjust hours accordingly
+  let ampm = hours >= 12 ? 'PM' : 'AM';
+  hours = hours % 12;
+  hours = hours ? hours : 12; // Handle midnight (00:00) as 12:00 AM
+  
+  // Pad single digit hours with leading zero
+  hours = hours < 10 ? '0' + hours : hours;
+  
+  // Return formatted time
+  return hours + ':' + minutes + ' ' + ampm;
+}

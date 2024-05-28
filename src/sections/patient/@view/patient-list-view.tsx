@@ -343,7 +343,7 @@ export default function PatientListView() {
                 // male
                 val = maleTab
               }
-              return val;
+              return paginationTotal;
             })()}
             sx={{ p: 2.5, pt: 0 }}
           />

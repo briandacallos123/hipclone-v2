@@ -14,21 +14,23 @@ import { MotionContainer, varBounce } from 'src/components/animate';
 
 // ----------------------------------------------------------------------
 
-export default function View403() {
+export default function View403({message}:{message?:string}) {
   return (
     <CompactLayout>
       <MotionContainer>
         <m.div variants={varBounce().in}>
           <Typography variant="h3" paragraph>
-            No permission
+           {message ? message :  "No permission"}
           </Typography>
         </m.div>
 
         <m.div variants={varBounce().in}>
           <Typography sx={{ color: 'text.secondary' }}>
+            {message ? "Your code seems invalid please verify it again.":<>
             The page you&apos;re trying access has restricted access.
             <br />
             Please refer to your system administrator
+            </>}
           </Typography>
         </m.div>
 
