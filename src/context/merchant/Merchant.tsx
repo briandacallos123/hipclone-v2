@@ -99,10 +99,11 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
         notifyOnNetworkStatusChange: true,
       });
     
-    const createMerchantMedFunc = useCallback((user:any)=>{
+    const createMerchantMedFunc = useCallback((user:any, file:any)=>{
         createMerchantFuncMed({
             variables:{
-                data:user
+                data:user,
+                file
             }
         }).then((res)=>{
             const {data} = res;

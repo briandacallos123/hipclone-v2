@@ -28,9 +28,10 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 // components
 import Iconify from 'src/components/iconify';
-import FormProvider, { RHFTextField } from 'src/components/hook-form';
+import FormProvider, { RHFTextField, RHFUpload } from 'src/components/hook-form';
 import { Divider } from '@mui/material';
 import { signIn } from 'next-auth/react';
+
 // import MerchantContext from '@/context/workforce/merchant/MerchantContext';
 //
 import { UseMerchantMedContext } from '@/context/merchant/Merchant';
@@ -90,8 +91,8 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
         form: "",
         price:"",
         manufacturer:"",
-        brand_name:""
-      
+        brand_name:"",
+        attachment: null
        }
     },[editRow?.id, editRow])
 
@@ -118,8 +119,11 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
         reset,
         handleSubmit,
         setValue,
+        watch,
         formState: { isSubmitting },
     } = methods;
+
+    const values = watch()
 
     useEffect(()=>{
         // if(editRow?.id){
@@ -144,9 +148,12 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
     //  console.log(user, 'HAAAAAAAAAAAAAAAAAAAAAAAAAAAA?');
 
     const onSubmit = useCallback(
-        async (data: FormValuesProps) => {
+        async (data: any) => {
             try {
-                createMerchantMedFunc(data)
+                const file = data?.attachment;
+                delete data.attachment;
+
+                createMerchantMedFunc(data, file)
                 // delete data.repassword
 
                 // if(isEdit){
@@ -191,6 +198,37 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
     //   </DialogTitle>
     // );
 
+    const handleRemoveAllFiles = useCallback(() => {
+        setValue('attachment', null)
+      }, [setValue]);
+
+    const handleRemoveFile = useCallback(
+        (inputFile: File | string) => {
+          const filtered =
+            values.attachment && values.attachment?.filter((file: any) => file !== inputFile);
+          setValue('attachment', filtered);
+        },
+        [setValue, values.attachment]
+      );
+
+    const handleDrop = useCallback(
+        (acceptedFiles: File[]) => {
+          const files = values.attachment || null;
+
+
+        const newFiles = Object.assign(acceptedFiles[0],{
+            preview:URL.createObjectURL(acceptedFiles[0])
+        })
+
+        console.log(newFiles,'NEWFILES________')
+
+        
+    
+          setValue('attachment', newFiles, { shouldValidate: true });
+        },
+        [setValue, values.attachment]
+      );
+
     const renderLoginOption = (
         <div>
             <Divider
@@ -230,7 +268,18 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
             <Stack direction="row" alignItems="center">
              <RHFTextField name="brand_name" label="Brand Name" />
             </Stack>
-          
+            <Stack>
+            <RHFUpload
+            //   multiple
+              thumbnail
+            //   accept={{ 'application/pdf': [], 'image/png': [], 'image/jpg': [], 'image/jpeg': [] }}  // only pdf & img
+              name="attachment"
+              maxSize={3145728}
+              onDrop={handleDrop}
+              onRemove={handleRemoveFile}
+              onRemoveAll={handleRemoveAllFiles}
+            />
+            </Stack>
 
 
          

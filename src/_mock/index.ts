@@ -12,6 +12,7 @@ export * from './_patient';
 export * from './_hmo';
 export * from './_emr';
 export * from './_prescription';
+export * from './_product';
 export * from './_document';
 export * from './_note';
 export * from './_others';

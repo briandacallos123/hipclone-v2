@@ -17,8 +17,8 @@ export const QueryAllMerchantMedicine = gql`
 `;
 
 export const CreateMerchantMedecine = gql`
-  mutation CreateMerchantMedicine($data: CreateMedicineInputs!) {
-    CreateMerchantMedicine(data: $data) {
+  mutation CreateMerchantMedicine($data: CreateMedicineInputs!,  $file: Upload) {
+    CreateMerchantMedicine(data: $data, file: $file) {
       message
       }
   }

@@ -1,5 +1,8 @@
+import { paths } from '@/routes/paths';
 import { Box, Card, CardActionArea, CardContent, CardMedia, Grid, Typography } from '@mui/material'
-import React from 'react'
+import React, { useCallback } from 'react';
+
+import { useRouter } from 'src/routes/hook';
 
 type MedecineTableRowProps = {
     data: []
@@ -7,8 +10,14 @@ type MedecineTableRowProps = {
 
 const MedecineTableRowNew = ({ data }:MedecineTableRowProps) => {
 
-    console.log(data,'DATA_____________________________________________________');
+    const router = useRouter();
 
+
+    const handleView = useCallback((id:number)=>{
+        console.log(id,"AYDIIII")
+
+        router.push(paths.dashboard.medecine.view(id));
+    },[])
 
     return (
         <Box>
@@ -18,7 +27,11 @@ const MedecineTableRowNew = ({ data }:MedecineTableRowProps) => {
                         <Grid xl={2}>
 
                             <Card sx={{maxWidth:500}}>
-                                <CardActionArea>
+                                <CardActionArea
+                                onClick={()=>{
+                                    handleView(id)
+                                }}
+                                >
                                     <CardMedia
                                         component="img"
                                         height="140"

@@ -3,6 +3,7 @@ import { GraphQLError } from 'graphql/error/GraphQLError';
 import client from '../../../prisma/prismaClient';
 import { unserialize } from 'php-serialize';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import { useUpload } from '../../hooks/use-upload';
 
 export const medicineType = objectType({
     name: 'medicineType',
@@ -19,10 +20,10 @@ export const medicineType = objectType({
 })
 
 export const QueryAllObjectType = objectType({
-    name:"QueryAllObjectType",
+    name: "QueryAllObjectType",
     definition(t) {
-        t.list.field('MedicineType',{
-            type:medicineType
+        t.list.field('MedicineType', {
+            type: medicineType
         })
     },
 })
@@ -30,12 +31,12 @@ export const QueryAllObjectType = objectType({
 export const medicineInputType = inputObjectType({
     name: 'medicineInputType',
     definition(t) {
-      t.nullable.int('take');
-      t.nullable.int('skip');
-      t.nullable.int('search');
-    //   t.nullable.int('status');
+        t.nullable.int('take');
+        t.nullable.int('skip');
+        t.nullable.int('search');
+        //   t.nullable.int('status');
     },
-  });
+});
 
 
 export const QueryAllMerchantMedicine = extendType({
@@ -50,14 +51,14 @@ export const QueryAllMerchantMedicine = extendType({
 
                 try {
                     const result = await client.merchant_medicine.findMany({
-                        where:{
-                            is_deleted:0,
-                            merchant_id:Number(session?.user?.id)
+                        where: {
+                            is_deleted: 0,
+                            merchant_id: Number(session?.user?.id)
                         }
                     })
 
                     return {
-                        MedicineType:result
+                        MedicineType: result
                     }
                 } catch (error) {
                     throw new GraphQLError(error)
@@ -68,7 +69,7 @@ export const QueryAllMerchantMedicine = extendType({
 })
 
 export const CreateMedicineInputs = inputObjectType({
-    name:'CreateMedicineInputs',
+    name: 'CreateMedicineInputs',
     definition(t) {
         t.string('generic_name');
         t.string('dose');
@@ -80,7 +81,7 @@ export const CreateMedicineInputs = inputObjectType({
 })
 
 export const CreateMedicineObj = objectType({
-    name:"CreateMedicineObj",
+    name: "CreateMedicineObj",
     definition(t) {
         t.string('message')
     },
@@ -92,29 +93,60 @@ export const CreateMerchantMedicine = extendType({
     definition(t) {
         t.nullable.field('CreateMerchantMedicine', {
             type: CreateMedicineObj,
-            args: { data: CreateMedicineInputs },
+            args: { data: CreateMedicineInputs!, file: 'Upload' },
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
-                const {generic_name,brand_name, dose, form, price, manufacturer}:any = args.data
-              
+
+                const sFile = await args?.file;
+
+
+                const { generic_name, brand_name, dose, form, price, manufacturer }: any = args.data
+
+
+                console.log(args?.data, 'DATA____________')
+                console.log(session?.user?.id, 'USER____________')
+
+
                 try {
+
+                    if (sFile) {
+                        // console.log(sFile, 'FILE@@@');
+                        const res: any = useUpload(sFile, 'public/documents/');
+
+                        res?.map(async (v: any) => {
+                            await client.merchant_attachment.create({
+                                data: {
+                                    merchant_id: Number(session?.user?.id),
+                                    filename: String(v!.fileName),
+                                    file_url: String(v!.path),
+                                    file_type: String(v!.fileType)
+                                },
+                            });
+                        });
+                    }
+
                     await client.merchant_medicine.create({
-                        data:{
+                        data: {
                             generic_name,
                             dose,
                             form,
                             manufacturer,
-                            merchant_id:Number(session?.user?.id),
+                            merchant_id: 1,
                             brand_name,
-                            price:2.5
+                            price: 2.5,
+                            attachment_id: 1
                         }
                     })
 
+
+
+
                     return {
-                        message:"Successfully created"
+                        message: "Successfully created"
                     }
                 } catch (error) {
+                    console.log(error)
                     throw new GraphQLError(error)
                 }
             }
@@ -123,14 +155,14 @@ export const CreateMerchantMedicine = extendType({
 })
 
 export const DeleteMerchantMedicineInp = inputObjectType({
-    name:"DeleteMerchantMedicineInp",
+    name: "DeleteMerchantMedicineInp",
     definition(t) {
         t.nonNull.int('id')
     },
 })
 
 export const DeleteMerchantMedicineObj = objectType({
-    name:"DeleteMerchantMedicineObj",
+    name: "DeleteMerchantMedicineObj",
     definition(t) {
         t.nonNull.string('message')
     },
@@ -147,16 +179,16 @@ export const DeleteMerchantMedicine = extendType({
 
                 try {
                     await client.merchant_medicine.update({
-                        where:{
-                            id:args?.data?.id
+                        where: {
+                            id: args?.data?.id
                         },
-                        data:{
-                            is_deleted:1
+                        data: {
+                            is_deleted: 1
                         }
                     })
 
                     return {
-                        message:"Successfully deleted"
+                        message: "Successfully deleted"
                     }
                 } catch (error) {
                     return new GraphQLError(error)
@@ -187,25 +219,25 @@ export const UpdateMerchantMedicine = extendType({
             args: { data: CreateMedicineInputs },
             async resolve(_root, args, ctx) {
 
-                const {generic_name,brand_name, dose, form, price, manufacturer}:any = args.data
+                const { generic_name, brand_name, dose, form, price, manufacturer }: any = args.data
 
                 try {
                     await client.merchant_medicine.update({
-                        where:{
-                            id:args?.data?.id
+                        where: {
+                            id: args?.data?.id
                         },
-                        data:{
+                        data: {
                             generic_name,
                             brand_name,
                             dose,
                             form,
-                            
+
                             manufacturer
                         }
                     })
 
                     return {
-                        message:"Successfully updated"
+                        message: "Successfully updated"
                     }
                 } catch (error) {
                     return new GraphQLError(error)

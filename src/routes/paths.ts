@@ -76,7 +76,9 @@ export const paths: any = {
       subaccount: `${ROOTS.DASHBOARD}/user/subaccount`,
     },
     medecine:{
-      root:`${ROOTS.DASHBOARD}/medecine`
+      root:`${ROOTS.DASHBOARD}/medecine`,
+
+      view: (id: string) => `${ROOTS.DASHBOARD}/medecine/${id}`,
     },
     myDoctors:{
         root: `${ROOTS.DASHBOARD}/my-doctors`,

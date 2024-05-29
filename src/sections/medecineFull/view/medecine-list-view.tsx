@@ -30,9 +30,12 @@ import EcommerceLatestProducts from '../ecommerce-latest-products';
 import EcommerceCurrentBalance from '../ecommerce-current-balance';
 import { useAuthContext } from '@/auth/hooks';
 import MedecineFiltering from '../medecine-table-filtering';
-import {medecineData} from '../mock'
+import { medecineData } from '../mock'
 import MedecineTableRow from '@/sections/medecine/medecine-table-row';
 import MedecineTableRowNew from '../medecine-table-row';
+import MedecineFilteringHeader from '../medecine-filtering-header';
+import MedecineTablePagination from '../medecine-table-pagination';
+import { Box } from '@mui/material';
 // ----------------------------------------------------------------------
 
 export default function MedicineListView() {
@@ -40,7 +43,7 @@ export default function MedicineListView() {
 
   const theme = useTheme();
 
-  const {user} = useAuthContext()
+  const { user } = useAuthContext()
 
   const settings = useSettingsContext();
 
@@ -57,56 +60,50 @@ export default function MedicineListView() {
           />
         </Grid>
 
-        {/* <Grid xs={12} md={4}>
-          <EcommerceNewProducts list={_ecommerceNewProducts} />
-        </Grid> */}
+
 
         <Grid xs={12} md={2}>
-          <MedecineFiltering heading="Type" onSelect={()=>{}} data={[
-            {id:1, text:"Branded"},
-            {id:2,text:"Generic"},
-            
-            ]}/>
+          <MedecineFiltering heading="Type" onSelect={() => { }} data={[
+            { id: 1, text: "Branded" },
+            { id: 2, text: "Generic" },
+
+          ]} />
         </Grid>
 
-        <Grid xs={12} md={10}>
+        <Grid xs={12} md={10} >
+          <Box sx={{
+            mb:5
+          }}>
+            <MedecineFilteringHeader onSort={() => { }} sort="Best Selling" sortOptions={[
+              {
+                id: 1,
+                label: "Best Selling",
+                value: "best selling"
+              },
+              {
+                id: 2,
+                label: "Price Descending",
+                value: "price descending"
+              },
+              {
+                id: 3,
+                label: "Price Ascending",
+                value: "price ascending"
+              },
+
+            ]} />
+          </Box>
           <MedecineTableRowNew
-          data={medecineData}
+            data={medecineData}
           />
-        
+
+        </Grid>
+        <Grid md={12}>
+          <MedecineTablePagination medecine={medecineData} />
         </Grid>
 
-        
-{/* 
-        <Grid xs={12} md={6} lg={8}>
-          <EcommerceSalesOverview title="Sales Overview" data={_ecommerceSalesOverview} />
-        </Grid>
 
-        <Grid xs={12} md={6} lg={4}>
-          <EcommerceCurrentBalance
-            title="Current Balance"
-            currentBalance={187650}
-            sentAmount={25500}
-          />
-        </Grid>
 
-        <Grid xs={12} md={6} lg={8}>
-          <EcommerceBestSalesman
-            title="Best Salesman"
-            tableData={_ecommerceBestSalesman}
-            tableLabels={[
-              { id: 'name', label: 'Seller' },
-              { id: 'category', label: 'Product' },
-              { id: 'country', label: 'Country', align: 'center' },
-              { id: 'totalAmount', label: 'Total', align: 'right' },
-              { id: 'rank', label: 'Rank', align: 'right' },
-            ]}
-          />
-        </Grid>
-
-        <Grid xs={12} md={6} lg={4}>
-          <EcommerceLatestProducts title="Latest Products" list={_ecommerceLatestProducts} />
-        </Grid> */}
       </Grid>
     </Container>
   );
