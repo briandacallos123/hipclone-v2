@@ -24,6 +24,9 @@ import { ColorPicker } from 'src/components/color-utils';
 import FormProvider, { RHFSelect } from 'src/components/hook-form';
 //
 import { IncrementerButton } from './_common';
+import { useCheckoutContext } from '@/context/checkout/Checkout';
+
+
 
 // ----------------------------------------------------------------------
 
@@ -33,53 +36,47 @@ interface FormValuesProps extends Omit<ICheckoutCartItem, 'colors'> {
 
 type Props = {
   product: IProduct;
-  cart: ICheckoutCartItem[];
-  disabledActions?: boolean;
-  onGotoStep: (step: number) => void;
-  onAddCart: (cartItem: ICheckoutCartItem) => void;
+  // : ICheckoutCartItem[];
+  // disabledActions?: boolean;
+  // onGotoStcartep: (step: number) => void;
+  // onAddCart: (cartItem: ICheckoutCartItem) => void;
 };
 
 export default function ProductDetailsSummary({
-  cart,
+  // cart,
   product,
-  onAddCart,
-  onGotoStep,
-  disabledActions,
+  // onAddCart,
+  // onGotoStep,
+  // disabledActions,
   ...other
 }: Props) {
   const router = useRouter();
 
+  const {addToCart} = useCheckoutContext()
+
   const {
     id,
-    name,
-    sizes,
+    generic_name,
+    brand_name,
     price,
-    coverUrl,
-    colors,
-    newLabel,
-    available,
-    priceSale,
-    saleLabel,
-    totalRatings,
-    totalReviews,
-    inventoryType,
-    subDescription,
+    dose,
+    form,
+    manufacturer,
+    description,
+    stock,
+    rating
   } = product;
 
-  const existProduct = cart.map((item) => item.id).includes(id);
+  // const existProduct = cart.map((item) => item.id).includes(id);
 
-  const isMaxQuantity =
-    cart.filter((item) => item.id === id).map((item) => item.quantity)[0] >= available;
+  // const isMaxQuantity =
+  //   cart.filter((item) => item.id === id).map((item) => item.quantity)[0] >= available;
 
   const defaultValues = {
     id,
-    name,
-    coverUrl,
-    available,
+    generic_name,
     price,
-    colors: colors[0],
-    size: sizes[4],
-    quantity: available < 1 ? 0 : 1,
+    quantity:0,
   };
 
   const methods = useForm<FormValuesProps>({
@@ -97,51 +94,51 @@ export default function ProductDetailsSummary({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product]);
 
-  const onSubmit = useCallback(
-    async (data: FormValuesProps) => {
-      try {
-        if (!existProduct) {
-          onAddCart({
-            ...data,
-            colors: [values.colors],
-            subTotal: data.price * data.quantity,
-          });
-        }
-        onGotoStep(0);
-        router.push(paths.product.checkout);
-      } catch (error) {
-        console.error(error);
-      }
-    },
-    [existProduct, onAddCart, onGotoStep, router, values.colors]
-  );
+  // const onSubmit = useCallback(
+  //   async (data: FormValuesProps) => {
+  //     try {
+  //       if (!existProduct) {
+  //         onAddCart({
+  //           ...data,
+  //           colors: [values.colors],
+  //           subTotal: data.price * data.quantity,
+  //         });
+  //       }
+  //       onGotoStep(0);
+  //       router.push(paths.product.checkout);
+  //     } catch (error) {
+  //       console.error(error);
+  //     }
+  //   },
+  //   [existProduct, onAddCart, onGotoStep, router, values.colors]
+  // );
 
-  const handleAddCart = useCallback(() => {
-    try {
-      onAddCart({
-        ...values,
-        colors: [values.colors],
-        subTotal: values.price * values.quantity,
-      });
-    } catch (error) {
-      console.error(error);
-    }
-  }, [onAddCart, values]);
+  // const handleAddCart = useCallback(() => {
+  //   try {
+  //     onAddCart({
+  //       ...values,
+  //       colors: [values.colors],
+  //       subTotal: values.price * values.quantity,
+  //     });
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // }, [onAddCart, values]);
 
   // ----------------------------------------------------------------------
 
   const renderPrice = (
     <Box sx={{ typography: 'h5' }}>
-      {priceSale && (
+      {/* {priceSale && (
         <Box
           component="span"
           sx={{ color: 'text.disabled', textDecoration: 'line-through', mr: 0.5 }}
         >
-          {fCurrency(priceSale)}
+          {fCurrency(price)}
         </Box>
-      )}
+      )} */}
 
-      {fCurrency(price)}
+      {`₱ ${fCurrency(price)}`}
     </Box>
   );
 
@@ -173,58 +170,58 @@ export default function ProductDetailsSummary({
     </Stack>
   );
 
-  const renderColorOptions = (
-    <Stack direction="row">
-      <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-        Color
-      </Typography>
+  // const renderColorOptions = (
+  //   <Stack direction="row">
+  //     <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
+  //       Color
+  //     </Typography>
 
-      <Controller
-        name="colors"
-        control={control}
-        render={({ field }) => (
-          <ColorPicker
-            colors={colors}
-            selected={field.value}
-            onSelectColor={field.onChange}
-            limit={4}
-          />
-        )}
-      />
-    </Stack>
-  );
+  //     <Controller
+  //       name="colors"
+  //       control={control}
+  //       render={({ field }) => (
+  //         <ColorPicker
+  //           colors={colors}
+  //           selected={field.value}
+  //           onSelectColor={field.onChange}
+  //           limit={4}
+  //         />
+  //       )}
+  //     />
+  //   </Stack>
+  // );
 
-  const renderSizeOptions = (
-    <Stack direction="row">
-      <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-        Size
-      </Typography>
+  // const renderSizeOptions = (
+  //   <Stack direction="row">
+  //     <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
+  //       Size
+  //     </Typography>
 
-      <RHFSelect
-        name="size"
-        size="small"
-        helperText={
-          <Link underline="always" color="textPrimary">
-            Size Chart
-          </Link>
-        }
-        sx={{
-          maxWidth: 88,
-          [`& .${formHelperTextClasses.root}`]: {
-            mx: 0,
-            mt: 1,
-            textAlign: 'right',
-          },
-        }}
-      >
-        {sizes.map((size) => (
-          <MenuItem key={size} value={size}>
-            {size}
-          </MenuItem>
-        ))}
-      </RHFSelect>
-    </Stack>
-  );
+  //     <RHFSelect
+  //       name="size"
+  //       size="small"
+  //       helperText={
+  //         <Link underline="always" color="textPrimary">
+  //           Size Chart
+  //         </Link>
+  //       }
+  //       sx={{
+  //         maxWidth: 88,
+  //         [`& .${formHelperTextClasses.root}`]: {
+  //           mx: 0,
+  //           mt: 1,
+  //           textAlign: 'right',
+  //         },
+  //       }}
+  //     >
+  //       {sizes.map((size) => (
+  //         <MenuItem key={size} value={size}>
+  //           {size}
+  //         </MenuItem>
+  //       ))}
+  //     </RHFSelect>
+  //   </Stack>
+  // );
 
   const renderQuantity = (
     <Stack direction="row">
@@ -237,23 +234,27 @@ export default function ProductDetailsSummary({
           name="quantity"
           quantity={values.quantity}
           disabledDecrease={values.quantity <= 1}
-          disabledIncrease={values.quantity >= available}
+          disabledIncrease={values.quantity >= stock}
           onIncrease={() => setValue('quantity', values.quantity + 1)}
           onDecrease={() => setValue('quantity', values.quantity - 1)}
         />
 
         <Typography variant="caption" component="div" sx={{ textAlign: 'right' }}>
-          Available: {available}
+          Available: {stock}
         </Typography>
       </Stack>
     </Stack>
   );
 
+  const handleAddCart = ()=>{
+    addToCart(product)
+  }
+
   const renderActions = (
     <Stack direction="row" spacing={2}>
       <Button
         fullWidth
-        disabled={isMaxQuantity || disabledActions}
+        // disabled={}
         size="large"
         color="warning"
         variant="contained"
@@ -264,7 +265,7 @@ export default function ProductDetailsSummary({
         Add to Cart
       </Button>
 
-      <Button fullWidth size="large" type="submit" variant="contained" disabled={disabledActions}>
+      <Button fullWidth size="large" type="submit" variant="contained" >
         Buy Now
       </Button>
     </Stack>
@@ -272,7 +273,7 @@ export default function ProductDetailsSummary({
 
   const renderSubDescription = (
     <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-      {subDescription}
+      {description}
     </Typography>
   );
 
@@ -285,55 +286,47 @@ export default function ProductDetailsSummary({
         typography: 'body2',
       }}
     >
-      <Rating size="small" value={totalRatings} precision={0.1} readOnly sx={{ mr: 1 }} />
-      {`(${fShortenNumber(totalReviews)} reviews)`}
+      <Rating size="small" value={5} precision={0.1} readOnly sx={{ mr: 1 }} />
+      {`(${fShortenNumber(rating)} reviews)`}
     </Stack>
   );
 
-  const renderLabels = (newLabel.enabled || saleLabel.enabled) && (
-    <Stack direction="row" alignItems="center" spacing={1}>
-      {newLabel.enabled && <Label color="info">{newLabel.content}</Label>}
-      {saleLabel.enabled && <Label color="error">{saleLabel.content}</Label>}
-    </Stack>
-  );
+  // const renderLabels = (newLabel.enabled || saleLabel.enabled) && (
+  //   <Stack direction="row" alignItems="center" spacing={1}>
+  //     <Label color="info">{newLabel.content}</Label>
+  //     <Label color="error">{saleLabel.content}
+  //     </Label>
+  //   </Stack>
+  // );
 
-  const renderInventoryType = (
-    <Box
-      component="span"
-      sx={{
-        typography: 'overline',
-        color:
-          (inventoryType === 'out of stock' && 'error.main') ||
-          (inventoryType === 'low stock' && 'warning.main') ||
-          'success.main',
-      }}
-    >
-      {inventoryType}
-    </Box>
-  );
+
 
   return (
-    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+    <FormProvider methods={methods} >
       <Stack spacing={3} sx={{ pt: 3 }} {...other}>
         <Stack spacing={2} alignItems="flex-start">
-          {renderLabels}
+          {/* {renderLabels} */}
 
-          {renderInventoryType}
+          {/* {renderInventoryType} */}
 
-          <Typography variant="h5">{name}</Typography>
+          {/* store name */}
+          <Typography variant="h5">{generic_name}</Typography>
 
           {renderRating}
 
-          {renderPrice}
-
+          {/* {price}
+           */}
+           {renderPrice}
           {renderSubDescription}
+
+          {/* {address} */}
         </Stack>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {renderColorOptions}
+        {/* {renderColorOptions}
 
-        {renderSizeOptions}
+        {renderSizeOptions} */}
 
         {renderQuantity}
 

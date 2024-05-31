@@ -15,7 +15,20 @@ export const medicineType = objectType({
         t.string('form');
         t.float('price');
         t.string('manufacturer');
+        t.nullable.field('attachment_info',{
+            type:attachment_info
+        })
         // t.date('created_at');
+    },
+})
+
+export const attachment_info = objectType({
+    name:"attachment_info",
+    definition(t) {
+        t.int('id');
+        t.string('file_path');
+        t.string('filename');
+
     },
 })
 
@@ -56,9 +69,21 @@ export const QueryAllMerchantMedicine = extendType({
                             merchant_id: Number(session?.user?.id)
                         }
                     })
+                    const res = result?.map(async(item:any)=>{
+                        const r = await client.medecine_attachment.findFirst({
+                            where:{
+                                id:Number(item?.attachment_id)
+                            }
+                        })
+                        return {...item, attachment_info:{...r}}
+                    })
+
+                    const fResult = await Promise.all(res)
+
+
 
                     return {
-                        MedicineType: result
+                        MedicineType: fResult
                     }
                 } catch (error) {
                     throw new GraphQLError(error)
@@ -67,6 +92,45 @@ export const QueryAllMerchantMedicine = extendType({
         })
     }
 })
+
+export const QueryAllMedecine = extendType({
+    type: 'Query',
+    definition(t) {
+        t.nullable.field('QueryAllMedecine', {
+            type: QueryAllObjectType,
+            args: { data: medicineInputType },
+            async resolve(_root, args, ctx) {
+                const { session } = ctx;
+
+
+                try {
+                    const result = await client.merchant_medicine.findMany({
+                        where: {
+                            is_deleted: 0,
+                        }
+                    })
+                    const res = result?.map(async(item:any)=>{
+                        const r = await client.medecine_attachment.findFirst({
+                            where:{
+                                id:Number(item?.attachment_id)
+                            }
+                        })
+                        return {...item, attachment_info:{...r}}
+                    })
+
+                    const fResult = await Promise.all(res)
+
+                    return {
+                        MedicineType: fResult
+                    }
+                } catch (error) {
+                    throw new GraphQLError(error)
+                }
+            }
+        })
+    }
+})
+
 
 export const CreateMedicineInputs = inputObjectType({
     name: 'CreateMedicineInputs',
@@ -77,6 +141,8 @@ export const CreateMedicineInputs = inputObjectType({
         t.string('price');
         t.string('manufacturer');
         t.string('brand_name');
+        t.int('stock')
+        t.string('description')
     },
 })
 
@@ -87,7 +153,6 @@ export const CreateMedicineObj = objectType({
     },
 })
 
-
 export const CreateMerchantMedicine = extendType({
     type: 'Mutation',
     definition(t) {
@@ -97,33 +162,24 @@ export const CreateMerchantMedicine = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
-
                 const sFile = await args?.file;
 
-
-                const { generic_name, brand_name, dose, form, price, manufacturer }: any = args.data
-
-
-                console.log(args?.data, 'DATA____________')
-                console.log(session?.user?.id, 'USER____________')
-
+                const { generic_name,stock, description, brand_name, dose, form, price, manufacturer }: any = args.data
 
                 try {
-
+                    let med:any;
                     if (sFile) {
-                        // console.log(sFile, 'FILE@@@');
                         const res: any = useUpload(sFile, 'public/documents/');
 
-                        res?.map(async (v: any) => {
-                            await client.merchant_attachment.create({
-                                data: {
-                                    merchant_id: Number(session?.user?.id),
-                                    filename: String(v!.fileName),
-                                    file_url: String(v!.path),
-                                    file_type: String(v!.fileType)
-                                },
-                            });
-                        });
+                        med = await client.medecine_attachment.create({
+                            data:{
+                                filename: String(res[0]!.fileName),
+                                file_path: String(res[0]!.path),
+                                file_type: String(res[0]!.fileType),
+                                file_size: String(res[0]!.file_size)
+                            }
+                        })
+                        
                     }
 
                     await client.merchant_medicine.create({
@@ -134,8 +190,10 @@ export const CreateMerchantMedicine = extendType({
                             manufacturer,
                             merchant_id: 1,
                             brand_name,
+                            stock,
+                            description,
                             price: 2.5,
-                            attachment_id: 1
+                            attachment_id: Number(med?.id)
                         }
                     })
 
@@ -198,18 +256,6 @@ export const DeleteMerchantMedicine = extendType({
     }
 })
 
-
-// export const CreateMedicineInputs = inputObjectType({
-//     name:'CreateMedicineInputs',
-//     definition(t) {
-//         t.string('generic_name');
-//         t.string('dose');
-//         t.string('form');
-//         t.string('price');
-//         t.string('manufacturer');
-//         t.string('brand_name');
-//     },
-// })
 
 export const UpdateMerchantMedicine = extendType({
     type: 'Mutation',

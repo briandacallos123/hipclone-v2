@@ -44,6 +44,7 @@ import { AuthProvider, AuthConsumer } from 'src/auth/context';
 import Search from '@/auth/context/Search';
 import ServiceWorker from 'src/components/ServiceWorker'
 import { Viewport } from 'next';
+import Checkout from '@/context/checkout/Checkout';
 // ----------------------------------------------------------------------
 
 export const viewport: Viewport = {
@@ -113,7 +114,9 @@ export default function RootLayout({ children }: Props) {
                         <ServiceWorker/>
                         <Search>
                           <MerchantContext>
+                            <Checkout>
                             {children}
+                            </Checkout>
                           </MerchantContext>
                         </Search>
                       </AuthConsumer>

@@ -6,7 +6,7 @@ import Avatar from '@mui/material/Avatar';
 // theme
 import { bgGradient } from 'src/theme/css';
 // types
-import { IProduct } from 'src/types/product';
+// import { IProduct } from 'src/types/product';
 // components
 import Image from 'src/components/image';
 import Lightbox, { useLightBox } from 'src/components/lightbox';
@@ -68,20 +68,24 @@ type Props = {
 
 export default function ProductDetailsCarousel({ product }: Props) {
   const theme = useTheme();
-
+  console.log(product,'PRODUCT_________')
   // const slides = product?.image?.map((img) => ({
   //   src: img,
   // }));
 
-  const slides = product?.map((item:any)=>(
-    {
-      src:item?.image
-    }
-  ))
+  const slides = {
+    src:`http://localhost:9092/${product?.attachment_info?.file_path?.split('/').splice(1).join('/')}`
+  }
+
+  // const slides = product?.map((item:any)=>(
+  //   {
+  //     src:`http://localhost:9092/${item?.attachment_info?.file_path?.split('/').splice(1).join('/')}`
+  //   }
+  // ))
 
   console.log(product,'product_______________________')
   console.log(slides,'slides_______________________')
-  const lightbox = useLightBox(slides);
+  // const lightbox = useLightBox(slides);
 
   const carouselLarge = useCarousel({
     rtl: false,
@@ -89,26 +93,26 @@ export default function ProductDetailsCarousel({ product }: Props) {
     adaptiveHeight: true,
   });
 
-  const carouselThumb = useCarousel({
-    rtl: false,
-    centerMode: true,
-    swipeToSlide: true,
-    focusOnSelect: true,
-    variableWidth: true,
-    centerPadding: '0px',
-    slidesToShow: slides?.length > 3 ? 3 : slides?.length,
-  });
+  // const carouselThumb = useCarousel({
+  //   rtl: false,
+  //   centerMode: true,
+  //   swipeToSlide: true,
+  //   focusOnSelect: true,
+  //   variableWidth: true,
+  //   centerPadding: '0px',
+  //   slidesToShow: slides?.length > 3 ? 3 : slides?.length,
+  // });
 
-  useEffect(() => {
-    carouselLarge.onSetNav();
-    carouselThumb.onSetNav();
-  }, [carouselLarge, carouselThumb]);
+  // useEffect(() => {
+  //   carouselLarge.onSetNav();
+  //   carouselThumb.onSetNav();
+  // }, [carouselLarge, carouselThumb]);
 
-  useEffect(() => {
-    if (lightbox.open) {
-      carouselLarge.onTogo(lightbox.selected);
-    }
-  }, [carouselLarge, lightbox.open, lightbox.selected]);
+  // useEffect(() => {
+  //   if (lightbox.open) {
+  //     carouselLarge.onTogo(lightbox.selected);
+  //   }
+  // }, [carouselLarge, lightbox.open, lightbox.selected]);
 
   const renderLargeImg = (
     <Box
@@ -121,60 +125,24 @@ export default function ProductDetailsCarousel({ product }: Props) {
     >
       <Carousel
         {...carouselLarge.carouselSettings}
-        asNavFor={carouselThumb.nav}
+        // asNavFor={carouselThumb.nav}
         ref={carouselLarge.carouselRef}
       >
-        {slides?.map((slide) => (
-          <Image
-            key={slide.src}
-            alt={slide.src}
-            src={slide.src}
-            ratio="1/1"
-            onClick={() => lightbox.onOpen(slide.src)}
+         <Image
+            key={slides.src}
+            alt={slides.src}
+            src={slides.src}
+            // ratio="2/2"
+            // onClick={() => lightbox.onOpen(slide.src)}
             sx={{ cursor: 'zoom-in' }}
           />
-        ))}
+     
       </Carousel>
 
-      <CarouselArrowIndex
-        index={carouselLarge.currentIndex}
-        total={slides?.length}
-        onNext={carouselThumb.onNext}
-        onPrev={carouselThumb.onPrev}
-      />
+  
     </Box>
   );
 
-  const renderThumbnails = (
-    <StyledThumbnailsContainer length={slides?.length}>
-      <Carousel
-        {...carouselThumb.carouselSettings}
-        asNavFor={carouselLarge.nav}
-        ref={carouselThumb.carouselRef}
-      >
-        {slides?.map((item, index) => (
-          <Box key={item.src} sx={{ px: 0.5 }}>
-            <Avatar
-              key={item.src}
-              alt={item.src}
-              src={item.src}
-              variant="rounded"
-              sx={{
-                width: THUMB_SIZE,
-                height: THUMB_SIZE,
-                opacity: 0.48,
-                cursor: 'pointer',
-                ...(carouselLarge.currentIndex === index && {
-                  opacity: 1,
-                  border: `solid 2.5px ${theme.palette.primary.main}`,
-                }),
-              }}
-            />
-          </Box>
-        ))}
-      </Carousel>
-    </StyledThumbnailsContainer>
-  );
 
   return (
     <Box
@@ -186,15 +154,6 @@ export default function ProductDetailsCarousel({ product }: Props) {
     >
       {renderLargeImg}
 
-      {renderThumbnails}
-
-      <Lightbox
-        index={lightbox.selected}
-        slides={slides}
-        open={lightbox.open}
-        close={lightbox.onClose}
-        onGetCurrentIndex={(index) => lightbox?.setSelected(index)}
-      />
     </Box>
   );
 }

@@ -14,16 +14,15 @@ const MedecineTableRowNew = ({ data }:MedecineTableRowProps) => {
 
 
     const handleView = useCallback((id:number)=>{
-        console.log(id,"AYDIIII")
-
         router.push(paths.dashboard.medecine.view(id));
     },[])
 
+
     return (
         <Box>
-            <Grid  justifyContent="space-between" container gap={2}>
+            <Grid  justifyContent="flex-start" container gap={2}>
                 {
-                    data?.map(({ id, image, title, details, price }: any) => (
+                    data?.map(({ id, attachment_info, generic_name, brand_name, price }: any) => (
                         <Grid xl={2}>
 
                             <Card sx={{maxWidth:500}}>
@@ -35,15 +34,15 @@ const MedecineTableRowNew = ({ data }:MedecineTableRowProps) => {
                                     <CardMedia
                                         component="img"
                                         height="140"
-                                        image={image}
-                                        alt={title}
+                                        image={`http://localhost:9092/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
+                                        alt={generic_name}
                                     />
                                     <CardContent>
                                         <Typography gutterBottom variant="h5" component="div">
-                                            {title}
+                                            {generic_name}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
-                                           {details}
+                                           {brand_name}
                                         </Typography>
                                         <Typography variant="body2" color="text.secondary">
                                          ₱{price}

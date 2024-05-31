@@ -1,3 +1,5 @@
+"use client"
+
 import { useCallback } from 'react';
 // @mui
 import Box from '@mui/material/Box';
@@ -15,12 +17,12 @@ type Props = {
 };
 
 export default function MedecineTablePagination({ medecine }: Props) {
-  
+  // console.log(medecin)
 
   return (
     <>
      
-      {medecine?.length > 5 && (
+      {/* {medecine?.length > 5 && ( */}
         <Pagination
           count={8}
           sx={{
@@ -30,7 +32,7 @@ export default function MedecineTablePagination({ medecine }: Props) {
             },
           }}
         />
-      )}
+      {/* )} */}
     </>
   );
 }

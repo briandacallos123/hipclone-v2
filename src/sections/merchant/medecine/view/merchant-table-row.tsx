@@ -168,14 +168,18 @@ export default function MerchantMedecineTableRow({
     />
   );
 
+  const img_path = row?.attachment_info?.file_path && row?.attachment_info?.file_path.split('/').splice(1).join('/')
+
+
   return (
     <TableRow hover selected={selected}>
         <TableCell sx={{
           display:'flex',
           alignItems:'center'
         }}>
-                <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
-                {row?.generic_name?.charAt(0)?.toUpperCase()}
+                <Avatar src={`http://localhost:9092/${img_path}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
+                {/* {row?.generic_name?.charAt(0)?.toUpperCase()} */}
+                  {/* <img src={img_path} alt="" /> */}
               </Avatar>
               <ListItemText
                 primary={row?.generic_name}

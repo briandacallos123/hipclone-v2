@@ -11,6 +11,11 @@ export const QueryAllMerchantMedicine = gql`
         form
         price
         manufacturer
+        attachment_info {
+          file_path
+          filename
+          id
+        }
       }
       }
   }

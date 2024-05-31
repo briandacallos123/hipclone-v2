@@ -7,6 +7,7 @@ import Skeleton from '@mui/material/Skeleton';
 import { EditorProps } from './types';
 import { StyledEditor } from './styles';
 import Toolbar, { formats } from './toolbar';
+import { usePathname } from 'next/navigation';
 
 const ReactQuill = dynamic(() => import('react-quill'), {
   ssr: false,
@@ -49,6 +50,11 @@ export default function Editor({
       matchVisual: false,
     },
   };
+  const pathname = usePathname()
+
+  
+
+  // console.log(pathname,'PATHNAME')
 
   return (
     <>

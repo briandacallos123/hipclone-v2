@@ -1,110 +1,61 @@
-'use client';
+import React from 'react'
+import prisma from '../../../../prisma/prismaClient'
 
-// @mui
-import { useTheme } from '@mui/material/styles';
-import Button from '@mui/material/Button';
-import Container from '@mui/material/Container';
-import Grid from '@mui/material/Unstable_Grid2';
-// hooks
-import { useMockedUser } from 'src/hooks/use-mocked-user';
-// _mock
-import {
-  _ecommerceNewProducts,
-  _ecommerceSalesOverview,
-  _ecommerceBestSalesman,
-  _ecommerceLatestProducts,
-} from 'src/_mock';
-// components
-import { useSettingsContext } from 'src/components/settings';
-// assets
-import { MotivationIllustration } from 'src/assets/illustrations';
-//
-import EcommerceWelcome from '../ecommerce-welcome';
-import EcommerceNewProducts from '../ecommerce-new-products';
-import EcommerceYearlySales from '../ecommerce-yearly-sales';
-import EcommerceBestSalesman from '../ecommerce-best-salesman';
-import EcommerceSaleByGender from '../ecommerce-sale-by-gender';
-import EcommerceSalesOverview from '../ecommerce-sales-overview';
-import EcommerceWidgetSummary from '../ecommerce-widget-summary';
-import EcommerceLatestProducts from '../ecommerce-latest-products';
-import EcommerceCurrentBalance from '../ecommerce-current-balance';
-import { useAuthContext } from '@/auth/hooks';
-import MedecineFiltering from '../medecine-table-filtering';
-import { medecineData } from '../mock'
-import MedecineTableRow from '@/sections/medecine/medecine-table-row';
-import MedecineTableRowNew from '../medecine-table-row';
-import MedecineFilteringHeader from '../medecine-filtering-header';
-import MedecineTablePagination from '../medecine-table-pagination';
-import { Box } from '@mui/material';
-// ----------------------------------------------------------------------
-
-export default function MedicineListView() {
-  // const { user } = useMockedUser();
-
-  const theme = useTheme();
-
-  const { user } = useAuthContext()
-
-  const settings = useSettingsContext();
-
-  const userFullName = user?.middleName ? `${user?.firstName} ${user?.middleName} ${user?.lastName}` : `${user?.firstName} ${user?.lastName}`
-
-  return (
-    <Container maxWidth={settings.themeStretch ? false : 'xl'}>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={12}>
-          <EcommerceWelcome
-            title={`Hi!  ${userFullName}`}
-            description="Where should we deliver your medecines?"
-            img={<MotivationIllustration />}
-          />
-        </Grid>
+import MedecinePage from './medecine-page'
+import MedecineTablePagination from '../medecine-table-pagination'
 
 
+async function MedecineData() {
+  const result = await prisma.merchant_medicine.findMany({
+    where: {
+      is_deleted: 0,
+    }
+  })
+  const res = result?.map(async (item: any) => {
+    const r = await prisma.medecine_attachment.findFirst({
+      where: {
+        id: Number(item?.attachment_id)
+      }
+    })
 
-        <Grid xs={12} md={2}>
-          <MedecineFiltering heading="Type" onSelect={() => { }} data={[
-            { id: 1, text: "Branded" },
-            { id: 2, text: "Generic" },
+    const user = await prisma.merchant_user.findFirst({
+      where:{
+        id:Number(item?.merchant_id)
+      },
+      include:{
+        merchant_store:true
+      }
+    })
 
-          ]} />
-        </Grid>
+    console.log(user,'USERRR')
 
-        <Grid xs={12} md={10} >
-          <Box sx={{
-            mb:5
-          }}>
-            <MedecineFilteringHeader onSort={() => { }} sort="Best Selling" sortOptions={[
-              {
-                id: 1,
-                label: "Best Selling",
-                value: "best selling"
-              },
-              {
-                id: 2,
-                label: "Price Descending",
-                value: "price descending"
-              },
-              {
-                id: 3,
-                label: "Price Ascending",
-                value: "price ascending"
-              },
+    return { ...item, attachment_info: { ...r }, user:{...user} }
+  })
 
-            ]} />
-          </Box>
-          <MedecineTableRowNew
-            data={medecineData}
-          />
-
-        </Grid>
-        <Grid md={12}>
-          <MedecineTablePagination medecine={medecineData} />
-        </Grid>
-
-
-
-      </Grid>
-    </Container>
-  );
+  const fResult = await Promise.all(res)
+  return fResult;
 }
+
+const MedecineListView = async () => {
+  const medData = await MedecineData()
+  console.log(medData, 'HAHAHAA')
+
+  
+  return (
+    <div>
+      {/* <MedecineTablePagination data={
+        [
+          {id:1},
+          {id:1},
+          {id:1},
+          {id:1},
+          {id:1},
+          {id:1}
+        ]}/> */}
+
+      <MedecinePage data={medData} />
+    </div>
+  )
+}
+
+export default MedecineListView

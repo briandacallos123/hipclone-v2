@@ -19,7 +19,8 @@ import { Searchbar, AccountPopover, Scanner, SettingsButton, NotificationsPopove
 import NotificationController from '../_common/notifications-popover/notification-controller';
 import { useEffect } from 'react';
 import { useAuthContext } from '@/auth/hooks';
-// import Scanner from '../../sections/scan/view'
+import Iconify from '@/components/iconify/iconify';
+import HeaderCart from '../_common/header-cart';
 
 // ----------------------------------------------------------------------
 
@@ -98,6 +99,8 @@ export default function Header({ onOpenNav }: Props) {
         {/* comment temporarily */}
         
         {user?.role !== 'patient' && <Scanner/>}
+        {user?.role === 'patient' && <HeaderCart/>}
+
         
         <NotificationsPopover queryResults={queryResults} handleReadFunc={handleReadFunc} notificationData={allData} isLoading={isLoading} summarize={summarize}/>
 

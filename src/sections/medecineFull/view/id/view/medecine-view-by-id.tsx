@@ -32,8 +32,10 @@ import ProductDetailsReview from '../product-details-review';
 import ProductDetailsSummary from '../product-details-summary';
 import ProductDetailsToolbar from '../product-details-toolbar';
 import ProductDetailsCarousel from '../product-details-carousel';
-import ProductDetailsDescription from '../product-details-description';
-
+import StoreOtherProducts from '../product-details-description';
+import EcommerceWelcome from '@/sections/medecineFull/ecommerce-welcome';
+import { MotivationIllustration } from 'src/assets/illustrations';
+import ProductStoreDetails from '../product-store-details';
 // ----------------------------------------------------------------------
 
 const SUMMARY = [
@@ -76,13 +78,18 @@ function useInitial() {
   return null;
 }
 
-export default function MedecineViewById() {
+type MedecineViewByIdProps = {
+  data:[]
+}
+
+export default function MedecineViewById({data}:MedecineViewByIdProps) {
   useInitial();
+  console.log(data)
 
   const settings = useSettingsContext();
 
 
-  const [currentTab, setCurrentTab] = useState('description');
+  const [currentTab, setCurrentTab] = useState('products');
 
   const [publish, setPublish] = useState('');
 
@@ -114,7 +121,7 @@ export default function MedecineViewById() {
     />
   );
 
-  const renderProduct = medecineData[0] && (
+  const renderProduct = data && (
     <>
       {/* <ProductDetailsToolbar
         backLink={paths.dashboard.product.root}
@@ -126,18 +133,29 @@ export default function MedecineViewById() {
       /> */}
 
       <Grid container spacing={{ xs: 3, md: 5, lg: 8 }}>
+        {/* <Grid xs={12} md={8}>
+          <EcommerceWelcome
+            title={data?.user?.merchant_store?.name}
+            description={data?.user?.merchant_store?.address}
+            img={<MotivationIllustration />}
+            action={
+              <Button variant="contained" color="primary">
+                Go Now
+              </Button>
+            }
+          />
+        </Grid> */}
+        <Grid xs={12} md={8}>
+          <ProductStoreDetails item={data?.user?.merchant_store}/>
+        </Grid>
         <Grid xs={12} md={6} lg={7}>
-          <ProductDetailsCarousel product={medecineData} />
+          <ProductDetailsCarousel product={data} />
         </Grid>
 
         <Grid xs={12} md={6} lg={5}>
-          {/* <ProductDetailsSummary
-            disabledActions
-            product={medecineData[0]}
-            cart={[]}
-            onAddCart={()=>{}}
-            onGotoStep={()=>{}}
-          /> */}
+          <ProductDetailsSummary
+            product={data}
+          />
         </Grid>
       </Grid>
 
@@ -176,8 +194,8 @@ export default function MedecineViewById() {
          >
            {[
              {
-               value: 'description',
-               label: 'Description',
+               value: 'products',
+               label: 'Other Products',
              },
             //  {
             //    value: 'reviews',
@@ -188,8 +206,8 @@ export default function MedecineViewById() {
            ))}
          </Tabs>
 
-         {currentTab === 'description' && (
-          <ProductDetailsDescription description="Very good description" />
+         {currentTab === 'products' && (
+          <StoreOtherProducts data={data?.user?.merchant_store?.products} />
          )}
 
          {/* {currentTab === 'reviews' && (

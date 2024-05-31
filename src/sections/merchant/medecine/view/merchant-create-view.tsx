@@ -28,7 +28,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 // components
 import Iconify from 'src/components/iconify';
-import FormProvider, { RHFTextField, RHFUpload } from 'src/components/hook-form';
+import FormProvider, { RHFEditor, RHFTextField, RHFUpload } from 'src/components/hook-form';
 import { Divider } from '@mui/material';
 import { signIn } from 'next-auth/react';
 
@@ -92,7 +92,9 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
         price:"",
         manufacturer:"",
         brand_name:"",
-        attachment: null
+        attachment: null,
+        description:"",
+        stock:""
        }
     },[editRow?.id, editRow])
 
@@ -267,6 +269,13 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
             </Stack>
             <Stack direction="row" alignItems="center">
              <RHFTextField name="brand_name" label="Brand Name" />
+             <RHFTextField name="stock" label="Stocks" type="number" />
+            </Stack>
+            <Stack direction="row" alignItems="center">
+                <RHFEditor placeholder='Tell something about the medecine...' name="description"/>
+                {/* <textarea style={{
+                    resize:"none"
+                }} name="description"  cols={10} rows={20}></textarea> */}
             </Stack>
             <Stack>
             <RHFUpload
