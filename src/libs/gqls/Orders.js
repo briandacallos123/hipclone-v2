@@ -26,6 +26,27 @@ export const QueryAllMedicineOrders = gql`
   }
 `;
 
+export const QueryAllMedecineByStore = gql`
+  query QueryAllMedecineByStore($data: medicineInputType!) {
+    QueryAllMedecineByStore(data: $data) {
+      MedicineType {
+        id
+        generic_name
+        brand_name
+        dose
+        form
+        price
+        manufacturer
+        attachment_info{
+          id
+          file_path
+          filename
+        }
+      }
+    }
+  }
+`;
+
 export const CreateOrders = gql`
   mutation CreateOrders($data: CreateOrdersInp!) {
     CreateOrders(data: $data) {

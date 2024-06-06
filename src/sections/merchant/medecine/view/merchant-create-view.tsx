@@ -149,12 +149,16 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
 
     //  console.log(user, 'HAAAAAAAAAAAAAAAAAAAAAAAAAAAA?');
 
+    const removeTags = (val:string) => {
+        const cleanedDescription = val.replace(/<[^>]+>/g, '');
+        return cleanedDescription;
+    }
     const onSubmit = useCallback(
         async (data: any) => {
             try {
                 const file = data?.attachment;
                 delete data.attachment;
-
+                data.description = removeTags(data.description)
                 createMerchantMedFunc(data, file)
                 // delete data.repassword
 
@@ -273,9 +277,7 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
             </Stack>
             <Stack direction="row" alignItems="center">
                 <RHFEditor placeholder='Tell something about the medecine...' name="description"/>
-                {/* <textarea style={{
-                    resize:"none"
-                }} name="description"  cols={10} rows={20}></textarea> */}
+                
             </Stack>
             <Stack>
             <RHFUpload

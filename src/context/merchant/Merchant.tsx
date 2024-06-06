@@ -89,7 +89,7 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
                
                }
            })
-       },[table.page, table.rowsPerPage])
+       },[table.page, table.rowsPerPage, toRefetch])
 
         // create merchant medecine
     const [createMerchantFuncMed] = useMutation(CreateMerchantMedecine, {

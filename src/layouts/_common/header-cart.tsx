@@ -1,35 +1,54 @@
 import Iconify from '@/components/iconify/iconify'
 import { Badge, Box, Button, Divider, Drawer, IconButton, Stack, Typography } from '@mui/material'
-import React from 'react'
+import React, { useCallback, useEffect } from 'react'
 import { varHover } from 'src/components/animate';
 import { m } from 'framer-motion';
 import { useBoolean } from '@/hooks/use-boolean';
+import CartItems from './cart/cart-items';
+import { fCurrency } from '@/utils/format-number';
+import { useCheckoutContext } from '@/context/checkout/Checkout';
+import { useRouter } from 'next/navigation';
 
-const HeaderCart = () => {
+type HeaderCartProps = {
+    count:number;
+    cart:[]
+}
 
+const HeaderCart = ({count, cart}:HeaderCartProps) => {
+    const {addToCart, removeToCart}:any = useCheckoutContext()
+    const router = useRouter();
     const drawer = useBoolean();
 
     const renderHead = (
-        <Stack direction="row" alignItems="center" sx={{ py: 2, pl: 2.5, pr: 1, minHeight: 68 }}>
+        <Stack direction="row" alignItems="center" justifyContent="center" sx={{ py: 2, pl: 2.5, pr: 1, minHeight: 68 }}>
             <Typography variant="h6" sx={{ flexGrow: 1 }}>
                 Cart
             </Typography>
 
-            {/* {!!totalUnRead && (
-            <Tooltip title="Mark all as read">
-              <IconButton color="primary" onClick={handleMarkAllAsRead}>
-                <Iconify icon="eva:done-all-fill" />
-              </IconButton>
-            </Tooltip>
-          )}
-    
-          {!smUp && (
-            <IconButton onClick={drawer.onFalse}>
-              <Iconify icon="mingcute:close-line" />
-            </IconButton>
-          )} */}
         </Stack>
     );
+
+    const total = cart?.reduce((acc, current) => {
+       return acc += current?.price * current?.quantity
+    },0)
+
+    const handleIncrementCart = useCallback((p:any)=>{
+        addToCart(p)
+    },[])
+    
+    const handleDecrementCart = useCallback((p:any)=>{
+        removeToCart(p)
+    },[])
+    
+
+    useEffect(()=>{
+        const isOpen = localStorage.getItem('openCart');
+        console.log(isOpen,'ISOPENNNNN__________', typeof isOpen)
+        if(Number(isOpen) !== 0){
+            drawer.onTrue()
+        }
+    },[localStorage.getItem('openCart')])
+   
 
     return (
         <>
@@ -41,9 +60,9 @@ const HeaderCart = () => {
                 color={'primary'}
                 onClick={drawer.onTrue}
             >
-                <Badge badgeContent={5} color="error">
+                <Badge badgeContent={count} color="error">
                     <Iconify
-                        className={Boolean(5) && 'bell'}
+                        className={Boolean(count) && 'bell'}
                         icon="solar:cart-bold"
                         width={24}
                     />
@@ -65,49 +84,32 @@ const HeaderCart = () => {
                 {renderHead}
 
                 <Divider />
-
-                {/* <Stack
-                    direction="row"
-                    alignItems="center"
-                    justifyContent="space-between"
-                    sx={{ pl: 2.5, pr: 1 }}
-                >
-                    {renderTabs}
-                    <IconButton onClick={handleMarkAllAsRead}>
-                        <Iconify icon="solar:settings-bold-duotone" />
-                    </IconButton>
-                </Stack> */}
-
-                <Divider />
-
-                {/* {viewId && <AppointmentDetailsView
-                    updateRow={() => {
-                        console.log("updatedrow")
-                    }}
-                    refetch={() => {
-                        console.log("refetech")
-                    }}
-                    refetchToday={() => {
-                        console.log('Fetching..');
-                    }}
-                    open={openView.value}
-                    onClose={openView.onFalse}
-                    id={viewId}
-                    notif={true}
-                />}
-                <Table>
-                    {isLoading && !notification_data?.length && [...Array(5)].map((_, i) => <NotificationSkeleton key={i} />)}
-                </Table>
-
-                {renderList}
-
-                <Box sx={{ p: 1 }}>
-                    <Button component={RouterLink} href={paths.dashboard.notification} fullWidth size="large">
-                        View All
-                    </Button>
-                </Box> */}
-                 <Box sx={{ p: 1 }}>
-                    <Button variant="contained" color="success" component={m.button}  fullWidth size="large">
+                    {cart?.map((item:any)=>(
+                        <CartItems 
+                        increment={()=>{
+                            handleIncrementCart(item)
+                        }} 
+                        decrement={()=>{
+                            handleDecrementCart(item)
+                        }}
+                        row={item}/>
+                    ))}
+                <Divider/>
+                 <Box sx={{ p: 1, mt:'auto' }}>
+                        <Box sx={{
+                            display:'flex',
+                            alignItems:'center',
+                            justifyContent:'space-between',
+                            mb:2
+                        }}>
+                            <Typography variant="h6">Total</Typography>
+                            <Typography variant="h5">
+                            ₱ {fCurrency(total)}
+                            </Typography>
+                        </Box>
+                    <Button onClick={()=>{
+                        router.push('/medecine/checkout')
+                    }} variant="contained" color="success" component={m.button}  fullWidth size="large">
                         Place Order
                     </Button>
                 </Box>

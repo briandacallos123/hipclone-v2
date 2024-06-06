@@ -17,10 +17,13 @@ import { useSettingsContext } from 'src/components/settings';
 import { HEADER, NAV } from '../config-layout';
 import { Searchbar, AccountPopover, Scanner, SettingsButton, NotificationsPopover } from '../_common';
 import NotificationController from '../_common/notifications-popover/notification-controller';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuthContext } from '@/auth/hooks';
 import Iconify from '@/components/iconify/iconify';
 import HeaderCart from '../_common/header-cart';
+import { useCheckoutContext } from '@/context/checkout/Checkout';
+import { useOrdersContext } from '@/context/checkout/CreateOrder';
+import HeaderOrders from '../_common/header-order';
 
 // ----------------------------------------------------------------------
 
@@ -30,9 +33,15 @@ type Props = {
 
 export default function Header({ onOpenNav }: Props) {
   const theme = useTheme();
-  
+  const {state}:any = useCheckoutContext()
   const {allData, isLoading, summarize, queryResults, handleReadFunc} = NotificationController({isRun:true});
   const { user, socket } = useAuthContext();
+  const {cart} = state
+  const [myCart, setMyCart] = useState([])
+  const { state : ordersCart } = useOrdersContext();
+
+ 
+  console.log(ordersCart?.order,"HAYS")
 
   useEffect(()=>{
     if (socket?.connected) {
@@ -99,7 +108,8 @@ export default function Header({ onOpenNav }: Props) {
         {/* comment temporarily */}
         
         {user?.role !== 'patient' && <Scanner/>}
-        {user?.role === 'patient' && <HeaderCart/>}
+        {user?.role === 'patient' && cart?.length !== 0 &&  <HeaderCart cart={cart} count={cart?.length}/>}
+        {user?.role === 'patient' && ordersCart?.order &&  <HeaderOrders order={ordersCart?.order} />}
 
         
         <NotificationsPopover queryResults={queryResults} handleReadFunc={handleReadFunc} notificationData={allData} isLoading={isLoading} summarize={summarize}/>

@@ -21,6 +21,7 @@ import CheckoutSteps from '../checkout-steps';
 import CheckoutPayment from '../checkout-payment';
 import CheckoutOrderComplete from '../checkout-order-complete';
 import CheckoutBillingAddress from '../checkout-billing-address';
+import { useCheckoutContext } from '@/context/checkout/Checkout';
 
 // ----------------------------------------------------------------------
 
@@ -42,7 +43,8 @@ import CheckoutBillingAddress from '../checkout-billing-address';
 
 export default function CheckoutView() {
   const settings = useSettingsContext();
-
+  const {state}:any = useCheckoutContext()
+  const {cart} = state
   // const {
   //   checkout,
   //   completed,
@@ -75,11 +77,13 @@ export default function CheckoutView() {
         Checkout
       </Typography>
 
-      {/* <Grid container justifyContent={completed ? 'center' : 'flex-start'}>
+      <Grid container justifyContent={'center'}>
         <Grid xs={12} md={8}>
-          <CheckoutSteps activeStep={activeStep} steps={PRODUCT_CHECKOUT_STEPS} />
+          <CheckoutSteps activeStep={3} steps={PRODUCT_CHECKOUT_STEPS} />
         </Grid>
-      </Grid> */}
+      </Grid>
+
+      
 
       {/* {completed ? (
         <CheckoutOrderComplete open={completed} onReset={onResetAll} onDownloadPDF={() => {}} />

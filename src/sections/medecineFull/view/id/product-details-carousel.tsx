@@ -74,18 +74,10 @@ export default function ProductDetailsCarousel({ product }: Props) {
   // }));
 
   const slides = {
-    src:`http://localhost:9092/${product?.attachment_info?.file_path?.split('/').splice(1).join('/')}`
+    src:`https://hip.apgitsolutions.com/${product?.attachment_info?.file_path?.split('/').splice(1).join('/')}`
   }
 
-  // const slides = product?.map((item:any)=>(
-  //   {
-  //     src:`http://localhost:9092/${item?.attachment_info?.file_path?.split('/').splice(1).join('/')}`
-  //   }
-  // ))
 
-  console.log(product,'product_______________________')
-  console.log(slides,'slides_______________________')
-  // const lightbox = useLightBox(slides);
 
   const carouselLarge = useCarousel({
     rtl: false,
@@ -93,26 +85,6 @@ export default function ProductDetailsCarousel({ product }: Props) {
     adaptiveHeight: true,
   });
 
-  // const carouselThumb = useCarousel({
-  //   rtl: false,
-  //   centerMode: true,
-  //   swipeToSlide: true,
-  //   focusOnSelect: true,
-  //   variableWidth: true,
-  //   centerPadding: '0px',
-  //   slidesToShow: slides?.length > 3 ? 3 : slides?.length,
-  // });
-
-  // useEffect(() => {
-  //   carouselLarge.onSetNav();
-  //   carouselThumb.onSetNav();
-  // }, [carouselLarge, carouselThumb]);
-
-  // useEffect(() => {
-  //   if (lightbox.open) {
-  //     carouselLarge.onTogo(lightbox.selected);
-  //   }
-  // }, [carouselLarge, lightbox.open, lightbox.selected]);
 
   const renderLargeImg = (
     <Box

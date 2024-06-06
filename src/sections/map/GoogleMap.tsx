@@ -4,12 +4,12 @@ import Geocode from 'react-geocode'; // Import geocoding library
 
 const MapContainer = () => {
   const [map, setMap] = useState(null);
-  const [center, setCenter] = useState({ lat: -34.397, lng: 150.644 });
+  const [center, setCenter] = useState({ lat: 14.6080659, lng: 121.0005259 });
   const [markerPosition, setMarkerPosition] = useState(null);
-  // const [inpAddress, setInpAddress] = useState(null);
-  const inpAddress = useRef(null)
+  const [inpAddress, setInpAddress] = useState(null);
+  console.log(inpAddress, 'HAHA')
 
-  const onLoad = (map:any) => {
+  const onLoad = (map: any) => {
     setMap(map);
   };
 
@@ -17,13 +17,13 @@ const MapContainer = () => {
     setMap(null);
   };
 
-  const handleAddressSearch = (address:any) => {
-    console.log(address,'address')
+  const handleAddressSearch = (address: string) => {
+    console.log(address, '????')
     // Use Geocode library to convert address to coordinates
     Geocode?.fromAddress(address).then(
       (response) => {
-        console.log(response,'RESPONSE')
-        const { lat, lng }:any = response.results[0].geometry.location;
+        const { lat, lng } = response.results[0].geometry.location;
+        console.log(lat, lng, '_________________________________________________')
         setCenter({ lat, lng }); // Update map center
         setMarkerPosition({ lat, lng }); // Update marker position
       },
@@ -32,6 +32,7 @@ const MapContainer = () => {
       }
     );
   };
+
 
   return (
     <LoadScript googleMapsApiKey="AIzaSyBfeD60EqbUHeAdl7eLmAekqU4iQBKtzVk">
@@ -49,12 +50,13 @@ const MapContainer = () => {
         type="text"
         placeholder="Enter address"
         onChange={(e) => {
-          inpAddress.current = e.target.value;
+          setInpAddress(e.target.value)
+          // console.log(e.target.value,'val')
         }}
       />
 
-      <button onClick={()=>{
-        handleAddressSearch(inpAddress.current)
+      <button onClick={() => {
+        handleAddressSearch(inpAddress);
       }}>Search</button>
     </LoadScript>
   );

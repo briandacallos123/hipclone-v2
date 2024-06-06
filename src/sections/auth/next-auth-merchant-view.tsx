@@ -34,7 +34,8 @@ import { Divider } from '@mui/material';
 import { signIn } from 'next-auth/react';
 //
 import NextAuthRegisterView from './next-auth-register-view';
-
+import { useSession } from 'next-auth/react';
+import { useSnackbar } from 'src/components/snackbar';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = {
@@ -54,7 +55,10 @@ type Props = {
 
 export default function NextAuthMerchantView({ setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
   const { login, user } = useAuthContext();
+  const {data:session}:any = useSession()
   const path = usePathname();
+  const [authDone, setAuthDone] = useState(false)
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -87,13 +91,7 @@ export default function NextAuthMerchantView({ setLoggedIn, isLoggedIn, open, on
     formState: { isSubmitting },
   } = methods;
 
-  // useEffect(() => {
-  //   if (user) {
-  //     console.log(user, 'HAAAAAAAAAAAAAAAAAAAAAAAAAAAA?');
-  //   }
-  // }, [user]);
-
-  //  console.log(user, 'HAAAAAAAAAAAAAAAAAAAAAAAAAAAA?');
+  
 
   const onSubmit = useCallback(
     async (data: FormValuesProps) => {
@@ -105,8 +103,9 @@ export default function NextAuthMerchantView({ setLoggedIn, isLoggedIn, open, on
           window.location.href = returnTo || PATH_AFTER_LOGIN;
          }); */
         await login?.(data.email, data.password, 'merchant');
+        setAuthDone(true)
        
-        window.location.href = paths.merchant.dashboard
+        // window.location.href = paths.merchant.dashboard
       } catch (error) {
         console.error(error);
         reset();
@@ -115,6 +114,18 @@ export default function NextAuthMerchantView({ setLoggedIn, isLoggedIn, open, on
     },
     [id, login, path, reset, returnTo, user]
   );
+
+  useEffect(()=>{
+    if(authDone){
+      if(session){
+        window.location.href = paths.merchant.dashboard
+      }else{
+        enqueueSnackbar("Invalid credentials", {variant:'error'})
+        setAuthDone(false)
+
+      }
+    }
+  },[authDone])
 
   // const renderHead = (
   //   <DialogTitle>

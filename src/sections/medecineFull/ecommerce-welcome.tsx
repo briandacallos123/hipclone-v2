@@ -15,10 +15,38 @@ interface Props extends CardProps {
   description?: string;
   img?: React.ReactNode;
   action?: React.ReactNode;
+  location?:string
 }
 
-export default function EcommerceWelcome({ title, description, action, img, ...other }: Props) {
+export default function EcommerceWelcome({location, title, description, action, img, ...other }: Props) {
   const theme = useTheme();
+
+  const handleGetCurrentLocation = () => {
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const { latitude, longitude } = position.coords;
+          try {
+            const response = await fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=500&type=hospital&key=${process.env.GOOGLE_MAP_SECRET}`);
+            if (response.ok) {
+              const data = await response.json();
+              // Handle the response data here
+              console.log(data,'ANDITO AKO_____________________');
+            } else {
+              console.error('Failed to fetch data from Google Places API');
+            }
+          } catch (error) {
+            console.error('Error fetching data:', error);
+          }
+        },
+        (error) => {
+          console.error('Error getting current location: ', error);
+        }
+      );
+    } else {
+      console.error('Geolocation is not supported by this browser.');
+    }
+  };
 
   return (
     <Stack
@@ -49,12 +77,12 @@ export default function EcommerceWelcome({ title, description, action, img, ...o
           textAlign: { xs: 'center', md: 'left' },
         }}
       >
-        <Typography paragraph variant="body1" sx={{ whiteSpace: 'pre-line' }}>
+        {/* <Typography paragraph variant="body1" sx={{ whiteSpace: 'pre-line' }}>
           {title}
-        </Typography>
+        </Typography> */}
 
         <Typography
-          variant="h4"
+          variant="h6"
           sx={{
             opacity: 0.8,
             maxWidth: 360,
@@ -63,15 +91,26 @@ export default function EcommerceWelcome({ title, description, action, img, ...o
         >
           {description}
         </Typography>
+        <Typography
+          variant="h2"
+          sx={{
+            opacity: 0.8,
+            mb: { xs: 3, xl: 2 },
+          }}
+        >
+          {location}
+        </Typography>
 
        <Stack spacing={2}>
-       <FormControl sx={{ mt:.5, width: '25ch' }} variant="outlined">
+       {/* <FormControl sx={{ mt:.5, width: '25ch' }} variant="outlined">
           <InputLabel htmlFor="outlined-adornment-password">Location</InputLabel>
           <OutlinedInput
             id="outlined-adornment-password" 
             endAdornment={
-              <InputAdornment position="end">
-                 <Iconify icon="mdi:location"/>
+              <InputAdornment position="end" sx={{
+                cursor:'pointer'
+              }}>
+                 <Iconify onClick={handleGetCurrentLocation} icon="mdi:location"/>
               </InputAdornment>
             }
             label="Location"
@@ -79,9 +118,9 @@ export default function EcommerceWelcome({ title, description, action, img, ...o
               border:'1px solid gray'
             }}
           />
-        </FormControl>
+        </FormControl> */}
 
-        <Button fullWidth variant="contained" color="success">Search</Button>
+        {/* <Button fullWidth variant="contained" color="success">Search</Button> */}
        </Stack>
 
         {/* <TextField

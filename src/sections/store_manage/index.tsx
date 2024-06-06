@@ -1,0 +1,1 @@
+export {default as StoreManageView} from './view/store-manage-view'

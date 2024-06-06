@@ -36,23 +36,15 @@ interface FormValuesProps extends Omit<ICheckoutCartItem, 'colors'> {
 
 type Props = {
   product: IProduct;
-  // : ICheckoutCartItem[];
-  // disabledActions?: boolean;
-  // onGotoStcartep: (step: number) => void;
-  // onAddCart: (cartItem: ICheckoutCartItem) => void;
 };
 
 export default function ProductDetailsSummary({
-  // cart,
   product,
-  // onAddCart,
-  // onGotoStep,
-  // disabledActions,
   ...other
 }: Props) {
   const router = useRouter();
 
-  const {addToCart} = useCheckoutContext()
+  const {addToCart}:any = useCheckoutContext()
 
   const {
     id,
@@ -66,11 +58,6 @@ export default function ProductDetailsSummary({
     stock,
     rating
   } = product;
-
-  // const existProduct = cart.map((item) => item.id).includes(id);
-
-  // const isMaxQuantity =
-  //   cart.filter((item) => item.id === id).map((item) => item.quantity)[0] >= available;
 
   const defaultValues = {
     id,
@@ -91,53 +78,12 @@ export default function ProductDetailsSummary({
     if (product) {
       reset(defaultValues);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [product]);
 
-  // const onSubmit = useCallback(
-  //   async (data: FormValuesProps) => {
-  //     try {
-  //       if (!existProduct) {
-  //         onAddCart({
-  //           ...data,
-  //           colors: [values.colors],
-  //           subTotal: data.price * data.quantity,
-  //         });
-  //       }
-  //       onGotoStep(0);
-  //       router.push(paths.product.checkout);
-  //     } catch (error) {
-  //       console.error(error);
-  //     }
-  //   },
-  //   [existProduct, onAddCart, onGotoStep, router, values.colors]
-  // );
-
-  // const handleAddCart = useCallback(() => {
-  //   try {
-  //     onAddCart({
-  //       ...values,
-  //       colors: [values.colors],
-  //       subTotal: values.price * values.quantity,
-  //     });
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // }, [onAddCart, values]);
-
-  // ----------------------------------------------------------------------
-
+  
   const renderPrice = (
     <Box sx={{ typography: 'h5' }}>
-      {/* {priceSale && (
-        <Box
-          component="span"
-          sx={{ color: 'text.disabled', textDecoration: 'line-through', mr: 0.5 }}
-        >
-          {fCurrency(price)}
-        </Box>
-      )} */}
-
+  
       {`₱ ${fCurrency(price)}`}
     </Box>
   );
@@ -170,59 +116,6 @@ export default function ProductDetailsSummary({
     </Stack>
   );
 
-  // const renderColorOptions = (
-  //   <Stack direction="row">
-  //     <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-  //       Color
-  //     </Typography>
-
-  //     <Controller
-  //       name="colors"
-  //       control={control}
-  //       render={({ field }) => (
-  //         <ColorPicker
-  //           colors={colors}
-  //           selected={field.value}
-  //           onSelectColor={field.onChange}
-  //           limit={4}
-  //         />
-  //       )}
-  //     />
-  //   </Stack>
-  // );
-
-  // const renderSizeOptions = (
-  //   <Stack direction="row">
-  //     <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
-  //       Size
-  //     </Typography>
-
-  //     <RHFSelect
-  //       name="size"
-  //       size="small"
-  //       helperText={
-  //         <Link underline="always" color="textPrimary">
-  //           Size Chart
-  //         </Link>
-  //       }
-  //       sx={{
-  //         maxWidth: 88,
-  //         [`& .${formHelperTextClasses.root}`]: {
-  //           mx: 0,
-  //           mt: 1,
-  //           textAlign: 'right',
-  //         },
-  //       }}
-  //     >
-  //       {sizes.map((size) => (
-  //         <MenuItem key={size} value={size}>
-  //           {size}
-  //         </MenuItem>
-  //       ))}
-  //     </RHFSelect>
-  //   </Stack>
-  // );
-
   const renderQuantity = (
     <Stack direction="row">
       <Typography variant="subtitle2" sx={{ flexGrow: 1 }}>
@@ -233,10 +126,17 @@ export default function ProductDetailsSummary({
         <IncrementerButton
           name="quantity"
           quantity={values.quantity}
-          disabledDecrease={values.quantity <= 1}
+          disabledDecrease={values.quantity === 0}
           disabledIncrease={values.quantity >= stock}
-          onIncrease={() => setValue('quantity', values.quantity + 1)}
-          onDecrease={() => setValue('quantity', values.quantity - 1)}
+          onIncrease={() => setValue('quantity', values.quantity += 1)}
+          onDecrease={() =>  {
+            if(values.quantity === 1){
+
+              setValue('quantity', 0)
+            }else{
+              setValue('quantity', values.quantity -= 1)
+            }
+          }}
         />
 
         <Typography variant="caption" component="div" sx={{ textAlign: 'right' }}>
@@ -246,18 +146,22 @@ export default function ProductDetailsSummary({
     </Stack>
   );
 
-  const handleAddCart = ()=>{
-    addToCart(product)
-  }
+  const handleAddCart = useCallback(()=>{
+    
+    addToCart(product, values.quantity)
+    localStorage.setItem('openCart','1')
+  },[values.quantity])
+
+  console.log(values.quantity,'QUANTITY___AWIIITT')
 
   const renderActions = (
     <Stack direction="row" spacing={2}>
       <Button
         fullWidth
-        // disabled={}
         size="large"
         color="warning"
         variant="contained"
+        disabled={values.quantity === 0}
         startIcon={<Iconify icon="solar:cart-plus-bold" width={24} />}
         onClick={handleAddCart}
         sx={{ whiteSpace: 'nowrap' }}
@@ -265,7 +169,7 @@ export default function ProductDetailsSummary({
         Add to Cart
       </Button>
 
-      <Button fullWidth size="large" type="submit" variant="contained" >
+      <Button disabled={values.quantity === 0} fullWidth size="large" type="submit" variant="contained" >
         Buy Now
       </Button>
     </Stack>
@@ -290,16 +194,6 @@ export default function ProductDetailsSummary({
       {`(${fShortenNumber(rating)} reviews)`}
     </Stack>
   );
-
-  // const renderLabels = (newLabel.enabled || saleLabel.enabled) && (
-  //   <Stack direction="row" alignItems="center" spacing={1}>
-  //     <Label color="info">{newLabel.content}</Label>
-  //     <Label color="error">{saleLabel.content}
-  //     </Label>
-  //   </Stack>
-  // );
-
-
 
   return (
     <FormProvider methods={methods} >

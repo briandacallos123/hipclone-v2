@@ -1,65 +1,58 @@
 import React from 'react'
-import MedecineViewById from '@/sections/medecineFull/view/id/view/medecine-view-by-id'
+import { StoreDashboardId } from '@/sections/medecine-final/id'
 import prisma from '../../../../../prisma/prismaClient'
 
-async function MedecineData(id: Number) {
-  const result = await prisma.merchant_medicine.findFirst({
-    where: {
-      id: Number(id),
-      is_deleted: 0,
+
+const fetchStore = async(id:number) => {
+    try {
+        let store = await prisma.merchant_store.findFirst({
+            where:{
+                id:Number(id)
+            },
+            include:{
+                attachment_store:true,
+            }
+        })
+    
+        const medicines = await prisma.merchant_medicine.findMany({
+            where:{
+                store_id:Number(store?.id),
+                is_deleted:0,
+                stock:{
+                    not:{
+                        equals:0
+                    }
+                }
+            },
+        })
+
+        let medecine_attachment = medicines?.map(async(item)=>{
+            const result = await prisma.medecine_attachment.findFirst({
+                where:{
+                    id:Number(item?.attachment_id)
+                }
+            })
+
+            return {...item, attachment_info:{...result}}
+        })
+        medecine_attachment = await Promise.all(medecine_attachment)
+
+    
+        const result = {...store, medecine_list:[...medecine_attachment]}
+        return result;
+    } catch (error) {
+        console.log(error)
     }
-  })
-
-  const r = await prisma.medecine_attachment.findFirst({
-    where: {
-      id: Number(result?.attachment_id)
-    }
-  })
-
-  const user = await prisma.merchant_user.findFirst({
-    where: {
-      id: Number(result?.merchant_id)
-    },
-    include: {
-      merchant_store: true,
-    }
-  })
-
-  const otherProductOfStore = await prisma.merchant_medicine.findMany({
-    where: {
-      id:{
-        not:Number(result?.id)
-      },
-      is_deleted: 0,
-      merchant_id:Number(result?.merchant_id)
-    },
-  })
-
-  const fStore = otherProductOfStore?.map(async(item:any)=>{
-    const a = await prisma.medecine_attachment.findFirst({
-      where:{
-        id:Number(item?.attachment_id)
-      }
-    })
-    return {...item, attachment_info:{...a}}
-  })
-
-  const fStoreResult = await Promise.all(fStore)
-
-  return { ...result, attachment_info: { ...r }, user: { ...user, merchant_store:{...user?.merchant_store, products:[...fStoreResult]} } }
-
+    
 }
 
-const page = async ({ params }: any) => {
-  const { id }: any = params;
+const page = async({params}) => {
+    const {id} = params;
+    const data = await fetchStore(id)
 
-  const data = await MedecineData(id)
-
-  console.log(data?.user?.merchant_store?.products,'PRODUCTS')
-
-
+    
   return (
-    <MedecineViewById data={data} />
+    <StoreDashboardId data={data}/>
   )
 }
 

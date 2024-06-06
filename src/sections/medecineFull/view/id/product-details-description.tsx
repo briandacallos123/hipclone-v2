@@ -1,6 +1,7 @@
 // components
 import { Box, Card, CardContent, CardMedia, Grid, Typography, CardActionArea } from '@mui/material';
 import Markdown from 'src/components/markdown';
+import { useRouter } from 'next/navigation';
 
 // ----------------------------------------------------------------------
 
@@ -9,7 +10,8 @@ type Props = {
 };
 
 export default function StoreOtherProducts({ data }: Props) {
-  console.log(data,'DATA KO TO_________________')
+    const router = useRouter();
+
   return (
     <Box sx={{
       p:3
@@ -22,14 +24,14 @@ export default function StoreOtherProducts({ data }: Props) {
 
                             <Card sx={{maxWidth:500}}>
                                 <CardActionArea
-                                // onClick={()=>{
-                                //     handleView(id)
-                                // }}
+                                onClick={()=>{
+                                    router.push(`/dashboard/medecine/${id}`)
+                                }}
                                 >
                                     <CardMedia
                                         component="img"
                                         height="140"
-                                        image={`http://localhost:9092/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
+                                        image={`https://hip.apgitsolutions.com/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
                                         alt={generic_name}
                                     />
                                     <CardContent>

@@ -51,6 +51,8 @@ export const paths: any = {
     login:`${ROOTS.MERCHANT}/login`,
     medicine:`${ROOTS.MERCHANT}/dashboard/medicines`,
     orders:`${ROOTS.MERCHANT}/dashboard/orders`,
+    store:`${ROOTS.MERCHANT}/dashboard/store`,
+    manage:(id: number) => `${ROOTS.MERCHANT}/dashboard/store/${id}`,
     user:{
       account:`${ROOTS.MERCHANT}/dashboard/user/account`,
       profile:`${ROOTS.MERCHANT}/dashboard/user/profile`,

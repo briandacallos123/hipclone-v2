@@ -1,60 +1,129 @@
+import Iconify from '@/components/iconify/iconify';
 import { paths } from '@/routes/paths';
-import { Box, Card, CardActionArea, CardContent, CardMedia, Grid, Typography } from '@mui/material'
+import { Box, Button, Card, CardActionArea, CardContent, CardMedia, Grid, Rating, Stack, Typography } from '@mui/material'
+import Image from 'next/image';
 import React, { useCallback } from 'react';
 
 import { useRouter } from 'src/routes/hook';
 
 type MedecineTableRowProps = {
-    data: []
+    data: [];
+    alignment: string
 }
 
-const MedecineTableRowNew = ({ data }:MedecineTableRowProps) => {
+const MedecineTableRowNew = ({ data, alignment }: MedecineTableRowProps) => {
 
     const router = useRouter();
 
 
-    const handleView = useCallback((id:number)=>{
+    const handleView = useCallback((id: number) => {
         router.push(paths.dashboard.medecine.view(id));
-    },[])
+    }, [])
 
+    const isRow = alignment === 'row';
 
     return (
         <Box>
-            <Grid  justifyContent="flex-start" container gap={2}>
+            <Grid gap={3} justifyContent="flex-start" container>
                 {
-                    data?.map(({ id, attachment_info, generic_name, brand_name, price }: any) => (
-                        <Grid xl={2}>
+                    data?.map(({ id, attachment_store, name, address, rating, product_types }: any) => (
+                        <Grid xl={2} >
 
-                            <Card sx={{maxWidth:500}}>
+                            <Card sx={{ maxWidth: isRow ? '100%' : 300, height: 350 }}>
                                 <CardActionArea
-                                onClick={()=>{
-                                    handleView(id)
-                                }}
+                                    onClick={() => {
+                                        handleView(id)
+                                    }}
                                 >
-                                    <CardMedia
-                                        component="img"
-                                        height="140"
-                                        image={`http://localhost:9092/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
-                                        alt={generic_name}
-                                    />
-                                    <CardContent>
-                                        <Typography gutterBottom variant="h5" component="div">
-                                            {generic_name}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                           {brand_name}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                         ₱{price}
-                                        </Typography>
-                                    </CardContent>
+                                    <Box
+                                        sx={{
+                                            display: isRow && 'flex',
+                                        }}
+                                    >
+                                        {isRow ? <Box sx={{
+                                            width: isRow && '10%'
+                                        }}>
+
+                                            <CardMedia
+                                                component="img"
+                                                image={`https://hip.apgitsolutions.com/${attachment_store?.file_url?.split('/').splice(1).join('/')}`}
+                                                alt={name}
+                                                height="100%"
+                                                width="100%"
+                                            />
+                                        </Box> :
+
+                                            <CardMedia
+                                                component="img"
+                                                image={`http://localhost:9092/${attachment_store?.file_url?.split('/').splice(1).join('/')}`}
+                                                alt={name}
+                                                height={150}
+                                            />}
+                                        <CardContent sx={{
+                                            display: isRow && 'flex',
+                                            alignItems: isRow && 'center',
+                                            justifyContent: isRow && 'space-between',
+                                        }}>
+                                            <Box sx={{
+                                                width: '100%'
+                                            }}>
+                                                <Typography variant="h6" >
+                                                    {`${name} - ${address}`}
+                                                </Typography>
+
+                                                <Typography sx={{
+                                                    textTransform: 'capitalize',
+                                                    mt: 2
+                                                }} variant="body2" color="grey">
+                                                    {product_types}
+                                                </Typography>
+                                                <Box sx={{
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    gap: 2,
+                                                    mt: 1
+                                                }}>
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 1,
+
+                                                    }}>
+                                                        <Rating max={1} name="read-only" value={1} readOnly />
+                                                        <Typography>{rating}</Typography>
+                                                    </Box>
+                                                    <Box sx={{
+                                                        display: 'flex',
+                                                        alignItems: 'center',
+                                                        gap: 1,
+                                                    }}>
+                                                        <Iconify color="grey" icon="fa6-regular:clock" />
+                                                        <Typography sx={{
+                                                            color: 'grey'
+                                                        }}>45mins</Typography>
+                                                    </Box>
+                                                    <Box
+
+
+                                                    >
+                                                        <Typography sx={{
+                                                            textTransform: 'capitalize',
+                                                        }} variant="body2" color="grey">
+                                                            4.6 Km
+                                                        </Typography>
+                                                    </Box>
+                                                </Box>
+                                            </Box>
+
+                                        </CardContent>
+                                    </Box>
                                 </CardActionArea>
                             </Card>
                         </Grid>
                     ))
                 }
             </Grid>
-        </Box>
+        </Box >
     )
 }
 

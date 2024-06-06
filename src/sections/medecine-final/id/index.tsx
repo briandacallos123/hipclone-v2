@@ -1,0 +1,1 @@
+export {default as StoreDashboardId} from './view/store-dashboard-id'

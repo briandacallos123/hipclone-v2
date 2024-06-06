@@ -47,6 +47,7 @@ export const medicineInputType = inputObjectType({
         t.nullable.int('take');
         t.nullable.int('skip');
         t.nullable.int('search');
+        t.nullable.int('store_id')
         //   t.nullable.int('status');
     },
 });
@@ -81,6 +82,50 @@ export const QueryAllMerchantMedicine = extendType({
                     const fResult = await Promise.all(res)
 
 
+
+                    return {
+                        MedicineType: fResult
+                    }
+                } catch (error) {
+                    throw new GraphQLError(error)
+                }
+            }
+        })
+    }
+})
+
+export const QueryAllMedecineByStore = extendType({
+    type: 'Query',
+    definition(t) {
+        t.nullable.field('QueryAllMedecineByStore', {
+            type: QueryAllObjectType,
+            args: { data: medicineInputType },
+            async resolve(_root, args, ctx) {
+                const { session } = ctx;
+
+
+                try {
+                    const result = await client.merchant_medicine.findMany({
+                        where: {
+                            is_deleted: 0,
+                            store_id:Number(args?.data?.store_id),
+                            stock:{
+                                not:{
+                                    equals:0
+                                }
+                            }
+                        }
+                    })
+                    const res = result?.map(async(item:any)=>{
+                        const r = await client.medecine_attachment.findFirst({
+                            where:{
+                                id:Number(item?.attachment_id)
+                            }
+                        })
+                        return {...item, attachment_info:{...r}}
+                    })
+
+                    const fResult = await Promise.all(res)
 
                     return {
                         MedicineType: fResult

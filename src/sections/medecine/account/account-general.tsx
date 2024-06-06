@@ -4,6 +4,9 @@ import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { useForm, Controller, CustomRenderInterface, FieldValues } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
+import { alpha } from '@mui/material/styles';
+import { TimePicker } from '@mui/x-date-pickers/TimePicker';
+
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Box from '@mui/material/Box';
@@ -27,6 +30,7 @@ import FormProvider, {
   RHFUploadAvatar,
   RHFUpload,
   RHFSelect,
+  RHFMultiCheckbox,
 } from 'src/components/hook-form';
 import { gql, useMutation } from '@apollo/client';
 import { useAuthContext } from '@/auth/hooks';
@@ -34,7 +38,7 @@ import { GeneralTabMutation, MutationESign } from '../../../libs/gqls/subprofile
 // import { GeneralTabMutation, MutationESign } from '../../libs/gqls/subprofilegeneral';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import SignatureCanvas from 'react-signature-canvas';
-import { Button, CardHeader, Dialog, DialogContent, DialogTitle, Divider } from '@mui/material';
+import { Button, CardHeader, Dialog, DialogContent, DialogTitle, Divider, Tab, Tabs } from '@mui/material';
 import { useBoolean } from 'src/hooks/use-boolean';
 import AccountGeneralSig from './account-general-dialog';
 import Iconify from '@/components/iconify';
@@ -44,6 +48,16 @@ import MyMapComponent from '@/sections/map/GoogleMap';
 interface FormValuesProps extends Omit<IUserProfile, 'avatarUrl'> {
   avatarUrl: CustomFile | string | null;
 }
+
+const OPERATIONAL_DAY = [
+  { label: 'Sunday', value: 0 },
+  { label: 'Monday', value: 1 },
+  { label: 'Tueday', value: 2 },
+  { label: 'Wednesday', value: 3 },
+  { label: 'Thursday', value: 4 },
+  { label: 'Friday', value: 5 },
+  { label: 'Saturday', value: 6 },
+];
 
 export default function AccountGeneral() {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -100,6 +114,7 @@ export default function AccountGeneral() {
 
           return publicPart;
         })() || null,
+      days: [] ?? new Date()
     }),
     [user]
   );
@@ -320,6 +335,12 @@ export default function AccountGeneral() {
     }
   }, [user]);
 
+  const [currentTab, setCurrentTab] = useState('personal');
+
+  const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
+    setCurrentTab(newValue);
+  }, []);
+
   return (
     <Box>
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
@@ -348,157 +369,70 @@ export default function AccountGeneral() {
               />
             </Card>
 
-            {user?.role === 'doctor' && (
-              <Card sx={{ py: { md: 2, xs: 1 }, px: { md: 3, xs: 1 }, textAlign: 'center' }}>
-                <Stack spacing={1.5} sx={{ mt: 3 }}>
-                  <Button
-                    onClick={openSig}
-                    variant="contained"
-                    color="primary"
-                    sx={{
-                      position: 'absolute',
-                      right: 10,
-                      top: 5,
-                      fontSize: '11px',
-                      width: '25px',
-                      height: '25px',
-                    }}
-                    startIcon={
-                      <Iconify icon="tabler:edit" sx={{ width: '15px', height: '15px' }} />
-                    }
-                  >
-                    Edit
-                  </Button>
-                  <Stack direction="column">
-                    <span
-                      style={{
-                        marginBottom: '8px',
-                        position: 'absolute',
-                        top: 0,
-                        paddingBottom: '88px',
-                      }}
-                    >
-                      E-Signature Preview
-                    </span>
-                    <Box sx={{ width: '135%', height: '58px' }}>
-                      {user?.esig?.filename && (
-                        <img
-                          alt=" "
-                          style={{ width: '25%', height: '115%' }}
-                          src={
-                            (() => {
-                              const url = user?.esig?.filename;
-                              const parts = url?.split('public');
-                              const publicPart = parts ? parts[1] : null;
 
-                              console.log(publicPart, '@@@@@@@');
-
-                              return publicPart;
-                            })() || null
-                          }
-                        />
-                      )}
-                    </Box>
-
-                    <Stack direction="column" alignSelf="flex-end">
-                      <Typography variant="subtitle2" sx={{ textAlign: 'left' }}>
-                        {user?.middleName
-                          ? `${user?.firstName} ${user?.middleName} ${user?.lastName}, ${user?.title}`
-                          : `${user?.firstName} ${user?.lastName},  ${user?.title}`}
-                      </Typography>
-
-                      {getValues('prcNumber') && (
-                        <Typography sx={{ fontSize: 11, textAlign: 'left' }}>
-                          License No: {getValues('prcNumber')}
-                        </Typography>
-                      )}
-
-                      {getValues('ptrNumber') && (
-                        <Typography sx={{ fontSize: 11, textAlign: 'left' }}>
-                          PTR No: {getValues('ptrNumber')}
-                        </Typography>
-                      )}
-                      {getValues('s2Number') && (
-                        <Typography sx={{ fontSize: 11, textAlign: 'left' }}>
-                          S2 No: {getValues('s2Number')}
-                        </Typography>
-                      )}
-                    </Stack>
-                  </Stack>
-                </Stack>
-              </Card>
-            )}
           </Grid>
 
           <Grid xs={12} md={8}>
             <Card sx={{ p: 3 }}>
-              <Typography variant="body1" sx={{ mb: 5, color: 'gray' }}>Personal Information</Typography>
-              <Box
-                rowGap={{ md: 3, xs: 1 }}
-                columnGap={{ md: 2, xs: 1 }}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }}
+              <Tabs
+                value={currentTab}
+                onChange={handleChangeTab}
                 sx={{
-                  mb: 3
+                  px: 3,
+                  boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
+                  mb: 5
                 }}
               >
+                {[
+                  {
+                    value: 'personal',
+                    label: 'Personal Information',
+                  },
+                  {
+                    value: 'store',
+                    label: 'Store Information',
+                  },
+                  //  {
+                  //    value: 'reviews',
+                  //    label: `Reviews (${product.reviews.length})`,
+                  //  },
+                ].map((tab) => (
+                  <Tab key={tab.value} value={tab.value} label={tab.label} />
+                ))}
+              </Tabs>
+              {currentTab === 'personal' &&
+                <>
 
-                <RHFTextField name="fname" label="First Name" />
-                <RHFTextField name="mname" label="Middle Name" />
-                <RHFTextField name="lname" label="Last Name" />
+                  <Box
+                    rowGap={{ md: 3, xs: 1 }}
+                    columnGap={{ md: 2, xs: 1 }}
+                    display="grid"
+                    gridTemplateColumns={{
+                      xs: 'repeat(1, 1fr)',
+                      sm: 'repeat(2, 1fr)',
+                    }}
+                    sx={{
+                      mb: 3
+                    }}
+                  >
 
-                {/* <RHFTextField
-                  name="suffix"
-                  label="Name Suffix"
-                  helperText="e.g.: I, II, Jr., Sr., etc."
-                />
+                    <RHFTextField name="fname" label="First Name" />
+                    <RHFTextField name="mname" label="Middle Name" />
+                    <RHFTextField name="lname" label="Last Name" />
 
-                <RHFSelect name="gender" label="Gender">
-                  <MenuItem value="1">Male</MenuItem>
-                  <MenuItem value="2">Female</MenuItem>
-                
-                </RHFSelect> */}
-                {/* 
-                <Controller
-                  name="birthDate"
-                  control={control}
-                  render={({ field, fieldState: { error } }: CustomRenderInterface) => (
-                    <DatePicker
-                      label="Date of Birth"
-                      value={field.value}
-                      onChange={(newValue) => {
-                        field.onChange(newValue);
+                    <RHFTextField
+                      InputProps={{
+                        readOnly: true,
                       }}
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          error: !!error,
-                          helperText: error?.message,
-                        },
-                      }}
+                      name="email"
+                      label="Email Address"
                     />
-                  )}
-                /> */}
-                {/* 
-                {user?.role !== 'secretary' && (
-                  <RHFTextField name="nationality" label="Nationality" />
-                )} */}
-                {/* {user?.role !== 'secretary' && <RHFTextField name="address" label="Address" />} */}
-                <RHFTextField
-                  InputProps={{
-                    readOnly: true,
-                  }}
-                  name="email"
-                  label="Email Address"
-                />
-                <RHFTextField name="contact" label="Phone Number" />
-              </Box >
-              <Divider />
-              <Box sx={{ mt: 3 }}>
-                <Typography variant="body1" sx={{ mb: 5, color: 'gray' }}>Store Information</Typography>
+                    <RHFTextField name="contact" label="Phone Number" />
+                  </Box >
+                </>
+              }
+              {/* <Divider /> */}
+              {currentTab === 'store' && <Box sx={{ mt: 3 }}>
 
                 <Box
                   rowGap={{ md: 3, xs: 1 }}
@@ -512,11 +446,70 @@ export default function AccountGeneral() {
                     mb: 3
                   }}
                 >
-                   <RHFTextField name="storeName" label=" Name" />
-                   <RHFTextField name="storeAdd" label="Address" />
+                  <RHFTextField fullWidth name="storeName" label=" Name" />
+                  <RHFTextField fullWidth name="storeAdd" label="Address" />
+                  <Box
+                    rowGap={3}
+                    columnGap={2}
+                    display="grid"
+                    gridTemplateColumns={{
+                      xs: 'repeat(1, 1fr)',
+                      sm: 'repeat(2, 1fr)',
+                    }}
+                  >
+                    <Controller
+                      name="start_time"
+                      control={control}
+                      render={({ field, fieldState: { error } }: CustomRenderInterface) => (
+                        <TimePicker
+                          label="Start Time"
+                          value={field.value}
+                          onChange={(newValue) => {
+                            field.onChange(newValue);
+                          }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              error: !!error,
+                              helperText: error?.message,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+
+                    <Controller
+                      name="end_time"
+                      control={control}
+                      render={({ field, fieldState: { error } }: CustomRenderInterface) => (
+                        <TimePicker
+                          label="End Time"
+                          value={field.value}
+                          onChange={(newValue) => {
+                            field.onChange(newValue);
+                          }}
+                          slotProps={{
+                            textField: {
+                              fullWidth: true,
+                              error: !!error,
+                              helperText: error?.message,
+                            },
+                          }}
+                        />
+                      )}
+                    />
+                  </Box>
+                  <RHFMultiCheckbox
+                    row
+                    name="days"
+                    label="Operational Days"
+                    options={OPERATIONAL_DAY}
+                  />
+
                 </Box>
+                {/* <MyMapComponent /> */}
               </Box>
-                  <MyMapComponent/>
+              }
               <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
                 <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
                   Save Changes

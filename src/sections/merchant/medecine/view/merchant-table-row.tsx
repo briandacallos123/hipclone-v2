@@ -177,7 +177,7 @@ export default function MerchantMedecineTableRow({
           display:'flex',
           alignItems:'center'
         }}>
-                <Avatar src={`http://localhost:9092/${img_path}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
+                <Avatar src={`https://hip.apgitsolutions.com/${img_path}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
                 {/* {row?.generic_name?.charAt(0)?.toUpperCase()} */}
                   {/* <img src={img_path} alt="" /> */}
               </Avatar>

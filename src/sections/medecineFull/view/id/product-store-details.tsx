@@ -33,7 +33,7 @@ type ReviewItemProps = {
 export default function ProductStoreDetails({ item }: ReviewItemProps) {
   const { img_path, name, address, description } = item;
 
-  const img = img_path && `http://localhost:9092/${img_path?.split('/').splice(1).join('/')}`
+  const img = img_path && `https://hip.apgitsolutions.com/${img_path?.split('/').splice(1).join('/')}`
 
   return (
     <Stack

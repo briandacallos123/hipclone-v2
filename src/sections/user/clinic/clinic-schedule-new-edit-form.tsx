@@ -101,6 +101,10 @@ export default function ClinicScheduleNewEditForm({
   };
   // Test cases
   // eslint-disable-next-line react-hooks/exhaustive-deps
+
+  console.log(currentItem?.start_time,'_____________@!#!#P(O)HJPOdhjpojapo__________________')
+  console.log(currentItem?.end_time,'_____________@!#!#P(O)HJPOdhjpojapo__________________')
+
   const sTime = convertTime(currentItem?.start_time);
   const sTimeNew = newFormatTimeString(currentItem?.start_time);
   const eTime = convertTime(currentItem?.end_time);

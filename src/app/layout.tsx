@@ -45,6 +45,9 @@ import Search from '@/auth/context/Search';
 import ServiceWorker from 'src/components/ServiceWorker'
 import { Viewport } from 'next';
 import Checkout from '@/context/checkout/Checkout';
+import { getServerSession } from "next-auth";
+import SessionProvider from '../context/auth/AuthSession'
+import CreateOrder from '@/context/checkout/CreateOrder';
 // ----------------------------------------------------------------------
 
 export const viewport: Viewport = {
@@ -88,7 +91,11 @@ type Props = {
 
 
 
-export default function RootLayout({ children }: Props) {
+export default async function RootLayout({ children }: Props) {
+
+  const session = await getServerSession()
+
+
   return (
     <html lang="en" className={primaryFont.className}>
       <body>
@@ -115,7 +122,9 @@ export default function RootLayout({ children }: Props) {
                         <Search>
                           <MerchantContext>
                             <Checkout>
-                            {children}
+                              <CreateOrder>
+                              <SessionProvider session={session}>{children}</SessionProvider>
+                              </CreateOrder>
                             </Checkout>
                           </MerchantContext>
                         </Search>

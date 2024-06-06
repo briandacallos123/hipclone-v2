@@ -22,9 +22,11 @@ type Props = {
         value: string;
         label: string;
     }[];
+    onGrid:()=>void;
+    onRow:()=>void
 };
 
-export default function MedecineFilteringHeader({ sort, sortOptions, onSort }: Props) {
+export default function MedecineFilteringHeader({onGrid, onRow, sort, sortOptions, onSort }: Props) {
     const popover = usePopover();
     const [alignment, setAlignment] = useState<string | null>('grid');
 
@@ -49,10 +51,10 @@ export default function MedecineFilteringHeader({ sort, sortOptions, onSort }: P
                         onChange={handleAlignment}
                         aria-label="text alignment"
                     >
-                        <ToggleButton value="grid" aria-label="left aligned">
+                        <ToggleButton onClick={onGrid} value="grid" aria-label="left aligned">
                             <Iconify icon="fontisto:nav-icon-grid"/>
                         </ToggleButton>
-                        <ToggleButton value="list" aria-label="centered">
+                        <ToggleButton onClick={onRow} value="list" aria-label="centered">
                         <Iconify icon="fontisto:nav-icon-list"/>
                         </ToggleButton>
 

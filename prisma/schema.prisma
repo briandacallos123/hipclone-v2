@@ -1785,7 +1785,6 @@ model merchant_user {
   is_deleted          Int                  @default(0)
   user_status         String               @default("OFFLINE") @db.VarChar(255)
   attachment_id       Int?
-  merchant_medicine   merchant_medicine[]
   merchant_store      merchant_store?      @relation(fields: [store_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_user_ibfk_1")
   merchant_attachment merchant_attachment? @relation(fields: [attachment_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_user_ibfk_2")
 
@@ -1794,24 +1793,24 @@ model merchant_user {
 }
 
 model merchant_medicine {
-  id            Int           @id @default(autoincrement())
-  generic_name  String        @db.VarChar(255)
-  brand_name    String        @db.VarChar(255)
-  dose          String        @db.VarChar(255)
-  form          String        @db.VarChar(255)
-  price         Float
-  description   String        @db.VarChar(255)
-  stock         Int
-  ratings       Decimal?      @default(0) @db.Decimal(10, 0)
-  manufacturer  String?       @db.VarChar(255)
-  merchant_id   Int
-  created_at    DateTime      @default(now()) @db.Date
-  is_deleted    Int           @default(0)
-  attachment_id Int
-  merchant_user merchant_user @relation(fields: [merchant_id], references: [id], onUpdate: Restrict, map: "merchant_medicine_ibfk_1")
+  id             Int            @id @default(autoincrement())
+  generic_name   String         @db.VarChar(255)
+  brand_name     String         @db.VarChar(255)
+  dose           String         @db.VarChar(255)
+  form           String         @db.VarChar(255)
+  price          Float
+  description    String         @db.VarChar(255)
+  stock          Int
+  ratings        Decimal?       @default(0) @db.Decimal(10, 0)
+  manufacturer   String?        @db.VarChar(255)
+  store_id       Int
+  created_at     DateTime       @default(now()) @db.Date
+  is_deleted     Int            @default(0)
+  attachment_id  Int
+  merchant_store merchant_store @relation(fields: [store_id], references: [id], onUpdate: Restrict, map: "merchant_medicine_ibfk_1")
 
-  @@index([merchant_id], map: "merchant_id")
   @@index([attachment_id], map: "attachment_id")
+  @@index([store_id], map: "merchant_medicine_ibfk_1")
 }
 
 model orders {
@@ -1839,20 +1838,29 @@ model orders {
 }
 
 model merchant_store {
-  id            Int             @id @default(autoincrement())
-  name          String          @db.VarChar(255)
-  lat           Float           @db.Float
-  lng           Decimal         @db.Decimal(11, 0)
-  address       String          @db.VarChar(255)
-  description   String?         @db.VarChar(255)
-  rating        Decimal?        @default(0) @db.Decimal(10, 0)
-  product_types String?         @db.VarChar(255)
-  is_deliver    Int             @default(0)
-  created_at    DateTime        @db.Date
-  is_active     Int?            @default(1)
-  is_deleted    Int
-  img_path      String?         @db.LongText
-  merchant_user merchant_user[]
+  id                Int                 @id @default(autoincrement())
+  name              String              @db.VarChar(255)
+  lat               Float               @db.Float
+  lng               Decimal             @db.Decimal(11, 0)
+  address           String              @db.VarChar(255)
+  description       String?             @db.VarChar(255)
+  rating            Decimal?            @default(0) @db.Decimal(10, 0)
+  product_types     String?             @db.VarChar(255)
+  merchant_id       Int
+  is_deliver        Int                 @default(0)
+  start_time        String?             @db.LongText
+  end_time          String?             @db.LongText
+  days              String?             @db.LongText
+  attachment_id     Int?
+  created_at        DateTime            @db.Date
+  is_active         Int?                @default(1)
+  is_deleted        Int
+  merchant_medicine merchant_medicine[]
+  attachment_store  attachment_store?   @relation(fields: [attachment_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_store_ibfk_1")
+  merchant_user     merchant_user[]
+
+  @@index([merchant_id], map: "merchant_id")
+  @@index([attachment_id], map: "attachment_id")
 }
 
 model status {
@@ -1880,6 +1888,16 @@ model merchant_attachment {
   created_at    DateTime        @default(now()) @db.Date
   is_deleted    Int             @default(0)
   merchant_user merchant_user[]
+}
+
+model attachment_store {
+  id             Int              @id @default(autoincrement())
+  filename       String           @db.VarChar(255)
+  file_url       String           @db.VarChar(255)
+  file_type      String           @db.VarChar(255)
+  created_at     DateTime         @default(now()) @db.DateTime(0)
+  is_deleted     Int              @default(0)
+  merchant_store merchant_store[]
 }
 
 enum UserStatuses {
