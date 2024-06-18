@@ -3,26 +3,38 @@ import { gql } from '@apollo/client';
 export const QueryAllMedicineOrders = gql`
   query QueryAllMedicineOrders($data: orderInputType!) {
     QueryAllMedicineOrders(data: $data) {
+      totalRecords
+      summary {
+        delivery
+        pickup
+      }
       orderType {
-        brand_name
         dose
-        quantity
         form
         generic_name
-        is_deliver
-        is_paid
+        store{
+          name
+        }
         id
+        is_paid
         patient {
           CONTACT_NO
           EMAIL
-          MNAME
           FNAME
-          LNAME
           HOME_ADD
           IDNO
+          LNAME
+          MNAME
+          SEX
+          STATUS
+          S_ID
+          isDeleted
         }
+        is_deliver
+        brand_name
+        quantity
       }
-      }
+    } 
   }
 `;
 

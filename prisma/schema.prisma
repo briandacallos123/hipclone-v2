@@ -1284,7 +1284,6 @@ model prescriptions {
   VISIBILITY          Int?                  @default(0)
   isDeleted           Int?                  @default(0)
   presCode            String?               @db.VarChar(6)
-  orders              orders[]
   patient             patient?              @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "prescriptions_ibfk_1")
   emr_patient         emr_patient?          @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "prescriptions_ibfk_2")
   doctorInfo          employees?            @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "prescriptions_ibfk_3")
@@ -1814,26 +1813,25 @@ model merchant_medicine {
 }
 
 model orders {
-  id              Int            @id @default(autoincrement())
-  generic_name    String?        @db.VarChar(255)
-  brand_name      String?        @db.VarChar(255)
-  dose            String?        @db.VarChar(255)
-  form            String?        @db.VarChar(255)
-  quantity        Int
-  patient_id      Int
-  prescription_id Int?
-  merchant_id     Int
-  store_id        Int?
-  is_paid         Int            @default(0)
-  is_deliver      Int            @default(0)
-  status_id       Int
-  is_deleted      Int            @default(0)
-  prescriptions   prescriptions? @relation(fields: [prescription_id], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_1")
-  patient         patient        @relation(fields: [patient_id], references: [S_ID], onUpdate: Restrict, map: "orders_ibfk_2")
-  status          status         @relation(fields: [status_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_3")
+  id           Int     @id @default(autoincrement())
+  generic_name String? @db.VarChar(255)
+  brand_name   String? @db.VarChar(255)
+  dose         String? @db.VarChar(255)
+  form         String? @db.VarChar(255)
+  quantity     Int
+  patient_id   Int
+  store_id     Int?
+  payment      String? @db.VarChar(255)
+  address      String  @db.VarChar(255)
+  price        Float
+  is_paid      Int     @default(0)
+  is_deliver   Int     @default(0)
+  status_id    Int
+  is_deleted   Int     @default(0)
+  patient      patient @relation(fields: [patient_id], references: [S_ID], onUpdate: Restrict, map: "orders_ibfk_2")
+  status       status  @relation(fields: [status_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_3")
 
   @@index([patient_id], map: "patient_id")
-  @@index([prescription_id], map: "prescription_id")
   @@index([status_id], map: "status_id")
 }
 

@@ -1,31 +1,36 @@
 "use client"
 import Iconify from '@/components/iconify'
 import { Box, Card, CardActionArea, CardContent, CardMedia, Grid, Rating, Typography } from '@mui/material'
-import React, { useCallback } from 'react'
+import React, { useCallback, useState } from 'react'
 import { fCurrency } from '@/utils/format-number'
 import { useOrdersContext } from '@/context/checkout/CreateOrder'
+import StoreDashboardFiltering from './store-dashboard-filtering'
 
 type StoreDataListProps = {
     data: []
 }
 
+
+
 const StoreDataList = ({ data }: StoreDataListProps) => {
     const isRow = false
-    const {addOrder} = useOrdersContext()
-
+    const {addOrder}:any = useOrdersContext()
     const handleView = useCallback((id: number) => {
         // router.push(paths.dashboard.medecine.view(id));
     }, [])
+
 
     const handleAddOrder = (data:any) => {
         addOrder(data)
     }
 
+    
+
     return (
         <Box sx={{
             mt: 3,
-            
         }}>
+                    
             <Grid  justifyContent="flex-start" container gap={2}>
                 {
                     data?.map((item:any) => {

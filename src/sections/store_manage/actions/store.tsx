@@ -4,5 +4,5 @@ import { revalidatePath } from "next/cache"
 
 
 export const revalidateStore = async() => {
-    revalidatePath('/merchant/dashboard/store/[id]')
+    revalidatePath('/merchant/dashboard/store/id')
 }

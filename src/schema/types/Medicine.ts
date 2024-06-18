@@ -187,7 +187,8 @@ export const CreateMedicineInputs = inputObjectType({
         t.string('manufacturer');
         t.string('brand_name');
         t.int('stock')
-        t.string('description')
+        t.string('description');
+        t.int('store_id')
     },
 })
 
@@ -209,7 +210,7 @@ export const CreateMerchantMedicine = extendType({
 
                 const sFile = await args?.file;
 
-                const { generic_name,stock, description, brand_name, dose, form, price, manufacturer }: any = args.data
+                const { generic_name,stock, description,store_id, brand_name, dose, form, price, manufacturer }: any = args.data
 
                 try {
                     let med:any;
@@ -233,12 +234,13 @@ export const CreateMerchantMedicine = extendType({
                             dose,
                             form,
                             manufacturer,
-                            merchant_id: 1,
                             brand_name,
                             stock,
                             description,
                             price: 2.5,
-                            attachment_id: Number(med?.id)
+                            attachment_id: Number(med?.id),
+                            store_id:Number(store_id),
+                            
                         }
                     })
 

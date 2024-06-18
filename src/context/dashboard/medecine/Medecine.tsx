@@ -35,8 +35,13 @@ const initialState = {
 }
 
 
-const reducer = (state:stateProps, action:actionProps) => {
+const reducer = (state:any, action:any) => {
     switch(action.type){
+        case "Reset":
+            state.orders = []
+            state.isLoading = true;
+            return state;
+
         case "Fetch":
             state.orders = action.payload;
             state.isLoading = false;
@@ -145,11 +150,17 @@ const OrderContext = ({children}:OrderUserContextProps) => {
         })
     },[])
 
+    const resetOrder = useCallback(()=>{
+        dispatch({
+            type:"Reset"
+        })
+    },[])
+
 
 
     // end of create merchant user
 
-    return <OrdersProvider.Provider value={{state, table, deletedOrderFunc, createOrder}}>
+    return <OrdersProvider.Provider value={{state, table, resetOrder, deletedOrderFunc, createOrder}}>
         {children}
     </OrdersProvider.Provider>
 }

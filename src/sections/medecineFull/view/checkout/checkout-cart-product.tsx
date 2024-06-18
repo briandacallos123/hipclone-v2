@@ -10,18 +10,18 @@ import Typography from '@mui/material/Typography';
 // utils
 import { fCurrency } from 'src/utils/format-number';
 // types
-import { ICheckoutCartItem } from 'src/types/product';
+// import { ICheckoutCartItem } from 'src/types/product';
 // components
 import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import { ColorPreview } from 'src/components/color-utils';
 //
-import { IncrementerButton } from '../_common';
+import { IncrementerButton } from '../../../product/_common';
 
 // ----------------------------------------------------------------------
 
 type CheckoutProductListRowProps = {
-  row: ICheckoutCartItem;
+  row: any;
   onDelete: VoidFunction;
   onDecrease: VoidFunction;
   onIncrease: VoidFunction;
@@ -33,27 +33,30 @@ export default function CheckoutCartProduct({
   onDecrease,
   onIncrease,
 }: CheckoutProductListRowProps) {
-  const { name, size, price, colors, coverUrl, quantity, available } = row;
+  const { name, image, size, price, colors, coverUrl, quantity, available } = row;
+
+  const img = `http://localhost:9092/${image?.split('/').splice(1).join('/')}`
+
 
   return (
     <TableRow>
       <TableCell sx={{ display: 'flex', alignItems: 'center' }}>
-        <Avatar variant="rounded" alt={name} src={coverUrl} sx={{ width: 64, height: 64, mr: 2 }} />
+        <Avatar variant="rounded" alt={name} src={img} sx={{ width: 64, height: 64, mr: 2 }} />
 
         <Stack spacing={0.5}>
           <Typography noWrap variant="subtitle2" sx={{ maxWidth: 240 }}>
             {name}
           </Typography>
 
-          <Stack
+          {/* <Stack
             direction="row"
             alignItems="center"
             sx={{ typography: 'body2', color: 'text.secondary' }}
           >
             size: <Label sx={{ ml: 0.5 }}> {size} </Label>
             <Divider orientation="vertical" sx={{ mx: 1, height: 16 }} />
-            <ColorPreview colors={colors} />
-          </Stack>
+            <ColorPreview colors={['red','green','blue']} />
+          </Stack> */}
         </Stack>
       </TableCell>
 
@@ -65,7 +68,7 @@ export default function CheckoutCartProduct({
             quantity={quantity}
             onDecrease={onDecrease}
             onIncrease={onIncrease}
-            disabledDecrease={quantity <= 1}
+            // disabledDecrease={quantity <= 1}
             disabledIncrease={quantity >= available}
           />
 
@@ -78,7 +81,15 @@ export default function CheckoutCartProduct({
       <TableCell align="right">{fCurrency(price * quantity)}</TableCell>
 
       <TableCell align="right" sx={{ px: 1 }}>
-        <IconButton onClick={onDelete}>
+        <IconButton onClick={()=>{
+
+          const isLastItem = JSON.parse(localStorage.getItem('cart')).cart.length === 1;
+          if(isLastItem){
+            localStorage.setItem('isLastInCart', 'true');
+          }
+          onDelete()
+          
+        }}>
           <Iconify icon="solar:trash-bin-trash-bold" />
         </IconButton>
       </TableCell>

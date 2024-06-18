@@ -14,16 +14,22 @@ const initialState = {
 
 const reducer = (state: any, action: any) => {
     switch (action.type) {
+        case "Reset":
+            state.order = null;
+            return state;
         case "Add":
-            const { brand_name, id, description, price, attachment_info, quantity, qty } = action.payload;
+            const { brand_name, id,store_id, generic_name,dose, description, price, attachment_info, quantity, qty } = action.payload;
         
             const newItem = {
                 id,
+                store_id,
                 name: brand_name,
                 price,
                 quantity: qty,
                 image: attachment_info?.file_path,
                 brand_name,
+                dose,
+                generic_name,
                 attachment_info
             };
     
@@ -70,7 +76,6 @@ const CreateOrder = ({ children }: any) => {
     const [state, dispatch] = useReducer(reducer, initialState)
 
     const addOrder = useCallback((data: any) => {
-        
         dispatch({
             type: "Add",
             payload: {
@@ -85,10 +90,17 @@ const CreateOrder = ({ children }: any) => {
         })
     }, [])
 
+    const resetOrder = useCallback((data: any) => {
+        dispatch({
+            type: "Reset"
+        })
+    }, [])
+
+
 
 
     return (
-        <CartContext.Provider value={{ state, addOrder, removeOrder }}>
+        <CartContext.Provider value={{ resetOrder, state, addOrder, removeOrder }}>
             {children}
         </CartContext.Provider>
     )

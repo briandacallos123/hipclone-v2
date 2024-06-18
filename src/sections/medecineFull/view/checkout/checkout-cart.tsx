@@ -8,7 +8,7 @@ import Typography from '@mui/material/Typography';
 // routes
 import { paths } from 'src/routes/paths';
 // types
-import { IProductCheckoutState } from 'src/types/product';
+// import { IProductCheckoutState } from 'src/types/product';
 // components
 import Iconify from 'src/components/iconify';
 import { RouterLink } from 'src/routes/components';
@@ -20,7 +20,7 @@ import CheckoutCartProductList from './checkout-cart-product-list';
 // ----------------------------------------------------------------------
 
 type Props = {
-  checkout: IProductCheckoutState;
+  checkout: any;
   onNextStep: VoidFunction;
   onApplyDiscount: (value: number) => void;
   onDeleteCart: (productId: string) => void;
@@ -37,10 +37,12 @@ export default function CheckoutCart({
   onDecreaseQuantity,
 }: Props) {
   const { cart, total, discount, subTotal } = checkout;
+  console.log(checkout,'CHECKOUTTTTT')
 
-  const totalItems = sum(cart.map((item) => item.quantity));
+  const totalItems = cart?.length
 
-  const empty = !cart.length;
+
+  const empty = !cart?.length;
 
   return (
     <Grid container spacing={3}>
@@ -57,6 +59,7 @@ export default function CheckoutCart({
             }
             sx={{ mb: 3 }}
           />
+        
 
           {!empty ? (
             <CheckoutCartProductList
@@ -77,7 +80,8 @@ export default function CheckoutCart({
 
         <Button
           component={RouterLink}
-          href={paths.product.root}
+          href={paths.dashboard.medecine.root}
+         
           color="inherit"
           startIcon={<Iconify icon="eva:arrow-ios-back-fill" />}
         >
@@ -90,8 +94,10 @@ export default function CheckoutCart({
           enableDiscount
           total={total}
           discount={discount}
-          subTotal={subTotal}
-          onApplyDiscount={onApplyDiscount}
+          subTotal={total}
+          // onApplyDiscount={onApplyDiscount}
+          onApplyDiscount={()=>{}}
+
         />
 
         <Button
@@ -99,8 +105,10 @@ export default function CheckoutCart({
           size="large"
           type="submit"
           variant="contained"
-          disabled={!cart.length}
+          disabled={!cart?.length}
           onClick={onNextStep}
+          // onClick={()=>{}}
+
         >
           Check Out
         </Button>

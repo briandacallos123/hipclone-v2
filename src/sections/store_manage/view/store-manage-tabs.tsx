@@ -1,10 +1,11 @@
 "use client"
 
 import Label from '@/components/label';
-import { Box, Tab, Tabs } from '@mui/material';
+import { Box, Grid, Tab, Tabs } from '@mui/material';
 import React, { useCallback, useState } from 'react'
 import StoreProducts from './store-products';
 import StoreManageProfile from './store-manage-profile';
+import StoreCreateMedecine from './store-create-medecine';
 
 
 
@@ -17,14 +18,14 @@ const TABS = [
         value: 'profile',
         label: 'Profile',
     },
-   
+
 ];
 
 type StoreManageTabsProps = {
-    data:any
+    data: any
 }
 
-const StoreManageTabs = ({data}:StoreManageTabsProps) => {
+const StoreManageTabs = ({ data }: StoreManageTabsProps) => {
 
     const [currentTab, setCurrentTab] = useState('products');
 
@@ -35,24 +36,31 @@ const StoreManageTabs = ({data}:StoreManageTabsProps) => {
 
     const renderTabs = (
         <>
-            <Tabs value={currentTab} onChange={handleChangeTab}>
-                {TABS.map((tab) => (
-                    <Tab
-                        key={tab.value}
-                        iconPosition="end"
-                        value={tab.value}
-                        label={tab.label}
-                        // icon={
-                        //    {currentTab === 'products' && }
-                        // }
-                        sx={{
-                            '&:not(:last-of-type)': {
-                                mr: 3,
-                            },
-                        }}
-                    />
-                ))}
-            </Tabs>
+            <Grid container>
+                <Grid lg={10}>
+                    <Tabs value={currentTab} onChange={handleChangeTab}>
+                        {TABS.map((tab) => (
+                            <Tab
+                                key={tab.value}
+                                iconPosition="end"
+                                value={tab.value}
+                                label={tab.label}
+                                // icon={
+                                //    {currentTab === 'products' && }
+                                // }
+                                sx={{
+                                    '&:not(:last-of-type)': {
+                                        mr: 3,
+                                    },
+                                }}
+                            />
+                        ))}
+                    </Tabs>
+                </Grid>
+                <Grid lg={2}>
+                       {currentTab === 'products' &&  <StoreCreateMedecine/> }
+                </Grid>
+            </Grid>
 
         </>
     );
@@ -60,11 +68,11 @@ const StoreManageTabs = ({data}:StoreManageTabsProps) => {
 
     return (
         <Box sx={{
-            mt:2
+            mt: 2
         }}>
             {renderTabs}
-            {currentTab === 'products' && <StoreProducts/> }
-            {currentTab === 'profile' && <StoreManageProfile data={data}/> }
+            {currentTab === 'products' && <StoreProducts />}
+            {currentTab === 'profile' && <StoreManageProfile data={data} />}
 
         </Box>
     )

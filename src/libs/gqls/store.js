@@ -22,20 +22,48 @@ export const UpdateStore = gql`
 export const QueryAllStore = gql`
   query QueryAllStore($data: storeInputType) {
     QueryAllStore(data: $data) {
+      data {
+        address
+        attachment_store {
+          file_url
+          filename
+          id
+        }
+        days
+        description
+        id
+        is_active
+        is_deliver
+        name
+        product_types
+        rating
+      }
+      summary {
+        active
+        inactive
+      }
+      totalRecords
+    }
+  }
+`;
+
+export const QueryAllStoreNoId = gql`
+  query QueryAllStoreNoId($data: storeInputType) {
+    QueryAllStoreNoId(data: $data) {
       address
       days
-    attachment_store {
-      file_url
-      filename
+      description
       id
-    }
-    description
-    id
-    is_active
-    is_deliver
-    name
-    product_types
-    rating
+      attachment_store {
+        file_url
+        filename
+        id
+      }
+      is_active
+      is_deliver
+      name
+      product_types
+      rating
     }
   }
 `;

@@ -54,7 +54,8 @@ const HeaderOrders = ({order}:HeaderCartProps) => {
     const router = useRouter();
     const drawer = useBoolean();
     const {addToCart, state:cartState, incrementCart}:any = useCheckoutContext()
-    const { id, price, quantity, image, name } = order;
+    const { id, price, quantity, image, name, dose, store_id, generic_name } = order;
+    console.log(order,'ORDERRRRRRRRRRRRRRRRRRRR')
 
     const isExistsToCart = cartState.cart?.find((item:any)=>item.id === Number(order.id));
 
@@ -97,7 +98,10 @@ const HeaderOrders = ({order}:HeaderCartProps) => {
             quantity:order?.quantity || isExistsToCart?.quantity || "",
             price:order?.price || price || 0,
             brand_name:order?.brand_name,
-            attachment_info:order?.attachment_info
+            attachment_info:order?.attachment_info,
+            dose: order?.dose || '',
+            store_id: order?.store_id || '',
+            generic_name: order?.generic_name || ''
 
         }),
         []
@@ -119,7 +123,7 @@ const HeaderOrders = ({order}:HeaderCartProps) => {
 
     const onSubmit = useCallback(
         async (data: FieldValues) => {
-         
+            console.log(isExistsToCart,'AWITTTTTT')
             try {
                
 
@@ -135,7 +139,7 @@ const HeaderOrders = ({order}:HeaderCartProps) => {
                 console.error(error);
             }
         },
-        []
+        [isExistsToCart]
     );
 
    

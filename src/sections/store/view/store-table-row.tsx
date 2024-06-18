@@ -123,7 +123,7 @@ export default function StoreTableRow({ row, onViewRow, onManageRow }: Props) {
                 <Rating value={row?.rating} max={5} />
             </TableCell>
             <TableCell>
-                <Label variant="soft" color={row?.is_active ? "success" : "danger"}>
+                <Label variant="soft" color={row?.is_active ? "success" : "info"}>
                     {row?.is_active ? "Active" : "Inactive"}
                 </Label>
             </TableCell>

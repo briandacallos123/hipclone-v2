@@ -66,30 +66,14 @@ const MedecinePage = ({data}:MedecinePageProps) => {
   
   return (
     <Container  maxWidth={settings.themeStretch ? false : 'xl'}>
-    <Grid container spacing={3}>
-      <Grid xs={12} md={12}>
-        <EcommerceWelcome
-          title={`Hi!  ${userFullName}`}
-          description="Merchants near in"
-          location="Navotas, Metro Manila"
-          img={<MotivationIllustration />}
-        />
-      </Grid>
+ 
 
-
-
-      <Grid xs={12} md={12}>
-       
         <MedecineTableRowNew
           alignment={alignment}
           data={data}
         />
 
-      </Grid>
-    
-
-
-    </Grid>
+      
   </Container>
   )
 }

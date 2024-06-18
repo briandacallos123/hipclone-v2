@@ -177,10 +177,10 @@ export default function MerchantOrdersTableRow({
           alignItems:'center'
         }}>
                 <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
-                {row?.generic_name?.charAt(0)?.toUpperCase()}
+                {row?.store?.name?.charAt(0)?.toUpperCase()}
               </Avatar>
               <ListItemText
-                primary={row?.generic_name}
+                primary={row?.store?.name}
                 primaryTypographyProps={{ typography: 'subtitle2' }}
                 sx={{
                   cursor: 'pointer',
@@ -190,14 +190,15 @@ export default function MerchantOrdersTableRow({
                   // },
                   textTransform:'capitalize'
                 }}
-                // onClick={() => onViewPatient(row?.patientInfo?.userInfo?.uuid)}
+               
               />
         </TableCell>
-        {/* <TableCell >
-            <Label variant="soft" color={'info'}>
+        
+        <TableCell >
+            <Label variant="soft" color={'success'}>
                 {row?.generic_name}
             </Label>
-        </TableCell> */}
+        </TableCell>
         <TableCell >
             <Label variant="soft" color={'success'}>
                 {row?.dose}

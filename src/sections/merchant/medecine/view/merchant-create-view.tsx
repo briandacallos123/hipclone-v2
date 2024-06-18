@@ -37,7 +37,7 @@ import { signIn } from 'next-auth/react';
 import { UseMerchantMedContext } from '@/context/merchant/Merchant';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import NextAuthRegisterView from './next-auth-register-view';
-
+import { revalidateStore } from '../_actions/store';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = {
@@ -52,6 +52,7 @@ type Props = {
     isLoggedIn?: any;
     setLoggedIn?: any;
     editRow?:any;
+
     isEdit?:boolean
 };
 
@@ -94,7 +95,8 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
         brand_name:"",
         attachment: null,
         description:"",
-        stock:""
+        stock:"",
+        id
        }
     },[editRow?.id, editRow])
 
@@ -159,7 +161,11 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
                 const file = data?.attachment;
                 delete data.attachment;
                 data.description = removeTags(data.description)
+                data = {...data, store_id: Number(data.id)}
+                delete data.id;
+
                 createMerchantMedFunc(data, file)
+              
                 // delete data.repassword
 
                 // if(isEdit){

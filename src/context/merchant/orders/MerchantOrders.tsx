@@ -30,16 +30,36 @@ type MerchantUserContextProps = {
 
 const initialState = {
     orders:[],
-    isLoading:true
+    isLoading:true,
+    summary:{
+        delivery:0,
+        pickup:0
+    },
+    totalRecords:0
 }
+
+
+const defaultFilters = {
+    name: '',
+    status: -1,
+    hospital: [],
+    startDate: null,
+    endDate: null,
+  };
 
 
 const reducer = (state:any, action:any) => {
     switch(action.type){
         case "Fetch":
-            // console.log(action.payload,'PAYLOAD')
-            state.orders = action.payload;
+            
+            const {orderType, summary, totalRecords} = action.payload;
+
+            state.orders = orderType
             state.isLoading = false;
+            state.summary = {
+                ...summary
+            }
+            state.totalRecords = totalRecords
             return state;
         case "Create":
             console.log(action.payload,'????')
@@ -59,16 +79,18 @@ const MerchantUserOrderContext = ({children}:MerchantUserContextProps) => {
     const [toRefetch, setToRefetch] = useState<number>(0);
     const {user, socket} = useAuthContext()
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-    
+   
+  const [filters, setFilters]: any = useState(defaultFilters);
+
+
     const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
 
      // get all merchant user
-     const [getMerchant, getMerchantResult] = useLazyQuery(QueryAllMedicineOrders, {
+     const [getAllOrders, getMerchantResult] = useLazyQuery(QueryAllMedicineOrders, {
         context: {
            requestTrackerId: 'orders[QueryAllOrderUser]',
            },
-           // notifyOnNetworkStatusChange: true,
-           fetchPolicy:'no-cache'
+        fetchPolicy:'no-cache'
        });
 
        
@@ -96,26 +118,26 @@ const MerchantUserOrderContext = ({children}:MerchantUserContextProps) => {
 
    
        useEffect(()=>{
-           getMerchant({
+        getAllOrders({
                variables:{
                    data:{
                        skip:table.page * table.rowsPerPage,
-                       take:table.rowsPerPage
+                       take:table.rowsPerPage,
+                       is_deliver:filters.status 
                    }
                }
            }).then((res:any)=>{
                const {data} = res;
                if(data){
-                   console.log(data,'REFETCH@@@@@')
                 dispatch({
                     type:"Fetch",
-                    payload:data?.QueryAllMedicineOrders?.orderType
+                    payload:data?.QueryAllMedicineOrders
 
                 })
                
                }
            })
-       },[table.page, table.rowsPerPage, toRefetch])
+       },[table.page, table.rowsPerPage, toRefetch, filters.status])
 
         // create merchant medecine
     const [createMerchantFuncMed] = useMutation(CreateMerchantMedecine, {
@@ -162,11 +184,30 @@ const MerchantUserOrderContext = ({children}:MerchantUserContextProps) => {
         })
     },[])
 
+    const handleFilters = useCallback(
+        (name: string, value: any) => {
+          table.onResetPage();
+          setFilters((prevState: any) => ({
+            ...prevState,
+            [name]: value,
+          }));
+        },
+        [table]
+      );
+    
+
+    const handleFilterStatus = useCallback(
+        (event: React.SyntheticEvent, newValue: string) => {
+          handleFilters('status', newValue);
+        },
+        [handleFilters]
+      );
+
 
 
     // end of create merchant user
 
-    return <MerchantUserProvider.Provider value={{state, table, createMerchantMedFunc, deletedMerchantMedFunc}}>
+    return <MerchantUserProvider.Provider value={{state,handleFilterStatus, handleFilters, filters, table, createMerchantMedFunc, deletedMerchantMedFunc}}>
         {children}
     </MerchantUserProvider.Provider>
 }

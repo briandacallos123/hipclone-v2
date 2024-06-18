@@ -12,17 +12,17 @@ import FormHelperText from '@mui/material/FormHelperText';
 // hooks
 import { useBoolean } from 'src/hooks/use-boolean';
 // types
-import { ICheckoutCardOption, ICheckoutPaymentOption } from 'src/types/product';
+// import { ICheckoutCardOption, ICheckoutPaymentOption } from 'src/types/product';
 // components
 import Iconify from 'src/components/iconify';
 //
-import PaymentNewCardDialog from '../../payment/payment-new-card-dialog';
+import PaymentNewCardDialog from '../../../payment/payment-new-card-dialog';
 
 // ----------------------------------------------------------------------
 
 interface Props extends CardProps {
-  options: ICheckoutPaymentOption[];
-  cardOptions: ICheckoutCardOption[];
+  options: any[];
+  cardOptions: any[];
 }
 
 export default function CheckoutPaymentMethods({ options, cardOptions, ...other }: Props) {
@@ -72,8 +72,8 @@ export default function CheckoutPaymentMethods({ options, cardOptions, ...other 
 // ----------------------------------------------------------------------
 
 type OptionItemProps = PaperProps & {
-  option: ICheckoutPaymentOption;
-  cardOptions: ICheckoutCardOption[];
+  option: any;
+  cardOptions: any[];
   selected: boolean;
   isCredit: boolean;
   onOpen: VoidFunction;

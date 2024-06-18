@@ -23,7 +23,6 @@ const StoreDashboardId = ({ data }: StoreDashboardIdProps) => {
                 product_type={product_types}
                 endTime={end_time}
                 rating={rating}
-                address={address}
             />
             <StoreDataList data={medecine_list}/>
 

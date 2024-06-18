@@ -36,6 +36,17 @@ export const _contacts = [...Array(20)].map((_, index) => {
   };
 });
 
+export const _addressBooks = [...Array(24)].map((_, index) => ({
+  id: _mock.id(index),
+  primary: index === 0,
+  name: _mock.fullName(index),
+  email: _mock.email(index + 1),
+  fullAddress: _mock.fullAddress(index),
+  phoneNumber: _mock.phoneNumber(index),
+  company: _mock.companyName(index + 1),
+  addressType: index === 0 ? 'Home' : 'Office',
+}));
+
 // ----------------------------------------------------------------------
 
 export const _notifications = [...Array(9)].map((_, index) => ({

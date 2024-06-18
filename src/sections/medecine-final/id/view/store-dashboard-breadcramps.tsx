@@ -6,8 +6,11 @@ import { emphasize, styled } from '@mui/material/styles';
 import Chip from '@mui/material/Chip';
 import HomeIcon from '@mui/icons-material/Home';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useRouter } from 'next/navigation';
 
 const StyledBreadcrumb = styled(Chip)(({ theme }) => {
+ 
+
     const backgroundColor =
       theme.palette.mode === 'light'
         ? theme.palette.grey[100]
@@ -32,18 +35,28 @@ const StyledBreadcrumb = styled(Chip)(({ theme }) => {
     address:string;
   }
 
-const StoreDashboardBreadcramps = ({storeName, address}:StoreDashboardBreadcrampsProps) => {
-
+const   StoreDashboardBreadcramps = ({storeName, address}:StoreDashboardBreadcrampsProps) => {
+  const router = useRouter()
     
 function handleClick(event: React.MouseEvent<Element, MouseEvent>) {
     event.preventDefault();
     console.info('You clicked a breadcrumb.');
   }
 
+  const handleHome = () => {
+    router.push('/dashboard')
+
+  }
+
+  const handleStore = () => {
+    router.back()
+  }
+
   return (
     <div role="presentation" onClick={handleClick}>
       <Breadcrumbs aria-label="breadcrumb">
         <StyledBreadcrumb
+        onClick={handleHome}
           component="a"
           href="#"
           label="Home"
@@ -54,6 +67,8 @@ function handleClick(event: React.MouseEvent<Element, MouseEvent>) {
         //   icon={<HomeIcon fontSize="small" />}
         />
         <StyledBreadcrumb
+        onClick={handleStore}
+
          sx={{
             color:'blue',
             cursor:'pointer'

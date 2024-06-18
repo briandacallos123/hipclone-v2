@@ -10,28 +10,58 @@ export const useCheckoutContext = () => {
 
 const initialState = {
     cart: [],
-    total: 0
+    total: 0,
+    activeStep: 0,
+    discount: 0,
+    subTotal: 0,
+    billingAddress: null
 }
 
 const reducer = (state: any, action: any) => {
     switch (action.type) {
+
+        case "Reset":
+
+            state.cart = []
+            state.total = 0
+            state.activeStep = 0;
+            state.discount = 0,
+            state.subTotal = 0,
+            state.billingAddress = null
+
+            return state
+        case "Fill":
+            const payl = action.payload.cartItem;
+
+            return { ...state, cart: [...payl?.cart], total: Number(payl?.total) }
+        case "AddAddress":
+            const address = action.payload;
+            const addStep = state.activeStep + 1;
+            return { ...state, billingAddress: address,activeStep:addStep  }
+
+        case "IncrementSetup":
+            const currentStep = state.activeStep + 1;
+            return { ...state, activeStep: currentStep }
+        case "DecrementSetup":
+            const currentSteps = state.activeStep - 1;
+            return { ...state, activeStep: currentSteps }
         case "Add":
-            const { brand_name, id,form, type,  description, price, attachment_info, quantity, qty } = action.payload;
-        
-            
+            const { brand_name,store_id, generic_name,dose, id, form, type, description, price, attachment_info, quantity, qty } = action.payload;
+
+
             const isExists = state.cart.find((item: any) => Number(item.id) === Number(id));
-          
+
             if (isExists) {
                 // If the item already exists in the cart, update its quantity and calculate the new total
                 const updatedCart = state.cart.map((item: any) => {
                     if (Number(item.id) === Number(id)) {
-                        return { ...item, quantity: Number(quantity) + Number(1)};
+                        return { ...item, quantity: Number(quantity) + Number(1) };
                     }
                     return item;
                 });
-        
-                const newTotal = Number(state.total) + Number(price);
-        
+
+                const newTotal = Number(state.total) + (Number(price) * Number(quantity));
+
                 return { ...state, cart: updatedCart, total: newTotal };
             } else {
                 // If the item is new, add it to the cart and calculate the new total
@@ -42,74 +72,126 @@ const reducer = (state: any, action: any) => {
                     form,
                     type,
                     quantity: qty,
+                    dose,
+                    generic_name,
+                    store_id,
                     image: attachment_info?.file_path,
                     brand_name,
                     attachment_info
                 };
-        
+
                 const newCart = [...state.cart, newItem];
-                const newTotal = state.total + price;
-        
+                const newTotal = state.total + (price * quantity);
+
                 return { ...state, cart: newCart, total: newTotal };
             }
-        
-            case "Decrement":
-                const { id: id2 }: any = action.payload;
-            
-                // Find the item in the cart
-                const itemIndex = state.cart.findIndex((item: any) => Number(item.id) === Number(id2));
 
-                
-                // If the item exists and its quantity is not already zero
-                if (itemIndex !== -1 && state.cart[itemIndex].quantity >= 2) {
-                    // Create a new cart array with the updated quantity
-                    const updatedCart = state.cart.map((item: any, index: number) => {
-                        if (index === itemIndex) {
-                            return { ...item, quantity: item.quantity -1 };
-                        }
-                        return item;
-                    });
-            
-                    // Return a new state object with the updated cart
-                    return { ...state, cart: updatedCart };
-                }else{
-                    const updatedCart = state.cart.filter((item:any)=> Number(item.id) !== Number(id2))
-                    
-                    localStorage.setItem('openCart','0')
+        case "Decrement":
+            const { id: id2 }: any = action.payload;
 
-                    return { ...state, cart: updatedCart };
-                }
-            case "Increment":
+            // Find the item in the cart
+            const itemIndex = state.cart.findIndex((item: any) => Number(item.id) === Number(id2));
 
-                const payload = action.payload
 
-                 const newTotal = state.total + (payload?.price * payload?.quantity);
-               
-                 const newData = state.cart.map((item:any)=>{
-                    if(Number(item.id) === Number(payload?.id)){
-                        return { ...item, quantity: Number(item.quantity) + Number(payload.quantity) };
-                    }else{
-                        return item;
+            // If the item exists and its quantity is not already zero
+            if (itemIndex !== -1 && state.cart[itemIndex].quantity >= 2) {
+                // Create a new cart array with the updated quantity
+                const updatedCart = state.cart.map((item: any, index: number) => {
+                    if (index === itemIndex) {
+                        return { ...item, quantity: item.quantity - 1 };
                     }
-                })
+                    return item;
+                });
 
-                return {...state, cart: newData, total:newTotal}
+                // Return a new state object with the updated cart
+                return { ...state, cart: updatedCart };
+            } else {
+                const updatedCart = state.cart.filter((item: any) => Number(item.id) !== Number(id2))
+
+                localStorage.setItem('openCart', '0')
+
+                return { ...state, cart: updatedCart };
+            }
+        // this incremenet function is only for adding orders and cart
+        case "Increment":
+            console.log(action.payload, 'PAYLOAD________')
+            const payload = action.payload
+
+            const newTotal = state.total + (payload?.price * payload?.quantity);
+
+            const newData = state.cart.map((item: any) => {
+                if (Number(item.id) === Number(payload?.id)) {
+                    return { ...item, quantity: Number(payload.quantity) };
+                } else {
+                    return item;
+                }
+            })
+
+            return { ...state, cart: newData, total: newTotal }
+        // this is function used in cart
+        case "IncrementItemCheckout":
+            console.log(action.payload, 'PAYLOAD________')
+            const payloads = action.payload
+
+            const newTotals = state.total + payloads?.price  ;
+
+            const newDatas = state.cart.map((item: any) => {
+                if (Number(item.id) === Number(payloads?.id)) {
+                    return { ...item, quantity: Number(payloads.quantity) + 1 };
+                } else {
+                    return item;
+                }
+            })
+
+            return { ...state, cart: newDatas, total: newTotals }
+        case "RemoveItem":
+            const target = action.payload;
+            const isExistss = state.cart.find((item: any) => item.id === target.id)
+
+
+            const newItems = isExistss && state.cart.filter((item: any) => Number(item.id) !== Number(target.id));
+
+            const currentTot = (isExistss.price * isExistss.quantity)
+
+            const newTot = state.total - currentTot
+
+            return { ...state, cart: newItems, total: newTot }
     }
+
 }
 
 const Checkout = ({ children }: any) => {
     const [state, dispatch] = useReducer(reducer, initialState)
 
     useEffect(() => {
-        if (state.cart?.length) {
+        const isLast = localStorage.getItem('isLastInCart')
+
+        if (state.cart?.length !== 0) {
             localStorage.setItem('cart', JSON.stringify(state))
+            // if (isLast) {
+            //     localStorage.removeItem('isLastInCart')
+            // }
         }
+
+
     }, [state])
-    console.log(state,'STATE')
+
+    useEffect(() => {
+        const isExist = localStorage.getItem('cart')
+        const cartItem = isExist && JSON.parse(localStorage.getItem('cart'));
+        if (cartItem && cartItem?.cart) {
+            dispatch({
+                type: "Fill",
+                payload: {
+                    cartItem
+                }
+            })
+        }
+    }, [])
 
 
-    const addToCart = useCallback((data: any, qty:number) => {
-        console.log()
+    const addToCart = useCallback((data: any, qty: number) => {
+        console.log(data,'DATA NEW___')
         dispatch({
             type: "Add",
             payload: {
@@ -127,17 +209,63 @@ const Checkout = ({ children }: any) => {
     }, [])
 
     const incrementCart = useCallback((data: any) => {
+
         dispatch({
             type: "Increment",
             payload: data
         })
     }, [])
 
+    const incrementCheckout = useCallback((data: any) => {
+
+        dispatch({
+            type: "IncrementItemCheckout",
+            payload: data
+        })
+    }, [])
+
+    const incrementSetup = useCallback((data: any) => {
+
+        dispatch({
+            type: "IncrementSetup",
+            payload: data
+        })
+    }, [])
+
+    const decrementSetup = useCallback((data: any) => {
+
+        dispatch({
+            type: "DecrementSetup",
+            payload: data
+        })
+    }, [])
+
+    const removeItem = useCallback((data: any) => {
+
+        dispatch({
+            type: "RemoveItem",
+            payload: data
+        })
+    }, [])
+
+    const addAddress = useCallback((data: any) => {
+
+        dispatch({
+            type: "AddAddress",
+            payload: data
+        })
+    }, [])
+
+    const resetCheckout = useCallback(()=>{
+        dispatch({
+            type: "Reset"
+        })
+    },[])
 
 
 
     return (
-        <CartContext.Provider value={{ state, addToCart, removeToCart, incrementCart }}>
+        <CartContext.Provider value={{ state, resetCheckout, removeToCart, decrementSetup, incrementSetup, addToCart, incrementCheckout, incrementCart, removeItem, addAddress }}>
             {children}
         </CartContext.Provider>
     )

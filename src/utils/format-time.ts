@@ -78,3 +78,22 @@ export function formatClinicTime(dates: any) {
   const formattedTime = `${hours}:${minutes}:${seconds}`;
   return formattedTime;
 }
+
+export function convertTimeFormat(timeString:string) {
+  // Split the time string into hours and minutes
+  var timeParts = timeString.split(':');
+
+  // Extract hours and minutes
+  var hours = parseInt(timeParts[0], 10);
+  var minutes = parseInt(timeParts[1], 10);
+
+  // Construct a Date object with the given time values
+  var time = new Date();
+  time.setHours(hours);
+  time.setMinutes(minutes);
+
+  // Format the time as HH:MM AM/PM
+  var formattedTime = time.toLocaleTimeString('en-PH', {hour12: true});
+
+  return formattedTime;
+}

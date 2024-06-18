@@ -43,8 +43,11 @@ import { useCheckoutContext } from '@/context/checkout/Checkout';
 
 export default function CheckoutView() {
   const settings = useSettingsContext();
-  const {state}:any = useCheckoutContext()
-  const {cart} = state
+  const { state, incrementCart, removeItem, incrementSetup, incrementCheckout,decrementSetup, removeToCart, addAddress}: any = useCheckoutContext()
+  const { cart, activeStep } = state
+
+  const completed = activeStep === PRODUCT_CHECKOUT_STEPS.length;
+
   // const {
   //   checkout,
   //   completed,
@@ -62,14 +65,16 @@ export default function CheckoutView() {
   // } = useProduct();
 
   // const { cart, billing, activeStep } = checkout;
+  const billing = true
 
   // useInitial(cart);
 
-  // useEffect(() => {
-  //   if (activeStep === 1) {
-  //     onResetBilling();
-  //   }
-  // }, [activeStep, onResetBilling]);
+  useEffect(() => {
+    if (activeStep === 1) {
+      // onResetBilling();
+    }
+  }, [activeStep]);
+
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'} sx={{ mb: 10 }}>
@@ -79,47 +84,49 @@ export default function CheckoutView() {
 
       <Grid container justifyContent={'center'}>
         <Grid xs={12} md={8}>
-          <CheckoutSteps activeStep={3} steps={PRODUCT_CHECKOUT_STEPS} />
+          <CheckoutSteps activeStep={activeStep} steps={PRODUCT_CHECKOUT_STEPS} />
         </Grid>
       </Grid>
-
       
 
-      {/* {completed ? (
-        <CheckoutOrderComplete open={completed} onReset={onResetAll} onDownloadPDF={() => {}} />
-      ) : (
-        <>
-          {activeStep === 0 && (
-            <CheckoutCart
-              checkout={checkout}
-              onNextStep={onNextStep}
-              onDeleteCart={onDeleteCart}
-              onApplyDiscount={onApplyDiscount}
-              onIncreaseQuantity={onIncreaseQuantity}
-              onDecreaseQuantity={onDecreaseQuantity}
-            />
-          )}
+      {completed ? (
+        <CheckoutOrderComplete open={completed} onReset={() => { }} onDownloadPDF={() => { }} />
+      ) :
+       
+         (
+          <>
+            {activeStep === 0 && (
+              <CheckoutCart
+                checkout={state}
+                onNextStep={incrementSetup}
+                onDeleteCart={removeItem}
+                onApplyDiscount={()=>{}}
+                onIncreaseQuantity={incrementCheckout}
+                onDecreaseQuantity={removeToCart}
+              />
+            )}
 
-          {activeStep === 1 && (
-            <CheckoutBillingAddress
-              checkout={checkout}
-              onBackStep={onBackStep}
-              onCreateBilling={onCreateBilling}
-            />
-          )}
+            {activeStep === 1 && (
+              <CheckoutBillingAddress
+                checkout={state}
+                onBackStep={decrementSetup}
+                onCreateBilling={addAddress}
+              />
+            )}
 
-          {activeStep === 2 && billing && (
-            <CheckoutPayment
-              checkout={checkout}
-              onNextStep={onNextStep}
-              onBackStep={onBackStep}
-              onGotoStep={onGotoStep}
-              onApplyShipping={onApplyShipping}
-              onReset={onResetAll}
-            />
-          )}
-        </>
-      )} */}
+            {activeStep === 2 && billing && (
+              <CheckoutPayment
+                checkout={state}
+                onNextStep={()=>{}}
+                onBackStep={decrementSetup}
+                onGotoStep={()=>{}}
+                onApplyShipping={()=>{}}
+                onReset={()=>{}}
+              />
+            )}
+          </>
+        )
+      }
     </Container>
   );
 }

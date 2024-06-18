@@ -74,7 +74,6 @@ export default function AccountPopover() {
   const handleLogout = async () => {
     try {
 
-
       await logout();
       socket.emit('logout', user?.id);
       popover.onClose();

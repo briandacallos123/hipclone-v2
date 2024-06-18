@@ -80,6 +80,7 @@ import MerchantOrderSkeleton from './merchant-order-skeleton';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
+  { id: 'store', label: 'Store Name' },
   { id: 'Medicine Name', label: 'Generic Name' },
   // { id: 'hospital', label: 'Hospital/Clinic' },
   { id: 'brandName', label: 'Dose' },
@@ -130,141 +131,16 @@ export default function MerchantOrdersView() {
 
   // console.log(viewId, "VIEW ID ______________________________________________________")
 
-  const [filters, setFilters]: any = useState(defaultFilters);
+  // const [filters, setFilters]: any = useState(defaultFilters);
 
-  const {state, table, deletedMerchantMedFunc}: any = UseMerchantOrdersContext();
-  console.log(state,'STATE____________')
-  
+  const {state, table, deletedMerchantMedFunc, handleFilters, filters, handleFilterStatus}: any = UseMerchantOrdersContext();
+ 
+
   const { page, rowsPerPage, order, orderBy } = table;
-  // const {merchantData, isLoading} = state;
 
-    // console.log(merchantData, '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
-//  
-
-  // useEffect(() => {
-  // }, [filters]);
   const dateError = isDateError(filters.startDate, filters.endDate);
 
-    // useEffect(()=>{
-    //   console.log(merchantData,'HAAAAAAAAAAA________________________')
-    // },[merchantData])
-
-  // const [isLoading, setIsLoading] = useState(true);
-
-  // const {
-  //   data: drData,
-  //   loading,
-  //   refetch,
-  // }: any = useQuery(DR_APPTS, {
-  //   context: {
-  //     requestTrackerId: 'getAppointments[Apt]',
-  //   },
-  //   notifyOnNetworkStatusChange: true,
-  //   variables: {
-  //     // payload request
-  //     data: {
-  //       status: Number(filters?.status),
-  //       typeStatus: -1,
-  //       skip: page * rowsPerPage,
-  //       take: rowsPerPage,
-  //       orderBy,
-  //       orderDir: order,
-  //       searchKeyword: filters?.name,
-  //       clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //       startDate: YMD(filters?.startDate) || null,
-  //       endDate: YMD(filters?.endDate) || null,
-  //       isDashboard: 0,
-  //       userType: user?.role,
-  //     },
-  //   },
-  // });
-
-  // useEffect(()=>{
-  //   if (socket?.connected) {
-  //     socket.on('appointmentStatus', async(u: any) => {
-  //       if(Number(u?.recepient) === Number(user?.id)){
-      
-  //         await refetch()
-  //       }
-        
-  //     })
-  //   }
-
-  //  return () => {
-  //   socket?.off('appointmentStatus')
-  //  }
-  // },[socket?.connected])
-
-  // useEffect(() => {
-  //   if (getDefaultFilters('clinic')) {
-  //     let { clinic }: any = getDefaultFilters('clinic');
-  //     setFilters({
-  //       ...filters,
-  //       hospital: [Number(clinic?.id)],
-  //     });
-  //   }
-  // }, []);
-
-  // useEffect(() => {
-  //   if (drData) {
-  //     const { allAppointments } = drData;
-  //     setTableData(allAppointments?.appointments_data);
-  //     setTotalRecords(allAppointments?.total_records);
-  //     setIsClinic(isClinic + 1);
-  //     setTotal(allAppointments?.summary?.total);
-  //     setPending(allAppointments?.summary?.pending);
-  //     setApproved(allAppointments?.summary?.approved);
-  //     setDone(allAppointments?.summary?.done);
-  //     setCancelled(allAppointments?.summary?.cancelled);
-  //     setIsLoading(false)
-  //   }
-  // }, [drData]);
-
-  //  useEffect(() => {
-  //    getData({
-  //      variables: {
-  //        // payload request
-  //        data: {
-  //          status: Number(filters?.status),
-  //          typeStatus: -1,
-  //          skip: page * rowsPerPage,
-  //          take: rowsPerPage,
-  //          orderBy,
-  //          orderDir: order,
-  //          searchKeyword: filters?.name,
-  //          clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //          startDate: filters?.startDate,
-  //          endDate: filters?.endDate,
-  //          isDashboard: 0,
-  //          userType: user?.role,
-  //        },
-  //      },
-  //    }).then(async (result: any) => {
-  //      const { data } = result;
-  //      if (data) {
-  //        const { allAppointments } = data;
-  //        setTableData(allAppointments?.appointments_data);
-  //        setTotalRecords(allAppointments?.total_records);
-
-  //        setTotal(allAppointments?.summary?.total);
-  //        setPending(allAppointments?.summary?.pending);
-  //        setApproved(allAppointments?.summary?.approved);
-  //        setDone(allAppointments?.summary?.done);
-  //        setCancelled(allAppointments?.summary?.cancelled);
-  //      }
-  //    });
-  //  }, [
-  //    totalRecords,
-  //    page,
-  //    rowsPerPage,
-  //    order,
-  //    orderBy,
-  //    filters?.endDate,
-  //    filters?.startDate,
-  //    filters?.hospital,
-  //    filters?.name,
-  //    filters?.status,
-  //  ]);
+  
 
   const [tableData, setTableData] = useState<any>([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -275,41 +151,13 @@ export default function MerchantOrdersView() {
   const [done, setDone] = useState(0);
   const [cancelled, setCancelled] = useState(0);
 
-  // const {
-  //   data: drClinicData,
-  //   error: drClinicError,
-  //   loading: drClinicLoad,
-  //   refetch: drClinicFetch,
-  // }: any = useQuery(DR_CLINICS);
+  
   const router = useRouter();
   const [clinicData, setclinicData] = useState<any>([]);
 
-  // useEffect(() => {
-  //   if (triggerRef) {
-  //     refetch().then((prev: any) => {
-  //       setTriggerRef(false);
-  //     });
-  //   }
-  // }, [triggerRef]);
-
-  // useEffect(() => {
-  //   // drClinicFetch().then((result: any) => {
-  //   //   const { data } = result;
-  //   //   if (data) {
-  //   //     const { doctorClinics } = data;
-  //   //     setclinicData(doctorClinics);
-  //   //   }
-  //   // });
-  //   // return () => drClinicFetch();
-  //   if (user?.role === 'doctor' && drClinicData) {
-  //     const { doctorClinics } = drClinicData;
-  //     setclinicData(doctorClinics);
-  //   }
-  // }, [drClinicData, user?.role]);
-
-  // =========
-  // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
+  
   const [clinicPayload, setClinicPayload] = useState<any>([]);
+
   const {
     data: userClinicData,
     error: userClinicError,
@@ -323,12 +171,6 @@ export default function MerchantOrdersView() {
     },
   });
  
-  // useEffect(() => {
-  //   if (user?.role === 'patient' && userClinicData) {
-  //     const { AllClinicUser } = userClinicData;
-  //     setclinicData(AllClinicUser);
-  //   }
-  // }, [user?.role, userClinicData]);
 
   useEffect(() => {
     //
@@ -351,7 +193,6 @@ export default function MerchantOrdersView() {
     dateError,
   });
 
-  // filter hooks
 
   const denseHeight = table.dense ? 56 : 76;
 
@@ -371,28 +212,7 @@ export default function MerchantOrdersView() {
   const getPercentByStatus = (status: string) =>
     (getAppointmentLength(status) / tableData.length) * 100;
 
-  const TABS = [
-    { value: -1, label: 'All', color: 'default', count: tableData?.length },
-    {
-      value: 0,
-      label: 'Online',
-      color: 'warning',
-      count: getAppointmentLength(0),
-    },
-    {
-      value: 1,
-      label: 'Offline',
-      color: 'info',
-      count: getAppointmentLength(1),
-    },
-    // { value: 3, label: 'Done', color: 'success', count: getAppointmentLength(3) },
-    // {
-    //   value: 2,
-    //   label: 'Cancelled',
-    //   color: 'error',
-    //   count: getAppointmentLength(2),
-    // },
-  ] as const;
+ 
 
   const [editRow, setEditRow] = useState(null)
 
@@ -404,16 +224,16 @@ export default function MerchantOrdersView() {
 
   }
 
-  const handleFilters = useCallback(
-    (name: string, value: IAppointmentTableFilterValue) => {
-      table.onResetPage();
-      setFilters((prevState: any) => ({
-        ...prevState,
-        [name]: value,
-      }));
-    },
-    [table]
-  );
+  // const handleFilters = useCallback(
+  //   (name: string, value: IAppointmentTableFilterValue) => {
+  //     table.onResetPage();
+  //     setFilters((prevState: any) => ({
+  //       ...prevState,
+  //       [name]: value,
+  //     }));
+  //   },
+  //   [table]
+  // );
 
   const handleViewRow = useCallback(
     (data: any) => {
@@ -423,12 +243,12 @@ export default function MerchantOrdersView() {
     [openView]
   );
 
-  const handleFilterStatus = useCallback(
-    (event: React.SyntheticEvent, newValue: string) => {
-      handleFilters('status', newValue);
-    },
-    [handleFilters]
-  );
+  // const handleFilterStatus = useCallback(
+  //   (event: React.SyntheticEvent, newValue: string) => {
+  //     handleFilters('status', newValue);
+  //   },
+  //   [handleFilters]
+  // );
 
   //////////////////////////////////////////////////////
   // client side approach
@@ -448,19 +268,16 @@ export default function MerchantOrdersView() {
       });
     });
   };
-  // client side approach
-  //////////////////////////////////////////////////////
 
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
+  // const handleResetFilters = useCallback(() => {
+  //   setFilters(defaultFilters);
+  // }, []);
 
   const handleViewPatient = useCallback(
     (id: any) => {
-      // const refID = id?.patientInfo?.userInfo?.uuid;
+      
       const refID = id?.patientInfo?.userInfo[0]?.uuid;
-      // console.log('uuid', id);
-      // router.push(paths.dashboard.patient.view('e99f09a7-dd88-49d5-b1c8-1daf80c2d7b1'));
+     
       router.push(paths.dashboard.patient.view(refID));
     },
     [router]
@@ -474,6 +291,22 @@ export default function MerchantOrdersView() {
   }
 
 
+  const TABS = [
+    { value: -1, label: 'All', color: 'default', count: state?.totalRecords },
+    {
+      value: 1,
+      label: 'Delivery',
+      color: 'warning',
+      count: state?.summary?.delivery,
+    },
+    {
+      value: 0,
+      label: 'Pick up',
+      color: 'info',
+      count: state?.summary?.pickup,
+    },
+    
+  ] as const;
 
 
   return (
@@ -490,26 +323,18 @@ export default function MerchantOrdersView() {
           <Typography variant="h5">Orders</Typography>
 
           
-            {/* <Button
-              onClick={opencreate.onTrue}
-              // component={RouterLink}
-              // href={paths.dashboard.appointment.find}
-              variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
-            >
-              Create New Medecine
-            </Button> */}
+          
          
         </Stack>
 
-        {upMd && (
+        {/* {upMd && (
           <Card
             sx={{
               mb: { xs: 3, md: 5 },
             }}
           >
             <Scrollbar>
-              {/* <Stack
+              <Stack
                 direction="row"
                 divider={<Divider orientation="vertical" flexItem sx={{ borderStyle: 'dashed' }} />}
                 sx={{ py: 2 }}
@@ -553,10 +378,10 @@ export default function MerchantOrdersView() {
                   icon="solar:close-circle-bold-duotone"
                   color={theme.palette.error.main}
                 />
-              </Stack> */}
+              </Stack>
             </Scrollbar>
           </Card>
-        )}
+        )} */}
 
         <Card>
           <Tabs
@@ -569,9 +394,9 @@ export default function MerchantOrdersView() {
           >
             {TABS.map((tab) => (
               <Tab
-                key={tab.value}
-                value={tab.value}
-                label={tab.label}
+                key={tab?.value}
+                value={tab?.value}
+                label={tab?.label}
                 iconPosition="end"
                 icon={
                   <Label
@@ -579,9 +404,10 @@ export default function MerchantOrdersView() {
                       ((tab.value === -1 || tab.value === Number(filters.status)) && 'filled') ||
                       'soft'
                     }
-                    color={tab.color}
+                    color={tab?.color}
                   >
-                    {(() => {
+                    {tab?.count}
+                    {/* {(() => {
                       if (tab.value === -1) return total || 0;
                       if (tab.value === 0) return pending || 0;
                       if (tab.value === 1) return approved || 0;
@@ -589,7 +415,7 @@ export default function MerchantOrdersView() {
                       if (tab.value === 3) return done || 0;
 
                       return 0;
-                    })()}
+                    })()} */}
                   </Label>
                 }
               />
@@ -715,14 +541,16 @@ export default function MerchantOrdersView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={totalRecords}
-            page={table.page}
-            rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
-            onRowsPerPageChange={table.onChangeRowsPerPage}
+            count={state?.totalRecords}
+            page={table?.page}
+            rowsPerPage={table?.rowsPerPage}
+            onPageChange={table?.onChangePage}
+            onRowsPerPageChange={table?.onChangeRowsPerPage}
             
-            dense={table.dense}
-            onChangeDense={table.onChangeDense}
+            dense={table?.dense}
+            onChangeDense={table?.onChangeDense}
+
+            // page, rowsPerPage, order, orderBy 
           />
         </Card>
       </Container>

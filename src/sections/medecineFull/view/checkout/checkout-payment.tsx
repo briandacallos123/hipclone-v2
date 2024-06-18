@@ -7,12 +7,12 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Unstable_Grid2';
 // types
-import {
-  ICheckoutCardOption,
-  ICheckoutPaymentOption,
-  ICheckoutDeliveryOption,
-  IProductCheckoutState,
-} from 'src/types/product';
+// import {
+//   ICheckoutCardOption,
+//   ICheckoutPaymentOption,
+//   ICheckoutDeliveryOption,
+//   IProductCheckoutState,
+// } from 'src/types/product';
 // components
 import Iconify from 'src/components/iconify';
 import FormProvider from 'src/components/hook-form';
@@ -21,10 +21,16 @@ import CheckoutSummary from './checkout-summary';
 import CheckoutDelivery from './checkout-delivery';
 import CheckoutBillingInfo from './checkout-billing-info';
 import CheckoutPaymentMethods from './checkout-payment-methods';
-
+import { useMutation } from '@apollo/client';
+import { CreateOrders } from '@/libs/gqls/Orders';
+import { useSnackbar } from 'src/components/snackbar';
+import { paths } from '@/routes/paths';
+import { useRouter } from 'next/navigation';
+import { useCheckoutContext } from '@/context/checkout/Checkout';
+import { UseOrdersContext } from '@/context/dashboard/medecine/Medecine';
 // ----------------------------------------------------------------------
 
-const DELIVERY_OPTIONS: ICheckoutDeliveryOption[] = [
+const DELIVERY_OPTIONS: any[] = [
   {
     value: 0,
     label: 'Free',
@@ -42,7 +48,7 @@ const DELIVERY_OPTIONS: ICheckoutDeliveryOption[] = [
   },
 ];
 
-const PAYMENT_OPTIONS: ICheckoutPaymentOption[] = [
+const PAYMENT_OPTIONS: any[] = [
   {
     value: 'paypal',
     label: 'Pay with Paypal',
@@ -60,14 +66,14 @@ const PAYMENT_OPTIONS: ICheckoutPaymentOption[] = [
   },
 ];
 
-const CARDS_OPTIONS: ICheckoutCardOption[] = [
+const CARDS_OPTIONS: any[] = [
   { value: 'ViSa1', label: '**** **** **** 1212 - Jimmy Holland' },
   { value: 'ViSa2', label: '**** **** **** 2424 - Shawn Stokes' },
   { value: 'MasterCard', label: '**** **** **** 4545 - Cole Armstrong' },
 ];
 
 type Props = {
-  checkout: IProductCheckoutState;
+  checkout: any;
   onNextStep: VoidFunction;
   onBackStep: VoidFunction;
   onReset: VoidFunction;
@@ -88,15 +94,22 @@ export default function CheckoutPayment({
   onGotoStep,
   onApplyShipping,
 }: Props) {
-  const { total, discount, subTotal, shipping, billing } = checkout;
+  const {resetCheckout}:any = useCheckoutContext()
+  const {resetOrder}:any = UseOrdersContext()
 
+
+  // const { total, discount, subTotal, shipping, billing } = checkout;
+  const router = useRouter()
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const PaymentSchema = Yup.object().shape({
     payment: Yup.string().required('Payment is required!'),
   });
 
   const defaultValues = {
-    delivery: shipping,
+    delivery: checkout?.billingAddress?.fullAddress,
     payment: '',
+    products:checkout?.cart,
+    total:checkout?.total
   };
 
   const methods = useForm<FormValuesProps>({
@@ -109,10 +122,67 @@ export default function CheckoutPayment({
     formState: { isSubmitting },
   } = methods;
 
-  const onSubmit = useCallback(async () => {
+  const [createMedFunc] = useMutation(CreateOrders, {
+    context: {
+      requestTrackerId: 'Create_Merch[Merchant_User_Key]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const createOrder = useCallback((model:any)=>{
+  
+    createMedFunc({
+        variables:{
+            data:{
+              address:model.address,
+              payment:model.payment,
+              medicine_list:model.medicine_list
+            }
+        }
+    }).then((res)=>{
+        const {data} = res;
+        enqueueSnackbar("Created Order Succesfully")
+        router.push(paths.dashboard.medecine.root)
+        // empty the cart on local storage
+        localStorage.setItem('cart','')
+        resetCheckout()
+        resetOrder()
+       
+    })
+},[])
+
+// t.nullable.string('generic_name');
+// t.nullable.string('brand_name');
+// t.nullable.string('dose');
+// t.nullable.string('form');
+// t.nullable.int('quantity')
+// t.nullable.float('price')
+// t.nullable.int('store_id');
+
+  const onSubmit = useCallback(async (data:any) => {
     try {
-      onNextStep();
-      onReset();
+     
+      const productPayloads = data?.products?.map((item:any)=>{
+        return {
+          generic_name:item?.generic_name,
+          brand_name:item?.brand_name,
+          dose:item?.dose,
+          form:item?.form,
+          quantity:item?.quantity,
+          price:item?.price,
+          store_id:item?.store_id
+        }
+      })
+      const newPayloads = {
+        medicine_list:productPayloads,
+        address:data?.delivery,
+        payment:data?.payment
+      }
+
+
+      createOrder(newPayloads)
+      // onNextStep();
+      // onReset();
     } catch (error) {
       console.error(error);
     }
@@ -141,14 +211,15 @@ export default function CheckoutPayment({
         </Grid>
 
         <Grid xs={12} md={4}>
-          <CheckoutBillingInfo onBackStep={onBackStep} billing={billing} />
+          <CheckoutBillingInfo onBackStep={onBackStep} billing={checkout.billingAddress} />
 
           <CheckoutSummary
             enableEdit
-            total={total}
-            subTotal={subTotal}
-            discount={discount}
-            shipping={shipping}
+            total={checkout.total}
+
+            subTotal={checkout.subTotal}
+            discount={checkout.discount}
+            shipping={checkout.billingAddress}
             onEdit={() => onGotoStep(0)}
           />
 

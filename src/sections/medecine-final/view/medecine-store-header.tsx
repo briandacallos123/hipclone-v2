@@ -1,7 +1,8 @@
 "use client"
 
 import Iconify from '@/components/iconify';
-import { Box, Rating, Typography } from '@mui/material';
+import { convertTimeFormat } from '@/utils/format-time';
+import { Box, Rating, Stack, Typography } from '@mui/material';
 import React from 'react'
 
 type MedecineStoreHeaderProps = {
@@ -10,15 +11,15 @@ type MedecineStoreHeaderProps = {
     startTime: string;
     endTime: string;
     rating: number;
-    address:string;
+    address: string;
 }
 
-const MedecineStoreHeader = ({address, storeName, product_type, startTime, endTime, rating }: MedecineStoreHeaderProps) => {
+const MedecineStoreHeader = ({ address, storeName, product_type, startTime, endTime, rating }: MedecineStoreHeaderProps) => {
     return (
         <Box sx={{
-            display:'flex',
-            flexDirection:'column',
-            gap:0.5
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 0.5
         }}>
             <Typography variant='h3'>{`${storeName} - ${address}`}</Typography>
             <Typography variant='body2' color="grey">{product_type}</Typography>
@@ -58,14 +59,24 @@ const MedecineStoreHeader = ({address, storeName, product_type, startTime, endTi
                 </Box>
             </Box>
 
-            <Box sx={{
-                display:'flex',
-                alignItems:'center',
-                gap:2
-            }}>
-                <Typography variant="body2" color="grey">Opening Hours</Typography>
-                <Typography variant="body2" color="grey">{startTime}</Typography>
-            </Box>
+            <Stack direction="row" alignItems="center" gap={3}>
+                <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2
+                }}>
+                    <Typography variant="body2" color="grey">Opening Hours</Typography>
+                    <Typography variant="body2" color="grey">{convertTimeFormat(startTime)}</Typography>
+                </Box>
+                <Box sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2
+                }}>
+                    <Typography variant="body2" color="grey">Closing Hours</Typography>
+                    <Typography variant="body2" color="grey">{convertTimeFormat(endTime)}</Typography>
+                </Box>
+            </Stack>
         </Box>
     )
 }

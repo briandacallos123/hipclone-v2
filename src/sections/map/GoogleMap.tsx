@@ -1,36 +1,38 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import Geocode from 'react-geocode'; // Import geocoding library
 
-const MapContainer = () => {
+
+type MapContainerProps = {
+  address:Address
+}
+type Address = {
+  lat:null | string;
+  lng:null | string;
+}
+
+const MapContainer = ({lat, lng}:Address) => {
   const [map, setMap] = useState(null);
-  const [center, setCenter] = useState({ lat: 14.6080659, lng: 121.0005259 });
+  const [center, setCenter]:any = useState();
+
   const [markerPosition, setMarkerPosition] = useState(null);
   const [inpAddress, setInpAddress] = useState(null);
-  console.log(inpAddress, 'HAHA')
 
   const onLoad = (map: any) => {
     setMap(map);
   };
 
+  useEffect(()=>{
+    if(lat && lng){
+      setCenter({
+        lat,
+        lng
+      })
+    }
+  },[lat, lng])
+
   const onUnmount = () => {
     setMap(null);
-  };
-
-  const handleAddressSearch = (address: string) => {
-    console.log(address, '????')
-    // Use Geocode library to convert address to coordinates
-    Geocode?.fromAddress(address).then(
-      (response) => {
-        const { lat, lng } = response.results[0].geometry.location;
-        console.log(lat, lng, '_________________________________________________')
-        setCenter({ lat, lng }); // Update map center
-        setMarkerPosition({ lat, lng }); // Update marker position
-      },
-      (error) => {
-        console.error('Error fetching coordinates: ', error);
-      }
-    );
   };
 
 
@@ -43,21 +45,9 @@ const MapContainer = () => {
         onLoad={onLoad}
         onUnmount={onUnmount}
       >
-        <Marker position={{ lat: -34.397, lng: 150.644 }} />
+        <Marker position={center} />
       </GoogleMap>
 
-      <input
-        type="text"
-        placeholder="Enter address"
-        onChange={(e) => {
-          setInpAddress(e.target.value)
-          // console.log(e.target.value,'val')
-        }}
-      />
-
-      <button onClick={() => {
-        handleAddressSearch(inpAddress);
-      }}>Search</button>
     </LoadScript>
   );
 };

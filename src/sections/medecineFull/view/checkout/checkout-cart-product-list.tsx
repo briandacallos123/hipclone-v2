@@ -3,7 +3,7 @@ import Table from '@mui/material/Table';
 import TableBody from '@mui/material/TableBody';
 import TableContainer from '@mui/material/TableContainer';
 // types
-import { ICheckoutCartItem } from 'src/types/product';
+// import { ICheckoutCartItem } from 'src/types/product';
 // components
 import Scrollbar from 'src/components/scrollbar';
 import { TableHeadCustom } from 'src/components/table';
@@ -23,7 +23,7 @@ const TABLE_HEAD = [
 // ----------------------------------------------------------------------
 
 type Props = {
-  products: ICheckoutCartItem[];
+  products: [];
   onDelete: (id: string) => void;
   onDecreaseQuantity: (id: string) => void;
   onIncreaseQuantity: (id: string) => void;
@@ -46,9 +46,9 @@ export default function CheckoutCartProductList({
               <CheckoutCartProduct
                 key={row.id}
                 row={row}
-                onDelete={() => onDelete(row.id)}
-                onDecrease={() => onDecreaseQuantity(row.id)}
-                onIncrease={() => onIncreaseQuantity(row.id)}
+                onDelete={() => onDelete(row)}
+                onDecrease={() =>onDecreaseQuantity(row)}
+                onIncrease={() => onIncreaseQuantity(row)}
               />
             ))}
           </TableBody>

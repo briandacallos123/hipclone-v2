@@ -15,6 +15,7 @@ import {
     TableSelectedAction,
     TablePaginationCustom,
   } from 'src/components/table';
+import { revalidateStore } from '@/sections/store_manage/actions/store';
 //   import { useSnackbar } from 'src/components/snackbar';
 const MerchantUserProvider = createContext({})
 
@@ -107,10 +108,13 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
             }
         }).then((res)=>{
             const {data} = res;
-            setToRefetch((prev)=>{
-                return prev += 1
-            })
+            // setToRefetch((prev)=>{
+            //     return prev += 1
+            // })
+
             enqueueSnackbar("Created Medecine Succesfully")
+            revalidateStore()
+
         })
     },[])
 

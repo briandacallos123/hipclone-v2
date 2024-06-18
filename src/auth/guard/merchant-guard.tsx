@@ -26,7 +26,7 @@ export default function MerchantGuard({ children }: AuthGuardProps) {
     if (!authenticated ) {
       const searchParams = new URLSearchParams({ returnTo: window.location.href }).toString();
      
-      const homePath = paths.auth.login;
+      const homePath = paths.merchant.login;
 
       // const href = `${homePath}?${searchParams}`;
       const href = `${homePath}`;

@@ -40,6 +40,9 @@ import { UseOrdersContext } from '@/context/dashboard/medecine/Medecine';
 import { TimePicker } from '@mui/x-date-pickers/TimePicker';
 import { formatClinicTime } from '@/utils/format-time';
 import storeController from '../StoreController';
+import axios from 'axios';
+// import MyMapComponent from '@/sections/map/GoogleMap'
+import MapContainer from '@/sections/map/GoogleMap';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = {
@@ -174,7 +177,33 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
         [id, login, path, reset, returnTo, user, isEdit]
     );
 
- 
+        const [map, showMap] = useState(false)
+        const [mapData, setMapData] = useState({lat:null, lng:null})
+
+        console.log(mapData,'MAP DATAAAAA')
+
+    useEffect(()=>{
+        if(values.storeAdd.length >= 10){
+            (async()=>{
+                const payload = {
+                    address:values.storeAdd
+                }
+                try {
+                    const response = await axios.post('http://localhost:9092/api/getLocation',payload);
+                    console.log(response,'RESPONSEEEEEEEEEE')
+                    setMapData({
+                        ...mapData,
+                        lat:response?.data?.latitude,
+                        lng:response?.data?.longitude
+                    })
+                    showMap(true)   
+                } catch (error) {
+                    
+                }
+              
+            })()
+        }
+    },[values.storeAdd])
 
 
     const handleDrop = useCallback(
@@ -215,8 +244,12 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
 
             <Stack spacing={1} direction="row" >
                 <RHFTextField fullWidth name="storeName" label=" Name" />
-                <RHFTextField fullWidth name="storeAdd" label="Address" />
+               
 
+            </Stack>
+            <Stack spacing={1}>
+                <RHFTextField fullWidth name="storeAdd" label="Address" />
+                {map && <MapContainer lat={mapData?.lat} lng={mapData?.lng} />}
             </Stack>
             <Box
                 rowGap={3}
