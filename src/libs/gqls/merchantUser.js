@@ -16,7 +16,11 @@ export const QueryAllMerchantMedicine = gql`
           filename
           id
         }
+        merchant_store{
+          name
+        }
       }
+      totalRecords
       }
   }
 `;

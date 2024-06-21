@@ -63,7 +63,6 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
 
     const searchParams: any = useSearchParams();
 
-    console.log(isEdit,'??')
 
     const returnTo = searchParams.get('returnTo');
 

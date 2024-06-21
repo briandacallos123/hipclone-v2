@@ -12,11 +12,13 @@ import Iconify from 'src/components/iconify';
 // ----------------------------------------------------------------------
 
 type Props = {
-  billing: IAddressItem | null;
+  billing:any;
   onBackStep: VoidFunction;
 };
 
 export default function CheckoutBillingInfo({ billing, onBackStep }: Props) {
+ 
+ 
   return (
     <Card sx={{ mb: 3 }}>
       <CardHeader
@@ -30,14 +32,14 @@ export default function CheckoutBillingInfo({ billing, onBackStep }: Props) {
       <Stack spacing={1} sx={{ p: 3 }}>
         <Box sx={{ typography: 'subtitle2' }}>
           {`${billing?.name} `}
-          <Box component="span" sx={{ color: 'text.secondary', typography: 'body2' }}>
+          {/* <Box component="span" sx={{ color: 'text.secondary', typography: 'body2' }}>
             ({billing?.addressType})
-          </Box>
+          </Box> */}
         </Box>
 
-        <Box sx={{ color: 'text.secondary', typography: 'body2' }}>{billing?.fullAddress}</Box>
+        {/* <Box sx={{ color: 'text.secondary', typography: 'body2' }}>{billing?.fullAddress}</Box> */}
 
-        <Box sx={{ color: 'text.secondary', typography: 'body2' }}>{billing?.phoneNumber}</Box>
+        <Box sx={{ color: 'text.secondary', typography: 'body2' }}>{billing?.contact}</Box>
       </Stack>
     </Card>
   );

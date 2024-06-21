@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useState } from 'react'
 import MedecinePage from './medecine-page'
-import { Box, Container, Grid } from '@mui/material';
+import { Box, Container, Grid, Table } from '@mui/material';
 import StoreDashboardFiltering from '@/sections/medecine-final/id/view/store-dashboard-filtering';
 import EcommerceWelcome from '../ecommerce-welcome';
 import { useAuthContext } from '@/auth/hooks';
@@ -11,6 +11,8 @@ import { useSettingsContext } from '@/components/settings';
 import { QueryAllStoreNoId } from 'src/libs/gqls/store';
 import MedecineController from './medecine-controller';
 import { useLazyQuery } from '@apollo/client';
+import MedecinePageSkeleton from './medecine-skeleton';
+
 import {
     useTable,
     getComparator,
@@ -25,31 +27,33 @@ import {
 const defaultFilters = {
     name: '',
     status: -1,
-    delivery: [1],
+    delivery: 1,
     startDate: null,
     endDate: null,
+    distance:1
 };
 
 const deliveryOptions = [
     {
         id: 1,
         label: "All",
-        value: "all"
+        value: 1
     },
     {
         id: 2,
         label: "Pick up",
-        value: "pick up"
+        value: 2
     },
     {
         id: 3,
         label: "Delivery",
-        value: "delivery"
+        value: 3
     },
 ]
 
 const MedecineDataPage = ({ data }: any) => {
     const { user } = useAuthContext()
+    const [loading, setLoading] = useState(false)
     const [tableData, setTableData] = useState([])
     const [filters, setFilters]: any = useState(defaultFilters);
     
@@ -62,8 +66,9 @@ const MedecineDataPage = ({ data }: any) => {
             data: {
                 skip: 0,
                 take: 10,
-                delivery:filters?.delivery?.map((item:any)=>Number(item)),
-                search:filters?.name
+                delivery:filters?.delivery,
+                search:filters?.name,
+                radius:Number(filters?.distance)
             }
         },
         context: {
@@ -75,6 +80,7 @@ const MedecineDataPage = ({ data }: any) => {
     });
 
     useEffect(() => {
+        setLoading(true)
         queryFunc().then(async (result) => {
             const { data } = result;
 
@@ -87,8 +93,9 @@ const MedecineDataPage = ({ data }: any) => {
                     QueryAllStoreNoId
                 )
             }
+            setLoading(false)
         });
-    }, [filters.delivery, filters.name]);
+    }, [filters.delivery, filters.name, filters?.distance]);
 
  
 
@@ -108,6 +115,7 @@ const MedecineDataPage = ({ data }: any) => {
     const userFullName = user?.middleName ? `${user?.firstName} ${user?.middleName} ${user?.lastName}` : `${user?.firstName} ${user?.lastName}`
     const settings = useSettingsContext();
 
+    const notFound = !loading  && !tableData?.length;
 
     return (
         <Container maxWidth={settings.themeStretch ? false : 'xl'}>
@@ -117,7 +125,7 @@ const MedecineDataPage = ({ data }: any) => {
                     <EcommerceWelcome
                         title={`Hi!  ${userFullName}`}
                         description="Merchants near in"
-                        location="Navotas, Metro Manila"
+                        location={user?.address}
                         img={<MotivationIllustration />}
                     />
                 </Grid>
@@ -126,8 +134,11 @@ const MedecineDataPage = ({ data }: any) => {
                         <StoreDashboardFiltering deliveryOptions={deliveryOptions} onFilters={handleFilters} filters={filters} />
                     </Box>
                 </Grid>
-                <MedecinePage data={tableData} />
+                {loading ? <MedecinePageSkeleton/>:<MedecinePage data={tableData} />}
 
+                <Table>
+                    <TableNoData notFound={notFound} />
+                </Table>
             </Grid>
         </Container>
     )

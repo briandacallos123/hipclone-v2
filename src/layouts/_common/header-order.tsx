@@ -188,7 +188,7 @@ const HeaderOrders = ({order}:HeaderCartProps) => {
                             alignItems: 'center',
                             gap: 1,
                         }}>
-                            <img height={100} width={100} alt={name} src={`http://localhost:9092/${image?.split('/').splice(1).join('/')}`} />
+                            <img height={100} width={100} alt={name} src={`https://hip.apgitsolutions.com/${image?.split('/').splice(1).join('/')}`} />
                             <Typography variant="h6">
                                 {name}
                             </Typography>

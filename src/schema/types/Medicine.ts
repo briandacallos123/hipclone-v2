@@ -4,6 +4,7 @@ import client from '../../../prisma/prismaClient';
 import { unserialize } from 'php-serialize';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
+import { storeType } from './Store';
 
 export const medicineType = objectType({
     name: 'medicineType',
@@ -17,6 +18,9 @@ export const medicineType = objectType({
         t.string('manufacturer');
         t.nullable.field('attachment_info',{
             type:attachment_info
+        });
+        t.nullable.field('merchant_store',{
+            type:storeType
         })
         // t.date('created_at');
     },
@@ -38,6 +42,7 @@ export const QueryAllObjectType = objectType({
         t.list.field('MedicineType', {
             type: medicineType
         })
+        t.nullable.int('totalRecords')
     },
 })
 
@@ -62,14 +67,52 @@ export const QueryAllMerchantMedicine = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
+                const {take, skip}:any = args?.data;
 
                 try {
-                    const result = await client.merchant_medicine.findMany({
-                        where: {
-                            is_deleted: 0,
-                            merchant_id: Number(session?.user?.id)
+                    const merchantUser = await client.merchant_user.findUnique({
+                       
+                        where:{
+                            id:Number(session?.user?.id)
                         }
                     })
+
+                    const list_store = await client.merchant_store.findMany({
+                        where:{
+                            merchant_id:Number(merchantUser?.id),
+                            is_deleted:0
+                        },
+                        select:{
+                            id:true
+                        }
+                    })
+
+                    
+                    const [result, totalRecords]:any = await client.$transaction([
+                        client.merchant_medicine.findMany({
+                            take,
+                            skip,
+                            where: {
+                                is_deleted: 0,
+                                store_id:{
+                                    in:list_store?.map((item:any)=>item?.id)
+                                },
+                            },
+                            include:{
+                                merchant_store:true
+                            }
+                        }),
+                        client.merchant_medicine.count({
+                            where: {
+                                is_deleted: 0,
+                                store_id:{
+                                    in:list_store?.map((item:any)=>item?.id)
+                                },
+                            }
+                        })
+                    ])
+                    
+
                     const res = result?.map(async(item:any)=>{
                         const r = await client.medecine_attachment.findFirst({
                             where:{
@@ -84,7 +127,8 @@ export const QueryAllMerchantMedicine = extendType({
 
 
                     return {
-                        MedicineType: fResult
+                        MedicineType: fResult,
+                        totalRecords
                     }
                 } catch (error) {
                     throw new GraphQLError(error)

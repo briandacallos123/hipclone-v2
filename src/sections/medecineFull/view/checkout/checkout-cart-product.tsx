@@ -35,7 +35,7 @@ export default function CheckoutCartProduct({
 }: CheckoutProductListRowProps) {
   const { name, image, size, price, colors, coverUrl, quantity, available } = row;
 
-  const img = `http://localhost:9092/${image?.split('/').splice(1).join('/')}`
+  const img = `https://hip.apgitsolutions.com/${image?.split('/').splice(1).join('/')}`
 
 
   return (

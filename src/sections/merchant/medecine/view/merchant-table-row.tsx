@@ -201,24 +201,41 @@ export default function MerchantMedecineTableRow({
             </Label>
         </TableCell> */}
         <TableCell >
-            <Label variant="soft" color={'success'}>
-                {row?.brand_name}
-            </Label>
+          <Typography>
+          {row?.brand_name}
+          </Typography>
+            {/* <Label variant="soft" color={'success'}>
+               
+            </Label> */}
         </TableCell>
         <TableCell align='center'>
-            <Label variant="soft" color={'success'}>
-                {row?.dose}
-            </Label>
+          <Typography>
+          {row?.dose}
+          </Typography>
+            {/* <Label variant="soft" color={'success'}>
+               
+            </Label> */}
         </TableCell>
         <TableCell align='center'>
-            <Label variant="soft" color={'success'}>
-                {row?.form}
-            </Label>
+          <Typography>
+          {row?.form}
+
+          </Typography>
+            {/* <Label variant="soft" color={'success'}>
+            </Label> */}
         </TableCell>
         <TableCell align='center'>
-            <Label variant="soft" color={'success'}>
-                {row?.price}
-            </Label>
+          <Typography>
+          {row?.price}
+          </Typography>
+           
+        </TableCell>
+        <TableCell align='center'>
+          <Typography>
+          {/* {row?.merchant_store?.name} */}
+          {`${row?.merchant_store?.name.charAt(0).toUpperCase()}${row?.merchant_store?.name?.split('').splice(1).join('')}`}
+          </Typography>
+           
         </TableCell>
 
         <TableCell align="center">

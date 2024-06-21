@@ -18,6 +18,7 @@ import {
 import { revalidateStore } from '@/sections/store_manage/actions/store';
 //   import { useSnackbar } from 'src/components/snackbar';
 const MerchantUserProvider = createContext({})
+import StoreManageController from '@/sections/store_manage/view/storeManageController';
 
 export const UseMerchantMedContext = () => {
     return useContext(MerchantUserProvider)
@@ -29,6 +30,7 @@ type MerchantUserContextProps = {
 
 const initialState = {
     merchantData:[],
+    totalRecords:0,
     isLoading:true
 }
 
@@ -37,8 +39,9 @@ const reducer = (state:stateProps, action:actionProps) => {
     switch(action.type){
         case "Fetch":
             console.log(action.payload,'PAYLOAD')
-            state.merchantData = action.payload;
+            state.merchantData = action.payload?.MedicineType;
             state.isLoading = false;
+            state.totalRecords = action?.payload?.totalRecords
             return state;
         case "Create":
             console.log(action.payload,'????')
@@ -55,8 +58,7 @@ const reducer = (state:stateProps, action:actionProps) => {
 
 const MerchantUserContext = ({children}:MerchantUserContextProps) => {
     const [state, dispatch] = useReducer(reducer, initialState)
-    const [toRefetch, setToRefetch] = useState<number>(0);
-
+    const {queryResults} = StoreManageController()
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
     const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
@@ -66,8 +68,8 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
         context: {
            requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
            },
-           // notifyOnNetworkStatusChange: true,
-           fetchPolicy:'no-cache'
+           notifyOnNetworkStatusChange: true,
+        //    fetchPolicy:'no-cache'
        });
 
    
@@ -82,15 +84,14 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
            }).then((res:any)=>{
                const {data} = res;
                if(data){
-                   console.log(data,'REFETCH@@@@@')
                 dispatch({
                     type:"Fetch",
-                    payload:data?.QueryAllMerchantMedicine?.MedicineType
+                    payload:data?.QueryAllMerchantMedicine
                 })
                
                }
            })
-       },[table.page, table.rowsPerPage, toRefetch])
+       },[table.page, table.rowsPerPage, getMerchantResult?.data])
 
         // create merchant medecine
     const [createMerchantFuncMed] = useMutation(CreateMerchantMedecine, {
@@ -108,12 +109,8 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
             }
         }).then((res)=>{
             const {data} = res;
-            // setToRefetch((prev)=>{
-            //     return prev += 1
-            // })
-
             enqueueSnackbar("Created Medecine Succesfully")
-            revalidateStore()
+            queryResults.refetch()
 
         })
     },[])
@@ -134,12 +131,10 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
             }
         }).then((res)=>{
             const {data} = res;
-            setToRefetch((prev)=>{
-                return prev += 1
-            })
+            getMerchantResult.refetch()
             enqueueSnackbar("Deleted Medecine Succesfully")
         })
-    },[])
+    },[getMerchantResult])
 
 
 

@@ -28,9 +28,10 @@ type Props = {
     row: any;
     onViewRow?: VoidFunction;
     onManageRow?:()=>void;
+    onDeleteRow?:()=>void
 };
 
-export default function StoreTableRow({ row, onViewRow, onManageRow }: Props) {
+export default function StoreTableRow({onDeleteRow, row, onViewRow, onManageRow }: Props) {
     const upMd = useResponsive('up', 'md');
     const { user } = useAuthContext()
 
@@ -82,7 +83,7 @@ export default function StoreTableRow({ row, onViewRow, onManageRow }: Props) {
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     {row?.attachment_store?.file_url && <Avatar
                         alt={row?.name}
-                        src={`http://localhost:9092/${row?.attachment_store?.file_url?.split('/').splice(1).join('/')}`}
+                        src={`https://hip.apgitsolutions.com/${row?.attachment_store?.file_url?.split('/').splice(1).join('/')}`}
                         sx={{ mr: 2 }}
 
                     />
@@ -103,7 +104,7 @@ export default function StoreTableRow({ row, onViewRow, onManageRow }: Props) {
                 </div>
             </TableCell>
 
-            <TableCell>
+            {/* <TableCell>
 
 
                 <ListItemText
@@ -115,7 +116,7 @@ export default function StoreTableRow({ row, onViewRow, onManageRow }: Props) {
                         typography: 'caption',
                     }}
                 />
-            </TableCell>
+            </TableCell> */}
 
 
 
@@ -127,9 +128,9 @@ export default function StoreTableRow({ row, onViewRow, onManageRow }: Props) {
                     {row?.is_active ? "Active" : "Inactive"}
                 </Label>
             </TableCell>
-            <TableCell>
+            {/* <TableCell>
                 {row?.description}
-            </TableCell>
+            </TableCell> */}
 
             <TableCell align="center" sx={{ px: 1, whiteSpace: 'nowrap' }}>
                 <Tooltip title="View Details" placement="top" arrow>
@@ -166,7 +167,7 @@ export default function StoreTableRow({ row, onViewRow, onManageRow }: Props) {
                 </MenuItem>
                 <MenuItem
                     onClick={() => {
-                        // onHandleEditSched();
+                        onDeleteRow();
                         popover.onClose();
                     }}
                     sx={{ color: 'error.main' }}

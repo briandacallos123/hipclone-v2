@@ -83,9 +83,11 @@ const TABLE_HEAD = [
   { id: 'dose', label: 'Dose', align: 'center' },
   { id: 'form', label: 'Form', align: 'center' },
   { id: 'price', label: 'Price', align: 'center' },
+  { id: 'store', label: 'Store', align: 'center' },
+
   // { id: 'status', label: 'Status', align: 'center' },
-  // { id: 'action', label: 'Action', align: 'center' },
-  { id: '' },
+  { id: 'action', label: 'Action', align: 'center' },
+  // { id: '' },
 ];
 
 
@@ -367,19 +369,19 @@ export default function MerchantMedicineView() {
     (getAppointmentLength(status) / tableData.length) * 100;
 
   const TABS = [
-    { value: -1, label: 'All', color: 'default', count: tableData?.length },
-    {
-      value: 0,
-      label: 'Online',
-      color: 'warning',
-      count: getAppointmentLength(0),
-    },
-    {
-      value: 1,
-      label: 'Offline',
-      color: 'info',
-      count: getAppointmentLength(1),
-    },
+    { value: -1, label: 'All', color: 'default', count: state?.totalRecords },
+    // {
+    //   value: 0,
+    //   label: 'Online',
+    //   color: 'warning',
+    //   count: getAppointmentLength(0),
+    // },
+    // {
+    //   value: 1,
+    //   label: 'Offline',
+    //   color: 'info',
+    //   count: getAppointmentLength(1),
+    // },
     // { value: 3, label: 'Done', color: 'success', count: getAppointmentLength(3) },
     // {
     //   value: 2,
@@ -484,7 +486,7 @@ export default function MerchantMedicineView() {
         >
           <Typography variant="h5">Medicines</Typography>
 
-          
+{/*           
             <Button
               onClick={opencreate.onTrue}
               // component={RouterLink}
@@ -493,7 +495,7 @@ export default function MerchantMedicineView() {
               startIcon={<Iconify icon="mingcute:add-line" />}
             >
               Create New Medecine
-            </Button>
+            </Button> */}
          
         </Stack>
 
@@ -576,15 +578,7 @@ export default function MerchantMedicineView() {
                     }
                     color={tab.color}
                   >
-                    {(() => {
-                      if (tab.value === -1) return total || 0;
-                      if (tab.value === 0) return pending || 0;
-                      if (tab.value === 1) return approved || 0;
-                      if (tab.value === 2) return cancelled || 0;
-                      if (tab.value === 3) return done || 0;
-
-                      return 0;
-                    })()}
+                    {tab?.count}
                   </Label>
                 }
               />
@@ -703,14 +697,14 @@ export default function MerchantMedicineView() {
                     emptyRows={emptyRows(table.page, table.rowsPerPage, totalRecords)}
                   />
 
-                  {/* <TableNoData notFound={notFound} /> */}
+                  <TableNoData notFound={notFound} />
                 </TableBody>
               </Table>
             </Scrollbar>
           </TableContainer>
 
           <TablePaginationCustom
-            count={totalRecords}
+            count={state?.totalRecords}
             page={table.page}
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}

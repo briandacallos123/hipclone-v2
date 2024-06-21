@@ -1,4 +1,6 @@
 // @mui
+'use client'
+
 import { useTheme, alpha } from '@mui/material/styles';
 import Stack from '@mui/material/Stack';
 import Typography from '@mui/material/Typography';
@@ -7,6 +9,8 @@ import { CardProps } from '@mui/material/Card';
 import { bgGradient } from 'src/theme/css';
 import { Button, FormControl, InputAdornment, InputLabel, OutlinedInput, TextField } from '@mui/material';
 import Iconify from '@/components/iconify';
+import { useCallback, useEffect, useState } from 'react';
+import axios from 'axios';
 
 // ----------------------------------------------------------------------
 
@@ -20,33 +24,45 @@ interface Props extends CardProps {
 
 export default function EcommerceWelcome({location, title, description, action, img, ...other }: Props) {
   const theme = useTheme();
+  const [latitude, setLatitude] = useState(null);
+  const [longitude, setLongitude] = useState(null);
+  const [loadingMap, setLoadingMap] = useState(false)
+  const [userAddress, setUserAddress] = useState(null)
 
-  const handleGetCurrentLocation = () => {
+  console.log(userAddress,'HUH?')
+  const getLocation = useCallback(()=>{
     if (navigator.geolocation) {
-      navigator.geolocation.getCurrentPosition(
-        async (position) => {
-          const { latitude, longitude } = position.coords;
-          try {
-            const response = await fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${latitude},${longitude}&radius=500&type=hospital&key=${process.env.GOOGLE_MAP_SECRET}`);
-            if (response.ok) {
-              const data = await response.json();
-              // Handle the response data here
-              console.log(data,'ANDITO AKO_____________________');
-            } else {
-              console.error('Failed to fetch data from Google Places API');
-            }
-          } catch (error) {
-            console.error('Error fetching data:', error);
-          }
-        },
-        (error) => {
-          console.error('Error getting current location: ', error);
-        }
-      );
+      navigator.geolocation.getCurrentPosition((position) => {
+        const { latitude, longitude }:any = position.coords;
+        setLatitude(latitude);
+        setLongitude(longitude);
+      }, 
+      (error) => {
+        console.error('Error getting geolocation:', error);
+      });
     } else {
       console.error('Geolocation is not supported by this browser.');
     }
-  };
+  },[])
+
+  useEffect(()=>{
+    if(latitude && longitude){
+      setLoadingMap(true);
+
+
+      (async()=>{
+        const payload:any = {
+          latitude,
+          longitude
+        }
+        const response = await axios.post('https://hip.apgitsolutions.com/api/getAddress',payload);
+        const {address}:any = response?.data
+        setUserAddress(address)
+        setLoadingMap(false)
+      })()
+    }
+  },[latitude, longitude])
+  
 
   return (
     <Stack
@@ -98,48 +114,36 @@ export default function EcommerceWelcome({location, title, description, action, 
             mb: { xs: 3, xl: 2 },
           }}
         >
-          {location}
+          {userAddress ? userAddress : location}
         </Typography>
 
        <Stack spacing={2}>
-       {/* <FormControl sx={{ mt:.5, width: '25ch' }} variant="outlined">
-          <InputLabel htmlFor="outlined-adornment-password">Location</InputLabel>
-          <OutlinedInput
-            id="outlined-adornment-password" 
-            endAdornment={
-              <InputAdornment position="end" sx={{
-                cursor:'pointer'
-              }}>
-                 <Iconify onClick={handleGetCurrentLocation} icon="mdi:location"/>
-              </InputAdornment>
+          {!userAddress ? <Typography>Want to change your location? <Button
+          sx={{
+            hover:{
+              textDecoration:'underline'
             }
-            label="Location"
-            sx={{
-              border:'1px solid gray'
-            }}
-          />
-        </FormControl> */}
-
-        {/* <Button fullWidth variant="contained" color="success">Search</Button> */}
+          }}
+          onClick={getLocation}
+          
+          >
+            {loadingMap ? 'loading':'click here'}
+            </Button></Typography>:
+            <Typography>Getting wrong address?
+              <Button
+          sx={{
+            hover:{
+              textDecoration:'underline'
+            }
+          }}
+          onClick={getLocation}
+          
+          >
+            Edit
+            </Button>
+               </Typography>
+            }
        </Stack>
-
-        {/* <TextField
-        id="input-with-icon-textfield"
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-            
-              <Iconify icon="mdi:location"/>
-            </InputAdornment>
-          ),
-        }}
-        variant="standard"
-        sx={{
-          border:'1px solid gray',
-          borderRadius:'10px',
-          p:.5
-        }}
-      /> */}
 
         {action && action}
       </Stack>

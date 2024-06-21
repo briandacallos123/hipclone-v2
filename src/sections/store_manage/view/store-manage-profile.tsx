@@ -97,7 +97,7 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
             start_time: new Date(sTime) || '',
             end_time: new Date(eTime) || "",
             attachment: (() => {
-                return `http://localhost:9092/${data?.attachment_store?.file_url?.split('/').splice(1).join('/')}`
+                return `https://hip.apgitsolutions.com/${data?.attachment_store?.file_url?.split('/').splice(1).join('/')}`
             })() || '',
             days: data?.days || [],
             description: data?.description || '',

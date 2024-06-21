@@ -15,48 +15,54 @@ import Iconify from 'src/components/iconify';
 //
 import { AddressNewForm, AddressItem } from '../../../address';
 import CheckoutSummary from './checkout-summary';
+import { useAuthContext } from '@/auth/hooks';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   checkout: IProductCheckoutState;
   onBackStep: VoidFunction;
-  onCreateBilling: (address: IAddressItem) => void;
+  onCreateBilling: (address: any) => void;
 };
 
 export default function CheckoutBillingAddress({ checkout, onBackStep, onCreateBilling }: Props) {
   const addressForm = useBoolean();
+  const { cart, total, discount, subTotal } = checkout;
+  const { user }: any = useAuthContext()
 
 
+  const userAddress = {
+    name: user?.address,
+    phoneNumber: user?.contact
+  }
 
   return (
     <>
       <Grid container spacing={3}>
         <Grid xs={12} md={8}>
-          {_addressBooks.slice(0, 4).map((address) => (
-            <AddressItem
-              key={address.id}
-              address={address}
-              action={
-                <Stack flexDirection="row" flexWrap="wrap" flexShrink={0}>
-                  {!address.primary && (
-                    <Button size="small" color="error" sx={{ mr: 1 }}>
-                      Delete
-                    </Button>
-                  )}
-                  <Button variant="outlined" size="small" onClick={() => onCreateBilling(address)}>
-                    Deliver to this Address
+          <AddressItem
+            // key={address.id}
+            address={userAddress}
+            action={
+              <Stack flexDirection="row" flexWrap="wrap" flexShrink={0}>
+                {/* {!address.primary && (
+                  <Button size="small" color="error" sx={{ mr: 1 }}>
+                    Delete
                   </Button>
-                </Stack>
-              }
-              sx={{
-                p: 3,
-                mb: 3,
-                borderRadius: 2,
-                boxShadow: (theme) => theme.customShadows.card,
-              }}
-            />
-          ))}
+                )} */}
+                <Button variant="outlined" size="small" onClick={() => onCreateBilling(userAddress)}>
+                  Deliver to this Address
+                </Button>
+              </Stack>
+            }
+            sx={{
+              p: 3,
+              mb: 3,
+              borderRadius: 2,
+              boxShadow: (theme) => theme.customShadows.card,
+            }}
+          />
+          
 
           <Stack direction="row" justifyContent="space-between">
             <Button
@@ -81,8 +87,8 @@ export default function CheckoutBillingAddress({ checkout, onBackStep, onCreateB
 
         <Grid xs={12} md={4}>
           <CheckoutSummary
-            total={checkout.total}
-            subTotal={checkout.subTotal}
+            total={total}
+            subTotal={total}
             discount={checkout.discount}
           />
         </Grid>

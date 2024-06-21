@@ -76,26 +76,27 @@ import storeController from '../StoreController';
 import StoreSkeletonView from './store-skeleton-view';
 import StoreTableRow from './store-table-row';
 import StoreSkeletonRow from './store-skeleton';
+import StoreToolbar from './store-toolbar';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'name', label: 'Name' },
-  { id: 'productType', label: 'Product Types' },
+  // { id: 'productType', label: 'Product Types' },
   { id: 'rating', label: 'Rating', align: 'left' },
   { id: 'active', label: 'Status', align: 'left' },
-  { id: 'desc', label: 'Description', align: 'left' },
+  // { id: 'desc', label: 'Description', align: 'left' },
 
   { id: '', label: "Action", align: 'center' },
 ];
 
 
-const defaultFilters = {
-  name: '',
-  status: -1,
-  hospital: [],
-  startDate: null,
-  endDate: null,
-};
+// const defaultFilters = {
+//   name: '',
+//   status: -1,
+//   hospital: [],
+//   startDate: null,
+//   endDate: null,
+// };
 
 // ----------------------------------------------------------------------
 
@@ -118,8 +119,10 @@ export default function StoreListView() {
   // const [totalRecordsData, setTotalRecordsData] = useState(null)
 
 
-  const { loading, table, state: tableState, handleFilterStatus }: any = storeController()
+  const { loading, table, state: tableState,handleSubmitDelete, handleFilterStatus, filters, setFilters, handleFilters }: any = storeController()
   const { tableData, summary, totalRecords } = tableState
+
+
 
 
   // useEffect(() => {
@@ -140,7 +143,7 @@ export default function StoreListView() {
   const [viewId, setViewId] = useState(null);
 
 
-  const [filters, setFilters]: any = useState(defaultFilters);
+  // const [filters, setFilters]: any = useState(defaultFilters);
 
   const dateError = isDateError(filters.startDate, filters.endDate);
 
@@ -162,7 +165,7 @@ export default function StoreListView() {
   const denseHeight = table.dense ? 56 : 76;
 
 
-  const notFound = !loading && !tableData;
+  const notFound = !loading && !tableData?.length;
 
   const getAppointmentLength = (status: string | number) =>
     tableData?.filter((item: any) => item?.status === status).length;
@@ -175,8 +178,8 @@ export default function StoreListView() {
 
   const TABS = [
     { value: -1, label: 'All', color: 'default', count: totalRecords },
-    { value: 1, label: 'Active', color: 'default', count: summary?.active },
-    { value: 2, label: 'Inactive', color: 'default', count:summary?.inactive },
+    { value: 1, label: 'Active', color: 'success', count: summary?.active },
+    { value: 2, label: 'Inactive', color: 'error', count:summary?.inactive },
   ] as const
 
  
@@ -216,9 +219,7 @@ export default function StoreListView() {
   //   });
   // };
 
-  const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
-  }, []);
+
 
   const handleViewPatient = useCallback(
     (id: any) => {
@@ -229,9 +230,12 @@ export default function StoreListView() {
     [router]
   );
 
+  const [deleteId, setDeleteId] = useState(null)
 
   const handleDeleteRow = useCallback(async (id: any) => {
-    await deletedOrderFunc(id)
+   
+    setDeleteId(id)
+    confirmApprove.onTrue()
   }, [])
 
 
@@ -303,26 +307,15 @@ export default function StoreListView() {
               />
             ))}
           </Tabs>
-          {/* 
-          <AppointmentTableToolbar
+          
+          <StoreToolbar
             filters={filters}
             onFilters={handleFilters}
             //
             hospitalOptions={clinicData}
           />
 
-          {canReset && (
-            <AppointmentTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              hospitalOptions={clinicData}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={totalRecords}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )} */}
+          
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
@@ -394,7 +387,7 @@ export default function StoreListView() {
                         // onSelectRow={() => table.onSelectRow(String(row.id))}
                         onViewRow={() => handleViewRow(row)}
                         onManageRow={() => handleManageRow(Number(row?.id))}
-                      // onDeleteRow={()=>handleDeleteRow(row?.id)}
+                      onDeleteRow={()=>handleDeleteRow(row?.id)}
                       />
                     ))}
 
@@ -441,15 +434,16 @@ export default function StoreListView() {
         title="Approve"
         content={
           <>
-            Are you sure want to approve <strong> {table.selected.length} </strong> items?
+            Are you sure want to delete this item?
           </>
         }
         action={
           <Button
             variant="contained"
             color="info"
-            onClick={() => {
-              confirmApprove.onFalse();
+            onClick={async() => {
+               handleSubmitDelete(deleteId)
+               confirmApprove.onFalse()
             }}
           >
             Submit
@@ -463,7 +457,7 @@ export default function StoreListView() {
         title="Cancel"
         content={
           <>
-            Are you sure want to cancel <strong> {table.selected.length} </strong> items?
+            Are you sure want to delete this item?
           </>
         }
         action={

@@ -320,19 +320,7 @@ export default function MerchantListView() {
   //   }
   // }, [user?.role, userClinicData]);
 
-  useEffect(() => {
-    //
-    if (isClinic === 1) {
-      const clinicItem = tableData?.map((item: any) => Number(item?.clinic));
-      setClinicPayload(clinicItem);
-    }
-  }, [tableData]);
-  useEffect(()=>{
-    if(!openView.value && viewId){
-      setViewId(null)
-    }
-  },[openView.value])
-  // ========================
+  
 
   const dataFiltered = applyFilter({
     inputData: tableData,

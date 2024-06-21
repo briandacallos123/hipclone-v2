@@ -159,41 +159,6 @@ export const authOptions: AuthOptions = {
     },
     async session({ session, user, token, account }: any) {
 
-      
-      console.log(token,'HEHE')
-      /* const _user = {
-        name: 'demo minimals',
-        email: 'demo@minimals.cc',
-        image: null,
-        displayName: 'demo minimals',
-        lastName: 'minimals',
-        firstName: 'demo',
-        middleName: null,
-        id: 1,
-        role: 'doctor',
-        photoURL:
-          'https://ui-avatars.com/api/?name=demo minimals&size=100&rounded=true&color=fff&background=E12328',
-        coverURL: 'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg',
-        occupation: 'UX / UI Designer',
-      };
-
-      //   if worked, replace _user to user;
-
-      session.user.displayName = _user?.name;
-      session.user.lastName = _user?.lastName;
-      session.user.firstName = _user?.firstName;
-      session.user.middleName = _user?.middleName;
-      session.user.email = _user?.email;
-      session.user.id = _user?.id;
-      session.user.role = _user?.role;
-      const photoURL =
-        user?.image !== null
-          ? _user?.image
-          : `https://ui-avatars.com/api/?name=${session.user.displayName}&size=100&rounded=true&color=fff&background=E12328`;
-      session.user.photoURL = _user?.photoURL;
-      session.user.coverURL =
-        'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg';
-      session.user.occupation = 'UX / UI Designer'; */
 
       if (token?.isAdmin) {
         const { email, id, first_name, last_name, middle_name, contact } = token;
@@ -269,6 +234,8 @@ export const authOptions: AuthOptions = {
               session.user.firstName = userInfo?.FNAME;
               session.user.middleName = userInfo?.MNAME;
               session.user.contact = userInfo?.CONTACT_NO;
+              session.user.latitude = userInfo?.LATITUDE;
+              session.user.longitude = userInfo?.LONGITUDE;
               session.user.username = login_username?.uname;
               session.user.uname = login_username?.uname;
               session.user.s_id = login_patient?.S_ID;

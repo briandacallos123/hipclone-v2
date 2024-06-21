@@ -32,7 +32,7 @@ const StoreManageController = (
   const [manualRefetch, setManualRefetch] = useState(0)
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const params = useParams();
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(false)
 
   const [updateFunc, createResults] = useMutation(UpdateStore);
 
@@ -47,12 +47,12 @@ const StoreManageController = (
     context: {
       requestTrackerId: 'queryListStore[STORE_LIST_QUERY]',
     },
-    // notifyOnNetworkStatusChange: true,
-    // fetchPolicy:'no-cache'
+    notifyOnNetworkStatusChange: true,
 
   });
 
   useEffect(() => {
+    setLoading(true)
     queryFunc().then(async (result) => {
       const { data } = result;
 
@@ -64,7 +64,7 @@ const StoreManageController = (
       }
       setLoading(false)
     });
-  }, [manualRefetch]);
+  }, [queryResults?.data]);
 
   const handleSubmitUpdate = useCallback(
     async (model: any) => {
@@ -132,7 +132,7 @@ const StoreManageController = (
   //   [createFunc]
   // );
 
-  return {  tableData, loading, handleSubmitUpdate }
+  return {  tableData, loading,queryResults, handleSubmitUpdate }
 }
 
 export default StoreManageController

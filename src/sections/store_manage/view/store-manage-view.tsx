@@ -26,9 +26,6 @@ const getStore = async (id: number) => {
             const days = unserialize(unserialize(response?.days))
             response = { ...response, days }
         }
-    
-    
-        console.log(response,'REPONSE____________________')
         return response;
     } catch (error) {
         console.log(error,'eRRORR____________________________________')
@@ -52,23 +49,7 @@ const StoreManageView = async ({ id }: StoreManageViewProps) => {
                         rating={data?.rating}
                         address={data?.address}
                     />
-            {/* <Grid container spacing={1} >
-
-                <Grid item lg={9}>
-                    <MedecineStoreHeader
-                        storeName={data.name}
-                        product_type={data?.product_types}
-                        startTime={data?.start_time}
-                        endTime={data?.end_time}
-                        rating={data?.rating}
-                        address={data?.address}
-                    />
-                </Grid>
-
-                <Grid item lg={2}>
-                    <StoreCreateMedecine/>
-                </Grid>
-            </Grid> */}
+            
             <StoreManageTabs data={data} />
         </div>
     )

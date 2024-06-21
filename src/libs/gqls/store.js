@@ -18,6 +18,15 @@ export const UpdateStore = gql`
 `;
 
 
+export const DeleteStore = gql`
+  mutation DeleteStore($data: DeleteStoreInp!) {
+    DeleteStore(data: $data) {
+      message
+    }
+  }
+`;
+
+
 
 export const QueryAllStore = gql`
   query QueryAllStore($data: storeInputType) {

@@ -68,18 +68,10 @@ export function useNavData() {
         subheader: t('HIPS'),
         items: [
           { title: t('Homes'), path: paths.dashboard.root, icon: ICONS.dashboard },
-          // { title: t('overview'), path: paths.dashboard.overview.root, icon: ICONS.overview },
-          // remove temporary
-          // {
-          //   title: t('notification'),
-          //   path: paths.dashboard.notification,
-          //   icon: ICONS.notification,
-          // },
           {
             title: t('Health Bites'),
             path: paths.dashboard.feeds,
             icon: ICONS.feeds,
-            // roles: ['doctor', 'secretary'],
             roles: ['doctor', 'patient'],
             
           },
@@ -87,7 +79,6 @@ export function useNavData() {
             title: t('My Doctors'),
             path: paths.dashboard.myDoctors.root,
             icon: ICONS.feeds,
-            // roles: ['doctor', 'secretary'],
             roles: [ 'patient'],
           },
           {
@@ -115,17 +106,10 @@ export function useNavData() {
             // roles: ['doctor'],
             roles: ['doctor', 'secretary'],
           },
-          // {
-          //   title: t('HMO claim'),
-          //   path: paths.dashboard.hmo,
-          //   icon: ICONS.hmo,
-          //   roles: ['doctor', 'secretary'],
-          // },
           {
             title: t('EMR'),
             path: paths.dashboard.emr.root,
             icon: ICONS.emr,
-            // roles: ['doctor', 'secretary'],
             roles: ['doctor','secretary'],
           },
           
@@ -145,7 +129,6 @@ export function useNavData() {
             title: t('medecines'),
             path: paths.dashboard.medecine.root,
             icon: ICONS.patient,
-            // roles: ['doctor'],
             roles: ['patient'],
           },
         ],

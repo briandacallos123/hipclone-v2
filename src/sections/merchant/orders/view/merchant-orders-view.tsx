@@ -71,6 +71,7 @@ import { YMD } from 'src/utils/format-time';
 // import MerchantTableSkeleton from '../merchant-table-skeleton';
 import { useSearch } from '@/auth/context/Search';
 import MerchantOrderSkeleton from './merchant-order-skeleton';
+import MerchantController from './MerchantController';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import MerchantCreateView from './merchant-create-view';
 // import { UseMerchantMedContext } from '@/context/merchant/Merchant';
@@ -83,9 +84,9 @@ const TABLE_HEAD = [
   { id: 'store', label: 'Store Name' },
   { id: 'Medicine Name', label: 'Generic Name' },
   // { id: 'hospital', label: 'Hospital/Clinic' },
-  { id: 'brandName', label: 'Dose' },
-  { id: 'Form', label: 'Form', align: 'center' },
-  { id: 'Quantiy', label: 'Quantity', align: 'center' },
+  // { id: 'brandName', label: 'Dose' },
+  // { id: 'Form', label: 'Form', align: 'center' },
+  // { id: 'Quantiy', label: 'Quantity', align: 'center' },
   { id: 'Patient', label: 'Patient', align: 'center' },
   { id: 'Type', label: 'Delivery Type', align: 'center' },
   { id: 'Status', label: 'Payment Status', align: 'center' },
@@ -112,7 +113,7 @@ export default function MerchantOrdersView() {
   // const { user } = useAuthContext();
   // const isPatient = user?.role === 'patient';
   const settings = useSettingsContext();
-  const confirmApprove = useBoolean();
+  const confirmDelete = useBoolean();
   const confirmEdit = useBoolean();
   const opencreate = useBoolean();
 
@@ -121,64 +122,27 @@ export default function MerchantOrdersView() {
 
   const confirmDone = useBoolean();
 
-  // const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
-
 
   const openView = useBoolean();
 
   const [viewId, setViewId] = useState(null);
 
 
-  // console.log(viewId, "VIEW ID ______________________________________________________")
-
-  // const [filters, setFilters]: any = useState(defaultFilters);
-
-  const {state, table, deletedMerchantMedFunc, handleFilters, filters, handleFilterStatus}: any = UseMerchantOrdersContext();
+  const {state,loading, table, deletedMerchantMedFunc, handleFilters, filters, handleFilterStatus}: any = MerchantController();
  
 
   const { page, rowsPerPage, order, orderBy } = table;
 
   const dateError = isDateError(filters.startDate, filters.endDate);
-
-  
-
-  const [tableData, setTableData] = useState<any>([]);
-  const [totalRecords, setTotalRecords] = useState(0);
-
-  const [total, setTotal] = useState(0);
-  const [pending, setPending] = useState(0);
-  const [approved, setApproved] = useState(0);
-  const [done, setDone] = useState(0);
-  const [cancelled, setCancelled] = useState(0);
-
   
   const router = useRouter();
-  const [clinicData, setclinicData] = useState<any>([]);
 
   
   const [clinicPayload, setClinicPayload] = useState<any>([]);
 
-  const {
-    data: userClinicData,
-    error: userClinicError,
-    loading: userClinicLoad,
-    refetch: userClinicFetch,
-  }: any = useQuery(GET_CLINIC_USER, {
-    variables: {
-      data: {
-        clinicIds: clinicPayload,
-      },
-    },
-  });
- 
 
-  useEffect(() => {
-    //
-    if (isClinic === 1) {
-      const clinicItem = tableData?.map((item: any) => Number(item?.clinic));
-      setClinicPayload(clinicItem);
-    }
-  }, [tableData]);
+
+
   useEffect(()=>{
     if(!openView.value && viewId){
       setViewId(null)
@@ -186,12 +150,7 @@ export default function MerchantOrdersView() {
   },[openView.value])
   // ========================
 
-  const dataFiltered = applyFilter({
-    inputData: tableData,
-    comparator: getComparator(table.order, table.orderBy),
-    filters,
-    dateError,
-  });
+
 
 
   const denseHeight = table.dense ? 56 : 76;
@@ -204,13 +163,9 @@ export default function MerchantOrdersView() {
     !!filters.startDate ||
     !!filters.endDate;
 
-  const notFound = !state?.isLoading  && !state?.orders?.length;
+  const notFound = !loading  && !state?.orders?.length;
 
-  const getAppointmentLength = (status: string | number) =>
-    tableData?.filter((item: any) => item?.status === status).length;
 
-  const getPercentByStatus = (status: string) =>
-    (getAppointmentLength(status) / tableData.length) * 100;
 
  
 
@@ -243,31 +198,6 @@ export default function MerchantOrdersView() {
     [openView]
   );
 
-  // const handleFilterStatus = useCallback(
-  //   (event: React.SyntheticEvent, newValue: string) => {
-  //     handleFilters('status', newValue);
-  //   },
-  //   [handleFilters]
-  // );
-
-  //////////////////////////////////////////////////////
-  // client side approach
-  const updateRow = (d: any) => {
-    const { mutation_create_hmo_claims } = d;
-    const targetData = {
-      ...(typeof viewId === 'object' ? viewId : {}),
-      id: mutation_create_hmo_claims?.id,
-      hmo_claims: mutation_create_hmo_claims?.hmo_claims_data,
-    };
-    setTableData((prev: any) => {
-      return prev.map((i: any) => {
-        if (Number(i?.id) === Number(targetData?.id)) {
-          return targetData;
-        }
-        return i;
-      });
-    });
-  };
 
   // const handleResetFilters = useCallback(() => {
   //   setFilters(defaultFilters);
@@ -284,10 +214,8 @@ export default function MerchantOrdersView() {
   );
 
   const handleDeleteRow = (id:string) => {
-    // DeleteMerchantFunc(id)
-    deletedMerchantMedFunc({
-      id
-    })
+    deletedMerchantMedFunc(id)
+
   }
 
 
@@ -443,7 +371,7 @@ export default function MerchantOrdersView() {
           )} */}
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
-            <TableSelectedAction
+            {/* <TableSelectedAction
               dense={table.dense}
               numSelected={table.selected.length}
               rowCount={tableData?.length}
@@ -456,7 +384,7 @@ export default function MerchantOrdersView() {
               action={
                 <Stack direction="row">
                   <Tooltip title="Approve">
-                    <IconButton color="info" onClick={confirmApprove.onTrue}>
+                    <IconButton color="info" onClick={confirmDelete.onTrue}>
                       <Iconify icon="solar:play-circle-bold" />
                     </IconButton>
                   </Tooltip>
@@ -474,7 +402,7 @@ export default function MerchantOrdersView() {
                   </Tooltip>
                 </Stack>
               }
-            />
+            /> */}
 
             <Scrollbar>
               <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: { md: 800 } }}>
@@ -503,18 +431,8 @@ export default function MerchantOrdersView() {
                 )} */}
 
                 <TableBody>
-                  {/* {merchantData?.length !== 0  && merchantData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
-                        <MerchantTableRow
-                          key={row.id}
-                          row={row}
-                          selected={table.selected.includes(String(row.id))}
-                          onSelectRow={() => table.onSelectRow(String(row.id))}
-                          onViewRow={() => handleViewRow(row)}
-                          onViewPatient={() => handleViewPatient(row)}
-                        />
-                  ))
-                      } */}
-                  {state?.isLoading
+                  
+                  {loading
                     ? [...Array(rowsPerPage)].map((_, i) => <MerchantOrderSkeleton key={i} />)
                     : state?.orders?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
                         <MerchantOrdersTableRow
@@ -529,9 +447,23 @@ export default function MerchantOrdersView() {
                         />
                       ))}
 
+{/*                       
+                  { state?.orders?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
+                        <MerchantOrdersTableRow
+                          key={row.id}
+                          row={row}
+                          selected={table.selected.includes(String(row.id))}
+                          onSelectRow={() => table.onSelectRow(String(row.id))}
+                          onViewRow={() => handleViewRow(row)}
+                          onViewPatient={() => handleViewPatient(row)}
+                          onDeleteRow={()=>handleDeleteRow(row?.id)}
+                          onEditRow={()=>handleEditRow(row)}
+                        />
+                      ))} */}
+
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, totalRecords)}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, state?.totalRecords)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -542,13 +474,13 @@ export default function MerchantOrdersView() {
 
           <TablePaginationCustom
             count={state?.totalRecords}
-            page={table?.page}
-            rowsPerPage={table?.rowsPerPage}
-            onPageChange={table?.onChangePage}
-            onRowsPerPageChange={table?.onChangeRowsPerPage}
+            page={table.page}
+            rowsPerPage={table.rowsPerPage}
+            onPageChange={table.onChangePage}
+            onRowsPerPageChange={table.onChangeRowsPerPage}
             
-            dense={table?.dense}
-            onChangeDense={table?.onChangeDense}
+            dense={table.dense}
+            onChangeDense={table.onChangeDense}
 
             // page, rowsPerPage, order, orderBy 
           />
@@ -572,12 +504,12 @@ export default function MerchantOrdersView() {
       />} */}
 
       <ConfirmDialog
-        open={confirmApprove.value}
-        onClose={confirmApprove.onFalse}
+        open={confirmDelete.value}
+        onClose={confirmDelete.onFalse}
         title="Approve"
         content={
           <>
-            Are you sure want to approve <strong> {table.selected.length} </strong> items?
+            Are you sure want to delete this item?
           </>
         }
         action={
@@ -585,7 +517,7 @@ export default function MerchantOrdersView() {
             variant="contained"
             color="info"
             onClick={() => {
-              confirmApprove.onFalse();
+              confirmDelete.onFalse();
             }}
           >
             Submit

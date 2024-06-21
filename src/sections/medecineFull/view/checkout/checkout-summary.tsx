@@ -61,21 +61,21 @@ export default function CheckoutSummary({
             <Typography variant="subtitle2">{fCurrency(subTotal)}</Typography>
           </Stack>
 
-          <Stack direction="row" justifyContent="space-between">
+          {/* <Stack direction="row" justifyContent="space-between">
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Discount
             </Typography>
             <Typography variant="subtitle2">{discount ? fCurrency(-discount) : '-'}</Typography>
-          </Stack>
+          </Stack> */}
 
-          <Stack direction="row" justifyContent="space-between">
+          {/* <Stack direction="row" justifyContent="space-between">
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
               Shipping
             </Typography>
             <Typography variant="subtitle2">
               {shipping ? fCurrency(shipping) : displayShipping}
             </Typography>
-          </Stack>
+          </Stack> */}
 
           <Divider sx={{ borderStyle: 'dashed' }} />
 

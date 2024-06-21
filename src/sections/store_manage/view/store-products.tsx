@@ -1,30 +1,45 @@
 import React from 'react'
 import StoreManageController from './storeManageController'
-import { Box, Card, CardActionArea, CardContent, CardMedia, Grid, IconButton, MenuItem, Stack, Typography } from '@mui/material'
+import { Box, Card, CardActionArea, CardContent, CardMedia, Grid, IconButton, MenuItem, Stack, Table, Typography } from '@mui/material'
 import Iconify from '@/components/iconify'
 import { fCurrency } from '@/utils/format-number'
 import StoreProductSkeletonView from './loading/store-product-skeleton'
 import CustomPopover, { usePopover } from '@/components/custom-popover'
+import {
+    useTable,
+    getComparator,
+    emptyRows,
+    TableNoData,
+    TableEmptyRows,
+    TableHeadCustom,
+    TableSelectedAction,
+    TablePaginationCustom,
+  } from 'src/components/table';
 
 const StoreProducts = () => {
 
     const { tableData, loading } = StoreManageController()
 
 
-    console.log(tableData, loading, 'LIST_______________')
 
+    const notFound = !loading  && !tableData.length;
 
+    console.log(tableData,'HAHAHA')
 
     return (
         <Box sx={{
             mt: 3
         }}>
+           
             <Grid justifyContent="flex-start" container gap={2}>
                 {!tableData?.length && loading && <StoreProductSkeletonView />}
                 {tableData?.map((item) => (
                     <GridItems item={item} />
                 ))}
             </Grid>
+            <Table>
+                <TableNoData notFound={notFound} />
+            </Table>
         </Box>
     )
 }
@@ -54,7 +69,7 @@ const GridItems = ({ item }: any) => {
                         }}>
                             <CardMedia
                                 component="img"
-                                image={`http://localhost:9092/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
+                                image={`https://hip.apgitsolutions.com/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
                                 alt={generic_name}
                                 height="100%"
                                 width="100%"

@@ -183,7 +183,7 @@ export const QueuePatient = extendType({
             voucherId:voucherCode
           }
         })
-        // console.log(appt)
+        console.log(appt)
 
         const patient = await client.patient.findFirst({
           where:{
@@ -199,47 +199,87 @@ export const QueuePatient = extendType({
           }
         })
 
-        const resultFirst = await client.appointments.findMany({
-          where:{
-            isDeleted:0,
-            status:1,
-            clinicInfo: {
-              uuid:clinicInfo?.uuid,
-              isDeleted: 0,
-              NOT: [{ clinic_name: null }, { clinic_name: '' }],
+        const [result, resultFirst]: any = await client.$transaction([
+          client.appointments.findMany({
+            where:{
+              isDeleted:0,
+              status:1,
+              clinicInfo: {
+                uuid:clinicInfo?.uuid,
+                isDeleted: 0,
+                NOT: [{ clinic_name: null }, { clinic_name: '' }],
+              },
+              date: {
+                gte: formattedDateAsDate,
+                lte: currentDateBackward,
+              },
+              
             },
-            date: {
-              gte: formattedDateAsDate,
-              // lte: currentDateBackward,
+            include: {
+              clinicInfo: true,
+            }
+          }),
+          client.appointments.findMany({
+            where:{
+              isDeleted:0,
+              status:1,
+              clinicInfo: {
+                uuid:clinicInfo?.uuid,
+                isDeleted: 0,
+                NOT: [{ clinic_name: null }, { clinic_name: '' }],
+              },
+              date: {
+                gte: formattedDateAsDate,
+                // lte: currentDateBackward,
+              },
+              
             },
-            
-          },
-          include: {
-            clinicInfo: true,
-          }
-        })
+            include: {
+              clinicInfo: true,
+            }
+          })
+        ])
 
-        console.log(resultFirst,'HEHHE')
-
-        const result = await client.appointments.findMany({
-          where:{
-            isDeleted:0,
-            status:1,
-            clinicInfo: {
-              uuid:clinicInfo?.uuid,
-              isDeleted: 0,
-              NOT: [{ clinic_name: null }, { clinic_name: '' }],
-            },
-            date: {
-              gte: formattedDateAsDate,
-              lte: currentDateBackward,
-            },
+        // const resultFirst = await client.appointments.findMany({
+        //   where:{
+        //     isDeleted:0,
+        //     status:1,
+        //     clinicInfo: {
+        //       uuid:clinicInfo?.uuid,
+        //       isDeleted: 0,
+        //       NOT: [{ clinic_name: null }, { clinic_name: '' }],
+        //     },
+        //     date: {
+        //       gte: formattedDateAsDate,
+        //       // lte: currentDateBackward,
+        //     },
             
-          },
-          include: {
-            clinicInfo: true,
-          }
-        })
+        //   },
+        //   include: {
+        //     clinicInfo: true,
+        //   }
+        // })
+
+        // const result = await client.appointments.findMany({
+        //   where:{
+        //     isDeleted:0,
+        //     status:1,
+        //     clinicInfo: {
+        //       uuid:clinicInfo?.uuid,
+        //       isDeleted: 0,
+        //       NOT: [{ clinic_name: null }, { clinic_name: '' }],
+        //     },
+        //     date: {
+        //       gte: formattedDateAsDate,
+        //       lte: currentDateBackward,
+        //     },
+            
+        //   },
+        //   include: {
+        //     clinicInfo: true,
+        //   }
+        // })
+     
 
 
         const position = result.map(async(it:any)=>{
@@ -256,19 +296,23 @@ export const QueuePatient = extendType({
         
      
         const haveSchedNotToday = () => {
-          if(resultFirst?.length){
+          if(result?.length){
+            return false
+          }
+          else if(resultFirst?.length){
             return true
           }else{
-            false
+            return false
           }
         
         }
 
-        // console.log(haveSchedNotToday(),'MERON BA?')
+        console.log(haveSchedNotToday(),'MERON BA?')
+      
 
 
         return {
-          appointments_data: resultFirst,
+          appointments_data: resultFirst?.length ? resultFirst : result,
           position:patientPos !== -1 ? patientPos : (resultFirst && 1),
           is_not_today:haveSchedNotToday()
         }

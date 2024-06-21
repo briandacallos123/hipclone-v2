@@ -195,6 +195,7 @@ export const QueryAllMedicineOrders = extendType({
                                 store_id:{
                                     in:stores?.map((item)=>item.id)
                                 },
+                                is_deleted:0,
                                 ...delivery_option
                             },
                             include:{
@@ -205,7 +206,8 @@ export const QueryAllMedicineOrders = extendType({
                             where:{
                                 store_id:{
                                     in:stores?.map((item)=>item.id)
-                                }
+                                },
+                                is_deleted:0,
                             }
                         }),
                         // for delivery
@@ -214,7 +216,8 @@ export const QueryAllMedicineOrders = extendType({
                                 store_id:{
                                     in:stores?.map((item)=>item.id)
                                 },
-                                is_deliver:1
+                                is_deliver:1,
+                                is_deleted:0,
                             }
                         }),
                          // for pick up
@@ -227,7 +230,8 @@ export const QueryAllMedicineOrders = extendType({
                                     not:{
                                         equals:1
                                     }
-                                }
+                                },
+                                is_deleted:0,
                             }
                         })
                     ])
@@ -266,6 +270,7 @@ export const CreateOrdersInp = inputObjectType({
     name: "CreateOrdersInp",
     definition(t) {
         t.string('address');
+        t.nullable.string('contact');
         t.string('payment');
         t.nonNull.list.field('medicine_list',{
             type:medecine_list
@@ -280,6 +285,7 @@ export const medecine_list = inputObjectType({
         t.nullable.string('generic_name');
         t.nullable.string('brand_name');
         t.nullable.string('dose');
+       
         t.nullable.string('form');
         t.nullable.int('quantity')
         t.nullable.float('price')
@@ -313,7 +319,7 @@ export const CreateOrders = extendType({
             args: { data: CreateOrdersInp },
             async resolve(_root, args, ctx) {
                 const {session} = ctx;
-                const {address, payment} = args?.data;
+                const {address, payment, contact} = args?.data;
 
                 
                 try {
@@ -341,6 +347,7 @@ export const CreateOrders = extendType({
                                         status_id:2,
                                         price,
                                         address,
+                                        contact,
                                         payment,
                                         patient_id:Number(patient?.S_ID),
                                     }

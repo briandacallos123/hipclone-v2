@@ -31,7 +31,6 @@ type MerchantUserContextProps = {
 
 const initialState = {
     orders: [],
-    isLoading: true,
     summary: {
         delivery: 0,
         pickup: 0
@@ -55,13 +54,14 @@ const reducer = (state: any, action: any) => {
 
             const { orderType, summary, totalRecords } = action.payload;
 
-            state.orders = orderType
-            state.isLoading = false;
-            state.summary = {
-                ...summary
-            }
-            state.totalRecords = totalRecords
-            return state;
+            return {
+                ...state,
+                orders:orderType,
+                summary:{
+                    ...summary
+                },
+                totalRecords:totalRecords
+            };
         case "Create":
             console.log(action.payload, '????')
             const newMerchant = [...state.merchantData, action.payload]
@@ -75,8 +75,9 @@ const reducer = (state: any, action: any) => {
 
 
 
-const MerchantUserOrderContext = ({ children }: MerchantUserContextProps) => {
+const MerchantController = () => {
     const [state, dispatch] = useReducer(reducer, initialState)
+    const [loading, setLoading] = useState(false)
     const [toRefetch, setToRefetch] = useState<number>(0);
     const { user, socket } = useAuthContext()
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -89,36 +90,13 @@ const MerchantUserOrderContext = ({ children }: MerchantUserContextProps) => {
     // get all merchant user
     const [getAllOrders, getOrdersResult] = useLazyQuery(QueryAllMedicineOrders, {
         context: {
-            requestTrackerId: 'orders[QueryAllOrderUser]',
+            requestTrackerId: 'orders[QueryAllOrde]',
         },
         notifyOnNetworkStatusChange: true,
     });
 
-
-
-    //    useEffect(()=>{
-    //     if (socket?.connected) {
-    //       socket.on('getOrder', async(u: any) => {
-    //        console.log("hit")
-    //        console.log(u?.merchantId)
-    //         if(Number(u?.merchantId) === Number(user?.id)){
-    //             // getOrdersResult.refetch()
-
-    //             console.log("nmasa loob")
-    //             setToRefetch((prev)=>{
-    //                 return prev+=1;
-    //             })
-    //         } 
-    //       })
-    //     }
-
-    //    return () => {
-    //     socket?.off('getOrder')
-    //    }
-    //   },[socket?.connected])
-
-
     useEffect(() => {
+        setLoading(true)
         getAllOrders({
             variables: {
                 data: {
@@ -137,6 +115,7 @@ const MerchantUserOrderContext = ({ children }: MerchantUserContextProps) => {
                 })
 
             }
+            setLoading(false)
         })
     }, [table.page, table.rowsPerPage, getOrdersResult?.data, filters.status])
 
@@ -162,7 +141,7 @@ const MerchantUserOrderContext = ({ children }: MerchantUserContextProps) => {
 
     // delete
 
-    const [deleteMerchantFuncMed] = useMutation(DeleteOrder, {
+    const [deleteMerchantFuncOrder] = useMutation(DeleteOrder, {
         context: {
             requestTrackerId: 'Create_Merch[Merchant_User_Key]',
         },
@@ -170,9 +149,11 @@ const MerchantUserOrderContext = ({ children }: MerchantUserContextProps) => {
     });
 
     const deletedMerchantMedFunc = useCallback((user: any) => {
-        deleteMerchantFuncMed({
+        deleteMerchantFuncOrder({
             variables: {
-                data: user
+                data: {
+                    id:Number(user)
+                }
             }
         }).then((res) => {
             const { data } = res;
@@ -204,9 +185,7 @@ const MerchantUserOrderContext = ({ children }: MerchantUserContextProps) => {
 
     // end of create merchant user
 
-    return <MerchantUserProvider.Provider value={{ state, handleFilterStatus, handleFilters, filters, table, createMerchantMedFunc, deletedMerchantMedFunc }}>
-        {children}
-    </MerchantUserProvider.Provider>
+    return {state, handleFilterStatus,loading, handleFilters, filters, table, createMerchantMedFunc, deletedMerchantMedFunc}
 }
 
-export default MerchantUserOrderContext
+export default MerchantController

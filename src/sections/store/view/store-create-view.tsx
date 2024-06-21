@@ -94,13 +94,19 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
 
 
     const LoginSchema = Yup.object().shape({
-        // storeName: Yup.string().required('Password is required'),
-        // address: Yup.string().required('Password is required'),
-        // start_time: Yup.string().required('Password is required'),
-        // end_time: Yup.string().required('Password is required'),
-        // delivery: Yup.string().required('Password is required'),
-
-
+        storeName: Yup.string().required('Name is required'),
+        storeAdd: Yup.string().required('Address is required'),
+        start_time: Yup.string().required('Start time is required'),
+        end_time: Yup.string().required('End time is required'),
+        attachment: Yup.mixed().required(),
+        description: Yup.string().required('Description is required'),
+        // delivery: Yup.boolean().notRequired('Delivery is required'),
+        // days:Yup.string().required('Days is required'),
+        days:Yup.array()
+        .of(Yup.string().required('Appointment days is required')),
+        // product_types:Yup.string().required('Product types is required'),
+        product_types: Yup.array()
+        .of(Yup.string().required('Product types is required'))
     });
 
     const defaultValues = useMemo(() => {
@@ -110,7 +116,7 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
             start_time: "",
             end_time: "",
             attachment: null,
-            description:"",
+            description:'',
             delivery:"",
             product_types:[],
             days:[]
@@ -143,44 +149,51 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
 
     const values = watch()
 
+    
+    const [mapData, setMapData] = useState({lat:null, lng:null})
+
 
 
     const onSubmit = useCallback(
         async (data: FormValuesProps) => {
             data.description = removeTags(data.description)
-            // data.start_time = 
-            // data.end_time = formatClinicTime(data.end_time)
             const start_time = formatClinicTime(data.start_time)
             const end_time = formatClinicTime(data.end_time)
-
+            // const delivery = data?.delivery ? 1 : 0
            
             delete data.start_time;
             delete data.end_time;
+            // delete data.delivery
+            
 
          
            const newData = {...data}
            newData.startTime = start_time;
            newData.endTime = end_time;
+           newData.latitude = mapData?.lat
+           newData.longitude = mapData?.lng
 
 
 
             try {
                 handleSubmitCreate(newData)
-             
                 onClose()
+                reset()
+                setMapData({lat:null, lng:null})
+                showMap(false)   
+
             } catch (error) {
                 console.error(error);
                 reset();
                 setErrorMsg(typeof error === 'string' ? error : error.message);
             }
         },
-        [id, login, path, reset, returnTo, user, isEdit]
+        [id, login, path, reset, returnTo, user, isEdit, mapData?.lat, mapData?.lng]
     );
 
         const [map, showMap] = useState(false)
-        const [mapData, setMapData] = useState({lat:null, lng:null})
 
-        console.log(mapData,'MAP DATAAAAA')
+      
 
     useEffect(()=>{
         if(values.storeAdd.length >= 10){
@@ -189,7 +202,8 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
                     address:values.storeAdd
                 }
                 try {
-                    const response = await axios.post('http://localhost:9092/api/getLocation',payload);
+                    // https://hip.apgitsolutions.com/api/getLocation
+                    const response = await axios.post('https://hip.apgitsolutions.com/api/getLocation',payload);
                     console.log(response,'RESPONSEEEEEEEEEE')
                     setMapData({
                         ...mapData,

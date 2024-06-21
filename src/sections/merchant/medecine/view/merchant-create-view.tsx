@@ -38,6 +38,7 @@ import { UseMerchantMedContext } from '@/context/merchant/Merchant';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import NextAuthRegisterView from './next-auth-register-view';
 import { revalidateStore } from '../_actions/store';
+import StoreManageController from '@/sections/store_manage/view/storeManageController';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = {
@@ -62,6 +63,7 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
     const { login, user } = useAuthContext();
     const path = usePathname();
     const {state, createMerchantMedFunc}:any = UseMerchantMedContext()
+   
     const [errorMsg, setErrorMsg] = useState('');
 
     const searchParams: any = useSearchParams();
@@ -78,11 +80,14 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
 
     const LoginSchema = Yup.object().shape({
         generic_name: Yup.string().required('Password is required'),
-        dose: Yup.string().required('Password is required'),
-        form: Yup.string().required('Password is required'),
-        price: Yup.string().required('Password is required'),
-        manufacturer: Yup.string().required('Password is required'),
-        brand_name:Yup.string().required('Brand name is required'),
+        dose: Yup.string().required('dose is required'),
+        form: Yup.string().required('form is required'),
+        price: Yup.string().required('price is required'),
+        manufacturer: Yup.string().required('manufacturer is required'),
+        brand_name:Yup.string().required('brand_name is required'),
+        stock:Yup.string().required('stock is required'),
+        description:Yup.string().required('description is required'),
+        attachment: Yup.mixed().required('Attachment is required')
     });
 
     const defaultValues = useMemo(()=>{
@@ -95,7 +100,7 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
         brand_name:"",
         attachment: null,
         description:"",
-        stock:"",
+        stock:'',
         id
        }
     },[editRow?.id, editRow])
@@ -161,11 +166,10 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
                 const file = data?.attachment;
                 delete data.attachment;
                 data.description = removeTags(data.description)
-                data = {...data, store_id: Number(data.id)}
+                data = {...data, store_id: Number(data.id), stock:Number(data.stock)}
                 delete data.id;
 
-                createMerchantMedFunc(data, file)
-              
+                await createMerchantMedFunc(data, file)
                 // delete data.repassword
 
                 // if(isEdit){

@@ -14,7 +14,7 @@ const initialState = {
     activeStep: 0,
     discount: 0,
     subTotal: 0,
-    billingAddress: null
+    billingAddress: {}
 }
 
 const reducer = (state: any, action: any) => {
@@ -35,9 +35,16 @@ const reducer = (state: any, action: any) => {
 
             return { ...state, cart: [...payl?.cart], total: Number(payl?.total) }
         case "AddAddress":
-            const address = action.payload;
+            const address = action.payload?.name
+            const contact = action.payload?.phoneNumber
+
+            const billAdd = {
+                name:address,
+                contact
+            }
+
             const addStep = state.activeStep + 1;
-            return { ...state, billingAddress: address,activeStep:addStep  }
+            return { ...state, billingAddress: {...billAdd},activeStep:addStep  }
 
         case "IncrementSetup":
             const currentStep = state.activeStep + 1;
@@ -91,26 +98,28 @@ const reducer = (state: any, action: any) => {
 
             // Find the item in the cart
             const itemIndex = state.cart.findIndex((item: any) => Number(item.id) === Number(id2));
-
+            console.log(itemIndex,'YEHAHHH')
+            const latestTotal =  state.total - (1* state.cart[itemIndex].price)
+            console.log(latestTotal,'latestTotallatestTotal')
 
             // If the item exists and its quantity is not already zero
             if (itemIndex !== -1 && state.cart[itemIndex].quantity >= 2) {
                 // Create a new cart array with the updated quantity
                 const updatedCart = state.cart.map((item: any, index: number) => {
                     if (index === itemIndex) {
-                        return { ...item, quantity: item.quantity - 1 };
+                        return { ...item, quantity: item.quantity - 1, total:latestTotal };
                     }
                     return item;
                 });
 
                 // Return a new state object with the updated cart
-                return { ...state, cart: updatedCart };
+                return { ...state, cart: updatedCart, total:latestTotal };
             } else {
                 const updatedCart = state.cart.filter((item: any) => Number(item.id) !== Number(id2))
 
                 localStorage.setItem('openCart', '0')
 
-                return { ...state, cart: updatedCart };
+                return { ...state, cart: updatedCart, total:latestTotal };
             }
         // this incremenet function is only for adding orders and cart
         case "Increment":
@@ -164,21 +173,19 @@ const Checkout = ({ children }: any) => {
     const [state, dispatch] = useReducer(reducer, initialState)
 
     useEffect(() => {
-        const isLast = localStorage.getItem('isLastInCart')
+        const isLast = localStorage?.getItem('isLast');
 
-        if (state.cart?.length !== 0) {
+        if (state?.cart?.length !== 0 || isLast) {
             localStorage.setItem('cart', JSON.stringify(state))
-            // if (isLast) {
-            //     localStorage.removeItem('isLastInCart')
-            // }
         }
-
 
     }, [state])
 
     useEffect(() => {
         const isExist = localStorage.getItem('cart')
         const cartItem = isExist && JSON.parse(localStorage.getItem('cart'));
+     
+
         if (cartItem && cartItem?.cart) {
             dispatch({
                 type: "Fill",
@@ -191,7 +198,7 @@ const Checkout = ({ children }: any) => {
 
 
     const addToCart = useCallback((data: any, qty: number) => {
-        console.log(data,'DATA NEW___')
+        
         dispatch({
             type: "Add",
             payload: {
@@ -202,11 +209,16 @@ const Checkout = ({ children }: any) => {
     }, [])
 
     const removeToCart = useCallback((data: any) => {
+        if(state?.cart?.length === 1 && data?.quantity === 1){
+            localStorage.setItem('isLast','true')
+        }
+
+
         dispatch({
             type: "Decrement",
             payload: data
         })
-    }, [])
+    }, [state?.cart])
 
     const incrementCart = useCallback((data: any) => {
 
@@ -241,12 +253,14 @@ const Checkout = ({ children }: any) => {
     }, [])
 
     const removeItem = useCallback((data: any) => {
-
+        if(state?.cart?.length === 1){
+            localStorage.removeItem('cart')
+        }
         dispatch({
             type: "RemoveItem",
             payload: data
         })
-    }, [])
+    }, [state?.cart])
 
     const addAddress = useCallback((data: any) => {
 

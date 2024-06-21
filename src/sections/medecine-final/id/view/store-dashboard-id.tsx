@@ -24,7 +24,7 @@ const StoreDashboardId = ({ data }: StoreDashboardIdProps) => {
                 endTime={end_time}
                 rating={rating}
             />
-            <StoreDataList data={medecine_list}/>
+            <StoreDataList data={data}/>
 
         </div>
     )

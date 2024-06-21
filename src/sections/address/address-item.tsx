@@ -13,11 +13,12 @@ import Label from 'src/components/label';
 type Props = PaperProps &
   StackProps & {
     action?: React.ReactNode;
-    address: IAddressItem;
+    address: any;
   };
 
 export default function AddressItem({ address, action, sx, ...other }: Props) {
-  const { name, fullAddress, addressType, phoneNumber, primary } = address;
+  // const { name, fullAddress, addressType, phoneNumber, primary } = address;
+  const { name, phoneNumber } = address;
 
   return (
     <Stack
@@ -35,21 +36,21 @@ export default function AddressItem({ address, action, sx, ...other }: Props) {
         <Stack direction="row" alignItems="center">
           <Typography variant="subtitle2">
             {name}
-            <Box component="span" sx={{ ml: 0.5, typography: 'body2', color: 'text.secondary' }}>
+            {/* <Box component="span" sx={{ ml: 0.5, typography: 'body2', color: 'text.secondary' }}>
               ({addressType})
-            </Box>
+            </Box> */}
           </Typography>
 
-          {primary && (
+          {/* {primary && (
             <Label color="info" sx={{ ml: 1 }}>
               Default
             </Label>
-          )}
+          )} */}
         </Stack>
-
+{/* 
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           {fullAddress}
-        </Typography>
+        </Typography> */}
 
         <Typography variant="body2" sx={{ color: 'text.secondary' }}>
           {phoneNumber}

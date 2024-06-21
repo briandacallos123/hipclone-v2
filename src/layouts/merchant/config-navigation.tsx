@@ -34,6 +34,9 @@ const ICONS = {
   record: icon('solar:document-medicine-bold-duotone'),
   prescription: icon('solar:jar-of-pills-bold-duotone'),
   feeds: icon('mdi:newspaper-variant-multiple'),
+  orders:icon('fluent-mdl2:activate-orders'),
+  store:icon('material-symbols:store'),
+  medecine:icon('game-icons:miracle-medecine')
 };
 
 // ----------------------------------------------------------------------
@@ -68,9 +71,9 @@ export function useNavData() {
         subheader: t('HIPS'),
         items: [
           { title: t('Dashboard'), path: paths.merchant.dashboard, icon: ICONS.dashboard },
-          { title: t('Medicines'), path: paths.merchant.medicine, icon: ICONS.dashboard },
-          { title: t('Orders'), path: paths.merchant.orders, icon: ICONS.dashboard },
-          { title: t('Store'), path: paths.merchant.store, icon: ICONS.dashboard },
+          { title: t('Medicines'), path: paths.merchant.medicine, icon: ICONS.medecine},
+          { title: t('Orders'), path: paths.merchant.orders, icon: ICONS.orders },
+          { title: t('Store'), path: paths.merchant.store, icon: ICONS.store },
         ],
       },
     ],

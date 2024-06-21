@@ -34,12 +34,7 @@ export default function StoreSkeletonRow() {
         <Skeleton width="100%" />
       </TableCell>
 
-      <TableCell>
-        <Skeleton width="100%" />
-      </TableCell>
-      <TableCell>
-        <Skeleton width="100%" />
-      </TableCell>
+    
       <TableCell>
         <Skeleton width="100%" />
       </TableCell>

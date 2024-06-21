@@ -75,7 +75,7 @@ const reducer = (state: any, action: any) => {
 
 
 
-const MerchantUserOrderContext = ({ children }: MerchantUserContextProps) => {
+const MerchantController = ({ children }: MerchantUserContextProps) => {
     const [state, dispatch] = useReducer(reducer, initialState)
     const [toRefetch, setToRefetch] = useState<number>(0);
     const { user, socket } = useAuthContext()
@@ -209,4 +209,4 @@ const MerchantUserOrderContext = ({ children }: MerchantUserContextProps) => {
     </MerchantUserProvider.Provider>
 }
 
-export default MerchantUserOrderContext
+export default MerchantController

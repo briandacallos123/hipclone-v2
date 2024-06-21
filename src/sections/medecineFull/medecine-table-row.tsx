@@ -55,7 +55,7 @@ const MedecineTableRowNew = ({ data, alignment }: MedecineTableRowProps) => {
 
                                             <CardMedia
                                                 component="img"
-                                                image={`http://localhost:9092/${attachment_store?.file_url?.split('/').splice(1).join('/')}`}
+                                                image={`https://hip.apgitsolutions.com/${attachment_store?.file_url?.split('/').splice(1).join('/')}`}
                                                 alt={name}
                                                 height={150}
                                             />}

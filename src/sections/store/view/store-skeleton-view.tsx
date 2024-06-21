@@ -15,13 +15,13 @@ const StoreSkeletonView = () => {
         </div>
       </TableCell>
 
-      <TableCell>
+      {/* <TableCell>
         <Skeleton width="100%" />
       </TableCell>
 
       <TableCell>
         <Skeleton width="100%" />
-      </TableCell>
+      </TableCell> */}
 
       <TableCell sx={{ px: 1 }}>
         <div style={{ display: 'flex', justifyContent: 'flex-end' }}>

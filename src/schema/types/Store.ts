@@ -53,11 +53,41 @@ export const storeInputType = inputObjectType({
         t.nullable.int('take');
         t.nullable.int('skip');
         t.nullable.string('search');
-        t.nullable.list.int('delivery');
+        t.nullable.int('delivery');
         t.nullable.int('status')
+        t.nullable.int('radius')
+        t.nullable.string('name')
     },
 });
 
+const calculateDistance = (lat1: any, lon1: any, lat2: any, lon2: any) => {
+    const R = 6371; // Radius of the Earth in kilometers
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+        Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+        Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const distance = R * c; // Distance in kilometers
+    return distance;
+};
+
+const filterMerchantsByDistance = (patientLocation: any, merchants: any, radius: any) => {
+    const filteredMerchants = merchants.filter(merchant => {
+        const distance = calculateDistance(
+            patientLocation.latitude,
+            patientLocation.longitude,
+            merchant.lat,
+            merchant.lng
+        );
+
+        return distance <= radius;
+    });
+    return filteredMerchants;
+};
 
 export const QueryAllStoreNoId = extendType({
     type: 'Query',
@@ -67,33 +97,37 @@ export const QueryAllStoreNoId = extendType({
             args: { data: storeInputType },
             async resolve(_root, args, ctx) {
 
-                const { take, skip, search, delivery }: any = args.data;
+                const { take, skip, search, delivery, radius }: any = args.data;
 
                 const deliveryOptions = () => {
                     // 1 = deliver
                     // 0 = pick up
                     let filter = [];
 
-                    const isAll = delivery.find((item: any) => Number(item) === 1);
-                    if (isAll) {
-                        filter.push(1)
-                        filter.push(0)
-                        return filter;
+                    if (delivery === 3) {
+                        return 1
+                    } else if (delivery === 2) {
+                        return 0
                     }
-                    const res = delivery.map((item: any) => {
-                        if (item === 2) {
-                            return 0
-                        } else {
-                            return 1
-                        }
-                    })
-                    filter = [...res];
-                    return filter;
+                    // const isAll = delivery?.find((item: any) => Number(item) === 1);
+                    // if (isAll) {
+                    //     filter.push(1)
+                    //     filter.push(0)
+                    //     return filter;
+                    // }
+                    // const res = delivery.map((item: any) => {
+                    //     if (item === 2) {
+                    //         return 0
+                    //     } else {
+                    //         return 1
+                    //     }
+                    // })
+                    // filter = [...res];
+                    // return filter;
                 }
 
 
                 const deliveryFilter = deliveryOptions()
-                console.log(deliveryFilter, 'AWIT SAYO IDLL________')
 
                 const { session } = ctx;
                 const { user } = session;
@@ -103,9 +137,7 @@ export const QueryAllStoreNoId = extendType({
                         skip,
                         where: {
                             is_deleted: 0,
-                            is_deliver: {
-                                in: deliveryFilter
-                            },
+                            is_deliver: deliveryFilter,
                             name: {
                                 contains: search
                             }
@@ -115,13 +147,16 @@ export const QueryAllStoreNoId = extendType({
                         }
                     })
 
-                    console.log(result, 'RESULTTTTTTTTTT')
+                    const patient = {
+                        latitude: user?.latitude,
+                        longitude: user?.longitude
+                    }
+                    const filteredByKlm = filterMerchantsByDistance(patient, result, radius)
 
 
-                    return result
+
+                    return filteredByKlm
                 } catch (error) {
-                    console.log(error, 'ERROR____________')
-                    // throw new 
                     throw new GraphQLError(error)
                 }
 
@@ -136,10 +171,10 @@ export const QueryAllStoreResponse = objectType({
         t.nullable.list.field('data', {
             type: storeType
         }),
-        t.int('totalRecords'),
-        t.field('summary', {
-            type: QuerySummary
-        })
+            t.int('totalRecords'),
+            t.field('summary', {
+                type: QuerySummary
+            })
     },
 })
 
@@ -160,7 +195,7 @@ export const QueryAllStore = extendType({
             args: { data: storeInputType },
             async resolve(_root, args, ctx) {
 
-                const { take, skip, search, status}: any = args.data;
+                const { take, skip, search, status, name }: any = args.data;
 
                 const { session } = ctx;
                 const { user } = session;
@@ -171,14 +206,14 @@ export const QueryAllStore = extendType({
                     '`appointments`',
                     'GET_ALL_APPOINTMENTS'
                 );
-                    const isActive = (()=>{
-                        if(status === 1){
-                            return 1;
-                        }else if(status === 2){
-                            return 0
-                        }
-                        
-                    })()
+                const isActive = (() => {
+                    if (status === 1) {
+                        return 1;
+                    } else if (status === 2) {
+                        return 0
+                    }
+
+                })()
 
                 try {
 
@@ -189,7 +224,21 @@ export const QueryAllStore = extendType({
                             where: {
                                 merchant_id: Number(user?.id),
                                 is_deleted: 0,
-                                is_active:isActive
+                                is_active: isActive,
+                                OR: [
+                                    {
+                                        name: {
+                                            contains: search,
+
+                                        },
+                                    },
+                                    {
+                                        name: {
+                                            contains: name,
+
+                                        },
+                                    }
+                                ]
                             },
                             include: {
                                 attachment_store: true
@@ -243,6 +292,44 @@ export const QueryAllStore = extendType({
     }
 })
 
+export const QuerySingleStoreInp = inputObjectType({
+    name: "QuerySingleStoreInp",
+    definition(t) {
+        t.int('id')
+    },
+})
+
+export const QuerySingleStore = extendType({
+    type: 'Query',
+    definition(t) {
+        t.nullable.field('QuerySingleStore', {
+            type: storeType,
+            args: { data: QuerySingleStoreInp },
+            async resolve(_root, args, ctx) {
+
+                try {
+                    const { id }: any = args?.data
+
+                    let response = await client.merchant_store.findUnique({
+                        where: {
+                            id: Number(id),
+                            is_deleted: 0,
+                        },
+                        include: {
+                            attachment_store: true
+                        }
+                    })
+
+                    return response
+                } catch (error) {
+                    throw new GraphQLError(error)
+                }
+            }
+        })
+    }
+})
+
+
 export const CreateNewStoreInp = inputObjectType({
     name: 'CreateNewStoreInp',
     definition(t) {
@@ -254,6 +341,8 @@ export const CreateNewStoreInp = inputObjectType({
         t.string('startTime');
         t.string('endTime');
         t.string('product_types')
+        t.nullable.float('latitude')
+        t.nullable.float('longitude')
         t.nullable.JSON('days')
     },
 });
@@ -276,7 +365,7 @@ export const CreateNewStore = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
                 const { user } = session;
-                const { name, address, description, delivery, product_types, startTime, endTime }: any = args?.data;
+                const { name, address, latitude, longitude, description, delivery, product_types, startTime, endTime }: any = args?.data;
 
                 const sFile = await args?.file;
                 let med: any;
@@ -307,10 +396,10 @@ export const CreateNewStore = extendType({
                             start_time: startTime,
                             end_time: endTime,
                             attachment_id: Number(med?.id),
-                            lat: 123.2,
+                            lat: latitude,
                             days: daysJson,
                             created_at: new Date(),
-                            lng: 123.2,
+                            lng: longitude,
                             merchant_id: Number(user?.id),
                             is_deliver: delivery ? 1 : 0,
                             is_deleted: 0
@@ -381,7 +470,44 @@ export const UpdateStore = extendType({
                         message: "Updated Successfully"
                     }
                 } catch (error) {
-                    console.log(error, 'ERROR_________________________________')
+
+                    throw new GraphQLError(error)
+                }
+            }
+        })
+    }
+})
+
+export const DeleteStoreInp = inputObjectType({
+    name: 'DeleteStoreInp',
+    definition(t) {
+        t.nonNull.int('id')
+    },
+})
+
+
+export const DeleteStore = extendType({
+    type: 'Mutation',
+    definition(t) {
+        t.nullable.field('DeleteStore', {
+            type: CreateNewStoreObj,
+            args: { data: DeleteStoreInp!, file: 'Upload' },
+            async resolve(_root, args, ctx) {
+
+                try {
+                    await client.merchant_store.update({
+                        where: {
+                            id: Number(args?.data?.id)
+                        },
+                        data: {
+                            is_deleted: 1
+                        }
+                    })
+
+                    return {
+                        message: "Successfully deleted"
+                    }
+                } catch (error) {
                     throw new GraphQLError(error)
                 }
             }

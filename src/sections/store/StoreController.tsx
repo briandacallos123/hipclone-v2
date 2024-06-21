@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState, useReducer } from 'react'
 import { QueryQueuePatient } from 'src/libs/gqls/queue';
 import { notFound, useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
-import { CreateNewStore, QueryAllStore } from 'src/libs/gqls/store';
+import { CreateNewStore, QueryAllStore, DeleteStore } from 'src/libs/gqls/store';
 import { useParams } from 'src/routes/hook';
 import { useSnackbar } from 'src/components/snackbar';
 import {
@@ -31,11 +31,11 @@ const reducer = (state:any, action:any) => {
 
     case "fill":
       const {data, summary, totalRecords} = action.payload;
-      state.tableData = [...data];
-      state.summary = {...summary}
-      state.totalRecords = totalRecords
+      // state.tableData = [...data];
+      // state.summary = {...summary}
+      // state.totalRecords = totalRecords
 
-      return state;
+      return {...state, tableData:data, summary:{...summary}, totalRecords};
   }
 }
 
@@ -78,22 +78,24 @@ const storeController = (props: Props = {
 
 
   const [createFunc, createResults] = useMutation(CreateNewStore);
-
+  const [deleteFunc, deleteResults] = useMutation(DeleteStore);
   const [queryFunc, queryResults] = useLazyQuery<any>(QueryAllStore, {
     variables: {
       data: {
         skip: table.page * table.rowsPerPage,
         take: table.rowsPerPage,
-        status:filters.status
+        status:filters.status,
+        name:filters.name
       }
     },
     context: {
       requestTrackerId: 'queryListStore[STORE_LIST_QUERY]',
     },
-    // notifyOnNetworkStatusChange: true,
-    fetchPolicy:'no-cache'
+    notifyOnNetworkStatusChange: true,
+ 
 
   });
+
 
   const handleFilters = useCallback(
     (name: string, value: any) => {
@@ -107,11 +109,11 @@ const storeController = (props: Props = {
   );
 
   useEffect(() => {
+    setLoading(true)
     queryFunc().then(async (result) => {
       const { data } = result;
 
       if (data) {
-        // console.log(data,'DATA_______________________')
        const {QueryAllStore} = data;
 
        dispatch({
@@ -121,12 +123,29 @@ const storeController = (props: Props = {
        setLoading(false)
       }
     });
-  }, [table.page, table.rowsPerPage, filters.status]);
+  }, [table.page, table.rowsPerPage, filters.status, filters.name, queryResults?.data]);
+
+  const handleSubmitDelete = useCallback(async(model:any)=>{
+
+    try {
+      await deleteFunc({
+        variables:{
+          data:{
+            id:Number(model)
+          }
+        }
+      })
+      queryResults.refetch()
+      enqueueSnackbar("Deleted store successfully")
+    } catch (error) {
+      
+    }
+  },[])
 
   const handleSubmitCreate = useCallback(
     async (model: any) => {
 
-
+    
       try {
         await createFunc({
           variables: {
@@ -138,22 +157,24 @@ const storeController = (props: Props = {
               startTime: model.startTime,
               endTime: model.endTime,
               product_types:model.product_types.join(', '),
-              days:model.days
+              days:model.days,
+              latitude:model.latitude,
+              longitude:model.longitude,
             },
             file: model.attachment,
           },
         }).then(async(res)=>{
           enqueueSnackbar("Created store successfully")
-          setManualRefetch((prev)=>{
-            return prev + 1;
-          })
+          queryResults.refetch()
+          
         })
 
       } catch (error) {
+        enqueueSnackbar("Error: ", error)
         console.error(error);
       }
     },
-    [createFunc]
+    [createFunc, queryResults]
   );
 
   const handleFilterStatus = useCallback(
@@ -164,7 +185,7 @@ const storeController = (props: Props = {
   );
     
 
-  return { handleSubmitCreate, table , state, handleFilterStatus, loading}
+  return { handleSubmitCreate, handleSubmitDelete, table, filters, setFilters , state,handleFilters, handleFilterStatus, loading}
 }
 
 export default storeController

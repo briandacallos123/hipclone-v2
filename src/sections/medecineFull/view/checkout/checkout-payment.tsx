@@ -94,8 +94,8 @@ export default function CheckoutPayment({
   onGotoStep,
   onApplyShipping,
 }: Props) {
-  const {resetCheckout}:any = useCheckoutContext()
-  const {resetOrder}:any = UseOrdersContext()
+  const {resetCheckout, state}:any = useCheckoutContext()
+  // const {resetOrder}:any = UseOrdersContext()
 
 
   // const { total, discount, subTotal, shipping, billing } = checkout;
@@ -105,11 +105,13 @@ export default function CheckoutPayment({
     payment: Yup.string().required('Payment is required!'),
   });
 
+  // console.log(state,'STATEEEEEEEEEEEE_____________')
   const defaultValues = {
-    delivery: checkout?.billingAddress?.fullAddress,
+    delivery: state?.billingAddress?.name,
     payment: '',
     products:checkout?.cart,
-    total:checkout?.total
+    total:checkout?.total,
+    contact:state?.billingAddress?.contact
   };
 
   const methods = useForm<FormValuesProps>({
@@ -130,12 +132,14 @@ export default function CheckoutPayment({
   });
 
   const createOrder = useCallback((model:any)=>{
-  
+    console.log(model,'MODELLLLLLLLSSSSSSSSS');
+
     createMedFunc({
         variables:{
             data:{
               address:model.address,
               payment:model.payment,
+              contact:model?.contact,
               medicine_list:model.medicine_list
             }
         }
@@ -146,7 +150,7 @@ export default function CheckoutPayment({
         // empty the cart on local storage
         localStorage.setItem('cart','')
         resetCheckout()
-        resetOrder()
+        // resetOrder()
        
     })
 },[])
@@ -161,6 +165,7 @@ export default function CheckoutPayment({
 
   const onSubmit = useCallback(async (data:any) => {
     try {
+      console.log(data,'DATA')
      
       const productPayloads = data?.products?.map((item:any)=>{
         return {
@@ -175,8 +180,9 @@ export default function CheckoutPayment({
       })
       const newPayloads = {
         medicine_list:productPayloads,
+        payment:data?.payment,
+        contact:data?.contact,
         address:data?.delivery,
-        payment:data?.payment
       }
 
 
@@ -192,7 +198,7 @@ export default function CheckoutPayment({
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={3}>
         <Grid xs={12} md={8}>
-          <CheckoutDelivery onApplyShipping={onApplyShipping} options={DELIVERY_OPTIONS} />
+          {/* <CheckoutDelivery onApplyShipping={onApplyShipping} options={DELIVERY_OPTIONS} /> */}
 
           <CheckoutPaymentMethods
             cardOptions={CARDS_OPTIONS}
@@ -211,13 +217,13 @@ export default function CheckoutPayment({
         </Grid>
 
         <Grid xs={12} md={4}>
-          <CheckoutBillingInfo onBackStep={onBackStep} billing={checkout.billingAddress} />
+          <CheckoutBillingInfo onBackStep={onBackStep} billing={state?.billingAddress} />
 
           <CheckoutSummary
             enableEdit
             total={checkout.total}
 
-            subTotal={checkout.subTotal}
+            subTotal={checkout.total}
             discount={checkout.discount}
             shipping={checkout.billingAddress}
             onEdit={() => onGotoStep(0)}

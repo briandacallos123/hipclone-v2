@@ -19,21 +19,15 @@ import { IAppointmentTableFilters, IAppointmentTableFilterValue } from 'src/type
 import Iconify from 'src/components/iconify';
 import { TableToolbarPopover } from 'src/components/table';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
-
 // ----------------------------------------------------------------------
 
-type Props = {
-  filters: IAppointmentTableFilters;
-  onFilters: (name: string, value: IAppointmentTableFilterValue) => void;
-  deliveryOptions:any
-};
 
-export default function StoreDashboardFiltering({
+export default function StoreToolbar({
   filters,
   onFilters,
-  deliveryOptions
   //
-}: Props) {
+  hospitalOptions,
+}:any) {
   const upMd = useResponsive('up', 'md');
 
   const popover = usePopover();
@@ -45,32 +39,11 @@ export default function StoreDashboardFiltering({
     [onFilters]
   );
 
-  const handleFilterDelivery= useCallback(
+  const handleFilterHospital = useCallback(
     (event: SelectChangeEvent<string[]>) => {
-      let val:any =  event.target.value
-
-      // if(val.indexOf(1) === 0 && val.length > 1){
-      //   val = [1]
-      // }else if(val.includes(2) || val.includes(3)){
-      //   val = val?.filter((item)=>item !== 1)
-      // }
-
-      console.log(val)
       onFilters(
-        'delivery ',
-        val
-      );
-    },
-    [onFilters]
-  );
-
-  const handleFilterDistance= useCallback(
-    (event: SelectChangeEvent<string[]>) => {
-      let val =  event.target.value
-
-      onFilters(
-        'distance',
-        val
+        'hospital',
+        typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value
       );
     },
     [onFilters]
@@ -89,90 +62,42 @@ export default function StoreDashboardFiltering({
     },
     [onFilters]
   );
-  
-  const distanceOption = [
-    {
-      id:1,
-      value:1
-    },
-    {
-      id:2,
-      value:3
-    },
-    {
-      id:3,
-      value:5
-    },
-    {
-      id:4,
-      value:10
-    },
-  ]
 
   const renderFields = (
     <>
-      <FormControl
+      {/* <FormControl
         sx={{
           flexShrink: 0,
           width: { xs: 1, md: 160 },
         }}
       >
-        <InputLabel>Distance</InputLabel> 
+        <InputLabel>Delivery Type</InputLabel>
 
-       <Select
-          // multiple
-          value={filters?.distance}
-          onChange={handleFilterDistance}
-          input={<OutlinedInput label="Delivery" />}
-        
+        <Select
+          multiple
+          value={filters.hospital}
+          onChange={handleFilterHospital}
+          input={<OutlinedInput label="Hospital" />}
+          renderValue={(selected) =>
+            hospitalOptions
+              .filter((v: any) => selected.find((s: any) => s === v?.id))
+              .map((m: any) => m?.clinic_name)
+              .join(', ')
+          }
           sx={{ textTransform: 'capitalize' }}
         >
-          {distanceOption?.map((option: any) => (
-            <MenuItem key={option?.id} value={option?.value}>
-              <Checkbox
-                disableRipple
-                size="small"
-                checked={filters?.distance === option?.value}
-                // checked={!!filters.distance.filter((v: any) => v === option?.id).length}
-              />
-              {option?.value} Km
-            </MenuItem>
-          ))}
-        </Select> 
-      </FormControl> 
-     <FormControl
-        sx={{
-          flexShrink: 0,
-          width: { xs: 1, md: 160 },
-        }}
-      >
-        <InputLabel>Delivery</InputLabel> 
-
-       <Select
-          // multiple
-          value={filters.delivery}
-          onChange={handleFilterDelivery}
-          input={<OutlinedInput label="Delivery" />}
-          // renderValue={(selected) =>
-          //   deliveryOptions
-          //     .filter((v: any) => selected.find((s: any) => s === v?.id))
-          //     .map((m: any) => m?.label)
-          //     .join(', ')
-          // }
-          sx={{ textTransform: 'capitalize' }}
-        >
-          {deliveryOptions?.map((option: any) => (
+          {hospitalOptions?.map((option: any) => (
             <MenuItem key={option?.id} value={option?.id}>
               <Checkbox
                 disableRipple
                 size="small"
-                checked={filters.delivery === option.value}
+                checked={!!filters.hospital.filter((v: any) => v === option?.id).length}
               />
-              {option?.label}
+              {option?.clinic_name}
             </MenuItem>
           ))}
-        </Select> 
-      </FormControl> 
+        </Select>
+      </FormControl> */}
 
       {/* <DatePicker
         label="Start date"
@@ -217,7 +142,7 @@ export default function StoreDashboardFiltering({
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="Search Store Name..."
+            placeholder="Search store name..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">
@@ -273,4 +198,3 @@ export default function StoreDashboardFiltering({
     </>
   );
 }
-

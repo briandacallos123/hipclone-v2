@@ -90,7 +90,7 @@ const QueueLoginView = ({open, onClose}:QueueLoginViewProps) => {
         sx: { maxWidth: 400 },
       }}
     >
-         <DialogTitle>Login your Voucher Code</DialogTitle>
+         <DialogTitle>Login your Appointment Code</DialogTitle>
          <DialogContentText sx={{ p: 3 }}>
          <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
              {renderContent}
