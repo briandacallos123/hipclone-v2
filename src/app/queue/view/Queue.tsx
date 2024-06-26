@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useCallback } from 'react'
 import QueueItem from './QueueItem'
 import { Box, Button, Divider, Grid, ListItemText, Skeleton, Stack, Typography } from '@mui/material';
 import { useParams } from 'src/routes/hook';
@@ -16,24 +16,58 @@ type QueueProps = {
     remainingP:any;
     newPosition:any;
     dataToday?:any;
+    isDoneAppt?:any
+    targetItem?:any
 }
 
-const Queue = ({data, dataToday, loading, position, remainingP, newPosition}:QueueProps) => {
-    // let voucherId = localStorage.getItem('voucherId');
+const Queue = ({data, isDoneAppt,targetItem, dataToday, loading, position, remainingP, newPosition}:QueueProps) => {
+console.log(targetItem,'TARGETTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
     const {id} = useParams();
     const activePatient = data[0];
     const navigate = useRouter();
     const {user} = useAuthContext()
 
-    // console.log(dataToday,'TODAY@@@@@@@@')
-    // console.log(fDate(dataToday?.date),'TODAY DATE @@@@@@@@')
-   
 
-    // if(dataToday?.time_slot){
-    //     console.log(formatMilitaryTime(dataToday?.time_slot),'TIME SLOT@@@')
-    // }
 
-    const RenderNotToday = () => {
+
+    const RenderDoneAppt = useCallback(() => {
+        return (
+            <Box sx={{
+                height:500,
+                width: '100%',
+                borderRadius: '10px',
+                boxShadow: '5px 5px 30px #d3cec8',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                // bgcolor:'red'
+            }}>
+
+                <Box sx={{
+
+                    display:'flex',
+                    flexDirection:'column',
+                    alignItems:"center",
+                    justifyContent:"center",
+                    mb:5
+                }}>
+                 <Typography variant="body2">Sorry, your appointment was already done </Typography>
+                 
+                  
+                    
+                </Box>
+                <Box>
+                <Button component={RouterLink} href="/" size="large" variant="contained">
+          Go to Home
+        </Button>
+                </Box>
+                
+            </Box>
+        )
+    },[targetItem])
+
+    const RenderNotToday = useCallback(() => {
         return (
             <Box sx={{
                 height:500,
@@ -57,7 +91,7 @@ const Queue = ({data, dataToday, loading, position, remainingP, newPosition}:Que
                 }}>
                  <Typography variant="body2">Your Schedule is not today, please wait 
                     until </Typography>
-                   <Typography variant="h5">{`${fDate(dataToday?.date)} ${formatMilitaryTime(dataToday?.time_slot)}`}</Typography>
+                   <Typography variant="h5">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography>
                   
                     
                 </Box>
@@ -69,7 +103,7 @@ const Queue = ({data, dataToday, loading, position, remainingP, newPosition}:Que
                 
             </Box>
         )
-    }
+    },[dataToday])
 
     const RenderLoadingContent = () => {
         return (
@@ -111,7 +145,12 @@ const Queue = ({data, dataToday, loading, position, remainingP, newPosition}:Que
         )
     }
 
+    if(isDoneAppt){
+        return <RenderDoneAppt/>
+    }
     if(dataToday){
+   
+
         return <RenderNotToday/>
     }
 

@@ -1,0 +1,1 @@
+export {default as OrderListView} from './view/order-list-view'

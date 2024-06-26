@@ -55,7 +55,7 @@ const HeaderOrders = ({order}:HeaderCartProps) => {
     const drawer = useBoolean();
     const {addToCart, state:cartState, incrementCart}:any = useCheckoutContext()
     const { id, price, quantity, image, name, dose, store_id, generic_name } = order;
-    console.log(order,'ORDERRRRRRRRRRRRRRRRRRRR')
+    
 
     const isExistsToCart = cartState.cart?.find((item:any)=>item.id === Number(order.id));
 
@@ -101,7 +101,8 @@ const HeaderOrders = ({order}:HeaderCartProps) => {
             attachment_info:order?.attachment_info,
             dose: order?.dose || '',
             store_id: order?.store_id || '',
-            generic_name: order?.generic_name || ''
+            generic_name: order?.generic_name || '',
+            medecine_id:order?.medecine_id || ''
 
         }),
         []

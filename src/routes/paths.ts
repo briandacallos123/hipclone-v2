@@ -85,6 +85,9 @@ export const paths: any = {
     myDoctors:{
         root: `${ROOTS.DASHBOARD}/my-doctors`,
     },
+    orders:{
+      root: `${ROOTS.DASHBOARD}/orders`,
+  },
     queuePatient:{
       root: `${ROOTS.DASHBOARD}/queue-patient`
     },

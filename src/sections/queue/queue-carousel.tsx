@@ -26,8 +26,9 @@ import { GET_RECORD } from '@/libs/gqls/records';
 import Iconify from 'src/components/iconify';
 import Carousel, { CarouselArrows, useCarousel } from 'src/components/carousel';
 //
-import PatientCarouselSearch from './patient-carousel-search';
-import PatientListPopover from './patient-list-popover';
+import PatientCarouselSearch from '../patient/patient-carousel-search';
+import PatientListPopover from '../patient/patient-list-popover';
+import { Typography } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -76,7 +77,8 @@ type Props = {
   data?: any;
   loading: boolean;
 };
-export default function PatientCarousel({ data, loading }: Props) {
+export default function QueueCarousel({ data, loading }: Props) {
+  console.log(data,'DATA SA CAROUSEL')
   const theme = useTheme();
 
   const upMd = useResponsive('up', 'md');
@@ -93,7 +95,7 @@ export default function PatientCarousel({ data, loading }: Props) {
 
 
   const carousel = useCarousel({
-    slidesToShow: 4,
+    slidesToShow: data?.length > 4 ? 4 : data?.length,
     slidesToScroll: 1,
     rtl: Boolean(theme.direction === 'rtl'),
     initialSlide: currentIndex,
@@ -140,20 +142,21 @@ export default function PatientCarousel({ data, loading }: Props) {
       }}
     >
       <Stack flexGrow={1} direction="row" alignItems="center" spacing={1.5} sx={{ mb: { md: 2 } }}>
-        <Button
+        {/* <Button
           component={RouterLink}
           href={paths.dashboard.patient.root}
           color="inherit"
           variant="contained"
         >
           Return to List
-        </Button>
+        </Button> */}
+        <Typography variant="h5" color="gray">Other clinic you have a schedule</Typography>
 
-        {upMd && <PatientCarouselSearch item={data} />}
+        {/* {upMd && <PatientCarouselSearch item={data} />} */}
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {!upMd && (
+        {/* {!upMd && (
           <>
             <PatientCarouselSearch item={data} />
 
@@ -173,7 +176,7 @@ export default function PatientCarousel({ data, loading }: Props) {
               <Iconify icon="solar:alt-arrow-right-bold" />
             </IconButtonStyle>
           </>
-        )}
+        )} */}
 
         {upMd && (
           <CarouselArrows
@@ -229,19 +232,18 @@ type CarouselItemProps = {
 };
 
 function CarouselItem({ isActive, item, sx }: CarouselItemProps) {
+  console.log(item, "itemmmmmmmmmmmmmmmmmmmmmmmmmmm")
   const theme = useTheme();
   const router = useRouter();
 
  
-  const fullName = `${item?.patientInfo?.FNAME} ${item?.patientInfo?.LNAME}`;
+  const fullName = `${item?.clinicInfo?.clinic_name}`
 
-  const info = `${capitalize(item?.patientInfo?.SEX === 1 ? 'Male' : 'Female')}, ${
-    item?.patientInfo?.AGE
-  } yr(s) old`;
+  const info = `${item?.clinicInfo?.Province}`
 
   const handleNavigate = useCallback(
-    (newId: string) => {
-      router.push(paths.dashboard.patient.view(newId));
+    (voucher: string) => {
+      router.push(paths.queue.root(voucher));
     },
     [router]
   );
@@ -249,7 +251,7 @@ function CarouselItem({ isActive, item, sx }: CarouselItemProps) {
   return (
     <PaperStyle
       isActive={isActive}
-      onClick={() => handleNavigate(item?.patientInfo?.userInfo?.uuid)}
+      onClick={() => handleNavigate(item?.voucherId)}
       sx={{ ...sx }}
     >
       {item?.patientInfo?.userInfo?.display_picture[0] ? (
@@ -262,7 +264,7 @@ function CarouselItem({ isActive, item, sx }: CarouselItemProps) {
         </Avatar>
       ) : (
         <Avatar alt={item?.patientInfo?.FNAME} sx={{ mr: 1 }}>
-          {item?.patientInfo?.FNAME.charAt(0).toUpperCase()}
+          {item?.clinicInfo?.clinic_name?.charAt(0).toUpperCase()}
         </Avatar>
       )}
 

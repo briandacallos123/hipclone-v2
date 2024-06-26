@@ -5,7 +5,8 @@ import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import client from '../../../prisma/prismaClient';
 import bcrypt from 'bcryptjs';
 import { GraphQLError } from 'graphql';
-
+import { attachment_info } from './Medicine';
+import { attachment_store } from './Store';
 
 
 export const orderType = objectType({
@@ -19,11 +20,15 @@ export const orderType = objectType({
         t.int('is_deliver');
         t.int('is_paid');
         t.string('quantity')
+        t.int('status_id')
         t.field('patient', {
             type: patientInfos
         })
         t.nullable.field('store',{
             type:merchant_store
+        })
+        t.nullable.field('attachment',{
+            type:attachment_info
         })
     },
 })
@@ -32,6 +37,10 @@ export const merchant_store = objectType({
     name:"merchant_store",
     definition(t) {
         t.string('name')
+        t.field('attachment_store',{
+            type:attachment_store
+        })
+
     },
 })
 
@@ -136,6 +145,82 @@ export const QueryAllMedicineOrdersPatient = extendType({
                     throw new GraphQLError(error)
                 }
 
+            }
+        })
+    }
+})
+
+
+// para to kay patient, lahat ng orders nya
+
+export const QueryAllPatientOrders = extendType({
+    type: 'Query',
+    definition(t) {
+        t.nullable.field('QueryAllPatientOrders', {
+            type: orderResponse,
+            args: { data: orderInputType },
+            async resolve(_root, args, ctx) {
+
+                const { session } = ctx;
+
+
+                const {take, skip}:any = args?.data;
+
+                const [result, totalRecords]:any = await client.$transaction([
+                    client.orders.findMany({
+                        take,
+                        skip,
+                        where:{
+                            is_deleted:0,
+                            patient_id:Number(session?.user?.s_id)
+                        },
+                        include:{
+                            patient:true,
+                            
+                        },
+                        
+                    }),
+                    client.orders.count({
+                        where:{
+                            is_deleted:0,
+                            patient_id:Number(session?.user?.s_id)
+                        }
+                    }),
+                ])
+
+
+                let new_result = result?.map(async(item:any)=>{
+                    const store =  await client.merchant_store.findUnique({
+                        where:{
+                            id:Number(item?.store_id)
+                        },
+                        include:{
+                            attachment_store:true
+                        }
+                    })
+                    console.log(store,'SOTRERRRRRRRRRRRR')
+
+                    const medecine = await client.merchant_medicine.findFirst({
+                        where:{
+                            id:Number(item?.medecine_id)
+                        },
+                    })
+                    const medecine_attachment = await client.medecine_attachment.findFirst({
+                        where:{
+                            id:Number(medecine?.attachment_id)
+                        }
+                    })
+                    return {...item, store:{...store}, attachment:{...medecine_attachment}}
+                })
+
+                new_result = await Promise.all(new_result)
+
+                console.log(new_result,'HASHAHAHA')
+                return {
+                    orderType:new_result,
+                    totalRecords
+                }
+                
             }
         })
     }
@@ -285,7 +370,7 @@ export const medecine_list = inputObjectType({
         t.nullable.string('generic_name');
         t.nullable.string('brand_name');
         t.nullable.string('dose');
-       
+        t.nullable.int('medecine_id');
         t.nullable.string('form');
         t.nullable.int('quantity')
         t.nullable.float('price')
@@ -332,10 +417,11 @@ export const CreateOrders = extendType({
 
 
                    const result =  args?.data?.medicine_list?.map(async(item:any)=>{
-                        const {generic_name,price, brand_name,dose, form, quantity, store_id } = item;
+                        const {generic_name,price, brand_name,dose, form, quantity, store_id, medecine_id} = item;
 
                                 return await client.orders.create({
                                     data:{
+                                        medecine_id,
                                         generic_name,
                                         brand_name,
                                         dose,
@@ -344,7 +430,7 @@ export const CreateOrders = extendType({
                                         store_id:Number(store_id),
                                         is_deliver:1,
                                         is_paid:1,
-                                        status_id:2,
+                                        status_id:1,
                                         price,
                                         address,
                                         contact,

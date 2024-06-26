@@ -30,7 +30,7 @@ const reducer = (state: any, action: any) => {
                 brand_name,
                 dose,
                 generic_name,
-                attachment_info
+                attachment_info,
             };
     
             return {...state, order:newItem}
@@ -76,6 +76,7 @@ const CreateOrder = ({ children }: any) => {
     const [state, dispatch] = useReducer(reducer, initialState)
 
     const addOrder = useCallback((data: any) => {
+     
         dispatch({
             type: "Add",
             payload: {

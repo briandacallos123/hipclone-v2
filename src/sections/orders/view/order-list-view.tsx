@@ -22,7 +22,6 @@ import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
 // utils
 import { fTimestamp } from 'src/utils/format-time';
-import AppointmentQueueModal from '../appointment-queue-modal';
 // _mock
 import { _appointmentList, HOSPITAL_OPTIONS } from 'src/_mock';
 // hooks
@@ -52,45 +51,36 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from 'src/components/table';
-
+import { QueryAllPatientOrders } from '@/libs/gqls/Orders';
 //
 import { useLazyQuery, useQuery } from '@apollo/client';
 import { DR_APPTS } from '@/libs/gqls/drappts';
 import { DR_CLINICS } from '@/libs/gqls/drprofile';
 import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
 import { NexusGenInputs } from 'generated/nexus-typegen';
-import AppointmentAnalytic from '../appointment-analytic';
-import AppointmentTableRow from '../appointment-table-row';
-import AppointmentTableRowSkeleton from '../appointment-table-row-skeleton';
-import AppointmentTableToolbar from '../appointment-table-toolbar';
-import AppointmentTableFiltersResult from '../appointment-table-filters-result';
-import AppointmentDetailsView from './appointment-details-view';
+// import AppointmentAnalytic from '../appointment-analytic';
+// import AppointmentTableRow from '../appointment-table-row';
+// import AppointmentTableRowSkeleton from '../appointment-table-row-skeleton';
+// import AppointmentTableToolbar from '../appointment-table-toolbar';
+// import AppointmentTableFiltersResult from '../appointment-table-filters-result';
+// import AppointmentDetailsView from './appointment-details-view';
 import { YMD } from 'src/utils/format-time';
 import { useSearch } from '@/auth/context/Search';
+import OrderTableRow from '../order-table-row';
+import OrderTableSkeleton from '../order-table-skeleton';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'name', label: 'Name' },
-  { id: 'hospital', label: 'Hospital/Clinic' },
-  { id: 'scheduleDate', label: 'Schedule' },
-  { id: 'isPaid', label: 'Payment', align: 'center' },
-  { id: 'type', label: 'Type', align: 'center' },
+  { id: 'name', label: 'Medecine' },
+  { id: 'store', label: 'Store' },
+  { id: 'delivery', label: 'Delivery Type', align: 'center' },
+  { id: 'payment', label: 'Payment Status', align: 'center' },
   { id: 'status', label: 'Status', align: 'center' },
   { id: 'action', label: 'Action', align: 'center' },
   // { id: '' },
 ];
 
-const TABLE_HEAD_PATIENT = [
-  { id: 'hospital', label: 'Hospital/Clinic' },
-  { id: 'scheduleDate', label: 'Schedule' },
-  { id: 'isPaid', label: 'Payment', align: 'center' },
-  // { id: 'voucher',label: "Voucher Code", align: 'center' },
-  { id: 'type', label: 'Type', align: 'center' },
-  { id: 'status', label: 'Status', align: 'center' },
-  { id: 'action', label: 'Action', align: 'center' },
-  // { id: '' },
-];
 
 const defaultFilters = {
   name: '',
@@ -102,7 +92,7 @@ const defaultFilters = {
 
 // ----------------------------------------------------------------------
 
-export default function AppointmentListView() {
+export default function OrderListView() {
   const upMd = useResponsive('up', 'md');
   const { setTriggerRef, triggerRef }: any = useSearch();
   const theme = useTheme();
@@ -120,135 +110,18 @@ export default function AppointmentListView() {
 
   const openView = useBoolean();
 
-  const openPreview = useBoolean();
-
   const [viewId, setViewId] = useState(null);
 
-  console.log(viewId, "VIEW ID ______________________________________________________")
+  
 
   const [filters, setFilters]: any = useState(defaultFilters);
 
-  // useEffect(() => {
-  //   console.log(filters, '@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
-  // }, [filters]);
   const dateError = isDateError(filters.startDate, filters.endDate);
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    data: drData,
-    loading,
-    refetch,
-  }: any = useQuery(DR_APPTS, {
-    context: {
-      requestTrackerId: 'getAppointments[Apt]',
-    },
-    notifyOnNetworkStatusChange: true,
-    variables: {
-      // payload request
-      data: {
-        status: Number(filters?.status),
-        typeStatus: -1,
-        skip: page * rowsPerPage,
-        take: rowsPerPage,
-        orderBy,
-        orderDir: order,
-        searchKeyword: filters?.name,
-        clinicIds: filters?.hospital.map((v: any) => Number(v)),
-        startDate: YMD(filters?.startDate) || null,
-        endDate: YMD(filters?.endDate) || null,
-        isDashboard: 0,
-        userType: user?.role,
-      },
-    },
-  });
 
-  useEffect(()=>{
-    if (socket?.connected) {
-      socket.on('appointmentStatus', async(u: any) => {
-        if(Number(u?.recepient) === Number(user?.id)){
-      
-          await refetch()
-        }
-        
-      })
-    }
 
-   return () => {
-    socket?.off('appointmentStatus')
-   }
-  },[socket?.connected])
-
-  // useEffect(() => {
-  //   if (getDefaultFilters('clinic')) {
-  //     let { clinic }: any = getDefaultFilters('clinic');
-  //     setFilters({
-  //       ...filters,
-  //       hospital: [Number(clinic?.id)],
-  //     });
-  //   }
-  // }, []);
-
-  useEffect(() => {
-    if (drData) {
-      const { allAppointments } = drData;
-      setTableData(allAppointments?.appointments_data);
-      setTotalRecords(allAppointments?.total_records);
-      setIsClinic(isClinic + 1);
-      setTotal(allAppointments?.summary?.total);
-      setPending(allAppointments?.summary?.pending);
-      setApproved(allAppointments?.summary?.approved);
-      setDone(allAppointments?.summary?.done);
-      setCancelled(allAppointments?.summary?.cancelled);
-      setIsLoading(false)
-    }
-  }, [drData]);
-
-  //  useEffect(() => {
-  //    getData({
-  //      variables: {
-  //        // payload request
-  //        data: {
-  //          status: Number(filters?.status),
-  //          typeStatus: -1,
-  //          skip: page * rowsPerPage,
-  //          take: rowsPerPage,
-  //          orderBy,
-  //          orderDir: order,
-  //          searchKeyword: filters?.name,
-  //          clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //          startDate: filters?.startDate,
-  //          endDate: filters?.endDate,
-  //          isDashboard: 0,
-  //          userType: user?.role,
-  //        },
-  //      },
-  //    }).then(async (result: any) => {
-  //      const { data } = result;
-  //      if (data) {
-  //        const { allAppointments } = data;
-  //        setTableData(allAppointments?.appointments_data);
-  //        setTotalRecords(allAppointments?.total_records);
-
-  //        setTotal(allAppointments?.summary?.total);
-  //        setPending(allAppointments?.summary?.pending);
-  //        setApproved(allAppointments?.summary?.approved);
-  //        setDone(allAppointments?.summary?.done);
-  //        setCancelled(allAppointments?.summary?.cancelled);
-  //      }
-  //    });
-  //  }, [
-  //    totalRecords,
-  //    page,
-  //    rowsPerPage,
-  //    order,
-  //    orderBy,
-  //    filters?.endDate,
-  //    filters?.startDate,
-  //    filters?.hospital,
-  //    filters?.name,
-  //    filters?.status,
-  //  ]);
 
   const [tableData, setTableData] = useState<any>([]);
   const [totalRecords, setTotalRecords] = useState(0);
@@ -259,73 +132,46 @@ export default function AppointmentListView() {
   const [done, setDone] = useState(0);
   const [cancelled, setCancelled] = useState(0);
 
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
   const router = useRouter();
   const [clinicData, setclinicData] = useState<any>([]);
 
-  useEffect(() => {
-    if (triggerRef) {
-      refetch().then((prev: any) => {
-        setTriggerRef(false);
-      });
-    }
-  }, [triggerRef]);
+  const [getOrderByPatient, { data, loading, error }] = useLazyQuery(QueryAllPatientOrders, {
+    context: {
+        requestTrackerId: 'getOrderByPatient[QueryAllOrdersByPatient]',
+      },
+      notifyOnNetworkStatusChange: true,
+  });
 
-  useEffect(() => {
-    // drClinicFetch().then((result: any) => {
-    //   const { data } = result;
-    //   if (data) {
-    //     const { doctorClinics } = data;
-    //     setclinicData(doctorClinics);
-    //   }
-    // });
-    // return () => drClinicFetch();
-    if (user?.role === 'doctor' && drClinicData) {
-      const { doctorClinics } = drClinicData;
-      setclinicData(doctorClinics);
-    }
-  }, [drClinicData, user?.role]);
+
+  useEffect(()=>{
+    getOrderByPatient(
+       {
+        variables: {
+            data: {
+                skip:page * rowsPerPage,
+                take:rowsPerPage
+            },
+          },
+       }
+    ).then(async(result: any)=>{
+        const { data } = result;
+        if (data) {
+           const {QueryAllPatientOrders} = data;
+
+           setTableData(QueryAllPatientOrders?.orderType)
+           setTotalRecords(QueryAllPatientOrders?.totalRecords)
+        }
+        setIsLoading(false)
+    })
+  },[])
+ 
 
   // =========
   // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
   const [clinicPayload, setClinicPayload] = useState<any>([]);
-  const {
-    data: userClinicData,
-    error: userClinicError,
-    loading: userClinicLoad,
-    refetch: userClinicFetch,
-  }: any = useQuery(GET_CLINIC_USER, {
-    variables: {
-      data: {
-        clinicIds: clinicPayload,
-      },
-    },
-  });
+  
  
-  useEffect(() => {
-    if (user?.role === 'patient' && userClinicData) {
-      const { AllClinicUser } = userClinicData;
-      setclinicData(AllClinicUser);
-    }
-  }, [user?.role, userClinicData]);
 
-  useEffect(() => {
-    //
-    if (isClinic === 1) {
-      const clinicItem = tableData?.map((item: any) => Number(item?.clinic));
-      setClinicPayload(clinicItem);
-    }
-  }, [tableData]);
-  useEffect(()=>{
-    if(!openView.value && viewId){
-      setViewId(null)
-    }
-  },[openView.value])
   // ========================
 
   const dataFiltered = applyFilter({
@@ -440,15 +286,6 @@ export default function AppointmentListView() {
     [router]
   );
 
-  const [viewQueue, setViewQueue] = useState(null)
-
-  const handleOpenQueue = useCallback((data:any) => {
-    setViewQueue(data)
-    openPreview.onTrue()
-
-  },[])
-
- 
 
   return (
     <>
@@ -461,9 +298,9 @@ export default function AppointmentListView() {
             mb: { xs: 3, md: 5 },
           }}
         >
-          <Typography variant="h5">Appointments</Typography>
+          <Typography variant="h5">Orders</Typography>
 
-          {user?.role === 'patient' && (
+          {/* {user?.role === 'patient' && (
             <Button
               component={RouterLink}
               href={paths.dashboard.appointment.find}
@@ -472,10 +309,10 @@ export default function AppointmentListView() {
             >
               New Appointment
             </Button>
-          )}
+          )} */}
         </Stack>
 
-        {upMd && (
+        {/* {upMd && (
           <Card
             sx={{
               mb: { xs: 3, md: 5 },
@@ -529,7 +366,7 @@ export default function AppointmentListView() {
               </Stack>
             </Scrollbar>
           </Card>
-        )}
+        )} */}
 
         <Card>
           <Tabs
@@ -568,7 +405,7 @@ export default function AppointmentListView() {
               />
             ))}
           </Tabs>
-
+{/* 
           <AppointmentTableToolbar
             filters={filters}
             onFilters={handleFilters}
@@ -587,7 +424,7 @@ export default function AppointmentListView() {
               results={totalRecords}
               sx={{ p: 2.5, pt: 0 }}
             />
-          )}
+          )} */}
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
@@ -629,7 +466,7 @@ export default function AppointmentListView() {
                   <TableHeadCustom
                     order={table.order}
                     orderBy={table.orderBy}
-                    headLabel={!isPatient ?TABLE_HEAD:TABLE_HEAD_PATIENT }
+                    headLabel={TABLE_HEAD }
                     // rowCount={tableData?.length}
                     // numSelected={table.selected.length}
                     onSort={table.onSort}
@@ -650,21 +487,20 @@ export default function AppointmentListView() {
                 )} */}
 
                 <TableBody>
-                  {isLoading
-                    ? [...Array(rowsPerPage)].map((_, i) => <AppointmentTableRowSkeleton key={i} />)
-                    : tableData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
-                        <AppointmentTableRow
+                    {/* {isLoading && [...Array(rowsPerPage)].map((_, i) => <AppointmentTableRowSkeleton key={i} />} */}
+                    {isLoading ? 
+                    [...Array(rowsPerPage)].map((_, i) => <OrderTableSkeleton key={i} />):
+                    tableData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
+                        <OrderTableRow
                           key={row.id}
                           row={row}
                           selected={table.selected.includes(String(row.id))}
                           onSelectRow={() => table.onSelectRow(String(row.id))}
                           onViewRow={() => handleViewRow(row)}
                           onViewPatient={() => handleViewPatient(row)}
-                          onViewQueue={()=>{
-                            handleOpenQueue(row)
-                          }}
                         />
                       ))}
+ 
 
                   <TableEmptyRows
                     height={denseHeight}
@@ -690,9 +526,7 @@ export default function AppointmentListView() {
         </Card>
       </Container>
 
-      <AppointmentQueueModal data={viewQueue} open={openPreview.value} onClose={openPreview.onFalse}/>
-
-      {viewId && <AppointmentDetailsView
+      {/* {viewId && <AppointmentDetailsView
         updateRow={updateRow}
         refetch={refetch}
         refetchToday={() => {
@@ -701,7 +535,7 @@ export default function AppointmentListView() {
         open={openView.value}
         onClose={openView.onFalse}
         id={viewId}
-      />}
+      />} */}
 
       <ConfirmDialog
         open={confirmApprove.value}

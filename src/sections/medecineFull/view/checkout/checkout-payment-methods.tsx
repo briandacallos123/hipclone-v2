@@ -17,6 +17,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import Iconify from 'src/components/iconify';
 //
 import PaymentNewCardDialog from '../../../payment/payment-new-card-dialog';
+import Image from 'next/image';
 
 // ----------------------------------------------------------------------
 
@@ -47,7 +48,7 @@ export default function CheckoutPaymentMethods({ options, cardOptions, ...other 
                   onOpen={newCard.onTrue}
                   cardOptions={cardOptions}
                   selected={field.value === option.value}
-                  isCredit={option.value === 'credit' && field.value === 'credit'}
+                  isCredit={option.value === 'gcash' && field.value === 'gcash'}
                   onClick={() => {
                     field.onChange(option.value);
                   }}
@@ -110,10 +111,10 @@ function OptionItem({
               {label}
             </Box>
             <Stack spacing={1} direction="row" alignItems="center">
-              {value === 'credit' && (
+              {value === 'gcash' && (
                 <>
-                  <Iconify icon="logos:mastercard" width={24} />,
-                  <Iconify icon="logos:visa" width={24} />
+                  <Image src="/assets/gcash.png" height={24} alt="gcash" width={24} />
+                  
                 </>
               )}
               {value === 'paypal' && <Iconify icon="logos:paypal" width={24} />}

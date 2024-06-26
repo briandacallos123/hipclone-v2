@@ -28,8 +28,8 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 // components
 import Iconify from 'src/components/iconify';
-import FormProvider, { RHFCheckbox, RHFTextField, RHFMultiCheckbox, RHFEditor,RHFAutocomplete, RHFUpload, RHFAutocompleteAp } from 'src/components/hook-form';
-import { Box, Divider, Tooltip } from '@mui/material';
+import FormProvider, { RHFCheckbox, RHFTextField, RHFMultiCheckbox, RHFEditor, RHFAutocomplete, RHFUpload, RHFAutocompleteAp, RHFSelect, RHFRadioGroup } from 'src/components/hook-form';
+import { Box, Divider, MenuItem, Tooltip } from '@mui/material';
 import { signIn } from 'next-auth/react';
 // import MerchantContext from '@/context/workforce/merchant/MerchantContext';
 //
@@ -61,7 +61,7 @@ type Props = {
 };
 
 const complete_option = [
-    'medecine','foods'
+    'medecine', 'foods'
 ]
 
 // ----------------------------------------------------------------------
@@ -73,14 +73,25 @@ const APPOINTMENT_DAY = [
     { label: 'Thursday', value: 4 },
     { label: 'Friday', value: 5 },
     { label: 'Saturday', value: 6 },
-  ];
-  
+];
+
+const PAYMENT_OPTIONS = [
+    {
+        label: "Cash On Delivery",
+        value: 'cash on delivery'
+    },
+    {
+        label: "G Cash",
+        value: 'g cash'
+    },
+]
+
 export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
     const { login, user } = useAuthContext();
     const path = usePathname();
     const { createOrder }: any = UseOrdersContext()
     const [errorMsg, setErrorMsg] = useState('');
-    const {handleSubmitCreate} = storeController()
+    const { handleSubmitCreate } = storeController()
     const searchParams: any = useSearchParams();
 
 
@@ -100,32 +111,34 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
         end_time: Yup.string().required('End time is required'),
         attachment: Yup.mixed().required(),
         description: Yup.string().required('Description is required'),
-        // delivery: Yup.boolean().notRequired('Delivery is required'),
-        // days:Yup.string().required('Days is required'),
-        days:Yup.array()
-        .of(Yup.string().required('Appointment days is required')),
-        // product_types:Yup.string().required('Product types is required'),
+        days: Yup.array()
+            .of(Yup.string().required('Appointment days is required')),
         product_types: Yup.array()
-        .of(Yup.string().required('Product types is required'))
+            .of(Yup.string().required('Product types is required')),
+        payment: Yup.string().required('Payment is required'),
+
     });
 
     const defaultValues = useMemo(() => {
         return {
             storeName: '',
-            storeAdd : '',
+            storeAdd: '',
             start_time: "",
             end_time: "",
             attachment: null,
-            description:'',
-            delivery:"",
-            product_types:[],
-            days:[]
+            description: '',
+            delivery: "",
+            product_types: [],
+            days: [],
+            payment: '',
+            gcashAttachment: null,
+            gcashContact: ''
         }
     }, [editRow?.id, editRow])
 
 
 
-    const removeTags = (val:string) => {
+    const removeTags = (val: string) => {
         const cleanedDescription = val.replace(/<[^>]+>/g, '');
         return cleanedDescription;
     }
@@ -149,38 +162,35 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
 
     const values = watch()
 
-    
-    const [mapData, setMapData] = useState({lat:null, lng:null})
+
+    const [mapData, setMapData] = useState({ lat: null, lng: null })
 
 
 
     const onSubmit = useCallback(
         async (data: FormValuesProps) => {
+
             data.description = removeTags(data.description)
             const start_time = formatClinicTime(data.start_time)
             const end_time = formatClinicTime(data.end_time)
-            // const delivery = data?.delivery ? 1 : 0
-           
+
             delete data.start_time;
             delete data.end_time;
-            // delete data.delivery
-            
 
-         
-           const newData = {...data}
-           newData.startTime = start_time;
-           newData.endTime = end_time;
-           newData.latitude = mapData?.lat
-           newData.longitude = mapData?.lng
-
-
+            const newData = { ...data }
+            newData.startTime = start_time;
+            newData.endTime = end_time;
+            newData.latitude = mapData?.lat
+            newData.longitude = mapData?.lng
+            newData.onlinePayment = data?.payment
+            newData.gcashContact = data?.gcashContact
 
             try {
                 handleSubmitCreate(newData)
                 onClose()
                 reset()
-                setMapData({lat:null, lng:null})
-                showMap(false)   
+                setMapData({ lat: null, lng: null })
+                showMap(false)
 
             } catch (error) {
                 console.error(error);
@@ -191,34 +201,53 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
         [id, login, path, reset, returnTo, user, isEdit, mapData?.lat, mapData?.lng]
     );
 
-        const [map, showMap] = useState(false)
+    const [map, showMap] = useState(false)
 
-      
 
-    useEffect(()=>{
-        if(values.storeAdd.length >= 10){
-            (async()=>{
+
+    useEffect(() => {
+        if (values.storeAdd.length >= 10) {
+            (async () => {
                 const payload = {
-                    address:values.storeAdd
+                    address: values.storeAdd
                 }
                 try {
                     // https://hip.apgitsolutions.com/api/getLocation
-                    const response = await axios.post('https://hip.apgitsolutions.com/api/getLocation',payload);
-                    console.log(response,'RESPONSEEEEEEEEEE')
+                    // https://hip.apgitsolutions.com/
+                    const response = await axios.post('http://localhost:9092/api/getLocation', payload);
+                    console.log(response, 'RESPONSEEEEEEEEEE')
                     setMapData({
                         ...mapData,
-                        lat:response?.data?.latitude,
-                        lng:response?.data?.longitude
+                        lat: response?.data?.latitude,
+                        lng: response?.data?.longitude
                     })
-                    showMap(true)   
+                    showMap(true)
                 } catch (error) {
-                    
+
                 }
-              
+
             })()
         }
-    },[values.storeAdd])
+    }, [values.storeAdd])
 
+
+    const handleDropGcash = useCallback(
+        (acceptedFiles: File[]) => {
+            const files = values.attachment || null;
+
+
+            const newFiles = Object.assign(acceptedFiles[0], {
+                preview: URL.createObjectURL(acceptedFiles[0])
+            })
+
+            console.log(newFiles, 'NEWFILES________')
+
+
+
+            setValue('gcashAttachment', newFiles, { shouldValidate: true });
+        },
+        [setValue, values.attachment]
+    );
 
     const handleDrop = useCallback(
         (acceptedFiles: File[]) => {
@@ -252,13 +281,15 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
         setValue('attachment', null)
     }, [setValue]);
 
+
+
     const renderForm = (
         <Stack spacing={2.5} sx={{ mt: 1, w: '100%' }}>
             {!!errorMsg && <Alert severity="error">{errorMsg}</Alert>}
 
             <Stack spacing={1} direction="row" >
                 <RHFTextField fullWidth name="storeName" label=" Name" />
-               
+
 
             </Stack>
             <Stack spacing={1}>
@@ -322,22 +353,88 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
                 label="Appointment Days"
                 options={APPOINTMENT_DAY}
                 defaultChecked={defaultValues?.days?.map((value: any) =>
-                  APPOINTMENT_DAY.includes(value)
+                    APPOINTMENT_DAY.includes(value)
                 )}
-              />
+            />
             <Stack>
-                <RHFAutocompleteAp options={complete_option} name="product_types"/>
+                <RHFAutocompleteAp options={complete_option} name="product_types" />
             </Stack>
-            <RHFCheckbox name="delivery" label="Do you do delivery?" />
+            <RHFCheckbox name="delivery" label="Do you provide delivery?" />
+            <Stack>
+
+                <RHFRadioGroup
+                    row
+                    name="payment"
+                    label="Payment Method"
+                    options={(() => {
+                        const ewan = PAYMENT_OPTIONS.filter((item: any) => {
+                            console.log(values.delivery, 'HAHA')
+                            if (values.delivery && item?.value === 'cash on delivery') {
+                                return item;
+                            } else if (item?.value !== 'cash on delivery') {
+                                return item;
+                            }
+                        })
+                        console.log(ewan, 'HAYYYYYYYYYYY');
+                        return ewan;
+                    })()}
+                   
+                />
+
+
+                {/* <RHFMultiCheckbox
+                    sx={{
+                        marginBottom: 2
+                    }}
+                    row
+                    name="payment"
+                    label="Payment Method"
+                    options={(() => {
+                        const ewan = PAYMENT_OPTIONS.filter((item: any) => {
+                            console.log(values.delivery, 'HAHA')
+                            if (values.delivery && item?.value === 'cash on delivery') {
+                                return item;
+                            } else if (item?.value !== 'cash on delivery') {
+                                return item;
+                            }
+                        })
+                        console.log(ewan, 'HAYYYYYYYYYYY');
+                        return ewan;
+                    })()}
+
+                /> */}
+
+                {values?.payment?.includes('g cash') &&
+                    <Stack gap={2}>
+                        <RHFTextField fullWidth name="gcashContact" label="Phone Number" />
+                        <Typography sx={{
+                            height: 1,
+                            color: 'gray',
+                            ml: 2
+                        }}>or upload G-Cash QR Code</Typography>
+                        <RHFUpload
+
+                            thumbnail
+
+                            name="gcashAttachment"
+                            maxSize={3145728}
+                            onDrop={handleDropGcash}
+                            onRemove={handleRemoveFile}
+                            onRemoveAll={handleRemoveAllFiles}
+                        />
+                    </Stack>
+                }
+            </Stack>
+
             <Stack direction="row" alignItems="center">
                 <RHFEditor placeholder='Tell something about the medecine...' name="description" />
 
             </Stack>
             <Stack>
                 <RHFUpload
-                    //   multiple
+
                     thumbnail
-                    //   accept={{ 'application/pdf': [], 'image/png': [], 'image/jpg': [], 'image/jpeg': [] }}  // only pdf & img
+
                     name="attachment"
                     maxSize={3145728}
                     onDrop={handleDrop}
@@ -361,16 +458,16 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
 
 
             {/* <Divider />
-            <Stack gap={1} alignItems="center">
-                <Typography sx={{ textAlign: 'center', color: 'gray' }} variant="body2">or </Typography>
-                <Typography sx={{ textAlign: 'center', color: 'gray' }} variant="body2">scan prescription qr code </Typography>
-                <Tooltip title="Scan Qr">
-                    <img style={{
-                        width: '30px',
-                        cursor: 'pointer'
-                    }} src="/assets/scannerAtMedicine.svg" alt="scanner" />
-                </Tooltip>
-            </Stack> */}
+                <Stack gap={1} alignItems="center">
+                    <Typography sx={{ textAlign: 'center', color: 'gray' }} variant="body2">or </Typography>
+                    <Typography sx={{ textAlign: 'center', color: 'gray' }} variant="body2">scan prescription qr code </Typography>
+                    <Tooltip title="Scan Qr">
+                        <img style={{
+                            width: '30px',
+                            cursor: 'pointer'
+                        }} src="/assets/scannerAtMedicine.svg" alt="scanner" />
+                    </Tooltip>
+                </Stack> */}
 
 
         </Stack>
@@ -380,8 +477,8 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
     return (
         <>
             {/* <Stack sx={{maxWidth:700}}>
-            
-        </Stack> */}
+                
+            </Stack> */}
             <Dialog
                 fullWidth
                 maxWidth={false}

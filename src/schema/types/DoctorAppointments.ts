@@ -300,20 +300,20 @@ export const DoctorAppointments = objectType({
     });
 
     t.nullable.int('userId'),
-    t.nullable.field('patient_hmo', {
-      type: appt_patient_hmo_details,
-      async resolve(root, _arg, _ctx) {
-        const result: any = await client.patient_hmo.findFirst({
-          where: {
-            patientID: Number(root?.patientID),
-            member_id: String(root?.member_id),
-            isDeleted: 0,
-          },
-        });
+      t.nullable.field('patient_hmo', {
+        type: appt_patient_hmo_details,
+        async resolve(root, _arg, _ctx) {
+          const result: any = await client.patient_hmo.findFirst({
+            where: {
+              patientID: Number(root?.patientID),
+              member_id: String(root?.member_id),
+              isDeleted: 0,
+            },
+          });
 
-        return result;
-      },
-    });
+          return result;
+        },
+      });
     t.nullable.string('doctor_no');
     t.nullable.field('doctorInfo', {
       type: DoctorInfoObjectFields,
@@ -343,6 +343,7 @@ export const DoctorAppointments = objectType({
     t.nullable.string('member_id');
     t.nullable.int('type');
     t.nullable.date('date');
+    t.nullable.int('isToday');
     t.nullable.time('time_slot');
     t.nullable.time('e_time');
     t.nullable.int('status');
@@ -391,7 +392,7 @@ export const DoctorAppointments = objectType({
 });
 
 export const UserInfoOb = objectType({
-  name:'UserInfoOb',
+  name: 'UserInfoOb',
   definition(t) {
     t.int('id');
   },
@@ -403,8 +404,8 @@ export const DoctorTransactionObject = objectType({
     t.nullable.list.field('appointments_data', {
       type: DoctorAppointments,
     });
-    t.int('total_records');
-    t.field('summary', {
+    t.nullable.int('total_records');
+    t.nullable.field('summary', {
       type: SummaryObject,
     });
   },
@@ -874,129 +875,129 @@ export const QueryAllAppointments = extendType({
             //// PENDING
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    status: 0,
-                    // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
-                    ...checkUser,
-                    // doctorID: session?.user?.id,
-                    NOT: [{ time_slot: null }, { patientInfo: null }],
-                    clinicInfo: {
-                      isDeleted: 0,
-                      NOT: [{ clinic_name: null }, { clinic_name: '' }],
-                    },
-                    ...whereconditions,
+                where: {
+                  status: 0,
+                  // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
+                  ...checkUser,
+                  // doctorID: session?.user?.id,
+                  NOT: [{ time_slot: null }, { patientInfo: null }],
+                  clinicInfo: {
+                    isDeleted: 0,
+                    NOT: [{ clinic_name: null }, { clinic_name: '' }],
                   },
-                })
+                  ...whereconditions,
+                },
+              })
               : client.appointments.count({
-                  // Use Prisma Client promise here
-                  where: {
-                    status: 0,
-                    ...checkUser,
-                    // doctorID: session?.user?.id,
-                    NOT: [{ time_slot: null }, { patientInfo: null }],
-                    clinicInfo: {
-                      isDeleted: 0,
-                      NOT: [{ clinic_name: null }, { clinic_name: '' }],
-                    },
-                    ...whereconditions,
+                // Use Prisma Client promise here
+                where: {
+                  status: 0,
+                  ...checkUser,
+                  // doctorID: session?.user?.id,
+                  NOT: [{ time_slot: null }, { patientInfo: null }],
+                  clinicInfo: {
+                    isDeleted: 0,
+                    NOT: [{ clinic_name: null }, { clinic_name: '' }],
                   },
-                }),
+                  ...whereconditions,
+                },
+              }),
             //// PENDING
             //// APPROVED
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    ...checkUser,
-                    // doctorID: session?.user?.id,
-                    status: 1,
-                    NOT: [{ time_slot: null }, { patientInfo: null }],
-                    clinicInfo: {
-                      isDeleted: 0,
-                      NOT: [{ clinic_name: null }, { clinic_name: '' }],
-                    },
-                    // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
-                    ...whereconditions,
+                where: {
+                  ...checkUser,
+                  // doctorID: session?.user?.id,
+                  status: 1,
+                  NOT: [{ time_slot: null }, { patientInfo: null }],
+                  clinicInfo: {
+                    isDeleted: 0,
+                    NOT: [{ clinic_name: null }, { clinic_name: '' }],
                   },
-                })
+                  // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
+                  ...whereconditions,
+                },
+              })
               : client.appointments.count({
-                  // Use Prisma Client promise here
-                  where: {
-                    ...checkUser,
-                    // doctorID: session?.user?.id,
-                    status: 1,
-                    NOT: [{ time_slot: null }, { patientInfo: null }],
-                    clinicInfo: {
-                      isDeleted: 0,
-                      NOT: [{ clinic_name: null }, { clinic_name: '' }],
-                    },
-                    // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
-                    ...whereconditions,
+                // Use Prisma Client promise here
+                where: {
+                  ...checkUser,
+                  // doctorID: session?.user?.id,
+                  status: 1,
+                  NOT: [{ time_slot: null }, { patientInfo: null }],
+                  clinicInfo: {
+                    isDeleted: 0,
+                    NOT: [{ clinic_name: null }, { clinic_name: '' }],
                   },
-                }),
+                  // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
+                  ...whereconditions,
+                },
+              }),
             //// APPROVED
             //// CANCELLED
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    ...checkUser,
-                    // doctorID: session?.user?.id,
-                    status: 2,
-                    NOT: [{ time_slot: null }, { patientInfo: null }],
-                    clinicInfo: {
-                      isDeleted: 0,
-                      NOT: [{ clinic_name: null }, { clinic_name: '' }],
-                    },
-                    // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
-                    ...whereconditions,
+                where: {
+                  ...checkUser,
+                  // doctorID: session?.user?.id,
+                  status: 2,
+                  NOT: [{ time_slot: null }, { patientInfo: null }],
+                  clinicInfo: {
+                    isDeleted: 0,
+                    NOT: [{ clinic_name: null }, { clinic_name: '' }],
                   },
-                })
+                  // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
+                  ...whereconditions,
+                },
+              })
               : client.appointments.count({
-                  // Use Prisma Client promise here
-                  where: {
-                    ...checkUser,
-                    // doctorID: session?.user?.id,
-                    status: 2,
-                    NOT: [{ time_slot: null }, { patientInfo: null }],
-                    clinicInfo: {
-                      isDeleted: 0,
-                      NOT: [{ clinic_name: null }, { clinic_name: '' }],
-                    },
-                    // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
-                    ...whereconditions,
+                // Use Prisma Client promise here
+                where: {
+                  ...checkUser,
+                  // doctorID: session?.user?.id,
+                  status: 2,
+                  NOT: [{ time_slot: null }, { patientInfo: null }],
+                  clinicInfo: {
+                    isDeleted: 0,
+                    NOT: [{ clinic_name: null }, { clinic_name: '' }],
                   },
-                }),
+                  // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
+                  ...whereconditions,
+                },
+              }),
             //// CANCELLED
             //// DONE
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    ...checkUser,
-                    // doctorID: session?.user?.id,
-                    status: 3,
-                    NOT: [{ time_slot: null }, { patientInfo: null }],
-                    clinicInfo: {
-                      isDeleted: 0,
-                      NOT: [{ clinic_name: null }, { clinic_name: '' }],
-                    },
-                    // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
-                    ...whereconditions,
+                where: {
+                  ...checkUser,
+                  // doctorID: session?.user?.id,
+                  status: 3,
+                  NOT: [{ time_slot: null }, { patientInfo: null }],
+                  clinicInfo: {
+                    isDeleted: 0,
+                    NOT: [{ clinic_name: null }, { clinic_name: '' }],
                   },
-                })
+                  // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
+                  ...whereconditions,
+                },
+              })
               : client.appointments.count({
-                  // Use Prisma Client promise here
-                  where: {
-                    ...checkUser,
-                    // doctorID: session?.user?.id,
-                    status: 3,
-                    NOT: [{ time_slot: null }, { patientInfo: null }],
-                    clinicInfo: {
-                      isDeleted: 0,
-                      NOT: [{ clinic_name: null }, { clinic_name: '' }],
-                    },
-                    // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
-                    ...whereconditions,
+                // Use Prisma Client promise here
+                where: {
+                  ...checkUser,
+                  // doctorID: session?.user?.id,
+                  status: 3,
+                  NOT: [{ time_slot: null }, { patientInfo: null }],
+                  clinicInfo: {
+                    isDeleted: 0,
+                    NOT: [{ clinic_name: null }, { clinic_name: '' }],
                   },
-                }),
+                  // OR: [{ doctorID: session?.user?.id }, { patientID: session?.user?.id }],
+                  ...whereconditions,
+                },
+              }),
             //// DONE
           ]);
 
@@ -1009,9 +1010,27 @@ export const QueryAllAppointments = extendType({
           //   count_done,
           // }
 
-          // console.log(appointments, 'woooow@@');
 
-          const _result: any = appointments;
+          let _result: any = appointments;
+
+          _result = _result?.map((item: any) => {
+            const currentDate = new Date();
+            const formattedDate = currentDate.toISOString().slice(0, 10);
+            const formattedDateAsDate = new Date(formattedDate);
+
+            const currentDateBackward = new Date();
+
+            currentDateBackward.setHours(23, 59, 59, 59);
+
+            if(item?.date >= formattedDateAsDate && item?.date <= currentDateBackward){
+             return {...item, isToday:1}
+            }
+            
+            return item;
+          })
+
+          // console.log(_result, '_result_result_result_result_result_result_result_result_result_result_result@@');
+
           const _total: any = count;
           const _totalSum: any = _count;
           let total = 0;
@@ -1113,14 +1132,14 @@ export const doctor_appointments_by_id_data = extendType({
           });
 
           const userInfo = await client.user.findFirst({
-            where:{
-              email:appointments?.patientInfo?.EMAIL
+            where: {
+              email: appointments?.patientInfo?.EMAIL
             }
           })
 
           // return hmo_claim;
-          const result = {...appointments, userId:Number(userInfo?.id)}
-      
+          const result = { ...appointments, userId: Number(userInfo?.id) }
+
           res = { doctor_appointments_by_id: result };
         } catch (error) {
           console.error(error);
@@ -1210,9 +1229,7 @@ export const QueryTodaysAPRRenew = extendType({
 
         const currentDateBackward = new Date();
 
-        // Set the time to the last format before the day changes
         currentDateBackward.setHours(23, 59, 59, 59);
-        // const currentDataBackwardDate = new Date(currentDateBackward)
 
         // ---------------------------------]
         const whereconditions = filtersAPR(args);
@@ -1466,7 +1483,7 @@ export const QueueAll = extendType({
         // let result = allAppt.map(async(d)=>{
         //   let VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-        
+
         //   return await client.appointments.update({
         //     where:{
         //       id:Number(d?.id)
@@ -2300,26 +2317,26 @@ export const BookAppointment = extendType({
         const { session } = ctx;
 
 
-       
+
         let userOffline = await client.user.findFirst({
-          where:{
-              id:Number(args?.data?.doctorID),
-              isOnline:1
+          where: {
+            id: Number(args?.data?.doctorID),
+            isOnline: 1
           }
         })
 
-       
 
-        if(userOffline){
-          beamsClient.publishToInterests([`forOnly_${userOffline?.id}`],{
-              web: {
-                notification: {
-                  title:"New Appointment",
-                  body:`${session.user?.displayName} Book An Appointment`
-                },
+
+        if (userOffline) {
+          beamsClient.publishToInterests([`forOnly_${userOffline?.id}`], {
+            web: {
+              notification: {
+                title: "New Appointment",
+                body: `${session.user?.displayName} Book An Appointment`
               },
+            },
           });
-      
+
         }
 
 
@@ -2332,28 +2349,28 @@ export const BookAppointment = extendType({
           const timeInput = new Date(createData.time_slot);
           timeInput.setMinutes(timeInput.getMinutes() - timeInput.getTimezoneOffset()); // Convert to UTC
 
-   
+
           const timeInputEnd = new Date(createData.end_time);
           timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
 
           let isExists = true;
-          let VoucherCode:any;
+          let VoucherCode: any;
 
-          while(isExists){
-            VoucherCode= Math.random().toString(36).substring(2, 8).toUpperCase()
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
 
-           const result = await client.prescriptions.findFirst({
-            where:{
-              presCode:VoucherCode
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
             }
-           })
-
-           if(!result){
-            isExists = false;
-           }
           }
-          
-       // if has file
+
+          // if has file
           const BookTransaction = await client.$transaction(async (trx) => {
             const BookPost = await trx.appointments.create({
               data: {
@@ -2371,8 +2388,8 @@ export const BookAppointment = extendType({
                 loa_num: '',
                 hmo: hmoData,
                 member_id: String(createData?.member_id),
-                e_time:timeInputEnd,
-                voucherId:VoucherCode
+                e_time: timeInputEnd,
+                voucherId: VoucherCode
               },
             });
 
@@ -2383,20 +2400,20 @@ export const BookAppointment = extendType({
 
           // console.log(BookTransaction,'TESTINNGGGGGGGGGG@@@@@@@@@@@@@@@@@')
 
-              // create notification
-           const notifContent = await client.notification_content.create({
-            data:{
-              content:"book an appointment"
+          // create notification
+          const notifContent = await client.notification_content.create({
+            data: {
+              content: "book an appointment"
             }
           })
-       
+
           await client.notification.create({
-            data:{
-              user_id:Number(session?.user?.id),
-              notifiable_id:Number(createData.doctorID),
-              notification_type_id:1,
-              notification_content_id:Number(notifContent?.id),
-              appt_id:Number(BookTransaction?.id)
+            data: {
+              user_id: Number(session?.user?.id),
+              notifiable_id: Number(createData.doctorID),
+              notification_type_id: 1,
+              notification_content_id: Number(notifContent?.id),
+              appt_id: Number(BookTransaction?.id)
             }
           })
 
@@ -2410,10 +2427,10 @@ export const BookAppointment = extendType({
               member_id: String(createData.member_id),
             },
           });
-          
-          
 
-       
+
+
+
 
           const sFile = await args?.file;
           if (sFile) {
@@ -2432,12 +2449,12 @@ export const BookAppointment = extendType({
               });
             });
           }
-            
+
 
           const res: any = { ...BookTransaction, ...PatientHMO };
           return res;
         } catch (error) {
-          console.log(error,'@@@@@@@@@');
+          console.log(error, '@@@@@@@@@');
         }
       }
     });

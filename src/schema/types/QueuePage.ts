@@ -3,6 +3,8 @@ import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { GraphQLError } from 'graphql/error/GraphQLError';
 import { DoctorAppointments } from './DoctorAppointments';
+import {Clinics} from './ClinicSched'
+import { DoctorTransactionObject } from './DoctorAppointments';
 
 const CountType = objectType({
   name: 'CountType',
@@ -148,6 +150,7 @@ export const queue_data = objectType({
     }),
     t.int('position');
     t.boolean('is_not_today')
+    t.boolean('is_done')
   },
 })
 
@@ -183,7 +186,6 @@ export const QueuePatient = extendType({
             voucherId:voucherCode
           }
         })
-        console.log(appt)
 
         const patient = await client.patient.findFirst({
           where:{
@@ -198,6 +200,52 @@ export const QueuePatient = extendType({
             id:Number(appt?.clinic)
           }
         })
+
+        const isDoneAppt = await  client.appointments.findMany({
+          where:{
+            isDeleted:0,
+            status:1,
+            voucherId:voucherCode,
+            clinicInfo: {
+              uuid:clinicInfo?.uuid,
+              isDeleted: 0,
+              NOT: [{ clinic_name: null }, { clinic_name: '' }],
+            },
+            date: {
+              lt: formattedDateAsDate,
+            },
+            
+          },
+          include: {
+            clinicInfo: true,
+          }
+        })
+
+
+        // ito yung checker kung yung voucher ni patient ay valid at naka schedule today.
+      //  kapag walang laman, means hindi naka schedule ngayon.
+        const isToday = await  client.appointments.findMany({
+          where:{
+            isDeleted:0,
+            status:1,
+            voucherId:voucherCode,
+            clinicInfo: {
+              uuid:clinicInfo?.uuid,
+              isDeleted: 0,
+              NOT: [{ clinic_name: null }, { clinic_name: '' }],
+            },
+            date: {
+              gte: formattedDateAsDate,
+              lte: currentDateBackward,
+            },
+            
+          },
+          include: {
+            clinicInfo: true,
+          }
+        })
+
+        
 
         const [result, resultFirst]: any = await client.$transaction([
           client.appointments.findMany({
@@ -240,46 +288,7 @@ export const QueuePatient = extendType({
           })
         ])
 
-        // const resultFirst = await client.appointments.findMany({
-        //   where:{
-        //     isDeleted:0,
-        //     status:1,
-        //     clinicInfo: {
-        //       uuid:clinicInfo?.uuid,
-        //       isDeleted: 0,
-        //       NOT: [{ clinic_name: null }, { clinic_name: '' }],
-        //     },
-        //     date: {
-        //       gte: formattedDateAsDate,
-        //       // lte: currentDateBackward,
-        //     },
-            
-        //   },
-        //   include: {
-        //     clinicInfo: true,
-        //   }
-        // })
-
-        // const result = await client.appointments.findMany({
-        //   where:{
-        //     isDeleted:0,
-        //     status:1,
-        //     clinicInfo: {
-        //       uuid:clinicInfo?.uuid,
-        //       isDeleted: 0,
-        //       NOT: [{ clinic_name: null }, { clinic_name: '' }],
-        //     },
-        //     date: {
-        //       gte: formattedDateAsDate,
-        //       lte: currentDateBackward,
-        //     },
-            
-        //   },
-        //   include: {
-        //     clinicInfo: true,
-        //   }
-        // })
-     
+       
 
 
         const position = result.map(async(it:any)=>{
@@ -294,32 +303,99 @@ export const QueuePatient = extendType({
 
         const patientPos = teka.findIndex((item:any)=>item.EMAIL === patient?.EMAIL)
         
-     
-        const haveSchedNotToday = () => {
-          if(result?.length){
-            return false
-          }
-          else if(resultFirst?.length){
+  
+        const haveSchedButNotToday = () => {
+          if(isToday?.length === 0 && resultFirst?.length !== 0){
             return true
           }else{
             return false
           }
+          // if(result?.length){
+          //   return false
+          // }
+          // else if(resultFirst?.length){
+          //   return true
+          // }else{
+          //   return false
+          // }
         
         }
 
-        console.log(haveSchedNotToday(),'MERON BA?')
+
       
 
 
         return {
           appointments_data: resultFirst?.length ? resultFirst : result,
           position:patientPos !== -1 ? patientPos : (resultFirst && 1),
-          is_not_today:haveSchedNotToday()
+          is_not_today:haveSchedButNotToday(),
+          is_done:isDoneAppt?.length !== 0
         }
        }catch(err){
         console.log(err,'__ERORR')
        }
 
+      }
+    })
+  }
+})
+
+
+export const QueueClinicInp = inputObjectType({
+  name:"QueueClinicInp",
+  definition(t) {
+    t.nonNull.int('take');
+    t.nonNull.int('skip');
+  },
+})
+
+export const QueueGetClinicOfPatient = extendType({
+  type: 'Query',
+  definition(t) {
+    t.nullable.field('QueueGetClinicOfPatient', {
+      type: DoctorTransactionObject,
+      args: { data: QueueClinicInp! },
+      async resolve(_root, args, ctx) {
+
+        const { session } = ctx;
+
+        const {  take, skip}:any = args?.data
+        
+
+          const currentDate = new Date();
+          const formattedDate = currentDate.toISOString().slice(0, 10);
+          const formattedDateAsDate = new Date(formattedDate);
+  
+          const currentDateBackward = new Date();
+          currentDateBackward.setHours(23, 59, 59, 59);
+      
+        const result = await  client.appointments.findMany({
+          take,
+          skip,
+          where:{
+            isDeleted:0,
+            status:1,
+            patientID:Number(session?.user?.s_id),
+            clinicInfo: {
+              isDeleted: 0,
+              NOT: [{ clinic_name: null }, { clinic_name: '' }],
+            },
+            date: {
+              gte: formattedDateAsDate,
+              // lte: currentDateBackward,
+            },
+            
+          },
+          include: {
+            clinicInfo: true,
+          }
+        })
+
+        return {
+          appointments_data:result
+        }
+
+       
       }
     })
   }

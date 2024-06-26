@@ -52,8 +52,8 @@ export function fToNow(date: InputValue) {
 
 export function formatMilitaryTime(militaryTime: string) {
   // Extract hours and minutes
-  let hours = parseInt(militaryTime.substring(0, 2));
-  let minutes = militaryTime.substring(3, 5);
+  let hours = parseInt(militaryTime?.substring(0, 2));
+  let minutes = militaryTime?.substring(3, 5);
 
   // Determine AM/PM and adjust hours accordingly
   let ampm = hours >= 12 ? 'PM' : 'AM';

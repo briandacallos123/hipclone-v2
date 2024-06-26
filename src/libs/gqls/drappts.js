@@ -7,6 +7,7 @@ export const DR_APPTS = gql`
         id
         voucherId
         patient_no
+        isToday
         e_time
         add_date
         doctorPayment {

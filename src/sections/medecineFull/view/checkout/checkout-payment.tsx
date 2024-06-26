@@ -50,18 +50,13 @@ const DELIVERY_OPTIONS: any[] = [
 
 const PAYMENT_OPTIONS: any[] = [
   {
-    value: 'paypal',
-    label: 'Pay with Paypal',
-    description: 'You will be redirected to PayPal website to complete your purchase securely.',
-  },
-  {
-    value: 'credit',
-    label: 'Credit / Debit Card',
-    description: 'We support Mastercard, Visa, Discover and Stripe.',
+    value: 'gcash',
+    label: 'Pay with Gcash',
+    description: 'Please pay payments using your gcash in every store you bought medecines',
   },
   {
     value: 'cash',
-    label: 'Cash',
+    label: 'Cash on delivery',
     description: 'Pay with cash when your order is delivered.',
   },
 ];
@@ -175,7 +170,8 @@ export default function CheckoutPayment({
           form:item?.form,
           quantity:item?.quantity,
           price:item?.price,
-          store_id:item?.store_id
+          store_id:item?.store_id,
+          medecine_id:item?.id
         }
       })
       const newPayloads = {

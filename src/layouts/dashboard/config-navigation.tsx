@@ -34,6 +34,8 @@ const ICONS = {
   record: icon('solar:document-medicine-bold-duotone'),
   prescription: icon('solar:jar-of-pills-bold-duotone'),
   feeds: icon('mdi:newspaper-variant-multiple'),
+  doctors:icon('healthicons:doctor-male-outline'),
+  medecine:icon('game-icons:miracle-medecine')
 };
 
 // ----------------------------------------------------------------------
@@ -78,7 +80,7 @@ export function useNavData() {
           {
             title: t('My Doctors'),
             path: paths.dashboard.myDoctors.root,
-            icon: ICONS.feeds,
+            icon: ICONS.doctors,
             roles: [ 'patient'],
           },
           {
@@ -86,12 +88,12 @@ export function useNavData() {
             path: paths.dashboard.appointment.root,
             icon: ICONS.appointment,
           },
-          {
-            title: t('queue'),
-            path: paths.dashboard.queuePatient.root,
-            icon: ICONS.appointment,
-            roles: ['patient'],
-          },
+          // {
+          //   title: t('queue'),
+          //   path: paths.dashboard.queuePatient.root,
+          //   icon: ICONS.appointment,
+          //   roles: ['patient'],
+          // },
           { title: t('chat'), path: paths.dashboard.chat, icon: ICONS.chat, value:chatVal !== 0 && chatVal },
           {
             title: t('calendar'),
@@ -128,6 +130,12 @@ export function useNavData() {
           {
             title: t('medecines'),
             path: paths.dashboard.medecine.root,
+            icon: ICONS.medecine,
+            roles: ['patient'],
+          },
+          {
+            title: t('orders'),
+            path: paths.dashboard.orders.root,
             icon: ICONS.patient,
             roles: ['patient'],
           },

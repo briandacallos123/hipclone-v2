@@ -24,6 +24,7 @@ import HeaderCart from '../_common/header-cart';
 import { useCheckoutContext } from '@/context/checkout/Checkout';
 import { useOrdersContext } from '@/context/checkout/CreateOrder';
 import HeaderOrders from '../_common/header-order';
+import QueuePopover from '../_common/queue-popover';
 
 // ----------------------------------------------------------------------
 
@@ -107,7 +108,8 @@ export default function Header({ onOpenNav }: Props) {
       >
         {/* comment temporarily */}
         
-        {user?.role !== 'patient' && <Scanner/>}
+        <QueuePopover/>
+        {/* {user?.role !== 'patient' && <Scanner/>} */}
         {user?.role === 'patient' && cart?.length !== 0 &&  <HeaderCart cart={cart} count={cart?.length}/>}
         {user?.role === 'patient' && ordersCart?.order &&  <HeaderOrders order={ordersCart?.order} />}
 

@@ -21,7 +21,7 @@ import Label from 'src/components/label';
 import Iconify from 'src/components/iconify';
 import { TableMobileRow } from 'src/components/table';
 import { useAuthContext } from '@/auth/hooks';
-import { Box } from '@mui/material';
+import { Box, Button } from '@mui/material';
 import { useSnackbar } from 'src/components/snackbar';
 // ----------------------------------------------------------------------
 
@@ -32,6 +32,7 @@ type Props = {
   onSelectRow: VoidFunction;
   onViewRow: VoidFunction;
   onViewPatient: VoidFunction;
+  onViewQueue:()=>void;
 };
 
 export default function AppointmentTableRow({
@@ -40,6 +41,7 @@ export default function AppointmentTableRow({
   onSelectRow,
   onViewRow,
   onViewPatient,
+  onViewQueue
 }: Props) {
   /*  const { patient, hospital, schedule, isPaid, type } = row; */
   const upMd = useResponsive('up', 'md');
@@ -230,11 +232,20 @@ export default function AppointmentTableRow({
                 alignItems:'center'
               }}>
                 <Typography sx={{mr:1}} variant="body2">{row?.voucherId}</Typography>
-                <Tooltip>
+                {/* <Tooltip>
                   <img onClick={handleCopy} style={{
                     cursor:'pointer'
                   }} src="/assets/clipboard.svg"/>
-                </Tooltip>
+                </Tooltip> */}
+                {row?.status === 1 && <Tooltip sx={{
+                  cursor:'pointer',
+                  color:'success',
+                }} title="Preview Appointment"
+                  onClick={onViewQueue} 
+                >
+                 <Iconify icon="iconamoon:eye-bold" />
+                </Tooltip>}
+                {/* <Button>View Queue</Button> */}
               </Box>
           </Stack>
         </div>

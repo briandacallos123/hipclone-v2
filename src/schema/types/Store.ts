@@ -340,12 +340,24 @@ export const CreateNewStoreInp = inputObjectType({
         t.boolean('delivery');
         t.string('startTime');
         t.string('endTime');
+        t.nullable.string('onlinePayment');
         t.string('product_types')
         t.nullable.float('latitude')
+        t.nullable.string('gcashContact')
         t.nullable.float('longitude')
-        t.nullable.JSON('days')
+        t.nullable.JSON('days');
+
     },
 });
+
+// export const onlinePayment = inputObjectType({
+//     name:"onlinePayment",
+//     definition(t) {
+//         t.string('platform');
+//         t.string('recepient_contact');
+
+//     },
+// })
 
 export const CreateNewStoreObj = objectType({
     name: "CreateNewStoreObj",
@@ -365,13 +377,17 @@ export const CreateNewStore = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
                 const { user } = session;
-                const { name, address, latitude, longitude, description, delivery, product_types, startTime, endTime }: any = args?.data;
+                const { name, address,gcashContact, onlinePayment, latitude, longitude, description, delivery, product_types, startTime, endTime }: any = args?.data;
 
                 const sFile = await args?.file;
                 let med: any;
 
+                let paymentAttachment:any;
+                let payment:any;
+
                 const daysJson = serialize(serialize(args?.data?.days));
 
+              
 
                 try {
                     if (sFile) {
@@ -384,7 +400,28 @@ export const CreateNewStore = extendType({
                                 file_type: String(res[0]!.fileType),
                             }
                         })
+                    }
+                    if(sFile?.length > 1){
+                        const res: any = useUpload(sFile, 'public/documents/');
+                        paymentAttachment = await client.order_payment_attachment.create({
+                            data: {
+                                filename: String(res[1]!.fileName),
+                                file_url: String(res[1]!.path),
+                                file_tyle: String(res[1]!.fileType),
+                            }
+                        })
 
+                        
+                    }
+
+                    if(onlinePayment === 'g cash'){
+                         payment = await client.online_payment.create({
+                            data:{
+                                platform:'g cash',
+                                recepient_contact:gcashContact,
+                                attachment_id:paymentAttachment?.id
+                            }
+                        })
                     }
 
                     await client.merchant_store.create({
@@ -395,14 +432,17 @@ export const CreateNewStore = extendType({
                             product_types,
                             start_time: startTime,
                             end_time: endTime,
-                            attachment_id: Number(med?.id),
+                            attachment_id: Number(med.id),
                             lat: latitude,
                             days: daysJson,
                             created_at: new Date(),
                             lng: longitude,
                             merchant_id: Number(user?.id),
                             is_deliver: delivery ? 1 : 0,
-                            is_deleted: 0
+                            is_deleted: 0,
+                            COD:onlinePayment.includes('cash on delivery') ? 1 : 0,
+                            online_payment:payment && payment?.id
+
                         }
                     })
                 } catch (error) {

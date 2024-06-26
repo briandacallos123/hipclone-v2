@@ -38,6 +38,49 @@ export const QueryAllMedicineOrders = gql`
   }
 `;
 
+export const QueryAllPatientOrders = gql`
+  query QueryAllPatientOrders($data: orderInputType!) {
+    QueryAllPatientOrders(data: $data) {
+      orderType {
+        brand_name
+        dose
+        form
+        status_id
+        generic_name
+        id
+        is_deliver
+        is_paid
+        quantity
+        store {
+          name
+          attachment_store {
+            filename
+            id
+            file_url
+          }
+        }
+        patient {
+          CONTACT_NO
+          EMAIL
+          FNAME
+          HOME_ADD
+          LNAME
+        }
+        attachment {
+          file_path
+          filename
+          id
+        }
+      }
+      summary {
+        pickup
+        delivery
+      }
+      totalRecords
+    } 
+  }
+`;
+
 export const QueryAllMedecineByStore = gql`
   query QueryAllMedecineByStore($data: medicineInputType!) {
     QueryAllMedecineByStore(data: $data) {

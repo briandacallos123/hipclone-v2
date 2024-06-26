@@ -1,5 +1,40 @@
 import { gql } from '@apollo/client';
 
+export const QueueGetClinicOfPatient = gql`
+  query QueueGetClinicOfPatient($data:QueueClinicInp){
+    QueueGetClinicOfPatient(data:$data){
+      appointments_data {
+        voucherId
+        AddRequest
+        add_date
+        Others
+        clinic
+        date
+        doctorID
+        payment_status
+        remarks
+        status
+        symptoms
+        time_slot
+        clinicInfo {
+          Province
+          clinic_name
+          date
+          doctor_idno
+          e_clinicschedule
+          id
+          isDeleted
+          location
+          number
+          time_interval
+          schedule
+          s_clinicschedule
+          uuid
+        }
+      }
+    }
+  }
+`
 
 export const QueryQueuePatient = gql`
     query QueuePatient($data:QueuePatientInp){
@@ -44,6 +79,8 @@ export const QueryQueuePatient = gql`
             }
             position
             is_not_today
+            is_done
         }
     }
 `
+

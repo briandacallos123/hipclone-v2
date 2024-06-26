@@ -160,8 +160,10 @@ const storeController = (props: Props = {
               days:model.days,
               latitude:model.latitude,
               longitude:model.longitude,
+              onlinePayment:model.onlinePayment,
+              gcashContact:model.gcashContact
             },
-            file: model.attachment,
+            file: [model.attachment, model.gcashAttachment],
           },
         }).then(async(res)=>{
           enqueueSnackbar("Created store successfully")

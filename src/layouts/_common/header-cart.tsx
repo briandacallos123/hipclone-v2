@@ -108,7 +108,7 @@ const HeaderCart = ({count, cart}:HeaderCartProps) => {
                             </Typography>
                         </Box>
                     <Button onClick={()=>{
-                        router.push('/medecine/checkout')
+                        router.push('/dashboard/medecine-checkout/checkout')
                     }} variant="contained" color="success" component={m.button}  fullWidth size="large">
                         Place Order
                     </Button>
