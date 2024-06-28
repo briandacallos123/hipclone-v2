@@ -59,12 +59,24 @@ export default function SidebarFitering({
         [onFilters]
     );
 
-    const handleFilterDistance = useCallback(
+    const handleFilterStartingPrice = useCallback(
         (event: SelectChangeEvent<string[]>) => {
             let val = event.target.value
 
             onFilters(
-                'distance',
+                'startingPrice',
+                Number(val) === 0 ? null : val
+            );
+        },
+        [onFilters]
+    );
+
+    const handleFilterEndPrice = useCallback(
+        (event: SelectChangeEvent<string[]>) => {
+            let val = event.target.value
+
+            onFilters(
+                'endPrice',
                 val
             );
         },
@@ -125,6 +137,11 @@ export default function SidebarFitering({
 
     const handleChange = (e:any) => {
         setVal(e.target.value)
+
+        onFilters(
+            'startingPrice',
+            e.target.value
+        );
         
     }
 
@@ -190,8 +207,8 @@ export default function SidebarFitering({
                 <Stack gap={1} direction="row" alignItems="center">
                     <TextField
                         fullWidth
-                        value={filters.name}
-                        onChange={handleFilterName}
+                        value={filters.startingPrice}
+                        onChange={handleFilterStartingPrice}
                         placeholder="0"
                         sx={{
                             flexShrink: 0,
@@ -208,8 +225,8 @@ export default function SidebarFitering({
                     <Typography> - </Typography>
                      <TextField
                         fullWidth
-                        value={filters.name}
-                        onChange={handleFilterName}
+                        value={filters.endPrice}
+                        onChange={handleFilterEndPrice}
                         placeholder="10,000"
                         sx={{
                             flexShrink: 0,
@@ -224,7 +241,7 @@ export default function SidebarFitering({
                         }}
                     />
                 </Stack>
-
+{/* 
                 <Slider
                     aria-label="Always visible"
                     defaultValue={0}
@@ -235,7 +252,7 @@ export default function SidebarFitering({
                     onChange={handleChange}
                     max={10000}
                     valueLabelDisplay={val !== 0 ? "on":"off"}
-                />
+                /> */}
             </Box>
 
 

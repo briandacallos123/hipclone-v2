@@ -10,17 +10,16 @@ import StoreSkeleton from './medecine-skeleton'
 import DataListItem from './data-list-item'
 
 type StoreDataListProps = {
-    data: []
+    data: [];
 }
 
 
 
-const StoreDataList = ({ data }: any) => {
+const StoreDataList = ({ data, loading }: any) => {
     
 
     const isRow = false
     const { addOrder }: any = useOrdersContext()
-    const [loading, setLoading]:any = useState(true)
     const handleView = useCallback((id: number) => {
         // router.push(paths.dashboard.medecine.view(id));
     }, [])
@@ -30,13 +29,9 @@ const StoreDataList = ({ data }: any) => {
         addOrder(data)
     }
 
-    useEffect(()=>{
-        if(data){
-            setLoading(false)
-        }
-    },[data])
+   
 
-    const notFound = !loading && !data?.medecine_list?.length
+    const notFound = !loading && !data?.length
 
     return (
         <Box sx={{
@@ -48,15 +43,11 @@ const StoreDataList = ({ data }: any) => {
             {loading && <StoreSkeleton/>}
 
             <Grid justifyContent="flex-start" container gap={2}>
-                {
-                    data?.medecine_list?.map((item: any) => {
-                     
-
-                        return (
-                            <DataListItem key={item?.id} item={item}/>
-                        )
-                    })
-                }
+                {!loading && data?.length !== 0 &&  data?.map((item: any) => {
+                     return (
+                         <DataListItem key={item?.id} item={item}/>
+                     )
+                 })}
             </Grid>
         </Box >
     )

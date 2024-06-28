@@ -14,6 +14,7 @@ export const storeType = objectType({
         t.string('name');
         t.string('address');
         t.string('description');
+        t.float('distance');
         t.float('rating');
         t.string('product_types');
         t.int('is_deliver')
@@ -83,8 +84,13 @@ const filterMerchantsByDistance = (patientLocation: any, merchants: any, radius:
             merchant.lat,
             merchant.lng
         );
+        // console.log(distance,'DISTANCE TO BEHHHHHHHHHHH___________________')
 
-        return distance <= radius;
+        // return distance <= radius;
+        if(distance <= radius){
+            console.log( distance, merchant,"tRUEEE_____________________________________")
+            return {...merchant, distance}
+        }
     });
     return filteredMerchants;
 };
@@ -154,7 +160,7 @@ export const QueryAllStoreNoId = extendType({
                     const filteredByKlm = filterMerchantsByDistance(patient, result, radius)
 
 
-
+                    console.log(filteredByKlm,'ANO RESLT?')
                     return filteredByKlm
                 } catch (error) {
                     throw new GraphQLError(error)

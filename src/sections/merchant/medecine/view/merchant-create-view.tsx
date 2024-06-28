@@ -28,8 +28,8 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 // components
 import Iconify from 'src/components/iconify';
-import FormProvider, { RHFEditor, RHFTextField, RHFUpload } from 'src/components/hook-form';
-import { Divider } from '@mui/material';
+import FormProvider, { RHFEditor, RHFSelect, RHFTextField, RHFUpload } from 'src/components/hook-form';
+import { Divider, MenuItem } from '@mui/material';
 import { signIn } from 'next-auth/react';
 
 // import MerchantContext from '@/context/workforce/merchant/MerchantContext';
@@ -52,18 +52,18 @@ type Props = {
     id?: NULL | string;
     isLoggedIn?: any;
     setLoggedIn?: any;
-    editRow?:any;
+    editRow?: any;
 
-    isEdit?:boolean
+    isEdit?: boolean
 };
 
 // ----------------------------------------------------------------------
 
-export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
+export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
     const { login, user } = useAuthContext();
     const path = usePathname();
-    const {state, createMerchantMedFunc}:any = UseMerchantMedContext()
-   
+    const { state, createMerchantMedFunc }: any = UseMerchantMedContext()
+
     const [errorMsg, setErrorMsg] = useState('');
 
     const searchParams: any = useSearchParams();
@@ -74,9 +74,9 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
     const openReg = useBoolean();
 
     const password = useBoolean();
-    
- 
-    
+
+
+
 
     const LoginSchema = Yup.object().shape({
         generic_name: Yup.string().required('Password is required'),
@@ -84,39 +84,41 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
         form: Yup.string().required('form is required'),
         price: Yup.string().required('price is required'),
         manufacturer: Yup.string().required('manufacturer is required'),
-        brand_name:Yup.string().required('brand_name is required'),
-        stock:Yup.string().required('stock is required'),
-        description:Yup.string().required('description is required'),
-        attachment: Yup.mixed().required('Attachment is required')
+        brand_name: Yup.string().required('brand_name is required'),
+        stock: Yup.string().required('stock is required'),
+        description: Yup.string().required('description is required'),
+        attachment: Yup.mixed().required('Attachment is required'),
+        type: Yup.string().required('type is required'),
     });
 
-    const defaultValues = useMemo(()=>{
-       return {
-        generic_name:'',
-        dose: '',
-        form: "",
-        price:"",
-        manufacturer:"",
-        brand_name:"",
-        attachment: null,
-        description:"",
-        stock:'',
-        id
-       }
-    },[editRow?.id, editRow])
+    const defaultValues = useMemo(() => {
+        return {
+            generic_name: '',
+            dose: '',
+            form: "",
+            price: "",
+            manufacturer: "",
+            brand_name: "",
+            attachment: null,
+            description: "",
+            stock: '',
+            id,
+            type:""
+        }
+    }, [editRow?.id, editRow])
 
 
 
 
-//     <Stack spacing={1} direction="row" alignItems="center">
+    //     <Stack spacing={1} direction="row" alignItems="center">
 
-//     <RHFTextField name="firstName" label="First Name" />
-//     <RHFTextField name="middleName" label="Middle Name" />
-// </Stack>
-// <Stack spacing={1} direction="row" alignItems="center">
-//     <RHFTextField name="lastName" label="Last Name" />
-//     <RHFTextField name="contact" label="Contact" />
-// </Stack>
+    //     <RHFTextField name="firstName" label="First Name" />
+    //     <RHFTextField name="middleName" label="Middle Name" />
+    // </Stack>
+    // <Stack spacing={1} direction="row" alignItems="center">
+    //     <RHFTextField name="lastName" label="Last Name" />
+    //     <RHFTextField name="contact" label="Contact" />
+    // </Stack>
 
 
     const methods = useForm<FormValuesProps>({
@@ -134,7 +136,7 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
 
     const values = watch()
 
-    useEffect(()=>{
+    useEffect(() => {
         // if(editRow?.id){
         //     setValue('email', editRow?.email)
         //     setValue('firstName', editRow?.first_name)
@@ -146,7 +148,7 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
         //     reset()
         // }
         // setValue('contact', editRow?.contact)
-    },[editRow?.id, editRow])
+    }, [editRow?.id, editRow])
 
     // useEffect(() => {
     //   if (user) {
@@ -156,7 +158,7 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
 
     //  console.log(user, 'HAAAAAAAAAAAAAAAAAAAAAAAAAAAA?');
 
-    const removeTags = (val:string) => {
+    const removeTags = (val: string) => {
         const cleanedDescription = val.replace(/<[^>]+>/g, '');
         return cleanedDescription;
     }
@@ -166,8 +168,9 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
                 const file = data?.attachment;
                 delete data.attachment;
                 data.description = removeTags(data.description)
-                data = {...data, store_id: Number(data.id), stock:Number(data.stock)}
+                data = { ...data, price:parseFloat(data.price),store_id: Number(data.id), stock: Number(data.stock) }
                 delete data.id;
+                
 
                 await createMerchantMedFunc(data, file)
                 // delete data.repassword
@@ -216,34 +219,34 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
 
     const handleRemoveAllFiles = useCallback(() => {
         setValue('attachment', null)
-      }, [setValue]);
+    }, [setValue]);
 
     const handleRemoveFile = useCallback(
         (inputFile: File | string) => {
-          const filtered =
-            values.attachment && values.attachment?.filter((file: any) => file !== inputFile);
-          setValue('attachment', filtered);
+            const filtered =
+                values.attachment && values.attachment?.filter((file: any) => file !== inputFile);
+            setValue('attachment', filtered);
         },
         [setValue, values.attachment]
-      );
+    );
 
     const handleDrop = useCallback(
         (acceptedFiles: File[]) => {
-          const files = values.attachment || null;
+            const files = values.attachment || null;
 
 
-        const newFiles = Object.assign(acceptedFiles[0],{
-            preview:URL.createObjectURL(acceptedFiles[0])
-        })
+            const newFiles = Object.assign(acceptedFiles[0], {
+                preview: URL.createObjectURL(acceptedFiles[0])
+            })
 
-        console.log(newFiles,'NEWFILES________')
+            console.log(newFiles, 'NEWFILES________')
 
-        
-    
-          setValue('attachment', newFiles, { shouldValidate: true });
+
+
+            setValue('attachment', newFiles, { shouldValidate: true });
         },
         [setValue, values.attachment]
-      );
+    );
 
     const renderLoginOption = (
         <div>
@@ -271,7 +274,19 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
     const renderForm = (
         <Stack spacing={2.5} sx={{ mt: 1 }}>
             {!!errorMsg && <Alert severity="error">{errorMsg}</Alert>}
-            <RHFTextField name="generic_name" label="Generic Name" />
+            <Stack spacing={1} direction="row" alignItems="center">
+                <RHFTextField name="generic_name" label="Generic Name" />
+                <RHFSelect name="type" label="Type">
+                   
+                        <MenuItem value="branded">
+                            Branded
+                        </MenuItem>
+                        <MenuItem value="generic">
+                            Generic
+                        </MenuItem>
+                 
+                </RHFSelect>
+            </Stack>
             <Stack spacing={1} direction="row" alignItems="center">
 
                 <RHFTextField name="dose" label="Dose" />
@@ -282,28 +297,28 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
                 <RHFTextField name="manufacturer" label="Manufacturer" />
             </Stack>
             <Stack direction="row" alignItems="center">
-             <RHFTextField name="brand_name" label="Brand Name" />
-             <RHFTextField name="stock" label="Stocks" type="number" />
+                <RHFTextField name="brand_name" label="Brand Name" />
+                <RHFTextField name="stock" label="Stocks" type="number" />
             </Stack>
             <Stack direction="row" alignItems="center">
-                <RHFEditor placeholder='Tell something about the medecine...' name="description"/>
-                
+                <RHFEditor placeholder='Tell something about the medecine...' name="description" />
+
             </Stack>
             <Stack>
-            <RHFUpload
-            //   multiple
-              thumbnail
-            //   accept={{ 'application/pdf': [], 'image/png': [], 'image/jpg': [], 'image/jpeg': [] }}  // only pdf & img
-              name="attachment"
-              maxSize={3145728}
-              onDrop={handleDrop}
-              onRemove={handleRemoveFile}
-              onRemoveAll={handleRemoveAllFiles}
-            />
+                <RHFUpload
+                    //   multiple
+                    thumbnail
+                    //   accept={{ 'application/pdf': [], 'image/png': [], 'image/jpg': [], 'image/jpeg': [] }}  // only pdf & img
+                    name="attachment"
+                    maxSize={3145728}
+                    onDrop={handleDrop}
+                    onRemove={handleRemoveFile}
+                    onRemoveAll={handleRemoveAllFiles}
+                />
             </Stack>
 
 
-         
+
 
             <LoadingButton
                 fullWidth
@@ -320,7 +335,7 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
         </Stack>
     );
 
-  
+
     return (
         <>
             <Dialog
@@ -333,7 +348,7 @@ export default function MerchantCreateView({editRow, isEdit, setLoggedIn, isLogg
                 }}
             >
                 {/* {renderHead} */}
-                <DialogTitle>{editRow? "Update":"Create"} New Medecine</DialogTitle>
+                <DialogTitle>{editRow ? "Update" : "Create"} New Medecine</DialogTitle>
 
                 <DialogContent sx={{ pb: 3 }}>
                     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>

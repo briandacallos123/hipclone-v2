@@ -9,6 +9,7 @@ export const QueryAllMerchantMedicine = gql`
         brand_name
         dose
         form
+        stock
         price
         manufacturer
         attachment_info {

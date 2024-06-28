@@ -61,6 +61,7 @@ export const QueryAllStoreNoId = gql`
     QueryAllStoreNoId(data: $data) {
       address
       days
+      distance
       description
       id
       attachment_store {

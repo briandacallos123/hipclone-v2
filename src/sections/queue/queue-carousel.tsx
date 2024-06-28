@@ -29,7 +29,7 @@ import Carousel, { CarouselArrows, useCarousel } from 'src/components/carousel';
 import PatientCarouselSearch from '../patient/patient-carousel-search';
 import PatientListPopover from '../patient/patient-list-popover';
 import { Typography } from '@mui/material';
-
+import { bgGradient } from 'src/theme/css';
 // ----------------------------------------------------------------------
 
 const IconButtonStyle = styled(IconButton)(({ theme }) => ({
@@ -95,7 +95,7 @@ export default function QueueCarousel({ data, loading }: Props) {
 
 
   const carousel = useCarousel({
-    slidesToShow: data?.length > 4 ? 4 : data?.length,
+    slidesToShow: data?.length > 3 ? 3 : data?.length,
     slidesToScroll: 1,
     rtl: Boolean(theme.direction === 'rtl'),
     initialSlide: currentIndex,
@@ -137,8 +137,15 @@ export default function QueueCarousel({ data, loading }: Props) {
   return (
     <Box
       sx={{
+        ...bgGradient({
+          
+        }),
+        background: 'url(/assets/background/banner-bg.png)',
+        backgroundSize: 'cover',
         overflow: 'hidden',
         position: 'relative',
+        p:2,
+        borderRadius:2
       }}
     >
       <Stack flexGrow={1} direction="row" alignItems="center" spacing={1.5} sx={{ mb: { md: 2 } }}>
@@ -150,7 +157,7 @@ export default function QueueCarousel({ data, loading }: Props) {
         >
           Return to List
         </Button> */}
-        <Typography variant="h5" color="gray">Other clinic you have a schedule</Typography>
+        <Typography variant="h5" color="white">List of other clinic that you're also scheduled</Typography>
 
         {/* {upMd && <PatientCarouselSearch item={data} />} */}
 
@@ -252,7 +259,7 @@ function CarouselItem({ isActive, item, sx }: CarouselItemProps) {
     <PaperStyle
       isActive={isActive}
       onClick={() => handleNavigate(item?.voucherId)}
-      sx={{ ...sx }}
+      sx={{ ...sx, }}
     >
       {item?.patientInfo?.userInfo?.display_picture[0] ? (
         <Avatar

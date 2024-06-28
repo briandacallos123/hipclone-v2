@@ -16,7 +16,7 @@ const DataListItem = ({ item }: DataListItemProps) => {
 
     const { id, attachment_info, price,stock, generic_name, description, address, rating, product_types } = item;
 
-    console.log(item,'??????????????')
+
     const isRow = false
 
     const handleMinus = useCallback(() => {

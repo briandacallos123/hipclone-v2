@@ -13,6 +13,7 @@ export const medicineType = objectType({
         t.string('generic_name');
         t.string('brand_name');
         t.string('dose');
+        t.int('stock');
         t.string('form');
         t.float('price');
         t.string('manufacturer');
@@ -51,9 +52,13 @@ export const medicineInputType = inputObjectType({
     definition(t) {
         t.nullable.int('take');
         t.nullable.int('skip');
-        t.nullable.int('search');
+        t.nullable.string('search');
         t.nullable.int('store_id')
-        //   t.nullable.int('status');
+        t.nullable.string('userType');
+        t.nullable.string('type');
+        t.nullable.int('startPrice');
+        t.nullable.int('endPrice');
+
     },
 });
 
@@ -67,17 +72,22 @@ export const QueryAllMerchantMedicine = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
-                const {take, skip}:any = args?.data;
+                const {take, skip,type,startPrice, endPrice, userType, store_id, search}:any = args?.data;
+
+                let merchantUser:any;
+                let list_store:any;
 
                 try {
-                    const merchantUser = await client.merchant_user.findUnique({
-                       
+
+                  if(!userType){
+
+                    merchantUser = await client.merchant_user.findUnique({
                         where:{
                             id:Number(session?.user?.id)
                         }
                     })
 
-                    const list_store = await client.merchant_store.findMany({
+                    list_store = await client.merchant_store.findMany({
                         where:{
                             merchant_id:Number(merchantUser?.id),
                             is_deleted:0
@@ -86,7 +96,48 @@ export const QueryAllMerchantMedicine = extendType({
                             id:true
                         }
                     })
+                  }
 
+                  const storeCondition = () => {
+                    if(!userType){
+                        return {
+                            store_id:{
+                                in:list_store?.map((item:any)=>item?.id)
+                            },
+                        }
+                    }else{
+                        {
+                            store_id
+                        }
+                    }
+                    if(type){
+                        return {
+                            type
+                        }
+                    }
+                    if(startPrice && endPrice){
+                        return {
+                            price:{
+                                gte:startPrice,
+                                lte:endPrice
+                            }
+                        }
+                    }else if(startPrice){
+                        return {
+                            price:{
+                                gte:startPrice
+                            }
+                        }
+                    }else if(endPrice){
+                        return {
+                            price:{
+                                lte:endPrice
+                            }
+                        }
+                    }
+                  }
+
+                  const storeCon = storeCondition()
                     
                     const [result, totalRecords]:any = await client.$transaction([
                         client.merchant_medicine.findMany({
@@ -94,9 +145,11 @@ export const QueryAllMerchantMedicine = extendType({
                             skip,
                             where: {
                                 is_deleted: 0,
-                                store_id:{
-                                    in:list_store?.map((item:any)=>item?.id)
-                                },
+                                ...storeCon,
+                                generic_name:{
+                                    contains:search
+                                }
+
                             },
                             include:{
                                 merchant_store:true
@@ -227,12 +280,13 @@ export const CreateMedicineInputs = inputObjectType({
         t.string('generic_name');
         t.string('dose');
         t.string('form');
-        t.string('price');
+        t.float('price');
         t.string('manufacturer');
         t.string('brand_name');
         t.int('stock')
         t.string('description');
         t.int('store_id')
+        t.string('type')
     },
 })
 
@@ -254,7 +308,7 @@ export const CreateMerchantMedicine = extendType({
 
                 const sFile = await args?.file;
 
-                const { generic_name,stock, description,store_id, brand_name, dose, form, price, manufacturer }: any = args.data
+                const { generic_name,stock, type,description,store_id, brand_name, dose, form, price, manufacturer }: any = args.data
 
                 try {
                     let med:any;
@@ -281,7 +335,8 @@ export const CreateMerchantMedicine = extendType({
                             brand_name,
                             stock,
                             description,
-                            price: 2.5,
+                            type,
+                            price,
                             attachment_id: Number(med?.id),
                             store_id:Number(store_id),
                             

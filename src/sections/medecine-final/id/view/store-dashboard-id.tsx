@@ -1,11 +1,24 @@
 "use client"
 
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import MedecineStoreHeader from '../../view/medecine-store-header'
 import StoreDashboardBreadcramps from './store-dashboard-breadcramps'
 import StoreDataList from './store-data-list'
 import { Grid } from '@mui/material'
 import SidebarFitering from '../sidebar-filtering'
+import { useLazyQuery } from '@apollo/client'
+import { QueryAllMerchantMedicine } from '@/libs/gqls/merchantUser'
+import {
+    useTable,
+    getComparator,
+    emptyRows,
+    TableNoData,
+    TableEmptyRows,
+    TableHeadCustom,
+    TableSelectedAction,
+    TablePaginationCustom,
+  } from 'src/components/table';
+import { useRouter } from 'next/navigation'
 
 type StoreDashboardIdProps = {
     data: []
@@ -21,41 +34,81 @@ const typeOptions = [
         label: "Generic",
         value: "Generic"
     },
-   
+
 ]
 
 const defaultFilters = {
-    name:'',
+    name: '',
     status: -1,
-    type:'',
+    type: '',
     startDate: null,
     endDate: null,
-    distance:1
+    startingPrice:null,
+    endPrice:null,
 };
 
 
 
-const StoreDashboardId = ({ data }: StoreDashboardIdProps) => {
+const StoreDashboardId = ({data, id}:any) => {
     const { attachment_store, name, product_types, start_time, end_time, rating, address, medecine_list }: any = data;
 
     const [filters, setFilters]: any = useState(defaultFilters);
-    console.log(filters,'FILTERSSSS')
+    const [take, setTake] = useState(10);
+    const [skip, setSkip] = useState(0);
+    const [tableData, setTableData] = useState([]);
+    const [totalRecords, setTotalRecords] = useState(0);
+
+    // console.log(tableData, totalRecords,'HAaaaaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaAAAAAAAAAAAAAAA')
+
+    const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
+
+    const [getMedecines, getMedecinesResult] = useLazyQuery(QueryAllMerchantMedicine, {
+        context: {
+            requestTrackerId: 'medecines[getMedecinesResult]',
+        },
+        notifyOnNetworkStatusChange: true,
+    });
+
+    useEffect(() => {
+        getMedecines({
+            variables: {
+                data: {
+                    skip,
+                    take,
+                    search:filters.name,
+                    store_id:Number(id),
+                    userType:"patient",
+                    type:filters.type.toLowerCase(),
+                    startPrice:Number(filters.startingPrice),
+                    endPrice:Number(filters.endPrice)
+                }
+            }
+        }).then((res: any) => {
+            const { data } = res;
+            if (data) {
+                const {QueryAllMerchantMedicine} = data;
+                setTableData(QueryAllMerchantMedicine?.MedicineType)
+                setTotalRecords(QueryAllMerchantMedicine?.totalRecords)
+            }
+        })
+    }, [table.page, table.rowsPerPage,filters.name, filters.type, filters.startingPrice, filters.endPrice])
+
 
     const handleFilters = useCallback(
         (name: string, value: any) => {
-            setFilters((prevState: any) =>{
-                
+            setFilters((prevState: any) => {
+
                 return {
                     ...prevState,
                     [name]: value,
                 }
             });
         },
-        // [table]
         []
     );
 
-    
+
+
     return (
         <div>
             <StoreDashboardBreadcramps storeName={name} address={address} />
@@ -69,10 +122,10 @@ const StoreDashboardId = ({ data }: StoreDashboardIdProps) => {
             />
             <Grid container gap={1}>
                 <Grid item xs={12} lg={10}>
-                    <StoreDataList data={data}/>
+                    <StoreDataList loading={getMedecinesResult.loading} data={tableData} />
                 </Grid>
                 <Grid item xs={12} lg={1}>
-                    <SidebarFitering typeOptions={typeOptions} onFilters={handleFilters} filters={filters}/>
+                    <SidebarFitering typeOptions={typeOptions} onFilters={handleFilters} filters={filters} />
                 </Grid>
             </Grid>
 
