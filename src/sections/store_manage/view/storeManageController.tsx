@@ -28,6 +28,7 @@ const StoreManageController = (
     ignoreRefetch: true,
   }
 ) => {
+  
   const [tableData, setTableData] = useState([])
   const [manualRefetch, setManualRefetch] = useState(0)
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();

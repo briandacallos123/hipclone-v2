@@ -151,6 +151,7 @@ export const queue_data = objectType({
     t.int('position');
     t.boolean('is_not_today')
     t.boolean('is_done')
+    t.int('notApproved')
   },
 })
 
@@ -200,6 +201,32 @@ export const QueuePatient = extendType({
             id:Number(appt?.clinic)
           }
         })
+
+        const notApproved = await  client.appointments.findFirst({
+          where:{
+            isDeleted:0,
+            status:{
+              not:1
+            },
+            voucherId:voucherCode,
+            clinicInfo: {
+              uuid:clinicInfo?.uuid,
+              isDeleted: 0,
+              NOT: [{ clinic_name: null }, { clinic_name: '' }],
+            },
+            date: {
+              gte: formattedDateAsDate,
+              lte: currentDateBackward,
+            },
+            
+          },
+          select:{
+            status:true
+          }
+        })
+
+
+
 
         const isDoneAppt = await  client.appointments.findMany({
           where:{
@@ -329,7 +356,14 @@ export const QueuePatient = extendType({
           appointments_data: resultFirst?.length ? resultFirst : result,
           position:patientPos !== -1 ? patientPos : (resultFirst && 1),
           is_not_today:haveSchedButNotToday(),
-          is_done:isDoneAppt?.length !== 0
+          is_done:isDoneAppt?.length !== 0,
+          notApproved:(()=>{
+            if(Number(notApproved?.status) === 0){
+              return 4
+            }else{
+              return notApproved?.status
+            }
+          })()
         }
        }catch(err){
         console.log(err,'__ERORR')

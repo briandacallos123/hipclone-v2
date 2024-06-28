@@ -34,7 +34,7 @@ import { useMutation } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import bcrypt from 'bcryptjs';
 /* import Password from 'node-php-password'; */
-import { Divider } from '@mui/material';
+import { Box, Button, DialogActions, DialogContentText, Divider } from '@mui/material';
 import { signIn } from 'next-auth/react';
 
 // ----------------------------------------------------------------------
@@ -161,6 +161,8 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
   //     />
   //   </DialogTitle>
   // );
+  const successModal = useBoolean();
+  const privacyModal = useBoolean();
 
   const renderTerms = (
     <Typography
@@ -168,16 +170,17 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
       sx={{ color: 'text.secondary', mt: 2.5, typography: 'caption', textAlign: 'center' }}
     >
       {'By signing up, I agree to '}
-      <Link underline="always" color="text.primary" sx={{ cursor: 'pointer' }}>
+      <Button  onClick={()=>successModal.onTrue()}   sx={{ cursor: 'pointer' }}>
         Terms of Service
-      </Link>
+      </Button>
       {' and '}
-      <Link underline="always" color="text.primary" sx={{ cursor: 'pointer' }}>
+      <Button onClick={()=>privacyModal.onTrue()} sx={{ cursor: 'pointer' }}>
         Privacy Policy
-      </Link>
+      </Button>
       .
     </Typography>
   );
+
 
   const renderLoginOption = (
     <div>
@@ -284,7 +287,75 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         {renderForm}
 
         {renderTerms}
+        <TermsDialog open={successModal.value} handleClose={successModal.onFalse}/>
+        
+        <PrivacyDialog open={privacyModal.value} handleClose={privacyModal.onFalse}/>
       </DialogContent>
     </Dialog>
   );
+}
+
+type TermsDialogProps = {
+  open:boolean;
+  handleClose:()=>void;
+}
+
+const TermsDialog = ({open, handleClose}:TermsDialogProps) => {
+  return (
+    <Box>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {" Terms of service"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" color="success" onClick={handleClose} autoFocus>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
+}
+
+type PrivacyDialogProps = {
+  open:boolean;
+  handleClose:()=>void;
+}
+
+
+const PrivacyDialog = ({open, handleClose}:PrivacyDialogProps) => {
+  return (
+    <Box>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          Privacy Policy
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+          Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s,
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" color="success" onClick={handleClose} autoFocus>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
 }

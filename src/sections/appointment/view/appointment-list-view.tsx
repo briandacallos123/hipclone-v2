@@ -67,6 +67,7 @@ import AppointmentTableFiltersResult from '../appointment-table-filters-result';
 import AppointmentDetailsView from './appointment-details-view';
 import { YMD } from 'src/utils/format-time';
 import { useSearch } from '@/auth/context/Search';
+import { Box, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -448,6 +449,16 @@ export default function AppointmentListView() {
 
   },[])
 
+  const successModal = useBoolean();
+
+  useEffect(()=>{
+    const successBooking = sessionStorage.getItem('successBooking');
+    if(successBooking){
+      successModal.onTrue()
+      sessionStorage.removeItem('successBooking')
+    }
+  },[])
+
  
 
   return (
@@ -724,6 +735,8 @@ export default function AppointmentListView() {
           </Button>
         }
       />
+       <SuccessDialog open={successModal.value} handleClose={successModal.onFalse}/>
+
 
       <ConfirmDialog
         open={confirmCancel.value}
@@ -788,4 +801,38 @@ function applyFilter({
   if (!inputData) return [];
 
   return inputData;
+}
+
+
+type SuccessDialogProps = {
+  open:boolean;
+  handleClose:()=>void;
+}
+
+
+const SuccessDialog = ({open, handleClose}:SuccessDialogProps) => {
+  return (
+    <Box>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Created appointment successfully!"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Please wait for your doctor's confirmation, see you.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button variant="contained" color="success" onClick={handleClose} autoFocus>
+            Agree
+          </Button>
+        </DialogActions>
+      </Dialog>
+    </Box>
+  )
 }

@@ -13,7 +13,7 @@ import { useAuthContext } from '@/auth/hooks'
 import QueueCarousel from '@/sections/queue/queue-carousel'
 
 const page = () => {
-  const { data, notToday, targetItem, clinicData,isDoneAppt, clinicLoading, QueryQueue, dataResults, loading, position, remainingP, newPosition, refetch } = QueueController()
+  const { data, notToday, targetItem, clinicData, notApprovedVal, isDoneAppt, clinicLoading, QueryQueue, dataResults, loading, position, remainingP, newPosition, refetch } = QueueController()
   const { id } = useParams();
   const { socket } = useAuthContext()
 
@@ -114,8 +114,8 @@ const page = () => {
           <Stack gap={3}>
 
           
-            <Queue isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
-            {clinicData?.length !== 0 && <QueueCarousel loading={clinicLoading} data={clinicData} />}
+            <Queue notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
+            {clinicData?.length !== 0 && !isDoneAppt && <QueueCarousel loading={clinicLoading} data={clinicData} />}
           </Stack>
         </Box>
 

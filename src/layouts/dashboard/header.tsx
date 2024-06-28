@@ -108,7 +108,7 @@ export default function Header({ onOpenNav }: Props) {
       >
         {/* comment temporarily */}
         
-        <QueuePopover/>
+        {user?.role === 'patient' && <QueuePopover/>}
         {/* {user?.role !== 'patient' && <Scanner/>} */}
         {user?.role === 'patient' && cart?.length !== 0 &&  <HeaderCart cart={cart} count={cart?.length}/>}
         {user?.role === 'patient' && ordersCart?.order &&  <HeaderOrders order={ordersCart?.order} />}

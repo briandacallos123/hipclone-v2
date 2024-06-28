@@ -183,7 +183,7 @@ export default function PrescriptionDetailsView({
 
           <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
             <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-              <PrescriptionPDF item={currentItem} />
+              <PrescriptionPDF qrImage={qrImage} item={currentItem} />
             </PDFViewer>
           </Box>
         </Box>

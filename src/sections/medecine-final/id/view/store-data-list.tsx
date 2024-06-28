@@ -41,6 +41,7 @@ const StoreDataList = ({ data }: any) => {
     return (
         <Box sx={{
             mt: 3,
+          
         }}><Table>
                 <TableNoData notFound={notFound} />
             </Table>

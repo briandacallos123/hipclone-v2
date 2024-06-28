@@ -85,6 +85,12 @@ export default function AppointmentDetailsCover({
         xs: 'repeat(1, 1fr)',
         sm: 'repeat(2, 1fr)',
       }}
+      sx={{
+        position:"sticky",
+        // top:10,
+        top:3,
+        zIndex:100
+      }}
     >
       <Card
         component={Stack}
@@ -97,6 +103,7 @@ export default function AppointmentDetailsCover({
           backgroundSize: 'cover',
           height: 1,
           color: 'common.white',
+         
         }}
       >
         {currentItem?.patientInfo?.userInfo?.[0]?.display_picture?.[0] ? (

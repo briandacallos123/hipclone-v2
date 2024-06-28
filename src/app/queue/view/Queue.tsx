@@ -18,10 +18,13 @@ type QueueProps = {
     dataToday?:any;
     isDoneAppt?:any
     targetItem?:any
+    notApprovedVal?:any;
 }
 
-const Queue = ({data, isDoneAppt,targetItem, dataToday, loading, position, remainingP, newPosition}:QueueProps) => {
-console.log(targetItem,'TARGETTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+const Queue = ({data,notApprovedVal, isDoneAppt,targetItem, dataToday, loading, position, remainingP, newPosition}:QueueProps) => {
+
+    console.log(notApprovedVal,'?????????????????????')
+
     const {id} = useParams();
     const activePatient = data[0];
     const navigate = useRouter();
@@ -66,6 +69,61 @@ console.log(targetItem,'TARGETTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
             </Box>
         )
     },[targetItem])
+
+    const notApprovedMessage = () => {
+        let message:any;
+        switch(notApprovedVal){
+            case 4:
+                message = "Please wait for your doctor's approval";
+                break;
+            case 2:
+                message = "Sorry your appointment was cancelled by your doctor";
+                break;
+            default:
+                message = "Sorry your appointment was already done";
+               
+        }
+        return message;
+
+    }
+
+    const RenderNotApproved = useCallback(() => {
+        return (
+            <Box sx={{
+                height:500,
+                width: '100%',
+                borderRadius: '10px',
+                boxShadow: '5px 5px 30px #d3cec8',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                // bgcolor:'red'
+            }}>
+
+                <Box sx={{
+
+                    display:'flex',
+                    flexDirection:'column',
+                    alignItems:"center",
+                    justifyContent:"center",
+                    mb:5
+                }}>
+                 <Typography variant="h6">{notApprovedMessage()}</Typography>
+               
+                   {/* <Typography variant="h5">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography> */}
+                  
+                    
+                </Box>
+                <Box>
+                <Button component={RouterLink} href="/" size="large" variant="contained">
+          Go to Home
+        </Button>
+                </Box>
+                
+            </Box>
+        )
+    },[notApprovedVal])
 
     const RenderNotToday = useCallback(() => {
         return (
@@ -143,6 +201,10 @@ console.log(targetItem,'TARGETTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
                 </Stack>
             </Box>
         )
+    }
+
+    if(notApprovedVal){
+        return <RenderNotApproved/>
     }
 
     if(isDoneAppt){

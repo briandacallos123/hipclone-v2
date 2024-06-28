@@ -600,11 +600,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
         }}
         queryData={queryData}
         SubmitClient={SubmitClient}
-        // setIsRefetch={(d) => {
-        //   closeSnackbar(snackKey);
-
-        //   setTempData(d);
-        // }}
+      
         refetch={refetch}
         runCatch={() => {
           setIsFail(true);

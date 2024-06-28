@@ -99,6 +99,7 @@ const useStyles = () =>
 
 type Props = {
   item?: any;
+  qrImage?:any
 };
 
 const calculateColumns = (length) => {
@@ -112,7 +113,7 @@ const calculateColumns = (length) => {
 };
 
 
-export default function PrescriptionPDF({ item }: Props) {
+export default function PrescriptionPDF({ item, qrImage }: Props) {
   const { clinicInfo, patient, prescriptions_child } = item;
 
   // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
@@ -252,6 +253,7 @@ export default function PrescriptionPDF({ item }: Props) {
                 )}
               </View>
             ))}
+       
           </View>
         </View>
 
@@ -263,6 +265,9 @@ export default function PrescriptionPDF({ item }: Props) {
               borderBottomWidth: 1,
               borderStyle: 'solid',
               borderColor: '#DFE3E8',
+              display:'flex',
+              alignItems:'center',
+              paddingRight:2
             },
           ]}
         >
@@ -271,6 +276,9 @@ export default function PrescriptionPDF({ item }: Props) {
           </View>
           <View style={styles.col6}>
             <Text style={styles.h4}>Date: {fDate(date)} </Text>
+          </View>
+          <View>
+          <Image source={qrImage}   style={{ height: 70, width: 70}}/>
           </View>
         </View>
 

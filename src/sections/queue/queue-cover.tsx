@@ -16,6 +16,7 @@ import { Skeleton } from '@mui/material';
 export default function QueueCover({ name, address, avatarUrl, coverUrl, isLoading }: any) {
   const theme = useTheme();
 
+
   return (
     <Card sx={{ height: { xs: 140, md: 180 } }}>
       <Box
@@ -57,7 +58,7 @@ export default function QueueCover({ name, address, avatarUrl, coverUrl, isLoadi
               <Skeleton sx={{ width: 500, height: 12 }} />
             </Stack>
           ) : (
-            <ListItemText
+            name && <ListItemText
               sx={{
                 mt: { md: 4 },
                 ml: { xs: 1.5, md: 3 },

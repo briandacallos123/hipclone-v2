@@ -19,6 +19,7 @@ const QueueController = () => {
   const { id } = useParams();
   const [clinicData, setClinicData] = useState([])
   const [targetItem, setTargetItem] = useState(null)
+  const [notApprovedVal, setNotApprovedVal] = useState(null)
 
   const navigate = useRouter();
 
@@ -84,6 +85,10 @@ const QueueController = () => {
           newQData.push(qData[0]);
           newQData.push(qData[pos]);
           remainingP = qData?.length - 2;
+        }
+
+        if(queryData?.QueuePatient?.notApproved){
+          setNotApprovedVal(queryData?.QueuePatient?.notApproved)
         }
 
         if(queryData?.QueuePatient?.is_not_today){
@@ -208,7 +213,7 @@ const QueueController = () => {
   }, [])
 
 
-  return { QueryQueue,isDoneAppt, targetItem, data,clinicData, clinicLoading, dataResults, refetch, loading, position, remainingP, newPosition, notToday }
+  return { QueryQueue,isDoneAppt, targetItem, notApprovedVal, data,clinicData, clinicLoading, dataResults, refetch, loading, position, remainingP, newPosition, notToday }
 }
 
 export default QueueController

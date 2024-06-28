@@ -39,7 +39,7 @@ import EmptyContent from '@/components/empty-content/empty-content';
 import { useTheme } from '@mui/material/styles';
 import AppointmentNewOthers from './appointment-new-others';
 import AppointmentNewScheduleCard from './appointment-new-schedule-card';
-import { Button } from '@mui/material';
+import { Button, Dialog, DialogActions, DialogContent, DialogContentText, DialogTitle } from '@mui/material';
 import ConsentDialog from '@/components/custom-dialog/conscentDialog';
 import { useAuthContext } from '@/auth/hooks';
 
@@ -70,7 +70,7 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
   const theme = useTheme();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { setTriggerRef, triggerRef }: any = useSearch();
-  const {socket} = useAuthContext()
+  const { socket } = useAuthContext()
   const [typeOptions, setTypeOptions] = useState<TypeOptionValue[]>();
   const [tempValue, setTempValue] = useState<any>([]);
   const [tempDays, setTempDays] = useState<any>([]);
@@ -80,7 +80,7 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
   const [timeDuration, setDuration] = useState<any>([]);
 
   const [timeOptions, setTimeOptions] = useState<any>([]);
-    const [mergeOptions, setMergeOptions] = useState<any>([]);
+  const [mergeOptions, setMergeOptions] = useState<any>([]);
   const [renderTime, setRenderTime] = useState<TimeOptionValue[]>();
   // const [newTimeSlots, setTimeslots] = useState<any>([]);
   // console.log('ffssgg: ', timeS)
@@ -94,24 +94,24 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
     hmo: Yup.object().when(['useHmo'], (useHmo, schema) => {
       return useHmo
         ? schema.shape({
-            name: Yup.string().required('HMO Name is required'),
-            mid: Yup.string().required('HMO MID is required'),
-          })
+          name: Yup.string().required('HMO Name is required'),
+          mid: Yup.string().required('HMO MID is required'),
+        })
         : schema.shape({
-            name: Yup.string().default(''),
-            mid: Yup.string().default(''),
-          });
+          name: Yup.string().default(''),
+          mid: Yup.string().default(''),
+        });
     }),
     attachment: Yup.array().when(['useHmo'], (useHmo, schema) => {
       return useHmo
         ? schema.required('At least one attachment is required when using HMO').test(
-            'is-array',
-            'At least one attachment is required when using HMO',
-            // eslint-disable-next-line prefer-arrow-callback
-            function (value) {
-              return Array.isArray(value) && value.length > 0;
-            }
-          )
+          'is-array',
+          'At least one attachment is required when using HMO',
+          // eslint-disable-next-line prefer-arrow-callback
+          function (value) {
+            return Array.isArray(value) && value.length > 0;
+          }
+        )
         : schema;
     }),
   };
@@ -158,7 +158,7 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
       attachment: [],
       agreement: false,
       typeAgree: null,
-      end_time:null
+      end_time: null
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -187,7 +187,7 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
     } else setRequireHmo(false);
   }, [getValues('useHmo')]);
 
-  // console.log(values);
+
 
   const [bookAppt] = useMutation(BOOK_POST);
   const confirm = useBoolean();
@@ -215,22 +215,22 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
         },
       })
         .then(async (res) => {
-          socket.emit('send notification',{
-            recepient:Number(currentItem?.EMP_ID),
-            notification_type:1
+          socket.emit('send notification', {
+            recepient: Number(currentItem?.EMP_ID),
+            notification_type: 1
           })
-          socket.emit('updateAppointment',{
-            recepient:Number(currentItem?.EMP_ID),
-            notification_type:1
+          socket.emit('updateAppointment', {
+            recepient: Number(currentItem?.EMP_ID),
+            notification_type: 1
           })
-          
+
+          sessionStorage.setItem('successBooking','true');
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar('Create success!');
           reset();
           setTriggerRef(true);
 
-          
+
         })
         .catch((error) => {
           closeSnackbar(snackKey);
@@ -394,55 +394,55 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
       let currentTime = startTimes[i];
       const endTime = endTimes[i];
       const currentInterval = intervalMinutes[i];
-      
 
-      
+
+
 
       // let isUnli = currentInterval === "unlimited";
 
       console.log(currentTime)
-    
-        if(typeof currentInterval === 'string' && currentInterval  === 'unlimited'){
+
+      if (typeof currentInterval === 'string' && currentInterval === 'unlimited') {
+        const currentTimeString = currentTime.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        const currentTimeStringEnd = endTime.toLocaleTimeString([], {
+          hour: '2-digit',
+          minute: '2-digit',
+        });
+
+        // console.log(currentTimeStringEnd.toString(),'___________________!_!_!_!_!_!_!!!!!!!!!!!!!!!!!!!!!!!!_____________')
+
+
+
+        const concatTime = `${currentTimeString} - ${currentTimeStringEnd}`;
+
+
+        timesWithinInterval.push(concatTime);
+
+        currentTime.setTime(currentTime.getTime() * 60 * 1000);
+      }
+
+      else {
+        while (currentTime <= endTime) {
           const currentTimeString = currentTime.toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
           });
 
-          const currentTimeStringEnd = endTime.toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          });
-
-          // console.log(currentTimeStringEnd.toString(),'___________________!_!_!_!_!_!_!!!!!!!!!!!!!!!!!!!!!!!!_____________')
-
-         
-
-          const concatTime = `${currentTimeString} - ${currentTimeStringEnd}`;
 
 
-              timesWithinInterval.push(concatTime);
+          timesWithinInterval.push(currentTimeString);
 
-          currentTime.setTime(currentTime.getTime()  * 60 * 1000);
+          currentTime.setTime(currentTime.getTime() + currentInterval * 60 * 1000);
+
         }
 
-        else{
-          while (currentTime <= endTime) {
-            const currentTimeString = currentTime.toLocaleTimeString([], {
-              hour: '2-digit',
-              minute: '2-digit',
-            });
-          
-    
-    
-            timesWithinInterval.push(currentTimeString);
-    
-           currentTime.setTime(currentTime.getTime() + currentInterval * 60 * 1000);
-           
-          }
-        
-        }
+      }
 
-     
+
     }
 
     const filteredTimes = timesWithinInterval.filter((time) => !takenTimes?.includes(time));
@@ -515,7 +515,7 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
 
   useEffect(() => {
     if (renderTime) {
-      const timeData = resultTime?.filter((item:any)=>!item?.includes('-'));
+      const timeData = resultTime?.filter((item: any) => !item?.includes('-'));
 
       setTimeOptions(
         [...Array(timeData.length)].map((item, index) => ({
@@ -523,12 +523,12 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
           value: timeData[index],
         }))
       );
-      
-      const timeDataMerge:any = resultTime?.filter((item:any)=>item?.includes('-'));
 
-      if(timeDataMerge?.length){
+      const timeDataMerge: any = resultTime?.filter((item: any) => item?.includes('-'));
+
+      if (timeDataMerge?.length) {
         const endDatez = timeDataMerge[0].split('-')[1]
-      
+
 
         const timeValue = endDatez // Your time value
         const date = new Date(); // Get current date
@@ -541,10 +541,10 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
         const formattedDate = date.toString(); // Get the string representation of the date
         const formattedDate22 = date // Get the string representation of the date
 
-        console.log(formattedDate,'_____________formated_____');
-        console.log(formattedDate22,'_____________formated2_____');
+        console.log(formattedDate, '_____________formated_____');
+        console.log(formattedDate22, '_____________formated2_____');
         // console.log(String(convertDates(formattedDate)),'_____________>???');
-        setValue('end_time',formattedDate22);
+        setValue('end_time', formattedDate22);
       }
       // }
 
@@ -711,10 +711,10 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
                       );
                       setTempEndTime(eTimeList);
 
-                         setDuration(item?.ClinicSchedInfo.map((g: any) => {
-                        if(g.time_interval === '0'){
+                      setDuration(item?.ClinicSchedInfo.map((g: any) => {
+                        if (g.time_interval === '0') {
                           return 'unlimited'
-                        }else{
+                        } else {
                           return g.time_interval
                         }
                       }));
@@ -723,7 +723,7 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
                       // console.log('time s: ', item?.ClinicSchedInfo.map((item: any) => item.end_time);
                       // calculateMinutesBetweenTimes(item?.start_time, item?.end_time);
                     }}
-                    // setTimeS={() => setTimeS()}
+                  // setTimeS={() => setTimeS()}SuccessDialog
                   />
                 ))}
               </Box>
@@ -756,159 +756,159 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
 
         {((getValues('type') === '1' && getValues('typeAgreement') === true) ||
           getValues('type') === '2') && (
-          <Card>
-            <CardHeader title="SELECT DATE & TIME" />
+            <Card>
+              <CardHeader title="SELECT DATE & TIME" />
 
-            <Box
-              gap={3}
-              display="grid"
-              gridTemplateColumns={{
-                xs: 'repeat(1, 1fr)',
-                sm: 'repeat(2, 1fr)',
-              }}
-              sx={{ p: 2 }}
-            >
-              <Stack>
-                <Controller
-                  name="scheduleDate"
-                  control={control}
-                  render={({ field }: CustomRenderInterface) => (
-                    <StaticDatePicker<Date>
-                      value={field.value}
-                      shouldDisableDate={isDateDisabled}
-                      onChange={(newValue) => {
-                        field.onChange(newValue);
-                        setClinicData(getValues('location'));
-                        setDataDate(getValues('scheduleDate'));
-                        setRenderTime(
-                          renderTimesWithinInterval(tempStartTime, tempEndTime, timeDuration, formattedTakenTime)
-                        );
-                      }}
-                      slotProps={{
-                        actionBar: {
-                          sx: { display: 'none' },
-                        },
-                      }}
-                      disablePast
-                      sx={{
-                        '.MuiDateCalendar-root': {
-                          '.MuiDayCalendar-weekContainer': {
-                            '.MuiButtonBase-root': {
-                              backgroundColor: theme.palette.success.lighter,
-                              [`&.Mui-selected`]: {
-                                backgroundColor: theme.palette.success.main,
-                                color: theme.palette.common.white,
-                              },
-                              [`&.Mui-disabled`]: {
-                                backgroundColor: theme.palette.error.lighter,
-                              },
-                              '&:before': {
-                                backgroundColor: theme.palette.info,
-                                pointerEvents: 'none', // Prevent interaction with these days
+              <Box
+                gap={3}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(2, 1fr)',
+                }}
+                sx={{ p: 2 }}
+              >
+                <Stack>
+                  <Controller
+                    name="scheduleDate"
+                    control={control}
+                    render={({ field }: CustomRenderInterface) => (
+                      <StaticDatePicker<Date>
+                        value={field.value}
+                        shouldDisableDate={isDateDisabled}
+                        onChange={(newValue) => {
+                          field.onChange(newValue);
+                          setClinicData(getValues('location'));
+                          setDataDate(getValues('scheduleDate'));
+                          setRenderTime(
+                            renderTimesWithinInterval(tempStartTime, tempEndTime, timeDuration, formattedTakenTime)
+                          );
+                        }}
+                        slotProps={{
+                          actionBar: {
+                            sx: { display: 'none' },
+                          },
+                        }}
+                        disablePast
+                        sx={{
+                          '.MuiDateCalendar-root': {
+                            '.MuiDayCalendar-weekContainer': {
+                              '.MuiButtonBase-root': {
+                                backgroundColor: theme.palette.success.lighter,
+                                [`&.Mui-selected`]: {
+                                  backgroundColor: theme.palette.success.main,
+                                  color: theme.palette.common.white,
+                                },
+                                [`&.Mui-disabled`]: {
+                                  backgroundColor: theme.palette.error.lighter,
+                                },
+                                '&:before': {
+                                  backgroundColor: theme.palette.info,
+                                  pointerEvents: 'none', // Prevent interaction with these days
+                                },
                               },
                             },
                           },
-                        },
-                      }}
-                    />
-                  )}
-                />
-                <Stack
-                  direction="row"
-                  alignItems="center"
-                  spacing={3}
-                  sx={{ px: { md: 5, xs: 0 } }}
-                >
-                  {CalendarLegends.map((item) => (
-                    <Stack key={item.name} direction="row" alignItems="center" spacing={2}>
-                      <Box
-                        sx={{
-                          width: 12,
-                          height: 12,
-                          borderRadius: '50%',
-                          bgcolor: item.color,
                         }}
                       />
-                      <Typography variant="body2">{item.name}</Typography>
-                    </Stack>
-                  ))}
-                </Stack>
-              </Stack>
-
-              {getValues('scheduleDate') !== null && resultTime.length !== 0 ? (
-                // <Stack alignItems="center" sx={{ pt: 5, px: 5, width: '550px' }}>
-                //   <RHFRadioGroup
-                //     name="scheduleTime"
-                //     row
-                //     options={timeOptions && timeOptions}
-                //     sx={{
-                //       '& .MuiFormControlLabel-root': { m: 0.3 },
-                //     }}
-                //   />
-                // </Stack>
-                <Controller
-                  name="scheduleTime"
-                  control={control}
-                  render={({ field }: any) => {
-                    const onChange = (value: any) => {
-                      setValue('scheduleTime', value);
-                    };
-
-                    return (
-                      <Stack spacing={3}>
-                        <Typography variant="subtitle1" sx={{ color: 'text.disabled' }}>
-                          SELECT TIME SLOT
-                        </Typography>
+                    )}
+                  />
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    spacing={3}
+                    sx={{ px: { md: 5, xs: 0 } }}
+                  >
+                    {CalendarLegends.map((item) => (
+                      <Stack key={item.name} direction="row" alignItems="center" spacing={2}>
                         <Box
                           sx={{
-                            WebkitColumnCount: 2,
-                            MozColumnCount: 2,
-                            columnCount: 2,
-                            display:'flex',
-                            flexDirection:'column'
+                            width: 12,
+                            height: 12,
+                            borderRadius: '50%',
+                            bgcolor: item.color,
                           }}
-                        >
-                          {timeOptions?.map((item: any) => (
-                            <Stack key={item.label} direction="row" alignItems="center" spacing={2}>
-                              <Checkbox
-                                checked={field.value === item.value}
-                                onChange={() => onChange(item.value)}
-                              />
-                              <Typography variant="body2">{item.label}</Typography>
-                            </Stack>
-                          ))}
+                        />
+                        <Typography variant="body2">{item.name}</Typography>
+                      </Stack>
+                    ))}
+                  </Stack>
+                </Stack>
+
+                {getValues('scheduleDate') !== null && resultTime.length !== 0 ? (
+                  // <Stack alignItems="center" sx={{ pt: 5, px: 5, width: '550px' }}>
+                  //   <RHFRadioGroup
+                  //     name="scheduleTime"
+                  //     row
+                  //     options={timeOptions && timeOptions}
+                  //     sx={{
+                  //       '& .MuiFormControlLabel-root': { m: 0.3 },
+                  //     }}
+                  //   />
+                  // </Stack>
+                  <Controller
+                    name="scheduleTime"
+                    control={control}
+                    render={({ field }: any) => {
+                      const onChange = (value: any) => {
+                        setValue('scheduleTime', value);
+                      };
+
+                      return (
+                        <Stack spacing={3}>
+                          <Typography variant="subtitle1" sx={{ color: 'text.disabled' }}>
+                            SELECT TIME SLOT
+                          </Typography>
+                          <Box
+                            sx={{
+                              WebkitColumnCount: 2,
+                              MozColumnCount: 2,
+                              columnCount: 2,
+                              display: 'flex',
+                              flexDirection: 'column'
+                            }}
+                          >
+                            {timeOptions?.map((item: any) => (
+                              <Stack key={item.label} direction="row" alignItems="center" spacing={2}>
+                                <Checkbox
+                                  checked={field.value === item.value}
+                                  onChange={() => onChange(item.value)}
+                                />
+                                <Typography variant="body2">{item.label}</Typography>
+                              </Stack>
+                            ))}
 
 
                             {mergeOptions?.length !== 0 && <>
-                              <Typography variant="subtitle1" sx={{ color: 'text.disabled', my:2 }}>
+                              <Typography variant="subtitle1" sx={{ color: 'text.disabled', my: 2 }}>
                                 Open Schedule
                               </Typography>
 
-                                {mergeOptions?.map((item:any)=>(
-                                  <Stack key={item.label} direction="row" alignItems="center" spacing={2}>
+                              {mergeOptions?.map((item: any) => (
+                                <Stack key={item.label} direction="row" alignItems="center" spacing={2}>
                                   <Checkbox
                                     checked={field.value === item.value}
                                     onChange={() => onChange(item.value)}
                                   />
                                   <Typography variant="body2">{item.label}</Typography>
                                 </Stack>
-                                ))}
+                              ))}
                             </>}
-                         
 
-                          
-                        </Box>
-                      </Stack>
-                    );
-                  }}
-                />
-              ) : (
-                <Stack>
-                  <EmptyContent title="No available time slot" />
-                </Stack>
-              )}
 
-              {/* {getValues('scheduleDate') !== null && (
+
+                          </Box>
+                        </Stack>
+                      );
+                    }}
+                  />
+                ) : (
+                  <Stack>
+                    <EmptyContent title="No available time slot" />
+                  </Stack>
+                )}
+
+                {/* {getValues('scheduleDate') !== null && (
                 <Controller
                 filteredTimes.length === 0
                   name="scheduleTime"
@@ -928,9 +928,9 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
                   )}
                 />
               )} */}
-            </Box>
-          </Card>
-        )}
+              </Box>
+            </Card>
+          )}
 
         {getValues('scheduleTime') !== null && (
           <>
@@ -988,6 +988,8 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
           </Button>
         }
       />
+
+     
 
       {/* agreement */}
       <ConsentDialog
@@ -1131,3 +1133,4 @@ function convertDate(inputDateString: any) {
 
   return Formatdate;
 }
+

@@ -105,7 +105,10 @@ export default function AppointmentBookCover({
   }
 
   return (
-    <Card>
+    <Card sx={{
+      position:'sticky',
+      top:10
+    }}>
       <Card
         sx={{ height: { xs: 220, md: 400 }, backgroundImage: 'url(assets/illustrations/user.svg)' }}
       >

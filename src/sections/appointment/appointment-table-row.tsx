@@ -32,7 +32,7 @@ type Props = {
   onSelectRow: VoidFunction;
   onViewRow: VoidFunction;
   onViewPatient: VoidFunction;
-  onViewQueue:()=>void;
+  onViewQueue: () => void;
 };
 
 export default function AppointmentTableRow({
@@ -129,7 +129,7 @@ export default function AppointmentTableRow({
     );
   }
 
-  const handleCopy = async() => {
+  const handleCopy = async () => {
     await navigator.clipboard.writeText(row?.voucherId)
     enqueueSnackbar('Copied to clipboard');
   }
@@ -177,17 +177,17 @@ export default function AppointmentTableRow({
                 }}
                 onClick={() => onViewPatient(row?.patientInfo?.userInfo?.uuid)}
               />
-              <Box sx={{
-                display:'flex',
-                alignItems:'center'
+              {user?.role === 'patient' && <Box sx={{
+                display: 'flex',
+                alignItems: 'center'
               }}>
-                <Typography sx={{mr:1}} variant="body2">{row?.voucherId}</Typography>
+                <Typography sx={{ mr: 1 }} variant="body2">{row?.voucherId}</Typography>
                 <Tooltip>
                   <img onClick={handleCopy} style={{
-                    cursor:'pointer'
-                  }} src="/assets/clipboard.svg"/>
+                    cursor: 'pointer'
+                  }} src="/assets/clipboard.svg" />
                 </Tooltip>
-              </Box>
+              </Box>}
             </Stack>
           </div>
         </TableCell>
@@ -216,7 +216,7 @@ export default function AppointmentTableRow({
             {String(row?.clinicInfo?.clinic_name).charAt(0).toUpperCase()}
           </Avatar> */}
 
-        
+
           <Stack>
             <ListItemText
               primary={row?.clinicInfo?.clinic_name}
@@ -227,26 +227,22 @@ export default function AppointmentTableRow({
                 typography: 'caption',
               }}
             />
-             <Box sx={{
-                display:'flex',
-                alignItems:'center'
-              }}>
-                <Typography sx={{mr:1}} variant="body2">{row?.voucherId}</Typography>
-                {/* <Tooltip>
-                  <img onClick={handleCopy} style={{
-                    cursor:'pointer'
-                  }} src="/assets/clipboard.svg"/>
-                </Tooltip> */}
-                {row?.status === 1 && <Tooltip sx={{
-                  cursor:'pointer',
-                  color:'success',
-                }} title="Preview Appointment"
-                  onClick={onViewQueue} 
-                >
-                 <Iconify icon="iconamoon:eye-bold" />
-                </Tooltip>}
-                {/* <Button>View Queue</Button> */}
-              </Box>
+            {user?.role === 'patient' && <Box sx={{
+              display: 'flex',
+              alignItems: 'center'
+            }}>
+              <Typography sx={{ mr: 1 }} variant="body2">{row?.voucherId}</Typography>
+
+              <Tooltip sx={{
+                cursor: 'pointer',
+                color: 'success',
+              }} title="Preview Appointment"
+                onClick={onViewQueue}
+              >
+                <Iconify icon="iconamoon:eye-bold" />
+              </Tooltip>
+
+            </Box>}
           </Stack>
         </div>
       </TableCell>
@@ -254,12 +250,12 @@ export default function AppointmentTableRow({
       <TableCell>
         <ListItemText
           primary={format(new Date(row?.date), 'dd MMM yyyy')}
-          secondary={(()=>{
-            let time:any;
+          secondary={(() => {
+            let time: any;
 
-            if(row?.e_time){
+            if (row?.e_time) {
               time = `${convertTime(row?.time_slot)} - ${convertTime(row?.e_time)}`
-            }else{
+            } else {
               time = convertTime(row?.time_slot)
             }
 
@@ -291,7 +287,7 @@ export default function AppointmentTableRow({
         )}
       </TableCell>
 
-       
+
       <TableCell align="center">
         <Label variant="soft" color={(row?.type === 1 && 'success') || 'info'}>
           {row?.type === 1 ? 'telemedicine' : 'face-to-face'}
@@ -305,23 +301,23 @@ export default function AppointmentTableRow({
             row?.status === 0
               ? 'warning'
               : row?.status === 1
-              ? 'info'
-              : row?.status === 2
-              ? 'error'
-              : row?.status === 3
-              ? 'success'
-              : 'info'
+                ? 'info'
+                : row?.status === 2
+                  ? 'error'
+                  : row?.status === 3
+                    ? 'success'
+                    : 'info'
           }
         >
           {row?.status === 0
             ? 'Pending'
             : row?.status === 1
-            ? 'Approved'
-            : row?.status === 2
-            ? 'Cancelled'
-            : row?.status === 3
-            ? 'Done'
-            : 'unknown'}
+              ? 'Approved'
+              : row?.status === 2
+                ? 'Cancelled'
+                : row?.status === 3
+                  ? 'Done'
+                  : 'unknown'}
         </Label>
       </TableCell>
 
