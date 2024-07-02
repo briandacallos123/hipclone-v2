@@ -152,6 +152,9 @@ export const queue_data = objectType({
     t.boolean('is_not_today')
     t.boolean('is_done')
     t.int('notApproved')
+    t.nullable.field('notAppNotToday',{
+      type:DoctorAppointments
+    });
   },
 })
 
@@ -202,6 +205,35 @@ export const QueuePatient = extendType({
           }
         })
 
+        const notApprovedNotToday = await  client.appointments.findFirst({
+          where:{
+            isDeleted:0,
+            status:{
+              not:1
+            },
+            voucherId:voucherCode,
+            clinicInfo: {
+              uuid:clinicInfo?.uuid,
+              isDeleted: 0,
+              NOT: [{ clinic_name: null }, { clinic_name: '' }],
+            },
+            // pag walang laman yung notApproved, means ang data ay not approved and not today.
+
+            // date: {
+            //   gte: formattedDateAsDate,
+            //   lte: currentDateBackward,
+            // },
+            
+          },
+          include:{
+            patientInfo:true,
+            clinicInfo:true
+          }
+          
+        })
+
+        console.log(notApprovedNotToday,'YAYYYY')
+
         const notApproved = await  client.appointments.findFirst({
           where:{
             isDeleted:0,
@@ -224,7 +256,6 @@ export const QueuePatient = extendType({
             status:true
           }
         })
-
 
 
 
@@ -337,20 +368,9 @@ export const QueuePatient = extendType({
           }else{
             return false
           }
-          // if(result?.length){
-          //   return false
-          // }
-          // else if(resultFirst?.length){
-          //   return true
-          // }else{
-          //   return false
-          // }
-        
         }
 
-
-      
-
+        console.log(notApprovedNotToday,'HUHHGHHHHHHHHHHHHHHHH')
 
         return {
           appointments_data: resultFirst?.length ? resultFirst : result,
@@ -363,7 +383,17 @@ export const QueuePatient = extendType({
             }else{
               return notApproved?.status
             }
-          })()
+          })(),
+          notAppNotToday:(()=>{
+            if(Number(notApprovedNotToday?.status) === 0){
+              return {
+                ...notApprovedNotToday,
+                status:4
+              }
+            }else{
+              return notApprovedNotToday
+            }
+          })
         }
        }catch(err){
         console.log(err,'__ERORR')

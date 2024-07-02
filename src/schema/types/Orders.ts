@@ -414,6 +414,26 @@ export const CreateOrders = extendType({
                         }
                     })
 
+                    const updateMedecineStock = args?.data?.medicine_list?.map(async(item:any)=>{
+                        const {medecine_id, quantity} = item;
+
+                        const targetMed = await client.merchant_medicine.findUnique({
+                            where:{
+                                id:Number(medecine_id)
+                            }
+                        })
+
+                        return await client.merchant_medicine.update({
+                            where:{
+                                id:Number(medecine_id)
+                            },
+                            data:{
+                                stock:Number(targetMed?.stock) - Number(quantity)
+                            }
+                        })
+                    })
+
+                    await Promise.all(updateMedecineStock)
 
 
                    const result =  args?.data?.medicine_list?.map(async(item:any)=>{

@@ -19,9 +19,10 @@ type QueueProps = {
     isDoneAppt?:any
     targetItem?:any
     notApprovedVal?:any;
+    notAppNotToday?:any;
 }
 
-const Queue = ({data,notApprovedVal, isDoneAppt,targetItem, dataToday, loading, position, remainingP, newPosition}:QueueProps) => {
+const Queue = ({data,notApprovedVal,notAppNotToday, isDoneAppt,targetItem, dataToday, loading, position, remainingP, newPosition}:QueueProps) => {
 
     console.log(notApprovedVal,'?????????????????????')
 
@@ -70,12 +71,14 @@ const Queue = ({data,notApprovedVal, isDoneAppt,targetItem, dataToday, loading, 
         )
     },[targetItem])
 
-    const notApprovedMessage = () => {
+    const notApprovedMessage = (payload:any) => {
+        console.log(payload,'PAYLOADDDD')
         let message:any;
-        switch(notApprovedVal){
+        switch(payload){
             case 4:
                 message = "Please wait for your doctor's approval";
                 break;
+           
             case 2:
                 message = "Sorry your appointment was cancelled by your doctor";
                 break;
@@ -86,6 +89,43 @@ const Queue = ({data,notApprovedVal, isDoneAppt,targetItem, dataToday, loading, 
         return message;
 
     }
+
+    const RenderNotTodayNotAppr = useCallback(() => {
+        return (
+            <Box sx={{
+                height:500,
+                width: '100%',
+                borderRadius: '10px',
+                boxShadow: '5px 5px 30px #d3cec8',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                // bgcolor:'red'
+            }}>
+
+                <Box sx={{
+
+                    display:'flex',
+                    flexDirection:'column',
+                    alignItems:"center",
+                    justifyContent:"center",
+                    mb:5
+                }}>
+                 <Typography variant="body2">{notApprovedMessage(notAppNotToday?.status)} </Typography>
+                   {/* <Typography variant="h5">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography> */}
+                  
+                    
+                </Box>
+                <Box>
+                <Button component={RouterLink} href="/" size="large" variant="contained">
+          Go to Home
+        </Button>
+                </Box>
+                
+            </Box>
+        )
+    },[notAppNotToday])
 
     const RenderNotApproved = useCallback(() => {
         return (
@@ -109,7 +149,7 @@ const Queue = ({data,notApprovedVal, isDoneAppt,targetItem, dataToday, loading, 
                     justifyContent:"center",
                     mb:5
                 }}>
-                 <Typography variant="h6">{notApprovedMessage()}</Typography>
+                 <Typography variant="h6">{notApprovedMessage(notApprovedVal)}</Typography>
                
                    {/* <Typography variant="h5">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography> */}
                   
@@ -202,10 +242,16 @@ const Queue = ({data,notApprovedVal, isDoneAppt,targetItem, dataToday, loading, 
             </Box>
         )
     }
-
+    
     if(notApprovedVal){
         return <RenderNotApproved/>
     }
+
+    if(notAppNotToday){
+        return <RenderNotTodayNotAppr/>
+    }
+
+  
 
     if(isDoneAppt){
         return <RenderDoneAppt/>

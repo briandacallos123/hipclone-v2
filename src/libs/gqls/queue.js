@@ -81,6 +81,38 @@ export const QueryQueuePatient = gql`
             is_not_today
             notApproved
             is_done
+            notAppNotToday{
+              AddRequest
+              Others
+              add_date
+              voucherId
+              userId
+              type
+              time_slot
+              status
+              clinicInfo {
+                clinic_name
+                Province
+                location
+                id
+                uuid
+                }
+              patientInfo {
+                  FNAME
+                  LNAME
+                  UUID
+                  EMAIL
+                  userInfo {
+                    id
+                    display_picture {
+                      id
+                      userID
+                      idno
+                      filename
+                    }
+                  }
+                }
+            }
         }
     }
 `
