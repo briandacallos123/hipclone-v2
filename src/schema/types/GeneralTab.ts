@@ -88,6 +88,8 @@ export const GeneralTabMutation = extendType({
           'QueryAllPrescription'
         );
 
+        console.log(session,'SESSION______________')
+
         switch (session?.user?.role) {
           case 'doctor':
             targetTable = 'employees';
@@ -185,6 +187,7 @@ export const GeneralTabMutation = extendType({
                 return result;
               });
           } else if (targetTable === 'patient') {
+            console.log("DITO________________________________")
             const { fname, mname, gender, nationality, lname, suffix, address, contact }: any =
               args?.data;
 

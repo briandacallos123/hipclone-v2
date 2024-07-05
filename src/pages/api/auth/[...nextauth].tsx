@@ -247,6 +247,8 @@ export const authOptions: AuthOptions = {
               session.user.nationality = userInfo?.NATIONALITY;
               session.user.uuid = userInfo?.userInfo?.uuid;
             }
+
+            console.log("NANDITO YUNG KUPALLL")
             break;
           case 1:
             {

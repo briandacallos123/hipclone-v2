@@ -98,23 +98,31 @@ export const QueryAllMerchantMedicine = extendType({
                     })
                   }
 
-                  const storeCondition = () => {
-                    if(!userType){
-                        return {
-                            store_id:{
-                                in:list_store?.map((item:any)=>item?.id)
-                            },
-                        }
-                    }else{
-                        {
-                            store_id
-                        }
-                    }
+                //   const storeCondition = () => {
+                //     if(!userType){
+                //         return {
+                //             store_id:{
+                //                 in:list_store?.map((item:any)=>item?.id)
+                //             },
+                //         }
+                //     }else{
+                //         {
+                //             store_id
+                //         }
+                //     }
+                  
+                   
+                //   }
+
+                  const typeCondition = () => {
                     if(type){
                         return {
                             type
                         }
                     }
+                  }
+
+                  const priceCondition = () => {
                     if(startPrice && endPrice){
                         return {
                             price:{
@@ -137,7 +145,11 @@ export const QueryAllMerchantMedicine = extendType({
                     }
                   }
 
-                  const storeCon = storeCondition()
+                  console.log(skip,'SKIPPPPPPPPPPPPP', take,'take')
+
+                //   const storeCon = storeCondition()
+                  const priceCon = priceCondition()
+                  const typeCon = typeCondition()
                     
                     const [result, totalRecords]:any = await client.$transaction([
                         client.merchant_medicine.findMany({
@@ -145,10 +157,14 @@ export const QueryAllMerchantMedicine = extendType({
                             skip,
                             where: {
                                 is_deleted: 0,
-                                ...storeCon,
+                                // ...storeCon,
+                                store_id:Number(store_id),
+                                ...priceCon,
+                                ...typeCon,
                                 generic_name:{
                                     contains:search
-                                }
+                                },
+                                
 
                             },
                             include:{
@@ -158,9 +174,7 @@ export const QueryAllMerchantMedicine = extendType({
                         client.merchant_medicine.count({
                             where: {
                                 is_deleted: 0,
-                                store_id:{
-                                    in:list_store?.map((item:any)=>item?.id)
-                                },
+                                store_id:Number(store_id),
                             }
                         })
                     ])

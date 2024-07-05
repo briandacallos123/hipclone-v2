@@ -51,7 +51,7 @@ const page = async({params}) => {
     const data = await fetchStore(id)
     
   return (
-    <StoreDashboardId data={data}/>
+    <StoreDashboardId id={id} data={data}/>
   )
 }
 

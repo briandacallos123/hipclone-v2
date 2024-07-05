@@ -48,16 +48,10 @@ export default function StoreDashboardFiltering({
   const handleFilterDelivery= useCallback(
     (event: SelectChangeEvent<string[]>) => {
       let val:any =  event.target.value
+      // console.log(val,': VALUE NG DELIVERY');
 
-      // if(val.indexOf(1) === 0 && val.length > 1){
-      //   val = [1]
-      // }else if(val.includes(2) || val.includes(3)){
-      //   val = val?.filter((item)=>item !== 1)
-      // }
-
-      console.log(val)
       onFilters(
-        'delivery ',
+        'delivery',
         val
       );
     },
@@ -93,18 +87,22 @@ export default function StoreDashboardFiltering({
   const distanceOption = [
     {
       id:1,
+      labe:"1",
       value:1
     },
     {
       id:2,
+      labe:"3",
       value:3
     },
     {
       id:3,
+      labe:"5",
       value:5
     },
     {
       id:4,
+      labe:"10",
       value:10
     },
   ]
@@ -124,7 +122,9 @@ export default function StoreDashboardFiltering({
           value={filters?.distance}
           onChange={handleFilterDistance}
           input={<OutlinedInput label="Delivery" />}
-        
+          renderValue={(selected) =>
+            distanceOption?.find((item: any) => item.value === selected)?.value + ' Km'
+          }
           sx={{ textTransform: 'capitalize' }}
         >
           {distanceOption?.map((option: any) => (
@@ -153,16 +153,13 @@ export default function StoreDashboardFiltering({
           value={filters.delivery}
           onChange={handleFilterDelivery}
           input={<OutlinedInput label="Delivery" />}
-          // renderValue={(selected) =>
-          //   deliveryOptions
-          //     .filter((v: any) => selected.find((s: any) => s === v?.id))
-          //     .map((m: any) => m?.label)
-          //     .join(', ')
-          // }
+          renderValue={(selected) =>
+            deliveryOptions?.find((item: any) => item.value === selected)?.value
+          }
           sx={{ textTransform: 'capitalize' }}
         >
           {deliveryOptions?.map((option: any) => (
-            <MenuItem key={option?.id} value={option?.id}>
+            <MenuItem key={option?.id} value={option?.value}>
               <Checkbox
                 disableRipple
                 size="small"

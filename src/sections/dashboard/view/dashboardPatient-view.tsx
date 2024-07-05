@@ -33,6 +33,8 @@ export default function DashboardPatientView() {
   const upMd = useResponsive('up', 'md');
   const theme = useTheme();
 
+  console.log(user,'USERRRRRRRRRR')
+
   const { allData, chartData, loading } = PatientDataController();
 
   const allChartData: any = Array(6).fill(0); // Initialize allChartData with default values
@@ -97,7 +99,7 @@ export default function DashboardPatientView() {
               }}
             />
             <Stack spacing={0.5} sx={{ textAlign: 'center' }}>
-              <Typography>{`${user?.firstName} ${user?.lastName}`}</Typography>
+              <Typography>{!user?.firstName ? user?.uname:`${user?.firstName} ${user?.lastName}`}</Typography>
               <Typography>{user?.occupation}</Typography>
               <Typography>{`+63${user?.contact}`}</Typography>
             </Stack>

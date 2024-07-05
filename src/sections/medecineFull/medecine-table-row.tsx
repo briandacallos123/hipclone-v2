@@ -26,7 +26,7 @@ const MedecineTableRowNew = ({ data, alignment }: MedecineTableRowProps) => {
         <Box>
             <Grid gap={3} justifyContent="flex-start" container>
                 {
-                    data?.map(({ id, attachment_store, name, address, rating, product_types }: any) => (
+                    data?.map(({ id, attachment_store, name, address,distance, rating, product_types }: any) => (
                         <Grid xl={2} >
 
                             <Card sx={{ maxWidth: isRow ? '100%' : 300, height: 350 }}>
@@ -109,7 +109,7 @@ const MedecineTableRowNew = ({ data, alignment }: MedecineTableRowProps) => {
                                                         <Typography sx={{
                                                             textTransform: 'capitalize',
                                                         }} variant="body2" color="grey">
-                                                            4.6 Km
+                                                            {distance.toFixed(2)} Km
                                                         </Typography>
                                                     </Box>
                                                 </Box>

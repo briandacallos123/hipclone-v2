@@ -37,9 +37,11 @@ const MedecineStoreHeader = ({ address, storeName, product_type, startTime, endT
 
                 }}>
                     <Rating max={1} name="read-only" value={1} readOnly />
-                    <Typography>{rating}</Typography>
+                    <Typography sx={{
+                        color:'grey'
+                    }}>{rating}</Typography>
                 </Box>
-                <Box sx={{
+                {/* <Box sx={{
                     display: 'flex',
                     alignItems: 'center',
                     gap: 1,
@@ -56,7 +58,7 @@ const MedecineStoreHeader = ({ address, storeName, product_type, startTime, endT
                     }} variant="body2" color="grey">
                         4.6 Km
                     </Typography>
-                </Box>
+                </Box> */}
             </Box>
 
             <Stack direction="row" alignItems="center" gap={3}>

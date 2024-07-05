@@ -39,6 +39,8 @@ import { enqueueSnackbar } from 'src/components/snackbar';
 import EmptyContent from '@/components/empty-content';
 import { useLazyQuery, gql } from '@apollo/client';
 import FeedsController from './_feedController';
+import { AvatarGroup } from '@mui/material';
+// import { borderRadius } from '@mui/system';
 
 // ----------------------------------------------------------------------
 
@@ -229,6 +231,9 @@ export default function ProfilePostItem({ data: unused }: Props) {
     return { src: publicPart };
   });
 
+  const [maxImgLength, setMaxImgLength] = useState(images?.length)
+  const [currentImg, setCurrentImg] = useState(0)
+
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const openLightbox = (index) => {
     setSelectedImageIndex(index);
@@ -247,35 +252,109 @@ export default function ProfilePostItem({ data: unused }: Props) {
       >
         {data?.text}
       </Typography>
+      {/* <AvatarGroup max={3}>
+        {data?.attachmentData?.length > 2  && 
+          data?.attachmentData?.map((item)=>{
+            const url = item?.imagePath;
+            const parts = url?.split('public');
+            const publicPart = parts ? parts[1] : null;
 
-      {data?.attachmentData.length ? (
+            return <Avatar sx={{
+              width:56,
+              height:56
+            }} alt="image" src={publicPart}/>
+          })
+        } */}
+        {data?.attachmentData.length ? (
+        <Box>
+          <ImageList
+            variant="quilted"
+            // cols={
+            //   data?.attachmentData.length === 1 ? 1 : 2
+            // }
+            cols={10}
+            sx={{
+              flexDirection:'row',
+              justifyContent:'flex-start',
+           
+            }}
+
+          >
+         
+            {data?.attachmentData.slice(0, 2).map((item, index) => {
+              const url = item?.imagePath;
+              const parts = url?.split('public');
+              const publicPart = parts ? parts[1] : null;
+              return (
+                <ImageListItem key={index} onClick={() => openLightbox(index)}>
+                  <Stack
+                    // justifyContent="flex-start"
+                    // alignItems="flex-start"
+                    sx={{
+                      // width: '100%',
+                      height: 'auto',
+                    }}
+                  >
+                    <Image sx={{
+                      width:200,
+                      height:200,
+                      borderRadius:2
+                    }} srcSet={publicPart} src={publicPart} alt={publicPart} loading="lazy" />
+                  </Stack>
+
+                  {index === 1 && data?.attachmentData.length >= 2 && (
+                    <div
+                      style={{
+                        position: 'absolute',
+                        bottom: 0,
+                        right: 0,
+                        background: 'rgba(0, 0, 0, 0.5)',
+                        color: '#fff',
+                        padding: '4px 8px',
+                        borderRadius: '4px',
+                        fontSize: '40px',
+                      }}
+                    >
+                      +{data?.attachmentData.length - 2}
+                    </div>
+                  )} 
+                </ImageListItem>
+              );
+            })}
+          </ImageList>
+        </Box>):""}
+      {/* </AvatarGroup> */}
+
+      {/* {data?.attachmentData.length ? (
         <Box sx={{ p: 1 }}>
           <ImageList
             variant="quilted"
             cols={
-              // eslint-disable-next-line no-nested-ternary
               data?.attachmentData.length === 1 ? 1 : 2
             }
           >
-            {data?.attachmentData.slice(0, 4).map((item, index) => {
+         
+            {data?.attachmentData.slice(0, 2).map((item, index) => {
               const url = item?.imagePath;
               const parts = url?.split('public');
               const publicPart = parts ? parts[1] : null;
-              // console.log(publicPart);
               return (
                 <ImageListItem key={index} onClick={() => openLightbox(index)}>
                   <Stack
-                    justifyContent="center"
-                    alignItems="center"
+                    justifyContent="flex-start"
+                    alignItems="flex-start"
                     sx={{
-                      width: '100%',
+                      // width: '100%',
                       height: 'auto',
                     }}
                   >
-                    <Image srcSet={publicPart} src={publicPart} alt={publicPart} loading="lazy" />
+                    <Image sx={{
+                      width:200,
+                      height:200
+                    }} srcSet={publicPart} src={publicPart} alt={publicPart} loading="lazy" />
                   </Stack>
 
-                  {index === 3 && data?.attachmentData.length > 4 && (
+                  {index === 2 && data?.attachmentData.length >= 2 && (
                     <div
                       style={{
                         position: 'absolute',
@@ -296,7 +375,7 @@ export default function ProfilePostItem({ data: unused }: Props) {
             })}
           </ImageList>
         </Box>
-      ) : null}
+      ) : null} */}
 
       <Lightbox
         open={open}

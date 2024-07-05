@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import MedecineStoreHeader from '../../view/medecine-store-header'
 import StoreDashboardBreadcramps from './store-dashboard-breadcramps'
 import StoreDataList from './store-data-list'
@@ -17,7 +17,7 @@ import {
     TableHeadCustom,
     TableSelectedAction,
     TablePaginationCustom,
-  } from 'src/components/table';
+} from 'src/components/table';
 import { useRouter } from 'next/navigation'
 
 type StoreDashboardIdProps = {
@@ -43,23 +43,24 @@ const defaultFilters = {
     type: '',
     startDate: null,
     endDate: null,
-    startingPrice:null,
-    endPrice:null,
+    startingPrice: null,
+    endPrice: null,
 };
 
 
 
-const StoreDashboardId = ({data, id}:any) => {
+const StoreDashboardId = ({ data, id }: any) => {
     const { attachment_store, name, product_types, start_time, end_time, rating, address, medecine_list }: any = data;
 
     const [filters, setFilters]: any = useState(defaultFilters);
-    const [take, setTake] = useState(10);
+    const [take, setTake] = useState(5);
     const [skip, setSkip] = useState(0);
     const [tableData, setTableData] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
-
+    const Page = useRef(1);
     // console.log(tableData, totalRecords,'HAaaaaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaAAAAAAAAAAAAAAA')
 
+    // console.log(tableData,'TABLE DAtAAAAAAAAAAA')
     const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
 
     const [getMedecines, getMedecinesResult] = useLazyQuery(QueryAllMerchantMedicine, {
@@ -75,23 +76,23 @@ const StoreDashboardId = ({data, id}:any) => {
                 data: {
                     skip,
                     take,
-                    search:filters.name,
-                    store_id:Number(id),
-                    userType:"patient",
-                    type:filters.type.toLowerCase(),
-                    startPrice:Number(filters.startingPrice),
-                    endPrice:Number(filters.endPrice)
+                    search: filters.name,
+                    store_id: Number(id),
+                    userType: "patient",
+                    type: filters.type.toLowerCase(),
+                    startPrice: Number(filters.startingPrice),
+                    endPrice: Number(filters.endPrice)
                 }
             }
         }).then((res: any) => {
             const { data } = res;
             if (data) {
-                const {QueryAllMerchantMedicine} = data;
+                const { QueryAllMerchantMedicine } = data;
                 setTableData(QueryAllMerchantMedicine?.MedicineType)
                 setTotalRecords(QueryAllMerchantMedicine?.totalRecords)
             }
         })
-    }, [table.page, table.rowsPerPage,filters.name, filters.type, filters.startingPrice, filters.endPrice])
+    }, [table.page, table.rowsPerPage, filters.name, filters.type, filters.startingPrice, filters.endPrice])
 
 
     const handleFilters = useCallback(
@@ -106,6 +107,67 @@ const StoreDashboardId = ({data, id}:any) => {
         },
         []
     );
+
+        const checkExistedData = useCallback((prev, data:any) => {
+            const dataIds = prev?.map((item)=>Number(item.id))
+            const newData:any = [...prev];
+
+            Object.entries(data)?.forEach(([key, val])=>{
+                if(!(dataIds.includes(Number(Object.values(val)[0])))){
+                    newData.push(val)
+                }
+            })
+            return newData
+        },[tableData?.length])
+
+     
+
+    useEffect(() => {
+        const section: any = document.querySelector('body div');
+
+        const ScrollHandle = () => {
+            const bottomScrollPosition = section.scrollHeight - section.scrollTop - section.clientHeight;
+
+            if (window.scrollY >= bottomScrollPosition || bottomScrollPosition === window.scrollY) {
+
+                getMedecinesResult
+                    .refetch({
+                        data:{
+                            skip: Page.current * take,
+                            take: 3,
+                            store_id: Number(id),
+                            userType: "patient",
+                            type: filters.type.toLowerCase(),
+                            startPrice: Number(filters.startingPrice),
+                            endPrice: Number(filters.endPrice)
+                        }
+                    })
+                    .then(async ({ data }: any) => {
+                        if (data) {
+                            const { QueryAllMerchantMedicine } = data;
+                          
+                            setTableData((prev)=>{
+                                return [ ...checkExistedData(prev, QueryAllMerchantMedicine?.MedicineType)]
+                            })
+                           
+                        }
+                      
+                    });
+            }
+        };
+
+        if (typeof window !== 'undefined') {
+            if(totalRecords !== tableData?.length){
+                console.log(tableData?.length,'LENGTH NG TABLE')
+                console.log(totalRecords,'TOTAL RECOREDS')
+
+                window.addEventListener('scroll', ScrollHandle);
+            }
+          
+        }
+        //prevent memory leak
+        return () => window.removeEventListener('scroll', ScrollHandle)
+    }, [tableData, id])
 
 
 

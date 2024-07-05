@@ -2,7 +2,7 @@
 
 import * as Yup from 'yup';
 import { useForm } from 'react-hook-form';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
@@ -36,6 +36,8 @@ import bcrypt from 'bcryptjs';
 /* import Password from 'node-php-password'; */
 import { Box, Button, DialogActions, DialogContentText, Divider } from '@mui/material';
 import { signIn } from 'next-auth/react';
+import axios from 'axios';
+import MapContainer from '../map/GoogleMap';
 
 // ----------------------------------------------------------------------
 
@@ -43,6 +45,16 @@ type Props = {
   open: boolean;
   onClose: VoidFunction;
 };
+
+function createPasswordSchema() {
+  return Yup.string()
+      .required('Password is required')
+      .min(8, 'Password must be at least 8 characters')
+      .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+      .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+      .matches(/\d/, 'Password must contain at least one number')
+      .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, 'Password must contain at least one special character (!@#$%^&*()_+-=[]{};:"\\|,.<>/? )');
+}
 
 // ----------------------------------------------------------------------
 
@@ -63,16 +75,28 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
   const confirmPassword = useBoolean();
 
+  const [mapData, setMapData] = useState({ lat: null, lng: null })
+
+  const [map, showMap] = useState(false)
+
   const RegisterSchema = Yup.object().shape({
     firstName: Yup.string().required('First name required'),
     lastName: Yup.string().required('Last name required'),
     email: Yup.string().required('Email is required').email('Email must be a valid email address'),
-    // phonenumber: Yup.string().required('Phone number is required'),
-    password: Yup.string().required('Password is required'),
-    username: Yup.string().required('Username is required'),
-    // confirmPassword: Yup.string()
-    //   .required('Confirm password is required')
-    //   .oneOf([Yup.ref('password')], 'Passwords must match'),
+    address: Yup.string().required('address is required'),
+    phoneNumber: Yup.string().required('Phone number is required')
+    .matches(/^[0-9]{11}$/, 'Phone number must be exactly 10 digits')
+    .matches(/^\+?[0-9]\d{1,14}$/, 'Phone number must be valid'),
+    password: Yup.string()
+    .required('Password is required')
+    .min(8, 'Password must be at least 8 characters')
+    .matches(/[a-z]/, 'Password must contain at least one lowercase letter')
+    .matches(/[A-Z]/, 'Password must contain at least one uppercase letter')
+    .matches(/\d/, 'Password must contain at least one number')
+    .matches(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, 'Password must contain at least one special character (!@#$%^&*()_+-=[]{};:"\\|,.<>/? )'),
+    confirmPassword: Yup.string()
+      .required('Confirm password is required')
+      .oneOf([Yup.ref('password')], 'Passwords must match'),
   });
 
   const [registerUser] = useMutation(USER_REGISTER);
@@ -83,9 +107,13 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
       const data: NexusGenInputs['UserProfileUpsertType'] = {
         firstName: model.firstName,
         lastName: model.lastName,
-        username: model.username,
+        // username: model.username,
         email: model.email,
         password: bcrypt.hashSync(model.password, s),
+        address:model.address,
+        phoneNumber:model.phoneNumber,
+        latitude:model.latitude,
+        longitude:model.longitude
       };
       registerUser({
         variables: {
@@ -104,12 +132,15 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     [login, registerUser, returnTo]
   );
 
-  const defaultValues: NexusGenInputs['UserProfileUpsertType'] = {
+  const defaultValues: any = {
     firstName: '',
     lastName: '',
     email: '',
-    username: '',
+    // username: '',
     password: '',
+    address:'',
+    phoneNumber:"",
+    confirmPassword:"",
   };
 
   const methods = useForm<NexusGenInputs['UserProfileUpsertType']>({
@@ -119,48 +150,28 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
   const {
     handleSubmit,
+    watch,
     formState: { isSubmitting },
   } = methods;
+
+  const values = watch()
 
   const onSubmit = useCallback(
     async (data: NexusGenInputs['UserProfileUpsertType']) => {
       try {
-        await handleSubmitValue(data);
+        const newData:any = {...data}
+        newData.latitude = mapData?.lat
+        newData.longitude = mapData?.lng
+
+        await handleSubmitValue(newData);
       } catch (error) {
         setErrorMsg(typeof error === 'string' ? error : error.message);
       }
     },
-    [handleSubmitValue]
+    [handleSubmitValue, mapData]
   );
 
-  // const renderHead = (
-  //   <DialogTitle>
-  //     <CardHeader
-  //       title="Get started absolutely free"
-  //       subheader={
-  //         <Stack direction="row" spacing={0.5}>
-  //           <Typography variant="body2"> Already have an account? </Typography>
-
-  //           {isLogin ? (
-  //             <Typography
-  //               component={Link}
-  //               onClick={onClose}
-  //               variant="subtitle2"
-  //               sx={{ cursor: 'pointer' }}
-  //             >
-  //               Sign in
-  //             </Typography>
-  //           ) : (
-  //             <Link href={paths.auth.login} component={RouterLink} variant="subtitle2">
-  //               Sign in
-  //             </Link>
-  //           )}
-  //         </Stack>
-  //       }
-  //       sx={{ p: 0 }}
-  //     />
-  //   </DialogTitle>
-  // );
+ 
   const successModal = useBoolean();
   const privacyModal = useBoolean();
 
@@ -205,6 +216,30 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     </div>
   );
 
+  useEffect(() => {
+    if (values.address.length >= 10) {
+        (async () => {
+            const payload = {
+                address: values.address
+            }
+            try {
+                // https://hip.apgitsolutions.com/api/getLocation
+                // https://hip.apgitsolutions.com/
+                const response = await axios.post('https://hip.apgitsolutions.com/api/getLocation', payload);
+                setMapData({
+                    ...mapData,
+                    lat: response?.data?.latitude,
+                    lng: response?.data?.longitude
+                })
+                showMap(true)
+            } catch (error) {
+
+            }
+
+        })()
+    }
+}, [values.address])
+
   const renderForm = (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2.5} sx={{ mt: 1 }}>
@@ -218,6 +253,10 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <RHFTextField name="email" label="Email address" />
           <RHFTextField name="phoneNumber" label="Phone number" />
+        </Stack>
+        <Stack direction="column" spacing={2}>
+          <RHFTextField fullWidth name="address" label="Address" />
+          {map && <MapContainer lat={mapData?.lat} lng={mapData?.lng} />}
         </Stack>
 
         <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>

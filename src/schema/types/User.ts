@@ -106,9 +106,16 @@ export const UserProfileUpsertType = inputObjectType({
     t.id("id");
     t.nonNull.string("lastName");
     t.nonNull.string("firstName");
-    t.nonNull.string("username");
+    // t.nonNull.string("username");
     t.nonNull.string("password");
     t.nonNull.string("email");
+    t.nonNull.string("address");
+    t.nonNull.string("phoneNumber");
+    t.nonNull.float('latitude');
+    t.nonNull.float('longitude');
+
+
+
   },
 });
 
@@ -120,12 +127,14 @@ export const mutationRegisterUser = extendType({
       args: { data: UserProfileUpsertType! },
       async resolve(_, args, _ctx) {
         const data = {
-          name: `${args.data!.firstName} ${args.data!.lastName}`,
+          uname: `${args.data!.firstName} ${args.data!.lastName}`,
           lastName: args.data!.lastName,
           firstName: args.data!.firstName,
           username: args.data!.username,
           password: args.data!.password,
           email: args.data!.email,
+          address:args?.data!.address,
+          mobile_number:args?.data?.phoneNumber
         };
 
         const userCheck = await client.user.findUnique({
@@ -148,11 +157,30 @@ export const mutationRegisterUser = extendType({
             password: data!.password
           },
           create: data
-        }).then((rr: any) => {
-          return rr;
+        }).then(async(rr: any) => {
+          return await client.patient.create({
+            data:{
+              EMAIL:args.data!.email,
+              FULLNAME:`${args.data!.firstName} ${args.data!.lastName}`,
+              FNAME:args.data!.firstName,
+              LNAME:args.data!.lastName,
+              CONTACT_NO:args?.data?.phoneNumber,
+              HOME_ADD:args?.data!.address,
+              CLINIC:1,
+              LONGITUDE:args.data!.longitude,
+              LATITUDE:args.data!.latitude
+            }
+          }).then(()=>{
+            return rr;
+          }).catch((err)=>{
+            console.log(err.message,'???????????????????')
+            throw new GraphQLError(err.message)
+          })
+
 
         }).catch((err) => {
           const { message }: any = err;
+          console.log(message,'ERROR MESSAGE')
           if (message.includes('users_username'))
             throw new GraphQLError('Username unavailable.')
           else

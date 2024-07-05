@@ -27,7 +27,7 @@ import {
 const defaultFilters = {
     name: '',
     status: -1,
-    delivery: 1,
+    delivery: 'All',
     startDate: null,
     endDate: null,
     distance:1
@@ -37,17 +37,17 @@ const deliveryOptions = [
     {
         id: 1,
         label: "All",
-        value: 1
+        value: "All"
     },
     {
         id: 2,
         label: "Pick up",
-        value: 2
+        value: "Pick up"
     },
     {
         id: 3,
         label: "Delivery",
-        value: 3
+        value: "Delivery"
     },
 ]
 
@@ -56,6 +56,8 @@ const MedecineDataPage = ({ data }: any) => {
     const [loading, setLoading] = useState(false)
     const [tableData, setTableData] = useState([])
     const [filters, setFilters]: any = useState(defaultFilters);
+
+    console.log(filters,'FILTERSSSSSSSSSSSSSSSS')
     
   const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
 

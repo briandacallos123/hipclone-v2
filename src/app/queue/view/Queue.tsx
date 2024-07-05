@@ -338,15 +338,15 @@ const Queue = ({data,notApprovedVal,notAppNotToday, isDoneAppt,targetItem, dataT
                 <TableNoData notFound={!loading && !data?.length}/>
                 <Box sx={{ mt: 'auto' }}>
             <Button
-            onClick={()=>{
-                // navigate.push(paths.home);
-                if(user){
-                    navigate.push(paths.dashboard.queuePatient.root);
-                }else{
+                onClick={()=>{
                     navigate.push(paths.home); 
-                }
-            }}
-            fullWidth={true} sx={{
+                    // if(user){
+                    //     navigate.push(paths.dashboard.queuePatient.root);
+                    // }else{
+                    //     navigate.push(paths.home); 
+                    // }
+                }}
+                fullWidth={true} sx={{
                 backgroundColor: 'primary.dark',
                 alignItems: 'flex-end'
             }} variant="contained">Leave the Queue</Button>

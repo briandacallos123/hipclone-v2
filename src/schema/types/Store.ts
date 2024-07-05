@@ -54,7 +54,7 @@ export const storeInputType = inputObjectType({
         t.nullable.int('take');
         t.nullable.int('skip');
         t.nullable.string('search');
-        t.nullable.int('delivery');
+        t.nullable.string('delivery');
         t.nullable.int('status')
         t.nullable.int('radius')
         t.nullable.string('name')
@@ -77,22 +77,26 @@ const calculateDistance = (lat1: any, lon1: any, lat2: any, lon2: any) => {
 };
 
 const filterMerchantsByDistance = (patientLocation: any, merchants: any, radius: any) => {
-    const filteredMerchants = merchants.filter(merchant => {
+    const myData:any = [];
+
+    
+    merchants.forEach(merchant => {
         const distance = calculateDistance(
             patientLocation.latitude,
             patientLocation.longitude,
             merchant.lat,
             merchant.lng
         );
-        // console.log(distance,'DISTANCE TO BEHHHHHHHHHHH___________________')
-
-        // return distance <= radius;
+      
         if(distance <= radius){
-            console.log( distance, merchant,"tRUEEE_____________________________________")
-            return {...merchant, distance}
+          
+            myData.push({
+                ...merchant,
+                distance
+            })
         }
     });
-    return filteredMerchants;
+    return myData;
 };
 
 export const QueryAllStoreNoId = extendType({
@@ -106,30 +110,14 @@ export const QueryAllStoreNoId = extendType({
                 const { take, skip, search, delivery, radius }: any = args.data;
 
                 const deliveryOptions = () => {
-                    // 1 = deliver
-                    // 0 = pick up
-                    let filter = [];
 
-                    if (delivery === 3) {
+
+                    if (delivery === 'Delivery') {
                         return 1
-                    } else if (delivery === 2) {
+                    } else if (delivery === 'Pick up') {
                         return 0
                     }
-                    // const isAll = delivery?.find((item: any) => Number(item) === 1);
-                    // if (isAll) {
-                    //     filter.push(1)
-                    //     filter.push(0)
-                    //     return filter;
-                    // }
-                    // const res = delivery.map((item: any) => {
-                    //     if (item === 2) {
-                    //         return 0
-                    //     } else {
-                    //         return 1
-                    //     }
-                    // })
-                    // filter = [...res];
-                    // return filter;
+                   
                 }
 
 
@@ -160,7 +148,7 @@ export const QueryAllStoreNoId = extendType({
                     const filteredByKlm = filterMerchantsByDistance(patient, result, radius)
 
 
-                    console.log(filteredByKlm,'ANO RESLT?')
+                  
                     return filteredByKlm
                 } catch (error) {
                     throw new GraphQLError(error)

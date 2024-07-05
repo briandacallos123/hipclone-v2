@@ -93,7 +93,7 @@ export default function Header() {
           <Stack alignItems="center" direction={{ xs: 'row', md: 'row-reverse' }}>
             {mdUp && (
               <>
-               {!user && (<><SignupButton /><LoginButton /></>)}
+               {!user && (<><SignupButton /><LoginButton /> <QueueButton/></>)}
                {user && (<><GotoDashboard /> <QueueButton/></>)}
               </>
             )}

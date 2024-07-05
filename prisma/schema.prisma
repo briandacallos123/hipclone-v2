@@ -1534,6 +1534,10 @@ model user {
   uname                                         String?             @unique(map: "uname") @db.VarChar(255)
   mobile_number                                 String?             @db.VarChar(14)
   email                                         String?             @unique(map: "email") @db.VarChar(255)
+  firstName                                     String?             @db.VarChar(255)
+  lastName                                      String?             @db.VarChar(255)
+  birthDate                                     DateTime?           @db.Date
+  address                                       String?             @db.VarChar(255)
   password                                      String?             @db.VarChar(300)
   userType                                      Int?                @default(0)
   register_date                                 DateTime?           @db.Date

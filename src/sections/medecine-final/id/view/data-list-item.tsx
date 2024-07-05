@@ -50,9 +50,8 @@ const DataListItem = ({ item }: DataListItemProps) => {
     }, [operation, qtyValue])
 
     return (
-        <Grid xl={isRow ? 12 : 3}>
 
-            <Card sx={{ maxWidth: isRow ? '100%' : 400 }}>
+            <Card sx={{ maxWidth: isRow ? '100%' : 700 }}>
                 <CardActionArea
 
                 >
@@ -119,7 +118,6 @@ const DataListItem = ({ item }: DataListItemProps) => {
                     </Box>
                 </CardActionArea>
             </Card>
-        </Grid>
     )
 }
 

@@ -42,13 +42,18 @@ const StoreDataList = ({ data, loading }: any) => {
             </Table>
             {loading && <StoreSkeleton/>}
 
-            <Grid justifyContent="flex-start" container gap={2}>
-                {!loading && data?.length !== 0 &&  data?.map((item: any) => {
+            {!loading && data?.length !== 0 && <Grid justifyContent="flex-start" alignItems="flex-start" container gap={2} sx={{
+                height:700,
+                // backgroundColor:'red'
+            }}>
+                {data?.map((item: any) => {
                      return (
-                         <DataListItem key={item?.id} item={item}/>
+                        <Grid item lg={3}>
+                             <DataListItem key={item?.id} item={item}/>
+                        </Grid>
                      )
                  })}
-            </Grid>
+            </Grid>}
         </Box >
     )
 }

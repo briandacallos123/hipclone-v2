@@ -15,24 +15,24 @@ import QueueCarousel from '@/sections/queue/queue-carousel'
 const page = () => {
   const { data, notToday, targetItem, clinicData, notApprovedVal, isDoneAppt, clinicLoading, QueryQueue, dataResults, loading, position, remainingP, newPosition, refetch, notAppNotToday } = QueueController()
   const { id } = useParams();
-  const { socket } = useAuthContext()
+  // const { socket } = useAuthContext()
 
 
-  useEffect(() => {
-    if (socket?.connected) {
+  // useEffect(() => {
+  //   if (socket?.connected) {
 
-      socket.on('queueFetch', async (u: any) => {
-        if (u?.clinicUuid === data[0]?.clinicInfo?.uuid) {
-          refetch()
+  //     socket.on('queueFetch', async (u: any) => {
+  //       if (u?.clinicUuid === data[0]?.clinicInfo?.uuid) {
+  //         refetch()
 
-        }
-      })
-    }
+  //       }
+  //     })
+  //   }
 
-    return () => {
-      socket?.off('queueFetch')
-    }
-  }, [socket?.connected, data])
+  //   return () => {
+  //     socket?.off('queueFetch')
+  //   }
+  // }, [socket?.connected, data])
 
   const RenderLoadingContent = () => {
     return (
