@@ -248,7 +248,7 @@ export const authOptions: AuthOptions = {
               session.user.uuid = userInfo?.userInfo?.uuid;
             }
 
-            console.log("NANDITO YUNG KUPALLL")
+            // console.log("NANDITO YUNG KUPALLL")
             break;
           case 1:
             {

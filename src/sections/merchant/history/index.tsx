@@ -1,0 +1,1 @@
+export {default as HistoryListView} from './view/history-list-view'

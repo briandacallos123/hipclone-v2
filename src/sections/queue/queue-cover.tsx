@@ -22,8 +22,7 @@ export default function QueueCover({ name, address, avatarUrl, coverUrl, isLoadi
       <Box
         sx={{
           ...bgGradient({
-            // color: alpha(theme.palette.primary.darker, 0.8),
-            // imgUrl: coverUrl,
+          
           }),
           background: 'url(/assets/background/banner-bg.png)',
           backgroundSize: 'cover',

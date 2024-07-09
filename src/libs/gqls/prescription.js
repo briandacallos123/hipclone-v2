@@ -259,7 +259,7 @@ export const PrescriptionsUserQr = gql`
         }
         isFavorite
         patientID
-        patientQr {
+        patient {
           AGE
           CONTACT_NO
           EMAIL

@@ -36,7 +36,8 @@ const ICONS = {
   feeds: icon('mdi:newspaper-variant-multiple'),
   orders:icon('fluent-mdl2:activate-orders'),
   store:icon('material-symbols:store'),
-  medecine:icon('game-icons:miracle-medecine')
+  medecine:icon('game-icons:miracle-medecine'),
+  history:icon('uil:history')
 };
 
 // ----------------------------------------------------------------------
@@ -74,6 +75,8 @@ export function useNavData() {
           // { title: t('Medicines'), path: paths.merchant.medicine, icon: ICONS.medecine},
           { title: t('Orders'), path: paths.merchant.orders, icon: ICONS.orders },
           { title: t('Store'), path: paths.merchant.store, icon: ICONS.store },
+          { title: t('History'), path: paths.merchant.history, icon: ICONS.history },
+        
         ],
       },
     ],

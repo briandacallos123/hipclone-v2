@@ -1,0 +1,1 @@
+export {default as PrescriptionView} from './view/prescription-view'

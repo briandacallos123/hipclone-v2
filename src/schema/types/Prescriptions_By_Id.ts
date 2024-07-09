@@ -24,7 +24,7 @@ export const prescriptionsQr = objectType({
     t.nullable.field('doctorInfo', {
       type: DoctorObjectQr,
     });
-    t.nullable.field('patientQr', {
+    t.nullable.field('patient', {
       type: patientQr,
     });
     t.nullable.field('clinicInfo', {
@@ -373,36 +373,7 @@ export const QueryAllPrescriptionUserQr = extendType({
         // const currentEndDate = new Date(endDate);
         const whereconditions = filters(args);
 
-        // let order: any;
-        // switch (args?.data!.orderBy) {
-        //   case 'date':
-        //     {
-        //       order = [{ DATE: args?.data!.orderDir }];
-        //     }
-        //     break;
-        //   case 'prescriptionNumber':
-        //     {
-        //       order = [{ ID: args?.data!.orderDir }];
-        //     }
-        //     break;
-        //   case 'hospital':
-        //     {
-        //       order = [
-        //         {
-        //           clinicInfo: {
-        //             clinic_name: args?.data!.orderDir,
-        //           },
-        //         },
-        //       ];
-        //     }
-        //     break;
-
-        //   default:
-        //     order = {};
-        // }
-        // const orderConditions = {
-        //   orderBy: order,
-        // };
+        
 
         const { session } = _ctx;
 
@@ -412,20 +383,6 @@ export const QueryAllPrescriptionUserQr = extendType({
           '`prescriptions`',
           'QueryAllPrescriptionUser'
         );
-
-        // const setCurrentDay = (() => {
-        //   if (!startDate && !endDate) return {};
-        //   if (!startDate && endDate)
-        //     return {
-        //       DATE: {
-        //         lte: currentEndDate,
-        //       },
-        //     };
-        //   return {};
-        // })();
-        // throw new Error('Error!');
-        //   take, skip, orderConditions, whereconditions; session
-
         
         const condition = (()=>{
           if(args?.data?.id){
@@ -435,7 +392,6 @@ export const QueryAllPrescriptionUserQr = extendType({
           }
         })()
 
-        console.log(condition,'CONDITION???')
         try {
           const [prescriptionsData]: any = await client.$transaction([
             client.prescriptions.findFirst({

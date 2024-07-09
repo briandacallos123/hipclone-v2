@@ -14,6 +14,7 @@ export const medicineType = objectType({
         t.string('brand_name');
         t.string('dose');
         t.int('stock');
+        t.int('show_price')
         t.string('form');
         t.float('price');
         t.string('manufacturer');
@@ -157,6 +158,9 @@ export const QueryAllMerchantMedicine = extendType({
                             skip,
                             where: {
                                 is_deleted: 0,
+                                stock:{
+                                    not:0
+                                },
                                 // ...storeCon,
                                 store_id:Number(store_id),
                                 ...priceCon,
@@ -301,6 +305,7 @@ export const CreateMedicineInputs = inputObjectType({
         t.string('description');
         t.int('store_id')
         t.string('type')
+        t.boolean('show_price')
     },
 })
 
@@ -322,7 +327,7 @@ export const CreateMerchantMedicine = extendType({
 
                 const sFile = await args?.file;
 
-                const { generic_name,stock, type,description,store_id, brand_name, dose, form, price, manufacturer }: any = args.data
+                const { generic_name,stock, show_price,type,description,store_id, brand_name, dose, form, price, manufacturer }: any = args.data
 
                 try {
                     let med:any;
@@ -353,7 +358,13 @@ export const CreateMerchantMedicine = extendType({
                             price,
                             attachment_id: Number(med?.id),
                             store_id:Number(store_id),
-                            
+                            show_price:(()=>{
+                                if(!show_price){
+                                    return 0
+                                }else{
+                                    return 1
+                                }
+                            })()
                         }
                     })
 

@@ -98,8 +98,7 @@ export default function PrescriptionDetailsView({
 
   useEffect(()=>{
     (async()=>{
-      
-      const link = `https://hip.apgitsolutions.com/dashboard/prescription/${currentItem?.presCode}`
+      const link = `https://hip.apgitsolutions.com/prescription-view/${currentItem?.presCode}`
       setLink(link)
       await generateQR(link)
     })()

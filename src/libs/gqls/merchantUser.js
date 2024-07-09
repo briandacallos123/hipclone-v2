@@ -8,6 +8,7 @@ export const QueryAllMerchantMedicine = gql`
         generic_name
         brand_name
         dose
+        show_price
         form
         stock
         price

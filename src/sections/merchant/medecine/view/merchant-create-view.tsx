@@ -28,7 +28,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 import { useAuthContext } from 'src/auth/hooks';
 // components
 import Iconify from 'src/components/iconify';
-import FormProvider, { RHFEditor, RHFSelect, RHFTextField, RHFUpload } from 'src/components/hook-form';
+import FormProvider, { RHFCheckbox, RHFEditor, RHFSelect, RHFTextField, RHFUpload } from 'src/components/hook-form';
 import { Divider, MenuItem } from '@mui/material';
 import { signIn } from 'next-auth/react';
 
@@ -89,6 +89,8 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
         description: Yup.string().required('description is required'),
         attachment: Yup.mixed().required('Attachment is required'),
         type: Yup.string().required('type is required'),
+        show_price: Yup.string().required('show_price is required'),
+
     });
 
     const defaultValues = useMemo(() => {
@@ -103,7 +105,8 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
             description: "",
             stock: '',
             id,
-            type:""
+            type:"",
+            show_price:false
         }
     }, [editRow?.id, editRow])
 
@@ -168,7 +171,9 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
                 const file = data?.attachment;
                 delete data.attachment;
                 data.description = removeTags(data.description)
+                data.show_price = JSON.parse((data.show_price).toLowerCase())
                 data = { ...data, price:parseFloat(data.price),store_id: Number(data.id), stock: Number(data.stock) }
+                
                 delete data.id;
                 
 
@@ -293,10 +298,15 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
                 <RHFTextField name="form" label="Form" />
             </Stack>
             <Stack spacing={1} direction="row" alignItems="center">
-                <RHFTextField name="price" label="Price" />
+                <RHFTextField  name="price" label="Price" />
                 <RHFTextField name="manufacturer" label="Manufacturer" />
+              
             </Stack>
-            <Stack direction="row" alignItems="center">
+            <Stack spacing={1}>
+             <RHFCheckbox  sx={{ml:1}} name="show_price" label="Show Price?"/>
+           
+            </Stack>
+            <Stack direction="row" spacing={1} alignItems="center">
                 <RHFTextField name="brand_name" label="Brand Name" />
                 <RHFTextField name="stock" label="Stocks" type="number" />
             </Stack>

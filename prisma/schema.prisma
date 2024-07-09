@@ -1804,6 +1804,7 @@ model merchant_medicine {
   dose                String              @db.VarChar(255)
   form                String              @db.VarChar(255)
   price               Float
+  show_price          Int                 @default(0)
   description         String              @db.VarChar(255)
   stock               Int
   ratings             Decimal?            @default(0) @db.Decimal(10, 0)

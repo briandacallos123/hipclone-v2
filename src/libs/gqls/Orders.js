@@ -38,6 +38,55 @@ export const QueryAllMedicineOrders = gql`
   }
 `;
 
+
+export const QueryAllOrdersForMerchantHistory = gql`
+  query QueryAllOrdersForMerchantHistory($data: orderInputType!) {
+    QueryAllOrdersForMerchantHistory(data: $data) {
+      totalRecords
+      summary {
+        delivery
+        pickup
+      }
+      orderType {
+        dose
+        price
+        form
+        status_id
+        generic_name
+        store{
+          name
+        }
+        id
+        is_paid
+        patient {
+          CONTACT_NO
+          EMAIL
+          FNAME
+          HOME_ADD
+          IDNO
+          LNAME
+          MNAME
+          SEX
+          STATUS
+          S_ID
+          isDeleted
+        }
+        store {
+          name
+          attachment_store {
+            filename
+            id
+            file_url
+          }
+        }
+        is_deliver
+        brand_name
+        quantity
+      }
+    } 
+  }
+`;
+
 export const QueryAllPatientOrders = gql`
   query QueryAllPatientOrders($data: orderInputType!) {
     QueryAllPatientOrders(data: $data) {

@@ -64,12 +64,12 @@ const reducer = (state: any, action: any) => {
                 // If the item already exists in the cart, update its quantity and calculate the new total
                 const updatedCart = state.cart.map((item: any) => {
                     if (Number(item.id) === Number(id)) {
-                        return { ...item, quantity: Number(item?.quantity) + 1 };
+                        return { ...item, quantity: Number(item?.quantity) +  itemQty};
                     }
                     return item;
                 });
 
-                const newTotal = Number(state.total) + (Number(price) * 1);
+                const newTotal = Number(state.total) + (Number(price) * itemQty);
 
                 return { ...state, cart: updatedCart, total: newTotal };
             } else {

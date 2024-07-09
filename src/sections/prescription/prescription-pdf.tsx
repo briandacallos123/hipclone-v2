@@ -285,8 +285,8 @@ export default function PrescriptionPDF({ item, qrImage }: Props) {
         {/* Patient Details */}
         <View style={[styles.mb20, { marginTop: 5 }]}>
           <Text style={styles.body1}>
-            <Text style={styles.subtitle1}>{patientName}</Text>,
-            {patient?.AGE && `${patient?.AGE} yrs old,&nbsp;`}
+            <Text style={styles.subtitle1}>{patientName}</Text>
+            {patient?.AGE !== 0 && patient?.AGE && `, ${patient?.AGE} yrs old,&nbsp;`}
           </Text>
           <Text style={styles.body1}>{patient?.HOME_ADD || 'No Address Provided'}</Text>
         </View>

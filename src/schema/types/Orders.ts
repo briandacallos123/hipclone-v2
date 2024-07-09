@@ -18,6 +18,7 @@ export const orderType = objectType({
         t.string('dose');
         t.string('form');
         t.int('is_deliver');
+        t.float('price');
         t.int('is_paid');
         t.string('quantity')
         t.int('status_id')
@@ -121,7 +122,7 @@ export const QueryAllMedicineOrdersPatient = extendType({
                 const {take, skip}:any = args?.data;
 
 
-                console.log(session?.user,'user_')
+                // console.log(session?.user,'user_')
 
                 try {
 
@@ -564,6 +565,131 @@ export const EditOrders = extendType({
                 } catch (error) {
                     throw new GraphQLError(error)
                 }
+            }
+        })
+    }
+})
+
+
+
+export const QueryAllOrdersForMerchantHistory = extendType({
+    type: 'Query',
+    definition(t) {
+        t.nullable.field('QueryAllOrdersForMerchantHistory', {
+            type: orderResponse,
+            args: { data: orderInputType },
+            async resolve(_root, args, ctx) {
+                const { take, skip, search, is_deliver }: any = args.data;
+                const {session} = ctx;
+
+                // console.log(session?.user,'USER____________________')
+               try {
+                const merchant_id = await client.merchant_user.findUnique({
+                    where:{
+                        id:Number(session?.user?.id)
+                    },
+                    select:{
+                        id:true
+                    }
+                })
+                // get all stores based on merchant_id
+                const stores = await client.merchant_store.findMany({
+                    where:{
+                        merchant_id:Number(merchant_id?.id)
+                    },
+                    select:{
+                        id:true
+                    }
+                })
+
+                
+                const delivery_option = (()=>{
+                    if(is_deliver === 1){
+                        return {
+                            is_deliver:1
+                        }
+                    }else if(is_deliver === 0){
+                        return {
+                            is_deliver:0
+                        }
+                    }
+                 })()
+
+                const [result, totalRecords, deliver, pickup] = await client.$transaction([
+                    client.orders.findMany({
+                        take,
+                        skip,
+                        where:{
+                            store_id:{
+                                in:stores?.map((item)=>item.id)
+                            },
+                            is_deleted:0,
+                            ...delivery_option,
+                            status_id:4
+                        },
+                        include:{
+                            patient:true,
+                        }
+                    }),
+                    client.orders.count({
+                        where:{
+                            store_id:{
+                                in:stores?.map((item)=>item.id)
+                            },
+                            is_deleted:0,
+                            status_id:4
+                        }
+                    }),
+                    // for delivery
+                    client.orders.count({
+                        where:{
+                            store_id:{
+                                in:stores?.map((item)=>item.id)
+                            },
+                            is_deliver:1,
+                            is_deleted:0,
+                            status_id:4
+                        }
+                    }),
+                     // for pick up
+                     client.orders.count({
+                        where:{
+                            store_id:{
+                                in:stores?.map((item)=>item.id)
+                            },
+                            is_deliver:{
+                                not:{
+                                    equals:1
+                                }
+                            },
+                            is_deleted:0,
+                        }
+                    })
+                ])
+                let new_result = result?.map(async(item:any)=>{
+                    const store =  await client.merchant_store.findUnique({
+                        where:{
+                            id:Number(item?.store_id)
+                        }
+                    })
+
+                    return {...item, store}
+                })
+
+                new_result = await Promise.all(new_result)
+
+                console.log(new_result,'NEW RESLTTTTTTTTTTTT________')
+                return {
+                    orderType: new_result,
+                    totalRecords,
+                    summary:{
+                        delivery:deliver,
+                        pickup
+                    }
+                }
+               } catch (error) {
+                throw new GraphQLError(error)
+               }
             }
         })
     }
