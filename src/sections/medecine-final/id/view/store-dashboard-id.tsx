@@ -37,6 +37,30 @@ const typeOptions = [
 
 ]
 
+const sortOptions = [
+    {
+        id:1,
+        label: "Best Selling",
+        value: "Best Selling"
+    },
+    {
+        id:2,
+        label: "Latest Product",
+        value: "Latest Products"
+        
+    },
+    {
+        id:3,
+        label: "Name Descending",
+        value: "Name Descending"
+    },
+    {
+        id:4,
+        label: "Name Ascending",
+        value: "Name Ascending"
+    },
+]
+
 const defaultFilters = {
     name: '',
     status: -1,
@@ -45,6 +69,7 @@ const defaultFilters = {
     endDate: null,
     startingPrice: null,
     endPrice: null,
+    sort:""
 };
 
 
@@ -53,11 +78,12 @@ const StoreDashboardId = ({ data, id }: any) => {
     const { attachment_store, name, product_types, start_time, end_time, rating, address, medecine_list }: any = data;
 
     const [filters, setFilters]: any = useState(defaultFilters);
-    const [take, setTake] = useState(5);
+    const [take, setTake] = useState(6);
     const [skip, setSkip] = useState(0);
     const [tableData, setTableData] = useState([]);
     const [totalRecords, setTotalRecords] = useState(0);
     const Page = useRef(1);
+    const [listView, setListView] = useState('grid')
     // console.log(tableData, totalRecords,'HAaaaaaaaaaaaaaaaaaaaAAAAAAAAAAAAAAAAAAAAaaaaaaaaaaaaaaAAAAAAAAAAAAAAA')
 
     // console.log(tableData,'TABLE DAtAAAAAAAAAAA')
@@ -81,7 +107,8 @@ const StoreDashboardId = ({ data, id }: any) => {
                     userType: "patient",
                     type: filters.type.toLowerCase(),
                     startPrice: Number(filters.startingPrice),
-                    endPrice: Number(filters.endPrice)
+                    endPrice: Number(filters.endPrice),
+                    sort:filters.sort
                 }
             }
         }).then((res: any) => {
@@ -92,7 +119,7 @@ const StoreDashboardId = ({ data, id }: any) => {
                 setTotalRecords(QueryAllMerchantMedicine?.totalRecords)
             }
         })
-    }, [table.page, table.rowsPerPage, filters.name, filters.type, filters.startingPrice, filters.endPrice])
+    }, [table.page, table.rowsPerPage,filters.sort, filters.name, filters.type, filters.startingPrice, filters.endPrice])
 
 
     const handleFilters = useCallback(
@@ -107,6 +134,7 @@ const StoreDashboardId = ({ data, id }: any) => {
         },
         []
     );
+    console.log(filters,'FILTERSSSSSSSS')
 
         const checkExistedData = useCallback((prev, data:any) => {
             const dataIds = prev?.map((item)=>Number(item.id))
@@ -169,6 +197,9 @@ const StoreDashboardId = ({ data, id }: any) => {
         return () => window.removeEventListener('scroll', ScrollHandle)
     }, [tableData, id])
 
+    const handleListView = (val:string) => {
+        setListView(val)
+    }
 
 
     return (
@@ -182,12 +213,12 @@ const StoreDashboardId = ({ data, id }: any) => {
                 endTime={end_time}
                 rating={rating}
             />
-            <Grid container gap={1}>
+            <Grid container >
                 <Grid item xs={12} lg={10}>
-                    <StoreDataList loading={getMedecinesResult.loading} data={tableData} />
+                    <StoreDataList listView={listView} loading={getMedecinesResult.loading} data={tableData} />
                 </Grid>
-                <Grid item xs={12} lg={1}>
-                    <SidebarFitering typeOptions={typeOptions} onFilters={handleFilters} filters={filters} />
+                <Grid item xs={12} lg={2}>
+                    <SidebarFitering listView={listView} handleListView={handleListView} sortOptions={sortOptions} typeOptions={typeOptions} onFilters={handleFilters} filters={filters} />
                 </Grid>
             </Grid>
 

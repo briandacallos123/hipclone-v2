@@ -259,12 +259,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
   const [valResult, setValResult] = useState([])
 
-  useEffect(() => {
-    if (errors?.password) {
-      const validationResult: any = validatePassword(values.password);
-      setValResult([...validationResult])
-    }
-  }, [values.password, errors.password])
+  
 
 
   const successModal = useBoolean();
@@ -311,6 +306,8 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     </div>
   );
 
+ 
+
   useEffect(() => {
     if (values.address.length >= 10) {
       (async () => {
@@ -351,7 +348,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         </Stack>
         <Stack direction="column" spacing={2}>
           <RHFTextField fullWidth name="address" label="Address" />
-          <Controller
+          {/* <Controller
             name="birthDate"
             control={control}
             render={({ field, fieldState: { error } }: CustomRenderInterface) => (
@@ -370,7 +367,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
                 }}
               />
             )}
-          />
+          /> */}
         </Stack>
         <Stack>
           {map && <MapContainer lat={mapData?.lat} lng={mapData?.lng} />}
@@ -428,14 +425,27 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     </FormProvider>
   );
 
-  const isPassError = valResult?.find((item)=>item.error)
+  let isPassError = valResult?.find((item)=>item.error)
+  const [openReq, setOpenReq] = useState(false);
+
+  const handleClose = () => {
+    setOpenReq(false)
+  }
+
+  useEffect(() => {
+    if (errors?.password) {
+      const validationResult: any = validatePassword(values.password);
+      setValResult([...validationResult])
+      setOpenReq(true)
+    }
+  }, [values.password, errors.password])
 
   const ErrorDialog = () => {
 
     return (
       <div style={{
         position: 'absolute',
-        bottom: 10,
+        bottom: 5,
         left:10,
         backgroundColor: 'white',
         padding: 10,
@@ -443,7 +453,10 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         zIndex: 100,
         boxShadow:'1px 1px 3px black'
       }}>
-        <h3>Password must meet the following requirements:</h3>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <h3>Password must meet the following requirements:</h3>
+          <Button variant="contained" onClick={handleClose}>Close</Button>
+        </Stack>
         <div>
           <ul>
             {valResult?.map((item) => {
@@ -502,7 +515,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         <TermsDialog open={successModal.value} handleClose={successModal.onFalse} />
 
         <PrivacyDialog open={privacyModal.value} handleClose={privacyModal.onFalse} />
-        {Object.keys(errors).length !== 0 && isPassError && <ErrorDialog />}
+        {Object.keys(errors).length !== 0 && isPassError && openReq && <ErrorDialog />}
       </DialogContent>
     </Dialog>
   );

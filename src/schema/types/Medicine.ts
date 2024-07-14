@@ -16,6 +16,7 @@ export const medicineType = objectType({
         t.int('stock');
         t.int('show_price')
         t.string('form');
+        t.string('description')
         t.float('price');
         t.string('manufacturer');
         t.nullable.field('attachment_info',{
@@ -59,6 +60,7 @@ export const medicineInputType = inputObjectType({
         t.nullable.string('type');
         t.nullable.int('startPrice');
         t.nullable.int('endPrice');
+        t.nullable.string('sort')
 
     },
 });
@@ -73,11 +75,42 @@ export const QueryAllMerchantMedicine = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
-                const {take, skip,type,startPrice, endPrice, userType, store_id, search}:any = args?.data;
+                const {take, skip,type,startPrice,sort, endPrice, userType, store_id, search}:any = args?.data;
 
                 let merchantUser:any;
                 let list_store:any;
 
+                 // for best selling sort.
+                 const sortBestSelling = () => {
+                    if(sort === 'Best Selling'){
+                        return {
+                            orderBy:{
+                                quantity_sold:'desc'
+                            }
+                        }
+                    }else if(sort === 'Latest Products'){
+                        return {
+                            orderBy:{
+                                created_at:"desc"
+                            }
+                        }
+                    }else if(sort === 'Name Descending'){
+                        return {
+                            orderBy:{
+                                generic_name:"desc"
+                            }
+                        }
+                    }else if(sort === 'Name Ascending'){
+                        return {
+                            orderBy:{
+                                generic_name:"asc"
+                            }
+                        }
+                    }
+                }
+                const sortOptions = sortBestSelling()
+                console.log(sortOptions,'SORTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+                // end of sort options
                 try {
 
                   if(!userType){
@@ -99,19 +132,7 @@ export const QueryAllMerchantMedicine = extendType({
                     })
                   }
 
-                //   const storeCondition = () => {
-                //     if(!userType){
-                //         return {
-                //             store_id:{
-                //                 in:list_store?.map((item:any)=>item?.id)
-                //             },
-                //         }
-                //     }else{
-                //         {
-                //             store_id
-                //         }
-                //     }
-                  
+          
                    
                 //   }
 
@@ -165,6 +186,7 @@ export const QueryAllMerchantMedicine = extendType({
                                 store_id:Number(store_id),
                                 ...priceCon,
                                 ...typeCon,
+                               
                                 generic_name:{
                                     contains:search
                                 },
@@ -173,7 +195,8 @@ export const QueryAllMerchantMedicine = extendType({
                             },
                             include:{
                                 merchant_store:true
-                            }
+                            },
+                            ...sortOptions,
                         }),
                         client.merchant_medicine.count({
                             where: {
@@ -463,3 +486,52 @@ export const UpdateMerchantMedicine = extendType({
         })
     }
 })
+
+
+export const QuerySinelgMedecineInp = inputObjectType({
+    name:"QuerySinelgMedecineInp",
+    definition(t) {
+        t.int('id')
+    },
+})
+
+export const QuerySingleMedecine = extendType({
+    type: 'Query',
+    definition(t) {
+        t.nullable.field('QuerySingleMedecine', {
+            type: medicineType,
+            args: { data: QuerySinelgMedecineInp },
+            async resolve(_root, args, ctx) {
+                const { session } = ctx;
+
+               try {
+                const result = await client.merchant_medicine.findUnique({
+                    where:{
+                        id:Number(args?.data?.id)
+                    }
+                })
+
+                const r = await client.medecine_attachment.findFirst({
+                    where:{
+                        id:Number(result?.attachment_id)
+                    }
+                })
+
+                const store = await client.merchant_store.findFirst({
+                    where:{
+                        id:Number(result?.store_id)
+                    }
+                })
+
+                const fResult = {...result, attachment_info:{...r}, merchant_store:{...store}}
+
+               
+                return fResult;
+                
+               } catch (error) {
+                throw new Error(error)
+               }
+            }
+        })
+    }
+});

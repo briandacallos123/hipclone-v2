@@ -77,6 +77,7 @@ import StoreSkeletonView from './store-skeleton-view';
 import StoreTableRow from './store-table-row';
 import StoreSkeletonRow from './store-skeleton';
 import StoreToolbar from './store-toolbar';
+import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -114,21 +115,16 @@ export default function StoreListView() {
   const confirmApprove = useBoolean();
   const [isClinic, setIsClinic] = useState(0);
   const confirmCancel = useBoolean();
-
-  // const [summaryData, setSummaryData] = useState(null)
-  // const [totalRecordsData, setTotalRecordsData] = useState(null)
+  const confirmUpdate = useBoolean();
 
 
-  const { loading, table, state: tableState,handleSubmitDelete, handleFilterStatus, filters, setFilters, handleFilters }: any = storeController()
+
+  const { queryResults, table,handleSubmitUpdateStore, state: tableState,handleSubmitDelete, handleFilterStatus, filters, setFilters, handleFilters }: any = storeController()
   const { tableData, summary, totalRecords } = tableState
 
 
 
 
-  // useEffect(() => {
-  //   setTotalRecordsData(totalRecords)
-  //   setSummaryData(summaryData)
-  // }, [totalRecords, summaryData])
 
   const { state, deletedOrderFunc }: any = UseOrdersContext()
 
@@ -165,7 +161,7 @@ export default function StoreListView() {
   const denseHeight = table.dense ? 56 : 76;
 
 
-  const notFound = !loading && !tableData?.length;
+  const notFound = !queryResults?.loading && !tableData?.length;
 
   const getAppointmentLength = (status: string | number) =>
     tableData?.filter((item: any) => item?.status === status).length;
@@ -238,6 +234,12 @@ export default function StoreListView() {
     confirmApprove.onTrue()
   }, [])
 
+  const [updateId, setUpdateId] = useState(null)
+
+  const handleUpdateStatus = useCallback((id:any)=>{
+    setUpdateId(id)
+    confirmUpdate.onTrue()
+  },[])
 
 
 
@@ -274,7 +276,60 @@ export default function StoreListView() {
               mb: { xs: 3, md: 5 },
             }}
           >
+            <Scrollbar>
+              <Stack
+                direction="row"
+                divider={<Divider orientation="vertical" flexItem sx={{ borderStyle: 'dashed' }} />}
+                sx={{ py: 2 }}
+              >
+                <AppointmentAnalytic
+                  title="Total"
+                  total={totalRecords}
+                  percent={100}
+                  icon="solar:bill-list-bold-duotone"
+                  color={theme.palette.text.primary}
+                  label="orders"
+                />
 
+                <AppointmentAnalytic
+                  title="Active"
+                  total={summary?.active}
+                  percent={(summary?.active / totalRecords) * 100}
+                  icon="solar:clock-circle-bold-duotone"
+                  color={theme.palette.warning.main}
+                  label="orders"
+
+                />
+                <AppointmentAnalytic
+                  title="Inactive"
+                  total={summary?.inactive}
+                  percent={(summary?.inactive /totalRecords) * 100}
+                  icon="solar:close-circle-bold-duotone"
+                  color={theme.palette.primary.main}
+                  label="orders"
+
+                />
+                {/* <AppointmentAnalytic
+                  title="Done"
+                  total={state?.summary?.done}
+                  percent={(state?.summary?.done / state?.totalRecords) * 100}
+                  icon="solar:close-circle-bold-duotone"
+                  color={theme.palette.success.main}
+                  label="orders"
+
+                />
+                <AppointmentAnalytic
+                  title="Cancelled"
+                  total={state?.summary?.cancelled}
+                  percent={(state?.summary?.cancelled / state?.totalRecords) * 100}
+                  icon="solar:close-circle-bold-duotone"
+                  color={theme.palette.error.main}
+                  label="orders"
+
+                /> */}
+
+              </Stack>
+            </Scrollbar>
           </Card>
         )}
 
@@ -376,9 +431,9 @@ export default function StoreListView() {
                     headLabel={TABLE_HEAD}
                   />
                 )} */}
-
+ 
                 <TableBody>
-                  {loading
+                  {queryResults?.loading
                     ? [...Array(rowsPerPage)].map((_, i) => <StoreSkeletonRow key={i} />)
                     : tableData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
                       <StoreTableRow
@@ -387,7 +442,8 @@ export default function StoreListView() {
                         // onSelectRow={() => table.onSelectRow(String(row.id))}
                         onViewRow={() => handleViewRow(row)}
                         onManageRow={() => handleManageRow(Number(row?.id))}
-                      onDeleteRow={()=>handleDeleteRow(row?.id)}
+                        onDeleteRow={()=>handleDeleteRow(row?.id)}
+                        onUpdateStatusRow={()=>handleUpdateStatus(row?.id)}
                       />
                     ))}
 
@@ -452,12 +508,12 @@ export default function StoreListView() {
       />
 
       <ConfirmDialog
-        open={confirmCancel.value}
-        onClose={confirmCancel.onFalse}
-        title="Cancel"
+        open={confirmUpdate.value}
+        onClose={confirmUpdate.onFalse}
+        title="Inactive"
         content={
           <>
-            Are you sure want to delete this item?
+            Are you sure, you want to set this to inactive?
           </>
         }
         action={
@@ -465,8 +521,11 @@ export default function StoreListView() {
             variant="contained"
             color="error"
             onClick={() => {
-              confirmCancel.onFalse();
+              handleSubmitUpdateStore(updateId)
+
+              confirmUpdate.onFalse();
             }}
+            
           >
             Submit
           </Button>

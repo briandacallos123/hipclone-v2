@@ -19,23 +19,30 @@ import Iconify from 'src/components/iconify';
 import { TableMobileRow } from 'src/components/table';
 import Label from '@/components/label';
 import { useAuthContext } from '@/auth/hooks';
-import { MenuItem, Rating } from '@mui/material';
+import { Button, MenuItem, Rating } from '@mui/material';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import { ConfirmDialog } from '@/components/custom-dialog';
 
 // ----------------------------------------------------------------------
 
 type Props = {
     row: any;
     onViewRow?: VoidFunction;
-    onManageRow?:()=>void;
-    onDeleteRow?:()=>void
+    onManageRow?: () => void;
+    onDeleteRow?: () => void
+    onUpdateStatusRow?: () => void;
 };
 
-export default function StoreTableRow({onDeleteRow, row, onViewRow, onManageRow }: Props) {
+export default function StoreTableRow({ onDeleteRow, onUpdateStatusRow, row, onViewRow, onManageRow }: Props) {
     const upMd = useResponsive('up', 'md');
     const { user } = useAuthContext()
 
     const popover = usePopover();
+    const updatePopover = usePopover();
+
+
+
+
 
     // const { prescriptionNumber, date, hospitalId, doctor } = row;
 
@@ -124,7 +131,7 @@ export default function StoreTableRow({onDeleteRow, row, onViewRow, onManageRow 
                 <Rating value={row?.rating} max={5} />
             </TableCell>
             <TableCell>
-                <Label variant="soft" color={row?.is_active ? "success" : "info"}>
+                <Label variant="soft" color={row?.is_active ? "success" : "error"}>
                     {row?.is_active ? "Active" : "Inactive"}
                 </Label>
             </TableCell>
@@ -135,7 +142,7 @@ export default function StoreTableRow({onDeleteRow, row, onViewRow, onManageRow 
             <TableCell align="center" sx={{ px: 1, whiteSpace: 'nowrap' }}>
                 <Tooltip title="View Details" placement="top" arrow>
                     <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
-                        <Iconify  icon="eva:more-vertical-fill" />
+                        <Iconify icon="eva:more-vertical-fill" />
                     </IconButton>
                 </Tooltip>
             </TableCell>
@@ -148,9 +155,9 @@ export default function StoreTableRow({onDeleteRow, row, onViewRow, onManageRow 
 
                     }}
                     sx={{
-                        color:'sucesss'
+                        color: 'sucesss'
                     }}
-                    
+
                 >
                     <Iconify icon="ic:baseline-manage-accounts" />
                     Manage
@@ -158,12 +165,13 @@ export default function StoreTableRow({onDeleteRow, row, onViewRow, onManageRow 
 
                 <MenuItem
                     onClick={() => {
-                        // onHandleEditSched();
+                        onUpdateStatusRow()
                         popover.onClose();
                     }}
+                    sx={{ color: row?.is_active ? "warning.main":'success.main' }}
                 >
                     <Iconify icon="solar:pen-bold" />
-                    Set Inactive
+                    {row?.is_active ? "Set Inactive":"Set Active"}
                 </MenuItem>
                 <MenuItem
                     onClick={() => {

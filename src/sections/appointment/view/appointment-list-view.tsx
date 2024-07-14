@@ -450,14 +450,14 @@ export default function AppointmentListView() {
   },[])
 
   const successModal = useBoolean();
+  const successBooking = sessionStorage.getItem('successBooking');
 
   useEffect(()=>{
-    const successBooking = sessionStorage.getItem('successBooking');
     if(successBooking){
       successModal.onTrue()
       sessionStorage.removeItem('successBooking')
     }
-  },[])
+  },[successBooking])
 
  
 

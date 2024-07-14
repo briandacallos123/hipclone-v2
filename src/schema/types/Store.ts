@@ -58,6 +58,10 @@ export const storeInputType = inputObjectType({
         t.nullable.int('status')
         t.nullable.int('radius')
         t.nullable.string('name')
+        t.nullable.float('latitude');
+        t.nullable.float('longitude');
+ 
+
     },
 });
 
@@ -88,7 +92,13 @@ const filterMerchantsByDistance = (patientLocation: any, merchants: any, radius:
             merchant.lng
         );
       
-        if(distance <= radius){
+        if(radius === 100){
+            myData.push({
+                ...merchant,
+                distance
+            })
+        }
+        else if(distance <= radius){
           
             myData.push({
                 ...merchant,
@@ -107,7 +117,7 @@ export const QueryAllStoreNoId = extendType({
             args: { data: storeInputType },
             async resolve(_root, args, ctx) {
 
-                const { take, skip, search, delivery, radius }: any = args.data;
+                const { take, skip, search, delivery, radius, longitude, latitude }: any = args.data;
 
                 const deliveryOptions = () => {
 
@@ -120,6 +130,7 @@ export const QueryAllStoreNoId = extendType({
                    
                 }
 
+               
 
                 const deliveryFilter = deliveryOptions()
 
@@ -138,16 +149,22 @@ export const QueryAllStoreNoId = extendType({
                         },
                         include: {
                             attachment_store: true
-                        }
+                        },
+                        
+                        
                     })
 
+                    // console.log(latitude, longitude,'___________TUDE_____________________________')
                     const patient = {
-                        latitude: user?.latitude,
-                        longitude: user?.longitude
+                        latitude: latitude || user?.latitude,
+                        longitude: longitude || user?.longitude
                     }
-                    const filteredByKlm = filterMerchantsByDistance(patient, result, radius)
+                    let filteredByKlm = filterMerchantsByDistance(patient, result, radius)
 
-
+                    // if(radius === 100){
+                        
+                    //     filteredByKlm = result;
+                    // }
                   
                     return filteredByKlm
                 } catch (error) {
@@ -381,7 +398,7 @@ export const CreateNewStore = extendType({
 
                 const daysJson = serialize(serialize(args?.data?.days));
 
-              
+                console.log(sFile,'SFILE______________________________________________________________________')
 
                 try {
                     if (sFile) {
@@ -395,7 +412,7 @@ export const CreateNewStore = extendType({
                             }
                         })
                     }
-                    if(sFile?.length > 1){
+                    if(sFile?.length > 1 && sFile[1] !== null){
                         const res: any = useUpload(sFile, 'public/documents/');
                         paymentAttachment = await client.order_payment_attachment.create({
                             data: {
@@ -540,6 +557,57 @@ export const DeleteStore = extendType({
 
                     return {
                         message: "Successfully deleted"
+                    }
+                } catch (error) {
+                    throw new GraphQLError(error)
+                }
+            }
+        })
+    }
+})
+
+
+export const UpdateStatusStore = extendType({
+    type: 'Mutation',
+    definition(t) {
+        t.nullable.field('UpdateStatusStore', {
+            type: CreateNewStoreObj,
+            args: { data: DeleteStoreInp!},
+            async resolve(_root, args, ctx) {
+
+                try {
+                    const targetStore = await client.merchant_store.findUnique({
+                        where:{
+                            id:Number(args?.data?.id)
+                        }
+                    })
+
+                    const negateStatus = () => {
+                        if(targetStore?.is_active === 1){
+                            return {
+                                is_active:0
+                            }
+                        }
+                        if(targetStore?.is_active === 0){
+                            return {
+                                is_active:1
+                            }
+                        }
+                    }
+
+                    const negatedValues = negateStatus()
+
+                    await client.merchant_store.update({
+                        where: {
+                            id: Number(args?.data?.id)
+                        },
+                        data: {
+                            ...negatedValues
+                        }
+                    })
+
+                    return {
+                        message: "Updated Successfully"
                     }
                 } catch (error) {
                     throw new GraphQLError(error)

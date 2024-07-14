@@ -20,20 +20,26 @@ import { IAppointmentTableFilters, IAppointmentTableFilterValue } from 'src/type
 import Iconify from 'src/components/iconify';
 import { TableToolbarPopover } from 'src/components/table';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
-import { Box, Button, Slider } from '@mui/material';
+import { Box, Button, Slider, Tooltip } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
 type Props = {
     filters: IAppointmentTableFilters;
     onFilters: (name: string, value: IAppointmentTableFilterValue) => void;
-    typeOptions: any
+    typeOptions: any;
+    sortOptions?:any;
+    handleListView?:any;
+    listView?:any;
 };
 
 export default function SidebarFitering({
     filters,
     onFilters,
-    typeOptions
+    typeOptions,
+    sortOptions,
+    handleListView,
+    listView
     //
 }: Props) {
     const upMd = useResponsive('up', 'md');
@@ -58,6 +64,18 @@ export default function SidebarFitering({
         },
         [onFilters]
     );
+    const handelSort = useCallback(
+        (event: SelectChangeEvent<string[]>) => {
+            let val: any = event.target.value
+
+            onFilters(
+                'sort',
+                val
+            );
+        },
+        [onFilters]
+    );
+
 
     const handleFilterStartingPrice = useCallback(
         (event: SelectChangeEvent<string[]>) => {
@@ -121,7 +139,7 @@ export default function SidebarFitering({
             value: 0,
             label: '0',
         },
-        
+
         {
             value: 10000,
             label: '10,000',
@@ -135,20 +153,33 @@ export default function SidebarFitering({
 
     const [val, setVal] = useState(0)
 
-    const handleChange = (e:any) => {
+    const handleChange = (e: any) => {
         setVal(e.target.value)
 
         onFilters(
             'startingPrice',
             e.target.value
         );
-        
+
     }
 
- 
+
 
     const renderFields = (
         <>
+            <Stack sx={{
+                pl:1
+            }} direction="row" alignItems="center" gap={2}>
+                <Typography>View As</Typography>
+                <Stack direction="row" alignItems="center" gap={1}>
+                    <Tooltip  title="grid view">
+                        <Iconify onClick={()=>handleListView('grid')} sx={{cursor:'pointer'}} icon={listView === 'grid' ? "material-symbols:grid-view":"material-symbols-light:grid-view-outline"} width={25} />
+                    </Tooltip>
+                    <Tooltip  title="list view">
+                         <Iconify onClick={()=>handleListView('list')} sx={{cursor:'pointer'}} icon={listView === 'list' ? "material-symbols:view-list-sharp":"material-symbols-light:view-list-outline"} width={25} />
+                    </Tooltip>
+                </Stack>
+            </Stack>
 
             <TextField
                 fullWidth
@@ -168,8 +199,38 @@ export default function SidebarFitering({
                 }}
             />
 
-
             <FormControl
+                sx={{
+                    flexShrink: 0,
+                    width: { xs: 1, md: 200 },
+                }}
+            >
+                <InputLabel>Sort By: </InputLabel>
+
+                <Select
+                    value={filters.sort}
+                    onChange={handelSort}
+                    input={<OutlinedInput label="Delivery" />}
+                    renderValue={(selected) =>
+                        sortOptions?.find((item: any) => item.value === selected).value
+                    }
+                    sx={{ textTransform: 'capitalize' }}
+                >
+                    {sortOptions?.map((option: any) => (
+                        <MenuItem key={option?.id} value={option?.value}>
+                            <Checkbox
+                                disableRipple
+                                size="small"
+                                checked={filters.sort === option.value}
+                            />
+                            {option?.label}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
+
+
+            {/* <FormControl
                 sx={{
                     flexShrink: 0,
                     width: { xs: 1, md: 200 },
@@ -197,7 +258,7 @@ export default function SidebarFitering({
                         </MenuItem>
                     ))}
                 </Select>
-            </FormControl>
+            </FormControl> */}
 
             <Box sx={{ width: 200 }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
@@ -223,7 +284,7 @@ export default function SidebarFitering({
                         }}
                     />
                     <Typography> - </Typography>
-                     <TextField
+                    <TextField
                         fullWidth
                         value={filters.endPrice}
                         onChange={handleFilterEndPrice}
@@ -241,7 +302,7 @@ export default function SidebarFitering({
                         }}
                     />
                 </Stack>
-{/* 
+                {/* 
                 <Slider
                     aria-label="Always visible"
                     defaultValue={0}
@@ -262,8 +323,8 @@ export default function SidebarFitering({
     return (
         <>
             <Stack
-                spacing={4}
-                alignItems={{ xs: 'flex-end', md: 'center' }}
+                spacing={2}
+               
                 direction={{
                     xs: 'column',
                     md: 'column',
@@ -271,8 +332,8 @@ export default function SidebarFitering({
                 sx={{
                     p: 2.5,
                     pr: { xs: 2.5, md: 1 },
-                    boxShadow:'-1px -1px 1px grey', 
-                    width:'auto'
+                    position:'sticky',
+                    top:100
                 }}
             >
                 {upMd && renderFields}

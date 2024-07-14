@@ -38,6 +38,11 @@ type Props = {
   onDeleteRow: () => void;
   onViewPatient: VoidFunction;
   onEditRow: () => void;
+  onDone?:()=>void;
+  onApproved?:()=>void;
+  onCancelled?:()=>void
+
+
 };
 
 export default function MerchantOrdersTableRow({
@@ -47,7 +52,10 @@ export default function MerchantOrdersTableRow({
   onViewRow,
   onViewPatient,
   onDeleteRow,
-  onEditRow
+  onEditRow,
+  onDone,
+  onApproved,
+  onCancelled
 }: Props) {
   /*  const { patient, hospital, schedule, isPaid, type } = row; */
   const upMd = useResponsive('up', 'md');
@@ -77,75 +85,13 @@ export default function MerchantOrdersTableRow({
   const popover = usePopover();
 
 
-  //   if (!upMd) {
-  //     return (
-  //       <TableMobileRow
-  //         // selected={selected}
-  //         // onSelectRow={onSelectRow}
-  //         menu={[
-  //           {
-  //             label: 'View',
-  //             icon: 'solar:eye-bold',
-  //             func: onViewRow,
-  //           },
-  //         ]}
-  //       >
-  //         <div style={{ display: 'flex', alignItems: 'center' }}>
-  //           {row?.patientInfo?.userInfo?.[0]?.display_picture?.[0] ? (
-  //             <Avatar
-  //               alt={row?.patientInfo?.FNAME}
-  //               src={
-  //                 row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]
-  //               }
-  //               sx={{ mr: 2 }}
-  //             >
-  //               {row?.patientInfo?.FNAME.charAt(0).toUpperCase()}
-  //             </Avatar>
-  //           ) : (
-  //             <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
-  //               {row?.patientInfo?.FNAME.charAt(0).toUpperCase()}
-  //             </Avatar>
-  //           )}
-  //           {/* <Avatar alt={fullName} sx={{ mr: 2 }}>
-  //             {fullName.charAt(0).toUpperCase()}
-  //           </Avatar> */}
-
-  //           <ListItemText
-  //             primary={!isPatient ? fullName : row?.clinicInfo?.clinic_name}
-  //             secondary={
-  //               <>
-  //                 <Typography variant="caption">
-  //                   {format(new Date(row?.date), `dd MMM yyyy`)}&nbsp;({convertTime(row?.time_slot)})
-  //                 </Typography>
-  //                 <Stack direction="row" spacing={1} sx={{ typography: 'caption' }}>
-  //                   <Label variant="soft" color={(row?.type === 1 && 'success') || 'info'}>
-  //                     {row?.type === 1 ? 'telemedicine' : 'face-to-face'}
-  //                   </Label>
-  //                   <Label
-  //                     color={(row?.payment_status && 'success') || 'error'}
-  //                     sx={{ textTransform: 'capitalize' }}
-  //                   >
-  //                     {row?.payment_status ? 'paid' : 'unpaid'}
-  //                   </Label>
-  //                 </Stack>
-  //               </>
-  //             }
-  //             primaryTypographyProps={{
-  //               typography: 'subtitle2',
-  //             }}
-  //             secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
-  //           />
-  //         </div>
-  //       </TableMobileRow>
-  //     );
-  //   }
-
   const handleCopy = async () => {
     await navigator.clipboard.writeText(row?.voucherId)
     enqueueSnackbar('Copied to clipboard');
   }
 
   const confirm = useBoolean();
+
 
   const renderConfirm = (
     <ConfirmDialog
@@ -167,6 +113,77 @@ export default function MerchantOrdersTableRow({
       }
     />
   );
+  const doneConfirm = useBoolean();
+
+  const renderDoneConfirm = (
+    <ConfirmDialog
+      open={doneConfirm.value}
+      onClose={doneConfirm.onFalse}
+      title="Delete"
+      content="Are you sure want to delete?"
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            onDone();
+            doneConfirm.onFalse();
+          }}
+        >
+          Mark as done
+        </Button>
+      }
+    />
+  );
+
+  const approveConfirm = useBoolean();
+
+  const renderApprovedConfirm = (
+    <ConfirmDialog
+      open={approveConfirm.value}
+      onClose={approveConfirm.onFalse}
+      title="Delete"
+      content="Are you sure want to delete?"
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            // onDone();
+            onApproved()
+            approveConfirm.onFalse();
+          }}
+        >
+          Mark as Approved
+        </Button>
+      }
+    />
+  );
+
+  const cancelConfirm = useBoolean();
+
+  const renderCancelConfirm = (
+    <ConfirmDialog
+      open={cancelConfirm.value}
+      onClose={cancelConfirm.onFalse}
+      title="Delete"
+      content="Are you sure want to cancel?"
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            // onDone();
+            onCancelled()
+            cancelConfirm.onFalse();
+          }}
+        >
+          Mark as Cancel
+        </Button>
+      }
+    />
+  );
+
 
   const FULLNAME = row?.patient?.MNAME ? `${row?.patient?.FNAME} ${row?.patient?.MNAME} ${row?.patient?.LNAME}` : `${row?.patient?.FNAME} ${row?.patient?.LNAME}`;
 
@@ -201,21 +218,7 @@ export default function MerchantOrdersTableRow({
         </Typography>
 
       </TableCell>
-      {/* <TableCell >
-            <Label variant="soft" color={'success'}>
-                {row?.dose}
-            </Label>
-        </TableCell> */}
-      {/* <TableCell align='center'>
-            <Label variant="soft" color={'success'}>
-                {row?.form}
-            </Label>
-        </TableCell>
-        <TableCell align='center'>
-            <Label variant="soft" color={'success'}>
-                {row?.quantity}
-            </Label>
-        </TableCell> */}
+     
       <TableCell align='center'>
         <Typography>
           {FULLNAME}
@@ -224,13 +227,31 @@ export default function MerchantOrdersTableRow({
 
       </TableCell>
       <TableCell align='center'>
+        <Label variant="soft" color={'success'}>
+          {row?.is_paid ? "Paid" : "Unpaid"}
+        </Label>
+      </TableCell>
+      <TableCell align='center'>
         <Typography>
         {row?.is_deliver ? 'Delivery' : 'Pick Up'}
         </Typography>
       </TableCell>
+     
       <TableCell align='center'>
-        <Label variant="soft" color={'success'}>
-          {row?.is_paid ? "Paid" : "Unpaid"}
+        <Label variant="soft" color={
+          row?.status_id === 4 && 'success' ||
+          row?.status_id === 1 && 'error' ||
+          row?.status_id === 2 && 'warning' ||
+          row?.status_id === 3 && 'error' 
+
+        }>
+          {row?.status_id === 4 && "Done"||
+          row?.status_id === 1 && "Pending" ||
+          row?.status_id === 2 && "Approved" ||
+
+          row?.status_id === 3 && "Cancelled" 
+
+          }
         </Label>
       </TableCell>
 
@@ -247,15 +268,41 @@ export default function MerchantOrdersTableRow({
 
       <Stack direction="row" justifyContent="flex-end">
         <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
-          {/* <MenuItem
+          {row?.status_id !== 2 && row?.status_id !== 4 &&<MenuItem
             onClick={() => {
-              onEditRow();
+              approveConfirm.onTrue()
               popover.onClose();
+
             }}
+            sx={{ color: 'success.main' }}
           >
-            <Iconify icon="solar:pen-bold" />
-            Edit
-          </MenuItem> */}
+            <Iconify icon="material-symbols:order-approve-sharp" />
+             Approve
+          </MenuItem>}
+          
+          
+          {row?.status_id !== 4 && <MenuItem
+            onClick={() => {
+              cancelConfirm.onTrue()
+              popover.onClose();
+
+            }}
+            sx={{ color: 'warning.main' }}
+          >
+            <Iconify icon="material-symbols-light:cancel" />
+             Cancel
+          </MenuItem>}
+            {row?.status_id !== 4 &&   <MenuItem
+            onClick={() => {
+              doneConfirm.onTrue()
+              popover.onClose();
+
+            }}
+            sx={{ color: 'success.main' }}
+          >
+            <Iconify icon="eva:done-all-fill" />
+             Done
+          </MenuItem>}
 
           <MenuItem
             onClick={() => {
@@ -272,6 +319,9 @@ export default function MerchantOrdersTableRow({
         </CustomPopover>
       </Stack>
       {renderConfirm}
+      {renderDoneConfirm}
+      {renderApprovedConfirm}
+      {renderCancelConfirm}
     </TableRow>
   );
 }

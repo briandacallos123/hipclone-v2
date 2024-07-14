@@ -1,4 +1,4 @@
-import { useCallback } from 'react';
+import { useCallback, useState } from 'react';
 // @mui
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import Stack from '@mui/material/Stack';
@@ -19,23 +19,56 @@ import { IAppointmentTableFilters, IAppointmentTableFilterValue } from 'src/type
 import Iconify from 'src/components/iconify';
 import { TableToolbarPopover } from 'src/components/table';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
+import { Slider, Typography } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   filters: IAppointmentTableFilters;
   onFilters: (name: string, value: IAppointmentTableFilterValue) => void;
-  deliveryOptions:any
+  deliveryOptions: any;
+  handleChange: any;
+  val: any
 };
+
+const MAX = 100;
+const MIN = 0;
+const marks = [
+  {
+    value: MIN,
+    label: 'Min',
+  },
+  {
+    value: MAX,
+    label: 'Max',
+  },
+];
+
 
 export default function StoreDashboardFiltering({
   filters,
   onFilters,
-  deliveryOptions
+  deliveryOptions,
+
   //
 }: Props) {
   const upMd = useResponsive('up', 'md');
+  const [val, setVal] = useState(filters.distance);
 
+
+  const handleChange = (_) => {
+    // console.log(_.target.value,'VALUEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE')
+    const val = _.target.value
+    setVal(val);
+
+    onFilters(
+      'distance',
+      val
+    );
+    // setTimeout(()=>{
+
+    // })
+  };
   const popover = usePopover();
 
   const handleFilterName = useCallback(
@@ -45,9 +78,9 @@ export default function StoreDashboardFiltering({
     [onFilters]
   );
 
-  const handleFilterDelivery= useCallback(
+  const handleFilterDelivery = useCallback(
     (event: SelectChangeEvent<string[]>) => {
-      let val:any =  event.target.value
+      let val: any = event.target.value
       // console.log(val,': VALUE NG DELIVERY');
 
       onFilters(
@@ -58,9 +91,13 @@ export default function StoreDashboardFiltering({
     [onFilters]
   );
 
-  const handleFilterDistance= useCallback(
+  function valuetext(value: any) {
+    return value;
+}
+
+  const handleFilterDistance = useCallback(
     (event: SelectChangeEvent<string[]>) => {
-      let val =  event.target.value
+      let val = event.target.value
 
       onFilters(
         'distance',
@@ -83,42 +120,49 @@ export default function StoreDashboardFiltering({
     },
     [onFilters]
   );
-  
+
   const distanceOption = [
     {
-      id:1,
-      labe:"1",
-      value:1
+      id: 1,
+      label: "1",
+      value: 0
     },
+  
     {
-      id:2,
-      labe:"3",
-      value:3
-    },
-    {
-      id:3,
-      labe:"5",
-      value:5
-    },
-    {
-      id:4,
-      labe:"10",
-      value:10
+      id: 4,
+      label: "All",
+      value: 100
     },
   ]
 
   const renderFields = (
     <>
-      <FormControl
+    <Stack sx={{
+        width: { xs: 1, md: 200 },
+    }}>
+      <Typography variant="body2" color="grey">Distance (KM)</Typography>
+      <Slider
+            aria-label="Always visible"
+            defaultValue={1}
+            getAriaValueText={valuetext}
+            step={1}
+            marks={distanceOption}
+            value={val}
+            // track={true}
+            onChange={handleChange}
+            max={100}
+            valueLabelDisplay={val >= 2 ? "on" : "off"}
+          /> 
+    </Stack>
+      {/* <FormControl
         sx={{
           flexShrink: 0,
           width: { xs: 1, md: 160 },
         }}
-      >
-        <InputLabel>Distance</InputLabel> 
-
-       <Select
-          // multiple
+      > */}
+        {/* <InputLabel>Distance</InputLabel> */}
+        
+        {/* <Select
           value={filters?.distance}
           onChange={handleFilterDistance}
           input={<OutlinedInput label="Delivery" />}
@@ -138,17 +182,17 @@ export default function StoreDashboardFiltering({
               {option?.value} Km
             </MenuItem>
           ))}
-        </Select> 
-      </FormControl> 
-     <FormControl
+        </Select>  */}
+      {/* </FormControl> */}
+      <FormControl
         sx={{
           flexShrink: 0,
           width: { xs: 1, md: 160 },
         }}
       >
-        <InputLabel>Delivery</InputLabel> 
+        <InputLabel>Delivery</InputLabel>
 
-       <Select
+        <Select
           // multiple
           value={filters.delivery}
           onChange={handleFilterDelivery}
@@ -168,8 +212,8 @@ export default function StoreDashboardFiltering({
               {option?.label}
             </MenuItem>
           ))}
-        </Select> 
-      </FormControl> 
+        </Select>
+      </FormControl>
 
       {/* <DatePicker
         label="Start date"

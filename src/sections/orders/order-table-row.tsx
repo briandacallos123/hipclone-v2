@@ -239,13 +239,13 @@ export default function OrderTableRow({
         <Label
           variant="soft"
           color={
-            row?.status === 1
+            row?.status_id === 1
               ? 'warning'
-              : row?.status === 2
+              : row?.status_id === 2
                 ? 'info'
-                : row?.status === 3
+                : row?.status_id === 3
                   ? 'error'
-                  : row?.status === 4
+                  : row?.status_id === 4
                     ? 'success'
                     : 'info'
           }

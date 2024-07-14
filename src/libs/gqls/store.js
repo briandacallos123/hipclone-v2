@@ -17,6 +17,14 @@ export const UpdateStore = gql`
   }
 `;
 
+export const UpdateStatusStore = gql`
+  mutation UpdateStatusStore($data: DeleteStoreInp!) {
+    UpdateStatusStore( data: $data) {
+      message
+    }
+  }
+`;
+
 
 export const DeleteStore = gql`
   mutation DeleteStore($data: DeleteStoreInp!) {

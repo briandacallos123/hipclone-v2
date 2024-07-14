@@ -48,7 +48,7 @@ const ScanFullView = ({open, handleClose}:ScanProps) => {
 
     const {id} = useParams()
 
-    const [getPrecsciption, { data, loading, error }] = useLazyQuery(PrescriptionsUserQr, {
+    const [getPrescription, { data, loading, error }] = useLazyQuery(PrescriptionsUserQr, {
         context: {
             requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
           },
@@ -57,7 +57,7 @@ const ScanFullView = ({open, handleClose}:ScanProps) => {
 
       useEffect(()=>{
         if(id){
-            getPrecsciption({
+            getPrescription({
                 variables: {
                   data: {
                     presCode: id
@@ -90,6 +90,7 @@ const ScanFullView = ({open, handleClose}:ScanProps) => {
 
     const onSubmit = () => {
         if(user?.lastName.toLowerCase() === surname?.current.toLowerCase()){
+
             setIsOpen(false)
             setIsVerified(true)
         }
@@ -119,12 +120,6 @@ const ScanFullView = ({open, handleClose}:ScanProps) => {
         }}
         >
 
-            {/* <Dialog open={isOpen} onClose={handleCloseSub}>
-                <DialogContent>
-                    <TextField placeholder='last name' label="last name"/>
-                    <Button onClick={handleSubmit}>Submit</Button>
-                </DialogContent>
-            </Dialog> */}
        
        <DialogContent sx={{
             height:'100%',

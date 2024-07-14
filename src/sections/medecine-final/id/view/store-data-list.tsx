@@ -15,10 +15,10 @@ type StoreDataListProps = {
 
 
 
-const StoreDataList = ({ data, loading }: any) => {
-    
+const StoreDataList = ({ data, loading, listView, }: any) => {
+    const isListView = listView === 'list';
 
-    const isRow = false
+
     const { addOrder }: any = useOrdersContext()
     const handleView = useCallback((id: number) => {
         // router.push(paths.dashboard.medecine.view(id));
@@ -29,30 +29,31 @@ const StoreDataList = ({ data, loading }: any) => {
         addOrder(data)
     }
 
-   
+
 
     const notFound = !loading && !data?.length
 
     return (
         <Box sx={{
             mt: 3,
-          
+            // borderRight: '.5px solid #e3e3e3'
+
         }}><Table>
                 <TableNoData notFound={notFound} />
             </Table>
-            {loading && <StoreSkeleton/>}
+            {loading && <StoreSkeleton />}
 
-            {!loading && data?.length !== 0 && <Grid justifyContent="flex-start" alignItems="flex-start" container gap={2} sx={{
-                height:700,
+            {!loading && data?.length !== 0 && <Grid justifyContent="flex-start" alignItems="flex-start" container gap={isListView ? 4:2} sx={{
+                height: 700
                 // backgroundColor:'red'
             }}>
                 {data?.map((item: any) => {
-                     return (
-                        <Grid item lg={3}>
-                             <DataListItem key={item?.id} item={item}/>
+                    return (
+                        <Grid item lg={isListView ? 12 : 3}>
+                            <DataListItem listView={listView === 'list'} key={item?.id} item={item} />
                         </Grid>
-                     )
-                 })}
+                    )
+                })}
             </Grid>}
         </Box >
     )

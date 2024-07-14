@@ -1811,6 +1811,7 @@ model merchant_medicine {
   type                String?             @db.VarChar(255)
   manufacturer        String?             @db.VarChar(255)
   store_id            Int
+  quantity_sold       Int?
   created_at          DateTime            @default(now()) @db.Date
   is_deleted          Int                 @default(0)
   attachment_id       Int

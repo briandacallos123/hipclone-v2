@@ -3,23 +3,29 @@ import { fCurrency } from '@/utils/format-number';
 import { Box, Button, Card, CardActionArea, CardContent, CardMedia, Grid, Stack, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react'
 // import { useCheckoutContext } from '@/context/checkout/Checkout';
+import { useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 
 import { useCheckoutContext } from '@/context/checkout/Checkout';
 
 type DataListItemProps = {
     item: any;
+    listView?:boolean;
 }
 
-const DataListItem = ({ item }: DataListItemProps) => {
+const DataListItem = ({ item, listView }: DataListItemProps) => {
     const { state, addToCart, removeToCart, decretementItem }: any = useCheckoutContext()
     const { id, attachment_info, show_price, price, stock, generic_name, description, address, rating, product_types } = item;
     const targetItem = state?.cart?.find((item) => Number(item.id) === Number(id))
 
-
-
+    const router = useRouter()
+    const {id:storeId} = useParams()
     const [qtyValue, setQtyValue] = useState(0)
     const [operation, setOperation] = useState(null);
 
+
+
+    console.log(state,'STATEEEEEEEEEEEEEEEEEEEEEEEEEEE_______________')
     useEffect(() => {
         if (targetItem?.quantity) {
             setQtyValue(targetItem.quantity)
@@ -28,7 +34,8 @@ const DataListItem = ({ item }: DataListItemProps) => {
 
     const isRow = false
 
-    const handleMinus = useCallback(() => {
+    const handleMinus = useCallback((e) => {
+        e.stopPropagation();
         if (qtyValue !== 0) {
 
             setOperation('minus')
@@ -40,8 +47,8 @@ const DataListItem = ({ item }: DataListItemProps) => {
         }
     }, [qtyValue])
 
-    const handleIncrement = useCallback(() => {
-
+    const handleIncrement = useCallback((e) => {
+        e.stopPropagation();
         setOperation('add')
         setQtyValue((prev) => {
             if (prev < stock) {
@@ -52,8 +59,9 @@ const DataListItem = ({ item }: DataListItemProps) => {
         })
     }, [qtyValue])
 
-    const handleAdd = useCallback(() => {
+    const handleAdd = useCallback((e) => {
 
+        e.stopPropagation();
       
         if (operation && qtyValue) {
             if (operation === 'add') {
@@ -92,11 +100,18 @@ const DataListItem = ({ item }: DataListItemProps) => {
     //     }
     // }, [operation, qtyValue])
 
+    const handleNavigate = () => {
+        router.push(`/dashboard/medecine/${storeId}/${id}`)
+    }
+
     return (
 
-        <Card sx={{ maxWidth: isRow ? '100%' : 700 }}>
+        <Card sx={{ maxWidth: listView ? '100%' : 800 }}>
             <CardActionArea
-
+                disableRipple
+                sx={{
+                    cursor:'default'
+                }}
             >
                 <Box
                     sx={{
@@ -104,14 +119,16 @@ const DataListItem = ({ item }: DataListItemProps) => {
                     }}
                 >
                     <Box sx={{
-                        width: '30%'
+                        width: listView ? '40%':"50%"
                     }}>
                         <CardMedia
                             component="img"
                             image={`https://hip.apgitsolutions.com/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
                             alt={generic_name}
-                            height="100%"
-                            width="100%"
+                            // height="100%"
+                            height={listView ? 250 : '100%'}
+                            // width="100%"
+                            width={listView ? 300:'100%'}
                         />
                     </Box>
                     <CardContent sx={{
@@ -123,7 +140,13 @@ const DataListItem = ({ item }: DataListItemProps) => {
                         <Box sx={{
                             width: '100%'
                         }}>
-                            <Typography variant="h6" >
+                            <Typography onClick={handleNavigate} variant="h6" sx={{
+                                '&:hover':{
+                                   textDecoration:'underline',
+                                   color:'primary.dark',
+                                   cursor:'pointer'
+                                }
+                            }} >
                                 {`${generic_name}`}
                             </Typography>
                             {show_price === 1 &&   <Typography variant="body2" >
@@ -145,18 +168,28 @@ const DataListItem = ({ item }: DataListItemProps) => {
                         <Box sx={{
                             display: 'flex',
                             justifyContent: 'flex-end',
-                            alignItems: 'center',
+                            alignItems: listView ? 'flex-end' : 'center',
+                            gap:listView && 2
 
                         }}>
+                            {listView && <Button onClick={handleNavigate} variant="outlined">View</Button>}
 
                             <Stack justifyContent="center" alignItems="center" gap={2}>
 
                                 <Stack direction="row" alignItems="center" gap={1}>
-                                    <Iconify onClick={handleMinus} icon="line-md:minus" />
+                                    <Iconify sx={{
+                                        '&:hover':{
+                                            cursor:"pointer"
+                                        }
+                                    }} onClick={handleMinus} icon="line-md:minus" />
                                     {qtyValue}
-                                    <Iconify onClick={handleIncrement} icon="iconamoon:sign-plus-bold" />
+                                    <Iconify sx={{
+                                        '&:hover':{
+                                            cursor:"pointer"
+                                        }
+                                    }} onClick={handleIncrement} icon="iconamoon:sign-plus-bold" />
                                 </Stack>
-                                <Button onClick={handleAdd} variant="contained"  >Add Order</Button>
+                                <Button onClick={handleAdd} variant="contained">Add Order</Button>
                             </Stack>
 
                         </Box>

@@ -17,9 +17,10 @@ type Props = {
   total: number;
   percent: number;
   color?: string;
+  label?:string;
 };
 
-export default function AppointmentAnalytic({ title, total, icon, color, percent }: Props) {
+export default function AppointmentAnalytic({ title, total, icon, color, percent, label}: Props) {
   return (
     <Stack
       spacing={2.5}
@@ -58,7 +59,7 @@ export default function AppointmentAnalytic({ title, total, icon, color, percent
         <Typography variant="subtitle1">{title}</Typography>
 
         <Box component="span" sx={{ color: 'text.disabled', typography: 'body2' }}>
-          {total ? fShortenNumber(total) : 0} appointments
+          {total ? fShortenNumber(total) : 0} {label || "appointments"}
         </Box>
       </Stack>
     </Stack>

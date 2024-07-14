@@ -11,6 +11,7 @@ import { bgGradient } from 'src/theme/css';
 import Image from 'src/components/image';
 import Lightbox, { useLightBox } from 'src/components/lightbox';
 import Carousel, { CarouselArrowIndex, useCarousel } from 'src/components/carousel';
+// import { maxHeight, maxWidth } from '@mui/system';
 
 // ----------------------------------------------------------------------
 
@@ -74,6 +75,7 @@ export default function ProductDetailsCarousel({ product }: Props) {
   // }));
 
   const slides = {
+    // https://hip.apgitsolutions.co
     src:`https://hip.apgitsolutions.com/${product?.attachment_info?.file_path?.split('/').splice(1).join('/')}`
   }
 
@@ -106,7 +108,7 @@ export default function ProductDetailsCarousel({ product }: Props) {
             src={slides.src}
             // ratio="2/2"
             // onClick={() => lightbox.onOpen(slide.src)}
-            sx={{ cursor: 'zoom-in' }}
+            sx={{ cursor: 'zoom-in', maxWidth:500, maxHeight:500 }}
           />
      
       </Carousel>

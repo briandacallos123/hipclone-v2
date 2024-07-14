@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import StoreManageController from './storeManageController'
 import { Box, Card, CardActionArea, CardContent, CardMedia, Grid, IconButton, MenuItem, Stack, Table, Typography } from '@mui/material'
 import Iconify from '@/components/iconify'
 import { fCurrency } from '@/utils/format-number'
 import StoreProductSkeletonView from './loading/store-product-skeleton'
 import CustomPopover, { usePopover } from '@/components/custom-popover'
+import { useRouter } from 'next/navigation'
+import { useParams } from 'next/navigation'
 import {
     useTable,
     getComparator,
@@ -14,27 +16,41 @@ import {
     TableHeadCustom,
     TableSelectedAction,
     TablePaginationCustom,
-  } from 'src/components/table';
+} from 'src/components/table';
+//   import StoreManageController from './storeManageController'
 
 const StoreProducts = () => {
+    const [loading, setLoading] = useState(true)
+    const router = useRouter();
+    const { tableData, queryResults, handleSubmitDelete } = StoreManageController()
+    const { id: pageId } = useParams()
 
-    const { tableData, loading } = StoreManageController()
+
+    const notFound = !queryResults.loading && tableData.length === 0;
+
+    const handleView = (id: number) => {
+        router.push(`/merchant/dashboard/store/${pageId}/${id}`)
+    }
 
 
 
-    const notFound = !loading  && !tableData.length;
+    const handleDelete = (id: number) => {
+        handleSubmitDelete(id)
+    }
 
-    console.log(tableData,'HAHAHA')
+  
 
     return (
         <Box sx={{
             mt: 3
         }}>
-           
+
             <Grid justifyContent="flex-start" container gap={2}>
-                {!tableData?.length && loading && <StoreProductSkeletonView />}
+                {queryResults.loading && <StoreProductSkeletonView />}
                 {tableData?.map((item) => (
-                    <GridItems item={item} />
+                    <GridItems handleDelete={() => {
+                        handleDelete(item?.id)
+                    }} handeView={() => handleView(item?.id)} item={item} />
                 ))}
             </Grid>
             <Table>
@@ -44,7 +60,7 @@ const StoreProducts = () => {
     )
 }
 
-const GridItems = ({ item }: any) => {
+const GridItems = ({ item, handeView, handleDelete }: any) => {
 
 
     const popover = usePopover();
@@ -55,8 +71,10 @@ const GridItems = ({ item }: any) => {
         <Grid key={id} xl={3}>
             <Card sx={{ maxWidth: isRow ? '100%' : 400 }}>
                 <CardActionArea
-
-
+                    disableRipple
+                    sx={{
+                        cursor: 'default'
+                    }}
                 >
                     <Box
                         sx={{
@@ -122,25 +140,19 @@ const GridItems = ({ item }: any) => {
                         onClick={(e) => {
                             e.stopPropagation();
                             popover.onClose();
+                            handeView()
                         }}
                     >
                         <Iconify icon="solar:eye-bold" />
                         View
                     </MenuItem>
-                    <MenuItem
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            popover.onClose();
-                        }}
-                    >
-                        <Iconify icon="solar:pen-bold" />
-                        Edit
-                    </MenuItem>
+                   
 
                     <MenuItem
                         onClick={(e) => {
                             e.stopPropagation();
                             popover.onClose();
+                            handleDelete()
                         }}
                         sx={{ color: 'error.main' }}
                     >

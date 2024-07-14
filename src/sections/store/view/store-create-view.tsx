@@ -177,7 +177,7 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
             delete data.start_time;
             delete data.end_time;
 
-            const newData:any = { ...data }
+            const newData: any = { ...data }
             newData.startTime = start_time;
             newData.endTime = end_time;
             newData.latitude = mapData?.lat
@@ -214,7 +214,7 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
                 try {
                     // https://hip.apgitsolutions.com/api/getLocation
                     // https://hip.apgitsolutions.com/
-                    const response = await axios.post('https://hip.apgitsolutions.com/api/getLocation', payload);
+                    const response = await axios.post('http://localhost:9092/api/getLocation', payload);
                     console.log(response, 'RESPONSEEEEEEEEEE')
                     setMapData({
                         ...mapData,
@@ -378,7 +378,7 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
                         console.log(ewan, 'HAYYYYYYYYYYY');
                         return ewan;
                     })()}
-                   
+
                 />
 
 
@@ -427,8 +427,17 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
             </Stack>
 
             <Stack direction="row" alignItems="center">
-                <RHFEditor placeholder='Tell something about the medecine...' name="description" />
-
+                {/* <RHFEditor placeholder='Tell something about the medecine...' name="description" /> */}
+                <RHFTextField
+                    name="description"
+                    multiline
+                    fullWidth
+                    rows={4}
+                    placeholder="Describe your store"
+                    sx={{
+                        p: 1,
+                    }}
+                />
             </Stack>
             <Stack>
                 <RHFUpload

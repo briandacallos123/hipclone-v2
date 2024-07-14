@@ -1,4 +1,4 @@
-import { RHFTextField, RHFMultiCheckbox, RHFUploadAvatar, RHFEditor, RHFCheckbox, RHFAutocompleteAp } from '@/components/hook-form';
+import { RHFTextField, RHFMultiCheckbox, RHFUploadAvatar, RHFEditor, RHFCheckbox, RHFAutocomplete } from '@/components/hook-form';
 import { Box, Card, Grid, Stack, Typography } from '@mui/material';
 import React, { useCallback, useMemo } from 'react'
 import { useForm, Controller, CustomRenderInterface, FieldValues } from 'react-hook-form';
@@ -82,16 +82,17 @@ const convertTime = (timeStr: any) => {
 
 const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
 
-    const {handleSubmitUpdate} = StoreManageController()
+    const { handleSubmitUpdate } = StoreManageController()
 
     const sTime = convertTime(data?.start_time);
     // const sTimeNew = newFormatTimeString(currentItem?.start_time);
     const eTime = convertTime(data?.end_time);
     // const eTimeNew = newFormatTimeString(currentItem?.end_time);
 
+    console.log(data,'DATAAAAAAAAAAAAAAAAAA DAYSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
     const defaultValues = useMemo(
         () => ({
-            id:data?.id,
+            id: data?.id,
             storeName: data?.name || '',
             storeAdd: data?.address || '',
             start_time: new Date(sTime) || '',
@@ -99,9 +100,9 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
             attachment: (() => {
                 return `https://hip.apgitsolutions.com/${data?.attachment_store?.file_url?.split('/').splice(1).join('/')}`
             })() || '',
-            days: data?.days || [],
+            days: data?.days?.map((item)=>Number(item)) || [],
             description: data?.description || '',
-            delivery: data?.is_deliver ? true:false || 0,
+            delivery: data?.is_deliver ? true : false || 0,
             product_types: (() => {
                 return data?.product_types?.split(',')
             })()
@@ -124,7 +125,7 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
         formState: { isSubmitting },
     } = methods;
 
-    const removeTags = (val:string) => {
+    const removeTags = (val: string) => {
         const cleanedDescription = val.replace(/<[^>]+>/g, '');
         return cleanedDescription;
     }
@@ -141,10 +142,10 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
             delete data.start_time;
             delete data.end_time;
 
-            const newData = {...data}
+            const newData = { ...data }
             newData.startTime = start_time;
             newData.endTime = end_time;
- 
+
             try {
                 await handleSubmitUpdate(newData)
                 revalidateStore()
@@ -281,12 +282,21 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
                                 />
                             </Box>
                             <Stack sx={{ mb: 2 }}>
-                                <RHFAutocompleteAp options={complete_option} name="product_types" />
+                                <RHFAutocomplete options={complete_option} name="product_types" />
                             </Stack>
                             <RHFCheckbox name="delivery" label="Do you do delivery?" />
                             <Stack direction="row" alignItems="center">
-                                <RHFEditor placeholder='Tell something about the medecine...' name="description" />
-
+                                {/* <RHFEditor  simple  name="description" /> */}
+                                <RHFTextField
+                                   name="description"
+                                    multiline
+                                    fullWidth
+                                    rows={4}
+                                    // placeholder="Tell something about the medecine..."
+                                    sx={{
+                                        p: 1,
+                                    }}
+                                />
                             </Stack>
                             <RHFMultiCheckbox
                                 row

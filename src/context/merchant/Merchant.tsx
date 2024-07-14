@@ -31,7 +31,6 @@ type MerchantUserContextProps = {
 const initialState = {
     merchantData:[],
     totalRecords:0,
-    isLoading:true
 }
 
 
@@ -40,7 +39,6 @@ const reducer = (state:stateProps, action:actionProps) => {
         case "Fetch":
             console.log(action.payload,'PAYLOAD')
             state.merchantData = action.payload?.MedicineType;
-            state.isLoading = false;
             state.totalRecords = action?.payload?.totalRecords
             return state;
         case "Create":
@@ -56,7 +54,7 @@ const reducer = (state:stateProps, action:actionProps) => {
 
 
 
-const MerchantUserContext = ({children}:MerchantUserContextProps) => {
+const MerchantUserContext = () => {
     const [state, dispatch] = useReducer(reducer, initialState)
     const {queryResults} = StoreManageController()
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -140,9 +138,11 @@ const MerchantUserContext = ({children}:MerchantUserContextProps) => {
 
     // end of create merchant user
 
-    return <MerchantUserProvider.Provider value={{state, table, createMerchantMedFunc, deletedMerchantMedFunc}}>
-        {children}
-    </MerchantUserProvider.Provider>
+    // return <MerchantUserProvider.Provider value={{state, table, createMerchantMedFunc, deletedMerchantMedFunc}}>
+    //     {children}
+    // </MerchantUserProvider.Provider>
+
+    return {state, table, createMerchantMedFunc, deletedMerchantMedFunc}
 }
 
 export default MerchantUserContext

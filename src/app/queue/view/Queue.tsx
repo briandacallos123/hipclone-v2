@@ -56,7 +56,7 @@ const Queue = ({data,notApprovedVal,notAppNotToday, isDoneAppt,targetItem, dataT
                     justifyContent:"center",
                     mb:5
                 }}>
-                 <Typography variant="body2">Sorry, your appointment was already done </Typography>
+                 <Typography variant="h6">Your appointment was already done. </Typography>
                  
                   
                     
@@ -76,7 +76,7 @@ const Queue = ({data,notApprovedVal,notAppNotToday, isDoneAppt,targetItem, dataT
         let message:any;
         switch(payload){
             case 4:
-                message = "Please wait for your doctor's approval";
+                message = "Your appointment is currently mark as pending, please wait for your doctor's approval";
                 break;
            
             case 2:
@@ -112,7 +112,7 @@ const Queue = ({data,notApprovedVal,notAppNotToday, isDoneAppt,targetItem, dataT
                     justifyContent:"center",
                     mb:5
                 }}>
-                 <Typography variant="body2">{notApprovedMessage(notAppNotToday?.status)} </Typography>
+                 <Typography variant="h6">{notApprovedMessage(notAppNotToday?.status)} </Typography>
                    {/* <Typography variant="h5">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography> */}
                   
                     
@@ -189,7 +189,7 @@ const Queue = ({data,notApprovedVal,notAppNotToday, isDoneAppt,targetItem, dataT
                 }}>
                  <Typography variant="body2">Your Schedule is not today, please wait 
                     until </Typography>
-                   <Typography variant="h5">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography>
+                   <Typography variant="h6">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography>
                   
                     
                 </Box>

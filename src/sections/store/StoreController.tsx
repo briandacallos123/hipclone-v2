@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useState, useReducer } from 'react'
 import { QueryQueuePatient } from 'src/libs/gqls/queue';
 import { notFound, useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
-import { CreateNewStore, QueryAllStore, DeleteStore } from 'src/libs/gqls/store';
+import { CreateNewStore, QueryAllStore, DeleteStore, UpdateStatusStore } from 'src/libs/gqls/store';
 import { useParams } from 'src/routes/hook';
 import { useSnackbar } from 'src/components/snackbar';
 import {
@@ -70,7 +70,6 @@ const storeController = (props: Props = {
   // const [totalRecords]
   const [manualRefetch, setManualRefetch] = useState(0)
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-  const [loading, setLoading] = useState(true)
 
   const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
 
@@ -79,6 +78,9 @@ const storeController = (props: Props = {
 
   const [createFunc, createResults] = useMutation(CreateNewStore);
   const [deleteFunc, deleteResults] = useMutation(DeleteStore);
+  const [updateStatusStore, updateStoreResult] = useMutation(UpdateStatusStore);
+
+
   const [queryFunc, queryResults] = useLazyQuery<any>(QueryAllStore, {
     variables: {
       data: {
@@ -89,7 +91,7 @@ const storeController = (props: Props = {
       }
     },
     context: {
-      requestTrackerId: 'queryListStore[STORE_LIST_QUERY]',
+      requestTrackerId: 'Query_Store[STORE_LIST_GET_ALL]',
     },
     notifyOnNetworkStatusChange: true,
  
@@ -109,18 +111,17 @@ const storeController = (props: Props = {
   );
 
   useEffect(() => {
-    setLoading(true)
     queryFunc().then(async (result) => {
       const { data } = result;
 
       if (data) {
        const {QueryAllStore} = data;
 
+        // console.log(QueryAllStore,'DATAAAAAAAAAAAAAAA 123132131231231321321321')
        dispatch({
         type:"fill",
         payload:QueryAllStore
        })
-       setLoading(false)
       }
     });
   }, [table.page, table.rowsPerPage, filters.status, filters.name, queryResults?.data]);
@@ -179,6 +180,32 @@ const storeController = (props: Props = {
     [createFunc, queryResults]
   );
 
+  const handleSubmitUpdateStore = useCallback(
+    async (model: any) => {
+
+    
+      try {
+        await updateStatusStore({
+          variables: {
+            data: {
+              id:model
+              
+            }
+          },
+        }).then(async(res)=>{
+          enqueueSnackbar("Updated Successfully")
+          queryResults.refetch()
+          
+        })
+
+      } catch (error) {
+        enqueueSnackbar("Error: ", error)
+        console.error(error);
+      }
+    },
+    [createFunc, queryResults]
+  );
+
   const handleFilterStatus = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
       handleFilters('status', newValue);
@@ -187,7 +214,7 @@ const storeController = (props: Props = {
   );
     
 
-  return { handleSubmitCreate, handleSubmitDelete, table, filters, setFilters , state,handleFilters, handleFilterStatus, loading}
+  return { handleSubmitCreate, handleSubmitDelete, handleSubmitUpdateStore, table, filters, setFilters , state,handleFilters, handleFilterStatus, queryResults}
 }
 
 export default storeController

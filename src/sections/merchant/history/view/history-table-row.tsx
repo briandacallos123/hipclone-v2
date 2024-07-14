@@ -234,7 +234,7 @@ export default function HistoryTableRow({
                     {/* {row?.status_id === 4 && "Done" ||
                         row?.status_id === 3 && "Cancelled"} */}
 
-                    <Label variant="soft" color={(row?.status_id === 4 && 'success') || 'info'}>
+                    <Label variant="soft" color={row?.status_id === 4 ? 'success' : 'error'}>
                         {row?.status_id === 4 && "Done" ||
                             row?.status_id === 3 && "Cancelled"}
                     </Label>
@@ -257,15 +257,15 @@ export default function HistoryTableRow({
                 <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
                     <MenuItem
                         onClick={() => {
-                            onEditRow();
+                            onViewRow();
                             popover.onClose();
                         }}
                     >
-                        <Iconify icon="solar:pen-bold" />
-                        Edit
+                        <Iconify icon="solar:clipboard-text-bold" />
+                        View
                     </MenuItem>
 
-                    <MenuItem
+                    {/* <MenuItem
                         onClick={() => {
                             confirm.onTrue();
                             popover.onClose();
@@ -274,7 +274,7 @@ export default function HistoryTableRow({
                     >
                         <Iconify icon="solar:trash-bin-trash-bold" />
                         Delete
-                    </MenuItem>
+                    </MenuItem> */}
 
 
                 </CustomPopover>

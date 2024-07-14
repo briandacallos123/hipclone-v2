@@ -9,9 +9,10 @@ type MapContainerProps = {
 type Address = {
   lat:null | string;
   lng:null | string;
+  reset?:boolean;
 }
 
-const MapContainer = ({lat, lng}:Address) => {
+const MapContainer = ({reset, lat, lng}:Address) => {
   const [map, setMap] = useState(null);
   const [center, setCenter]:any = useState();
 
@@ -30,6 +31,13 @@ const MapContainer = ({lat, lng}:Address) => {
       })
     }
   },[lat, lng])
+
+  useEffect(()=>{
+    if(reset){
+      setCenter(null)
+      setMap(null);
+    }
+  },[reset])
 
   const onUnmount = () => {
     setMap(null);

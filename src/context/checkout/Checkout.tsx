@@ -55,7 +55,7 @@ const reducer = (state: any, action: any) => {
             const currentSteps = state.activeStep - 1;
             return { ...state, activeStep: currentSteps }
         case "Add":
-            const { brand_name,store_id, itemQty, medecine_id, generic_name,dose, id, form, type, description, price, attachment_info, quantity, qty } = action.payload;
+            const { brand_name,merchant_store, itemQty, medecine_id, generic_name,dose, id, form, type, description, price, attachment_info, quantity, qty } = action.payload;
 
        
             const isExists = state.cart.find((item: any) => Number(item.id) === Number(id));
@@ -83,7 +83,7 @@ const reducer = (state: any, action: any) => {
                     quantity: Number(itemQty),
                     dose,
                     generic_name,
-                    store_id,
+                    store_id:merchant_store?.id,
                     image: attachment_info?.file_path,
                     brand_name,
                     attachment_info,
@@ -236,7 +236,7 @@ const Checkout = ({ children }: any) => {
 
 
     const addToCart = useCallback((data: any) => {
-        
+        console.log(data,'DATAAAAAAAAAAAAAAAAA ADD TO CARTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
         dispatch({
             type: "Add",
             payload: {

@@ -20,6 +20,7 @@ export const QueryAllMerchantMedicine = gql`
         }
         merchant_store{
           name
+          id
         }
       }
       totalRecords

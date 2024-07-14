@@ -34,7 +34,7 @@ import { signIn } from 'next-auth/react';
 
 // import MerchantContext from '@/context/workforce/merchant/MerchantContext';
 //
-import { UseMerchantMedContext } from '@/context/merchant/Merchant';
+import MerchantUserContext from '@/context/merchant/Merchant';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import NextAuthRegisterView from './next-auth-register-view';
 import { revalidateStore } from '../_actions/store';
@@ -62,7 +62,7 @@ type Props = {
 export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
     const { login, user } = useAuthContext();
     const path = usePathname();
-    const { state, createMerchantMedFunc }: any = UseMerchantMedContext()
+    const { state, createMerchantMedFunc }: any = MerchantUserContext()
 
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -105,8 +105,8 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
             description: "",
             stock: '',
             id,
-            type:"",
-            show_price:false
+            type: "",
+            show_price: false
         }
     }, [editRow?.id, editRow])
 
@@ -172,10 +172,10 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
                 delete data.attachment;
                 data.description = removeTags(data.description)
                 data.show_price = JSON.parse((data.show_price).toLowerCase())
-                data = { ...data, price:parseFloat(data.price),store_id: Number(data.id), stock: Number(data.stock) }
-                
+                data = { ...data, price: parseFloat(data.price), store_id: Number(data.id), stock: Number(data.stock) }
+
                 delete data.id;
-                
+
 
                 await createMerchantMedFunc(data, file)
                 // delete data.repassword
@@ -282,14 +282,14 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
             <Stack spacing={1} direction="row" alignItems="center">
                 <RHFTextField name="generic_name" label="Generic Name" />
                 <RHFSelect name="type" label="Type">
-                   
-                        <MenuItem value="branded">
-                            Branded
-                        </MenuItem>
-                        <MenuItem value="generic">
-                            Generic
-                        </MenuItem>
-                 
+
+                    <MenuItem value="branded">
+                        Branded
+                    </MenuItem>
+                    <MenuItem value="generic">
+                        Generic
+                    </MenuItem>
+
                 </RHFSelect>
             </Stack>
             <Stack spacing={1} direction="row" alignItems="center">
@@ -298,21 +298,30 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
                 <RHFTextField name="form" label="Form" />
             </Stack>
             <Stack spacing={1} direction="row" alignItems="center">
-                <RHFTextField  name="price" label="Price" />
+                <RHFTextField name="price" label="Price" />
                 <RHFTextField name="manufacturer" label="Manufacturer" />
-              
+
             </Stack>
             <Stack spacing={1}>
-             <RHFCheckbox  sx={{ml:1}} name="show_price" label="Show Price?"/>
-           
+                <RHFCheckbox sx={{ ml: 1 }} name="show_price" label="Show Price?" />
+
             </Stack>
             <Stack direction="row" spacing={1} alignItems="center">
                 <RHFTextField name="brand_name" label="Brand Name" />
                 <RHFTextField name="stock" label="Stocks" type="number" />
             </Stack>
             <Stack direction="row" alignItems="center">
-                <RHFEditor placeholder='Tell something about the medecine...' name="description" />
-
+                <RHFTextField
+                    name="description"
+                    multiline
+                    fullWidth
+                    rows={4}
+                    placeholder='Tell something about this medecine...'
+                    sx={{
+                        p: 1,
+                    }}
+                />
+                {/* <RHFEditor simple placeholder='Tell something about the medecine...' name="description" /> */}
             </Stack>
             <Stack>
                 <RHFUpload

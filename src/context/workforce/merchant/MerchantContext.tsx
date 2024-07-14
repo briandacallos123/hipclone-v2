@@ -24,7 +24,8 @@ export const UseMerchantContext = () => {
 // types
 export type stateProps = {
     merchantData:any;
-    isLoading:boolean
+    isLoading:boolean;
+    totalRecords:number;
 }
 
 export type actionProps = {

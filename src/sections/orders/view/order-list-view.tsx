@@ -68,6 +68,8 @@ import { YMD } from 'src/utils/format-time';
 import { useSearch } from '@/auth/context/Search';
 import OrderTableRow from '../order-table-row';
 import OrderTableSkeleton from '../order-table-skeleton';
+import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
+import HistoryView from '@/sections/history/view/history-view';
 
 // ----------------------------------------------------------------------
 
@@ -100,13 +102,15 @@ export default function OrderListView() {
   const isPatient = user?.role === 'patient';
   const settings = useSettingsContext();
   const confirmApprove = useBoolean();
+  const historyDialog = useBoolean();
+
   const [isClinic, setIsClinic] = useState(0);
   const confirmCancel = useBoolean();
 
   const confirmDone = useBoolean();
 
   const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
-  const { page, rowsPerPage, order, orderBy } = table;
+  const { page, rowsPerPage, onChangePage,order, orderBy } = table;
 
   const openView = useBoolean();
 
@@ -131,6 +135,7 @@ export default function OrderListView() {
   const [approved, setApproved] = useState(0);
   const [done, setDone] = useState(0);
   const [cancelled, setCancelled] = useState(0);
+  const [summary, setSummary] = useState(null)
 
   const router = useRouter();
   const [clinicData, setclinicData] = useState<any>([]);
@@ -149,7 +154,8 @@ export default function OrderListView() {
         variables: {
             data: {
                 skip:page * rowsPerPage,
-                take:rowsPerPage
+                take:rowsPerPage,
+                status:filters.status
             },
           },
        }
@@ -160,10 +166,11 @@ export default function OrderListView() {
 
            setTableData(QueryAllPatientOrders?.orderType)
            setTotalRecords(QueryAllPatientOrders?.totalRecords)
+           setSummary(QueryAllPatientOrders?.summary)
         }
         setIsLoading(false)
     })
-  },[])
+  },[filters.status, rowsPerPage, page])
  
 
   // =========
@@ -202,25 +209,25 @@ export default function OrderListView() {
     (getAppointmentLength(status) / tableData.length) * 100;
 
   const TABS = [
-    { value: -1, label: 'All', color: 'default', count: tableData?.length },
-    {
-      value: 0,
-      label: 'Pending',
-      color: 'warning',
-      count: getAppointmentLength(0),
-    },
+    { value: -1, label: 'All', color: 'default', count: totalRecords },
     {
       value: 1,
-      label: 'Approved',
-      color: 'info',
-      count: getAppointmentLength(1),
+      label: 'Pending',
+      color: 'warning',
+      count: summary?.pending,
     },
-    { value: 3, label: 'Done', color: 'success', count: getAppointmentLength(3) },
     {
       value: 2,
+      label: 'Approved',
+      color: 'info',
+      count: summary?.approved,
+    },
+    { value: 4, label: 'Done', color: 'success', count: summary?.done },
+    {
+      value: 3,
       label: 'Cancelled',
       color: 'error',
-      count: getAppointmentLength(2),
+      count: summary?.cancelled,
     },
   ] as const;
 
@@ -312,7 +319,7 @@ export default function OrderListView() {
           )} */}
         </Stack>
 
-        {/* {upMd && (
+        {upMd && (
           <Card
             sx={{
               mb: { xs: 3, md: 5 },
@@ -326,7 +333,7 @@ export default function OrderListView() {
               >
                 <AppointmentAnalytic
                   title="Total"
-                  total={total}
+                  total={totalRecords}
                   percent={100}
                   icon="solar:bill-list-bold-duotone"
                   color={theme.palette.text.primary}
@@ -334,39 +341,39 @@ export default function OrderListView() {
 
                 <AppointmentAnalytic
                   title="Pending"
-                  total={pending}
-                  percent={(pending / total) * 100}
+                  total={summary?.pending}
+                  percent={(summary?.pending / totalRecords) * 100}
                   icon="solar:clock-circle-bold-duotone"
                   color={theme.palette.warning.main}
                 />
 
                 <AppointmentAnalytic
                   title="Approved"
-                  total={approved}
-                  percent={(approved / total) * 100}
+                  total={summary?.approved}
+                  percent={(summary?.pending / totalRecords) * 100}
                   icon="solar:play-circle-bold-duotone"
                   color={theme.palette.info.main}
                 />
 
                 <AppointmentAnalytic
                   title="Done"
-                  total={done}
-                  percent={(done / total) * 100}
+                  total={summary?.done}
+                  percent={(summary?.done / totalRecords) * 100}
                   icon="solar:check-circle-bold-duotone"
                   color={theme.palette.success.main}
                 />
 
                 <AppointmentAnalytic
                   title="Cancelled"
-                  total={cancelled}
-                  percent={(cancelled / total) * 100}
+                  total={summary?.cancelled}
+                  percent={(summary?.cancelled / totalRecords) * 100}
                   icon="solar:close-circle-bold-duotone"
                   color={theme.palette.error.main}
                 />
               </Stack>
             </Scrollbar>
           </Card>
-        )} */}
+        )} 
 
         <Card>
           <Tabs
@@ -392,11 +399,11 @@ export default function OrderListView() {
                     color={tab.color}
                   >
                     {(() => {
-                      if (tab.value === -1) return total || 0;
-                      if (tab.value === 0) return pending || 0;
-                      if (tab.value === 1) return approved || 0;
-                      if (tab.value === 2) return cancelled || 0;
-                      if (tab.value === 3) return done || 0;
+                      if (tab.value === -1) return totalRecords || 0;
+                      if (tab.value === 1) return summary?.pending || 0;
+                      if (tab.value === 2) return summary?.approved || 0;
+                      if (tab.value === 3) return summary?.cancelled || 0;
+                      if (tab.value === 4) return summary?.done || 0;
 
                       return 0;
                     })()}
@@ -504,7 +511,7 @@ export default function OrderListView() {
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, totalRecords)}
+                    emptyRows={emptyRows(table.page, rowsPerPage, totalRecords)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -516,8 +523,8 @@ export default function OrderListView() {
           <TablePaginationCustom
             count={totalRecords}
             page={table.page}
-            rowsPerPage={table.rowsPerPage}
-            onPageChange={table.onChangePage}
+            rowsPerPage={rowsPerPage}
+            onPageChange={onChangePage}
             onRowsPerPageChange={table.onChangeRowsPerPage}
             //
             dense={table.dense}
@@ -536,7 +543,8 @@ export default function OrderListView() {
         onClose={openView.onFalse}
         id={viewId}
       />} */}
-
+      
+      {viewId && <HistoryView data={viewId} title="Order View" open={openView.value} onClose={openView.onFalse}/>}
       <ConfirmDialog
         open={confirmApprove.value}
         onClose={confirmApprove.onFalse}

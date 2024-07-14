@@ -72,6 +72,7 @@ import { YMD } from 'src/utils/format-time';
 import { useSearch } from '@/auth/context/Search';
 import MerchantOrderSkeleton from './merchant-order-skeleton';
 import MerchantController from './MerchantController';
+import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import MerchantCreateView from './merchant-create-view';
 // import { UseMerchantMedContext } from '@/context/merchant/Merchant';
@@ -88,9 +89,11 @@ const TABLE_HEAD = [
   // { id: 'Form', label: 'Form', align: 'center' },
   // { id: 'Quantiy', label: 'Quantity', align: 'center' },
   { id: 'Patient', label: 'Patient', align: 'center' },
-  { id: 'Type', label: 'Delivery Type', align: 'center' },
   { id: 'Status', label: 'Payment Status', align: 'center' },
-  { id: 'Action',label:"action" },
+  { id: 'Type', label: 'Delivery Type', align: 'center' },
+  { id: 'Status_Id', label: 'Status', align: 'center' },
+
+  { id: 'Action', label: "action" },
 ];
 
 
@@ -128,26 +131,26 @@ export default function MerchantOrdersView() {
   const [viewId, setViewId] = useState(null);
 
 
-  const {state,loading, table, deletedMerchantMedFunc, handleFilters, filters, handleFilterStatus}: any = MerchantController();
- 
+  const { state, getOrdersResult, doneMerchantOrderFunc, table, deletedMerchantMedFunc, handleFilters, filters, handleFilterStatus }: any = MerchantController();
+
 
   const { page, rowsPerPage, order, orderBy } = table;
 
   const dateError = isDateError(filters.startDate, filters.endDate);
-  
+
   const router = useRouter();
 
-  
+
   const [clinicPayload, setClinicPayload] = useState<any>([]);
 
 
 
 
-  useEffect(()=>{
-    if(!openView.value && viewId){
+  useEffect(() => {
+    if (!openView.value && viewId) {
       setViewId(null)
     }
-  },[openView.value])
+  }, [openView.value])
   // ========================
 
 
@@ -163,20 +166,44 @@ export default function MerchantOrdersView() {
     !!filters.startDate ||
     !!filters.endDate;
 
-  const notFound = !loading  && !state?.orders?.length;
+  const notFound = !getOrdersResult?.loading && !state?.orders?.length;
 
 
 
- 
+
 
   const [editRow, setEditRow] = useState(null)
 
-  
 
-  const handleEditRow = (row:any)=> {
+
+  const handleEditRow = (row: any) => {
     opencreate.onTrue()
     setEditRow(row)
 
+  }
+
+  const handleApproved = (id) => {
+    doneMerchantOrderFunc({
+      status: 2,
+      order_id: id
+    })
+  }
+  
+  const handleCancelled = (id) => {
+    doneMerchantOrderFunc({
+      status: 3,
+      order_id: id
+    })
+  }
+
+  
+
+  const handleDone = (id) => {
+    doneMerchantOrderFunc({
+      status: 4,
+      order_id: id
+    })
+    // console.log(id,'IDDDDDDDDDDDDDD________________')
   }
 
   // const handleFilters = useCallback(
@@ -205,15 +232,15 @@ export default function MerchantOrdersView() {
 
   const handleViewPatient = useCallback(
     (id: any) => {
-      
+
       const refID = id?.patientInfo?.userInfo[0]?.uuid;
-     
+
       router.push(paths.dashboard.patient.view(refID));
     },
     [router]
   );
 
-  const handleDeleteRow = (id:string) => {
+  const handleDeleteRow = (id: string) => {
     deletedMerchantMedFunc(id)
 
   }
@@ -223,17 +250,36 @@ export default function MerchantOrdersView() {
     { value: -1, label: 'All', color: 'default', count: state?.totalRecords },
     {
       value: 1,
-      label: 'Delivery',
+      label: 'Pending',
       color: 'warning',
-      count: state?.summary?.delivery,
+      count: state?.summary?.pending,
     },
     {
-      value: 0,
-      label: 'Pick up',
-      color: 'info',
-      count: state?.summary?.pickup,
+      value: 2,
+      label: 'Approved',
+      color: 'primary',
+      count: state?.summary?.approved,
     },
-    
+    {
+      value: 4,
+      label: 'Done',
+      color: 'success',
+      count: state?.summary?.done,
+    },
+    {
+      value: 3,
+      label: 'Cancelled',
+      color: 'error',
+      count: state?.summary?.cancelled,
+    },
+   
+    // {
+    //   value: 0,
+    //   label: 'Pick up',
+    //   color: 'info',
+    //   count: state?.summary?.pickup,
+    // },
+
   ] as const;
 
 
@@ -250,12 +296,12 @@ export default function MerchantOrdersView() {
         >
           <Typography variant="h5">Orders</Typography>
 
-          
-          
-         
+
+
+
         </Stack>
 
-        {/* {upMd && (
+        {upMd && (
           <Card
             sx={{
               mb: { xs: 3, md: 5 },
@@ -269,47 +315,54 @@ export default function MerchantOrdersView() {
               >
                 <AppointmentAnalytic
                   title="Total"
-                  total={total}
+                  total={state?.totalRecords}
                   percent={100}
                   icon="solar:bill-list-bold-duotone"
                   color={theme.palette.text.primary}
+                  label="orders"
                 />
 
                 <AppointmentAnalytic
                   title="Pending"
-                  total={pending}
-                  percent={(pending / total) * 100}
+                  total={state?.summary?.pending}
+                  percent={(state?.summary?.pending / state?.totalRecords) * 100}
                   icon="solar:clock-circle-bold-duotone"
                   color={theme.palette.warning.main}
-                />
+                  label="orders"
 
+                />
                 <AppointmentAnalytic
                   title="Approved"
-                  total={approved}
-                  percent={(approved / total) * 100}
-                  icon="solar:play-circle-bold-duotone"
-                  color={theme.palette.info.main}
-                />
+                  total={state?.summary?.approved}
+                  percent={(state?.summary?.approved / state?.totalRecords) * 100}
+                  icon="solar:close-circle-bold-duotone"
+                  color={theme.palette.primary.main}
+                  label="orders"
 
+                />
                 <AppointmentAnalytic
                   title="Done"
-                  total={done}
-                  percent={(done / total) * 100}
-                  icon="solar:check-circle-bold-duotone"
+                  total={state?.summary?.done}
+                  percent={(state?.summary?.done / state?.totalRecords) * 100}
+                  icon="solar:close-circle-bold-duotone"
                   color={theme.palette.success.main}
-                />
+                  label="orders"
 
+                />
                 <AppointmentAnalytic
                   title="Cancelled"
-                  total={cancelled}
-                  percent={(cancelled / total) * 100}
+                  total={state?.summary?.cancelled}
+                  percent={(state?.summary?.cancelled / state?.totalRecords) * 100}
                   icon="solar:close-circle-bold-duotone"
                   color={theme.palette.error.main}
+                  label="orders"
+
                 />
+
               </Stack>
             </Scrollbar>
           </Card>
-        )} */}
+        )}
 
         <Card>
           <Tabs
@@ -349,7 +402,7 @@ export default function MerchantOrdersView() {
               />
             ))}
           </Tabs>
-{/* 
+          {/* 
           <AppointmentTableToolbar
             filters={filters}
             onFilters={handleFilters}
@@ -410,16 +463,16 @@ export default function MerchantOrdersView() {
                   <TableHeadCustom
                     order={table.order}
                     orderBy={table.orderBy}
-                    headLabel={TABLE_HEAD }
+                    headLabel={TABLE_HEAD}
                     // rowCount={tableData?.length}
                     // numSelected={table.selected.length}
                     onSort={table.onSort}
-                    // onSelectAllRows={(checked) =>
-                    //   table.onSelectAllRows(
-                    //     checked,
-                    //     tableData?.map((row: any) => row?.id)
-                    //   )
-                    // }
+                  // onSelectAllRows={(checked) =>
+                  //   table.onSelectAllRows(
+                  //     checked,
+                  //     tableData?.map((row: any) => row?.id)
+                  //   )
+                  // }
                   />
                 )}
                 {/* {user?.role === 'patient' && (
@@ -431,23 +484,26 @@ export default function MerchantOrdersView() {
                 )} */}
 
                 <TableBody>
-                  
-                  {loading
+
+                  {getOrdersResult?.loading
                     ? [...Array(rowsPerPage)].map((_, i) => <MerchantOrderSkeleton key={i} />)
                     : state?.orders?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
-                        <MerchantOrdersTableRow
-                          key={row.id}
-                          row={row}
-                          selected={table.selected.includes(String(row.id))}
-                          onSelectRow={() => table.onSelectRow(String(row.id))}
-                          onViewRow={() => handleViewRow(row)}
-                          onViewPatient={() => handleViewPatient(row)}
-                          onDeleteRow={()=>handleDeleteRow(row?.id)}
-                          onEditRow={()=>handleEditRow(row)}
-                        />
-                      ))}
+                      <MerchantOrdersTableRow
+                        key={row.id}
+                        row={row}
+                        selected={table.selected.includes(String(row.id))}
+                        onSelectRow={() => table.onSelectRow(String(row.id))}
+                        onViewRow={() => handleViewRow(row)}
+                        onViewPatient={() => handleViewPatient(row)}
+                        onDeleteRow={() => handleDeleteRow(row?.id)}
+                        onEditRow={() => handleEditRow(row)}
+                        onDone={() => handleDone(row?.id)}
+                        onApproved={()=>handleApproved(row?.id)}
+                        onCancelled={()=>handleCancelled(row?.id)}
+                      />
+                    ))}
 
-{/*                       
+                  {/*                       
                   { state?.orders?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
                         <MerchantOrdersTableRow
                           key={row.id}
@@ -478,11 +534,11 @@ export default function MerchantOrdersView() {
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}
             onRowsPerPageChange={table.onChangeRowsPerPage}
-            
+
             dense={table.dense}
             onChangeDense={table.onChangeDense}
 
-            // page, rowsPerPage, order, orderBy 
+          // page, rowsPerPage, order, orderBy 
           />
         </Card>
       </Container>

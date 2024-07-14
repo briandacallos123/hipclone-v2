@@ -1022,10 +1022,10 @@ export const QueryAllAppointments = extendType({
 
             currentDateBackward.setHours(23, 59, 59, 59);
 
-            if(item?.date >= formattedDateAsDate && item?.date <= currentDateBackward){
-             return {...item, isToday:1}
+            if (item?.date >= formattedDateAsDate && item?.date <= currentDateBackward) {
+              return { ...item, isToday: 1 }
             }
-            
+
             return item;
           })
 
@@ -2315,43 +2315,15 @@ export const BookAppointment = extendType({
       async resolve(_parent, args, ctx) {
         const createData: any = args?.data;
         const { session } = ctx;
-
-
-
-        let userOffline = await client.user.findFirst({
-          where: {
-            id: Number(args?.data?.doctorID),
-            isOnline: 1
-          }
-        })
-
-
-
-        if (userOffline) {
-          beamsClient.publishToInterests([`forOnly_${userOffline?.id}`], {
-            web: {
-              notification: {
-                title: "New Appointment",
-                body: `${session.user?.displayName} Book An Appointment`
-              },
-            },
-          });
-
-        }
-
-
         await cancelServerQueryRequest(client, session?.user?.id, '`employees`', 'BookAppointment');
         try {
           const AddRequestData = serialize(createData.AddRequest);
           const symptomsData = serialize(createData.symptoms);
-          const hmoData = serialize(createData?.hmo);
+          const hmoData = serialize(createData.hmo);
           const dateInput = convertDate(createData.date);
           const timeInput = new Date(createData.time_slot);
           timeInput.setMinutes(timeInput.getMinutes() - timeInput.getTimezoneOffset()); // Convert to UTC
 
-
-          const timeInputEnd = new Date(createData.end_time);
-          timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
 
           let isExists = true;
           let VoucherCode: any;
@@ -2369,8 +2341,11 @@ export const BookAppointment = extendType({
               isExists = false;
             }
           }
-
           // if has file
+
+          const timeInputEnd = new Date(createData.end_time);
+          timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
+
           const BookTransaction = await client.$transaction(async (trx) => {
             const BookPost = await trx.appointments.create({
               data: {
@@ -2387,9 +2362,9 @@ export const BookAppointment = extendType({
                 AddRequest: AddRequestData,
                 loa_num: '',
                 hmo: hmoData,
-                member_id: String(createData?.member_id),
+                member_id: String(createData.member_id),
+                voucherId: VoucherCode,
                 e_time: timeInputEnd,
-                voucherId: VoucherCode
               },
             });
 
@@ -2398,28 +2373,25 @@ export const BookAppointment = extendType({
             };
           });
 
-          // console.log(BookTransaction,'TESTINNGGGGGGGGGG@@@@@@@@@@@@@@@@@')
-
-          // create notification
           const notifContent = await client.notification_content.create({
-            data: {
-              content: "book an appointment"
+            data:{
+              content:"book an appointment"
             }
           })
-
+       
           await client.notification.create({
-            data: {
-              user_id: Number(session?.user?.id),
-              notifiable_id: Number(createData.doctorID),
-              notification_type_id: 1,
-              notification_content_id: Number(notifContent?.id),
-              appt_id: Number(BookTransaction?.id)
+            data:{
+              user_id:Number(session?.user?.id),
+              notifiable_id:Number(createData.doctorID),
+              notification_type_id:1,
+              notification_content_id:Number(notifContent?.id),
+              appt_id:Number(BookTransaction?.id)
             }
           })
 
 
 
-          let PatientHMO = await client.patient_hmo.create({
+          const PatientHMO = await client.patient_hmo.create({
             data: {
               patientID: Number(session?.user?.s_id),
               idno: String(session?.user?.patientIDNO),
@@ -2427,10 +2399,6 @@ export const BookAppointment = extendType({
               member_id: String(createData.member_id),
             },
           });
-
-
-
-
 
           const sFile = await args?.file;
           if (sFile) {
@@ -2449,17 +2417,170 @@ export const BookAppointment = extendType({
               });
             });
           }
-
-
           const res: any = { ...BookTransaction, ...PatientHMO };
           return res;
         } catch (error) {
-          console.log(error, '@@@@@@@@@');
+          console.log(error);
         }
-      }
+      },
     });
   },
 });
+
+// export const BookAppointment = extendType({
+//   type: 'Mutation',
+//   definition(t) {
+//     t.nullable.field('BookAppointment', {
+//       type: DoctorAppointments,
+//       args: { data: BookingObjInputType!, file: 'Upload' },
+//       async resolve(_parent, args, ctx) {
+//         const createData: any = args?.data;
+//         const { session } = ctx;
+
+
+
+//         let userOffline = await client.user.findFirst({
+//           where: {
+//             id: Number(args?.data?.doctorID),
+//             isOnline: 1
+//           }
+//         })
+
+
+
+//         if (userOffline) {
+//           beamsClient.publishToInterests([`forOnly_${userOffline?.id}`], {
+//             web: {
+//               notification: {
+//                 title: "New Appointment",
+//                 body: `${session.user?.displayName} Book An Appointment`
+//               },
+//             },
+//           });
+
+//         }
+
+
+//         await cancelServerQueryRequest(client, session?.user?.id, '`employees`', 'BookAppointment');
+//         try {
+//           const AddRequestData = serialize(createData.AddRequest);
+//           const symptomsData = serialize(createData.symptoms);
+//           const hmoData = serialize(createData?.hmo);
+//           const dateInput = convertDate(createData.date);
+//           const timeInput = new Date(createData.time_slot);
+//           timeInput.setMinutes(timeInput.getMinutes() - timeInput.getTimezoneOffset()); // Convert to UTC
+
+
+//           const timeInputEnd = new Date(createData.end_time);
+//           timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
+
+          // let isExists = true;
+          // let VoucherCode: any;
+
+          // while (isExists) {
+          //   VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+          //   const result = await client.prescriptions.findFirst({
+          //     where: {
+          //       presCode: VoucherCode
+          //     }
+          //   })
+
+          //   if (!result) {
+          //     isExists = false;
+          //   }
+          // }
+
+//           const BookTransaction = await client.$transaction(async (trx) => {
+//             const BookPost = await trx.appointments.create({
+//               data: {
+//                 doctorID: Number(createData.doctorID),
+//                 clinic: Number(createData.clinic),
+//                 patientID: Number(session?.user?.s_id),
+//                 date: dateInput,
+//                 time_slot: timeInput,
+//                 type: Number(createData.type),
+//                 status: Number(0),
+//                 symptoms: symptomsData,
+//                 comment: String(createData.comment), 
+//                 Others: String(createData.others),
+//                 AddRequest: AddRequestData,
+//                 loa_num: '',
+//                 hmo: hmoData,
+//                 member_id: String(createData?.member_id),
+//                 e_time: timeInputEnd,
+//                 voucherId: VoucherCode
+//               },
+//             });
+
+//             return {
+//               ...BookPost,
+//             };
+//           });
+
+        
+//           const notifContent = await client.notification_content.create({
+//             data: {
+//               content: "book an appointment"
+//             }
+//           })
+
+//           await client.notification.create({
+//             data: {
+//               user_id: Number(session?.user?.id),
+//               notifiable_id: Number(createData.doctorID),
+//               notification_type_id: 1,
+//               notification_content_id: Number(notifContent?.id),
+//               appt_id: Number(BookTransaction?.id)
+//             }
+//           })
+
+//           let PatientHMO = {}
+
+
+//           if (createData?.hmo !== "") {
+//             PatientHMO = await client.patient_hmo.create({
+//               data: {
+//                 patientID: Number(session?.user?.s_id),
+//                 idno: String(session?.user?.patientIDNO),
+//                 hmo: Number(createData.hmo),
+//                 member_id: String(createData.member_id),
+//               },
+//             });
+//           }
+
+
+
+
+
+
+//           const sFile = await args?.file;
+//           if (sFile) {
+//             const res: any = useUpload(sFile, 'public/documents/');
+//             res?.map(async (v: any) => {
+//               await client.appt_hmo_attachment.create({
+//                 data: {
+//                   filename: String(v!.fileName),
+//                   file_url: String(v!.path),
+//                   patientID: Number(session?.user?.id),
+//                   doctorID: Number(createData.doctorID),
+//                   clinic: Number(createData.clinic),
+//                   appt_hmo_id: Number(BookTransaction?.id),
+//                 },
+//               });
+//             });
+//           }
+
+
+//           const res: any = { ...BookTransaction, ...PatientHMO };
+//           return res;
+//         } catch (error) {
+//           throw new error(error)
+//         }
+//       }
+//     });
+//   },
+// });
 
 // export const QueryExistingTime = extendType({
 //   type: 'Query',

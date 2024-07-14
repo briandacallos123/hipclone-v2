@@ -68,7 +68,7 @@ type Props = {
 export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Props) {
   const router = useRouter();
   const theme = useTheme();
-  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar(); 
   const { setTriggerRef, triggerRef }: any = useSearch();
   const { socket } = useAuthContext()
   const [typeOptions, setTypeOptions] = useState<TypeOptionValue[]>();
@@ -288,14 +288,14 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
         // await handleSubmitValue({
         //   ...data,
         // });
-        refetch();
+        // refetch();
 
         reset();
       } catch (error) {
         console.error(error);
       }
     },
-    [enqueueSnackbar, refetch, reset, router]
+    [enqueueSnackbar, reset, router]
   );
   // console.log(tempValue);
 

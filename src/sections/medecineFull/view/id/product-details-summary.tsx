@@ -12,7 +12,8 @@ import Typography from '@mui/material/Typography';
 import { formHelperTextClasses } from '@mui/material/FormHelperText';
 // routes
 import { paths } from 'src/routes/paths';
-import { useRouter } from 'src/routes/hook';
+// import { useRouter } from 'src/routes/hook';
+import { useRouter } from 'next/navigation';
 // utils
 import { fShortenNumber, fCurrency } from 'src/utils/format-number';
 // types
@@ -25,7 +26,7 @@ import FormProvider, { RHFSelect } from 'src/components/hook-form';
 //
 import { IncrementerButton } from './_common';
 import { useCheckoutContext } from '@/context/checkout/Checkout';
-
+import { useAuthContext } from '@/auth/hooks';
 
 
 // ----------------------------------------------------------------------
@@ -45,7 +46,7 @@ export default function ProductDetailsSummary({
   const router = useRouter();
 
   const {addToCart}:any = useCheckoutContext()
-
+  const {user} = useAuthContext()
   const {
     id,
     generic_name,
@@ -74,11 +75,11 @@ export default function ProductDetailsSummary({
 
   const values = watch();
 
-  useEffect(() => {
-    if (product) {
-      reset(defaultValues);
-    }
-  }, [product]);
+  // useEffect(() => {
+  //   if (product) {
+  //     reset(defaultValues);
+  //   }
+  // }, [product]);
 
   
   const renderPrice = (
@@ -148,11 +149,17 @@ export default function ProductDetailsSummary({
 
   const handleAddCart = useCallback(()=>{
     
-    addToCart(product, values.quantity)
-    localStorage.setItem('openCart','1')
+    addToCart({ ...product, itemQty: values.quantity })
+
+    // localStorage.setItem('openCart','1')
   },[values.quantity])
 
-  console.log(values.quantity,'QUANTITY___AWIIITT')
+  const handleGoToCart= useCallback(()=>{
+    addToCart({ ...product, itemQty: values.quantity })
+    localStorage.setItem('toCart','1');
+    router.push('/dashboard/medecine-checkout/checkout')
+  },[values.quantity])
+
 
   const renderActions = (
     <Stack direction="row" spacing={2}>
@@ -169,15 +176,15 @@ export default function ProductDetailsSummary({
         Add to Cart
       </Button>
 
-      <Button disabled={values.quantity === 0} fullWidth size="large" type="submit" variant="contained" >
+      <Button onClick={handleGoToCart} disabled={values.quantity === 0} fullWidth size="large" type="submit" variant="contained" >
         Buy Now
       </Button>
     </Stack>
   );
 
   const renderSubDescription = (
-    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-      {description}
+    <Typography variant="body2" sx={{ color: 'text.secondary'}}>
+      {`${description[0].toUpperCase()}${description.split('').splice(1).join('')}`}
     </Typography>
   );
 
@@ -222,13 +229,13 @@ export default function ProductDetailsSummary({
 
         {renderSizeOptions} */}
 
-        {renderQuantity}
+        {user?.role === 'patient' && renderQuantity}
 
         <Divider sx={{ borderStyle: 'dashed' }} />
 
-        {renderActions}
+        {user?.role === 'patient' && renderActions}
 
-        {renderShare}
+        {/* {renderShare} */}
       </Stack>
     </FormProvider>
   );

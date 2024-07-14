@@ -7,9 +7,14 @@ export const QueryAllMedicineOrders = gql`
       summary {
         delivery
         pickup
+        pending,
+        cancelled,
+        done,
+        approved
       }
       orderType {
         dose
+        status_id
         form
         generic_name
         store{
@@ -46,6 +51,8 @@ export const QueryAllOrdersForMerchantHistory = gql`
       summary {
         delivery
         pickup
+        done
+        cancelled
       }
       orderType {
         dose
@@ -58,6 +65,11 @@ export const QueryAllOrdersForMerchantHistory = gql`
         }
         id
         is_paid
+        attachment {
+          file_path
+          filename
+          id
+        }
         patient {
           CONTACT_NO
           EMAIL
@@ -124,6 +136,10 @@ export const QueryAllPatientOrders = gql`
       summary {
         pickup
         delivery
+        pending,
+        done,
+        approved,
+        cancelled
       }
       totalRecords
     } 
@@ -169,6 +185,15 @@ export const DeleteOrder = gql`
   }
 `;
 
+export const UpdateOrder = gql`
+  mutation UpdateOrderStatus($data: UpdateOrderInputs!) {
+    UpdateOrderStatus(data: $data) {
+    
+     message
+      
+      }
+  }
+`;
 
 // patient
 

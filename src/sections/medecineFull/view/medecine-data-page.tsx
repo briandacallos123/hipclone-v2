@@ -30,7 +30,9 @@ const defaultFilters = {
     delivery: 'All',
     startDate: null,
     endDate: null,
-    distance:1
+    distance:1,
+    latitude:null,
+    longitude:null
 };
 
 const deliveryOptions = [
@@ -56,8 +58,8 @@ const MedecineDataPage = ({ data }: any) => {
     const [loading, setLoading] = useState(false)
     const [tableData, setTableData] = useState([])
     const [filters, setFilters]: any = useState(defaultFilters);
+    
 
-    console.log(filters,'FILTERSSSSSSSSSSSSSSSS')
     
   const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
 
@@ -70,7 +72,9 @@ const MedecineDataPage = ({ data }: any) => {
                 take: 10,
                 delivery:filters?.delivery,
                 search:filters?.name,
-                radius:Number(filters?.distance)
+                radius:Number(filters?.distance),
+                latitude:filters.latitude,
+                longitude:filters.longitude
             }
         },
         context: {
@@ -97,7 +101,7 @@ const MedecineDataPage = ({ data }: any) => {
             }
             setLoading(false)
         });
-    }, [filters.delivery, filters.name, filters?.distance]);
+    }, [filters.delivery, filters.name, filters?.distance, filters?.longitude, filters?.latitude]);
 
  
 
@@ -129,6 +133,7 @@ const MedecineDataPage = ({ data }: any) => {
                         description="Merchants near in"
                         location={user?.address}
                         img={<MotivationIllustration />}
+                        onFilters={handleFilters} 
                     />
                 </Grid>
                 <Grid md={12} sx={{ mb:5}}>

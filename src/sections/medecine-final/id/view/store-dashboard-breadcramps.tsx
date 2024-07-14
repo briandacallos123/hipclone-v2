@@ -9,36 +9,37 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useRouter } from 'next/navigation';
 
 const StyledBreadcrumb = styled(Chip)(({ theme }) => {
- 
 
-    const backgroundColor =
-      theme.palette.mode === 'light'
-        ? theme.palette.grey[100]
-        : theme.palette.grey[800];
-    return {
-      backgroundColor,
-      height: theme.spacing(3),
-      color: theme.palette.text.primary,
-      fontWeight: theme.typography.fontWeightRegular,
-      '&:hover, &:focus': {
-        backgroundColor: emphasize(backgroundColor, 0.06),
-      },
-      '&:active': {
-        boxShadow: theme.shadows[1],
-        backgroundColor: emphasize(backgroundColor, 0.12),
-      },
-    };
-  });
 
-  type StoreDashboardBreadcrampsProps = {
-    storeName:string;
-    address:string;
-  }
+  const backgroundColor =
+    theme.palette.mode === 'light'
+      ? theme.palette.grey[100]
+      : theme.palette.grey[800];
+  return {
+    backgroundColor,
+    height: theme.spacing(3),
+    color: theme.palette.text.primary,
+    fontWeight: theme.typography.fontWeightRegular,
+    '&:hover, &:focus': {
+      backgroundColor: emphasize(backgroundColor, 0.06),
+    },
+    '&:active': {
+      boxShadow: theme.shadows[1],
+      backgroundColor: emphasize(backgroundColor, 0.12),
+    },
+  };
+});
 
-const   StoreDashboardBreadcramps = ({storeName, address}:StoreDashboardBreadcrampsProps) => {
+type StoreDashboardBreadcrampsProps = {
+  storeName: string;
+  address: string;
+  path?: string;
+}
+
+const StoreDashboardBreadcramps = ({ path, storeName, address }: StoreDashboardBreadcrampsProps) => {
   const router = useRouter()
-    
-function handleClick(event: React.MouseEvent<Element, MouseEvent>) {
+
+  function handleClick(event: React.MouseEvent<Element, MouseEvent>) {
     event.preventDefault();
     console.info('You clicked a breadcrumb.');
   }
@@ -55,27 +56,27 @@ function handleClick(event: React.MouseEvent<Element, MouseEvent>) {
   return (
     <div role="presentation" onClick={handleClick}>
       <Breadcrumbs aria-label="breadcrumb">
-        <StyledBreadcrumb
-        onClick={handleHome}
+        {path !== 'single-med' && <StyledBreadcrumb
+          onClick={handleHome}
           component="a"
           href="#"
           label="Home"
           sx={{
-            color:'blue',
-            cursor:'pointer'
+            color: 'blue',
+            cursor: 'pointer'
           }}
-        //   icon={<HomeIcon fontSize="small" />}
-        />
+        />}
         <StyledBreadcrumb
-        onClick={handleStore}
+          onClick={handleStore}
 
-         sx={{
-            color:'blue',
-            cursor:'pointer'
+          sx={{
+            color: 'blue',
+            cursor: 'pointer',
+           
           }}
-        component="a" href="#" label="Store" />
+           label={`${path ? 'Back To Store' : 'Store'}`} />
         <Typography variant="h5" >
-            {`${storeName} - ${address}`}
+          {`${storeName} - ${address}`}
         </Typography>
       </Breadcrumbs>
     </div>

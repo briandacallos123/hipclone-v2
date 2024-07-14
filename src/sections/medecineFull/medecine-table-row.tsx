@@ -109,7 +109,7 @@ const MedecineTableRowNew = ({ data, alignment }: MedecineTableRowProps) => {
                                                         <Typography sx={{
                                                             textTransform: 'capitalize',
                                                         }} variant="body2" color="grey">
-                                                            {distance.toFixed(2)} Km
+                                                            {distance?.toFixed(2)} Km
                                                         </Typography>
                                                     </Box>
                                                 </Box>

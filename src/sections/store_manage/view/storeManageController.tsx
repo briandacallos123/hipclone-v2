@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { QueryQueuePatient } from 'src/libs/gqls/queue';
 import { notFound, useRouter } from 'next/navigation';
 import { QueryAllMedecineByStore } from '@/libs/gqls/Orders';
+import { DeleteMerchantMedicine } from '@/libs/gqls/merchantUser';
 import { paths } from '@/routes/paths';
 import { CreateNewStore, QueryAllStore, UpdateStore } from 'src/libs/gqls/store';
 import { useParams } from 'src/routes/hook';
@@ -36,6 +37,8 @@ const StoreManageController = (
   const [loading, setLoading] = useState(false)
 
   const [updateFunc, createResults] = useMutation(UpdateStore);
+  const [deleteFunc, deleteResults] = useMutation(DeleteMerchantMedicine);
+
 
   const [queryFunc, queryResults] = useLazyQuery<any>(QueryAllMedecineByStore, {
     variables: {
@@ -53,7 +56,6 @@ const StoreManageController = (
   });
 
   useEffect(() => {
-    setLoading(true)
     queryFunc().then(async (result) => {
       const { data } = result;
 
@@ -63,14 +65,32 @@ const StoreManageController = (
         const {QueryAllMedecineByStore} = data;
         setTableData(QueryAllMedecineByStore?.MedicineType)
       }
-      setLoading(false)
     });
   }, [queryResults?.data]);
 
+  const handleSubmitDelete = useCallback(
+    async (model: any) => {
+      console.log(model,'MODELLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL')
+      try {
+        await deleteFunc({
+          variables: {
+            data: {
+              id:model
+            },
+          },
+        }).then(async(res)=>{
+          queryResults.refetch()
+          enqueueSnackbar("Deleted successfully")
+        })
+      } catch (error) {
+        console.error(error);
+      }
+    },
+    [deleteFunc]
+  );
+
   const handleSubmitUpdate = useCallback(
     async (model: any) => {
-
-
       try {
         await updateFunc({
           variables: {
@@ -89,9 +109,7 @@ const StoreManageController = (
           },
         }).then(async(res)=>{
           enqueueSnackbar("Updated successfully")
-         
         })
-
       } catch (error) {
         console.error(error);
       }
@@ -133,7 +151,7 @@ const StoreManageController = (
   //   [createFunc]
   // );
 
-  return {  tableData, loading,queryResults, handleSubmitUpdate }
+  return {  tableData,queryResults, handleSubmitUpdate, handleSubmitDelete}
 }
 
 export default StoreManageController

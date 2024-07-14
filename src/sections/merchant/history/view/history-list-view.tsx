@@ -73,6 +73,8 @@ import { useSearch } from '@/auth/context/Search';
 // import MerchantCreateView from './merchant-create-view';
 import { UseMerchantMedContext } from '@/context/merchant/Merchant';
 import HistoryTableRow from './history-table-row';
+import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
+import HistoryView from '@/sections/history/view/history-view';
 // import MerchantCreateView from './merchant-create-view';
 // import MerchantMedicineSkeleton from './merchant-table-skeleton';
 // import MerchantMedecineTableRow from './merchant-table-row';
@@ -120,7 +122,7 @@ export default function HistoryListView() {
 
   const confirmDone = useBoolean();
 
-  // const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
+  const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
 
 
   const openView = useBoolean();
@@ -138,7 +140,7 @@ export default function HistoryListView() {
 
   const [summary, setSummary] = useState(null)
 
- 
+
   const router = useRouter();
   const [clinicData, setclinicData] = useState<any>([]);
 
@@ -146,57 +148,59 @@ export default function HistoryListView() {
 
   const [filters, setFilters]: any = useState(defaultFilters);
 
-  const {state, table, deletedMerchantMedFunc}: any = UseMerchantMedContext();
-  const { page, rowsPerPage, order, orderBy } = table;
- 
+  // const {state, table, deletedMerchantMedFunc}: any = UseMerchantMedContext();
+  // const { page, rowsPerPage, order, orderBy } = table;
+
   const dateError = isDateError(filters.startDate, filters.endDate);
 
   const [getAllOrders, getOrdersResult] = useLazyQuery(QueryAllOrdersForMerchantHistory, {
     context: {
-        requestTrackerId: 'orders[QueryAllOrderUser]',
+      requestTrackerId: 'orders[QueryAllOrderUser]',
     },
     notifyOnNetworkStatusChange: true,
-});
+  });
 
-console.log(summary,'SUMARY__________________________')
+  console.log(summary, 'SUMARY__________________________')
 
- useEffect(() => {
-  getAllOrders({
-       variables: {
-         data: {
-          skip: page * rowsPerPage,
-          take: rowsPerPage,
-          is_deliver:1
-         },
-       },
-     }).then(async (result: any) => {
-       const { data } = result;
-       if (data) {
-        const {QueryAllOrdersForMerchantHistory} = data;
+  useEffect(() => {
+    getAllOrders({
+      variables: {
+        data: {
+          skip: table.page * table.rowsPerPage,
+          take: table.rowsPerPage,
+          is_deliver: null,
+          status: filters.status
+        },
+      },
+    }).then(async (result: any) => {
+      const { data } = result;
+      if (data) {
+        const { QueryAllOrdersForMerchantHistory } = data;
         //  const { allAppointments } = data;
         //  setTableData(allAppointments?.appointments_data);
-          setTableData(QueryAllOrdersForMerchantHistory?.orderType);
-          setTotalRecords(QueryAllOrdersForMerchantHistory?.totalRecords);
-          setSummary(QueryAllOrdersForMerchantHistory.summary)
+        setTableData(QueryAllOrdersForMerchantHistory?.orderType);
+        setTotalRecords(QueryAllOrdersForMerchantHistory?.totalRecords);
+        setSummary(QueryAllOrdersForMerchantHistory.summary)
         //  setPending(allAppointments?.summary?.pending);
         //  setApproved(allAppointments?.summary?.approved);
         //  setDone(allAppointments?.summary?.done);
         //  setCancelled(allAppointments?.summary?.cancelled);
-       }
-     });
-   }, [
+      }
+    });
+  }, [
 
-     page,
-     rowsPerPage,
-     order,
-     orderBy,
-    
-   ]);
+    table.page,
+    table.rowsPerPage,
+    table.order,
+    table.orderBy,
+    filters.status
+
+  ]);
 
 
-    // useEffect(()=>{
-    //   console.log(merchantData,'HAAAAAAAAAAA________________________')
-    // },[merchantData])
+  // useEffect(()=>{
+  //   console.log(merchantData,'HAAAAAAAAAAA________________________')
+  // },[merchantData])
 
   // const [isLoading, setIsLoading] = useState(true);
 
@@ -232,10 +236,10 @@ console.log(summary,'SUMARY__________________________')
   //   if (socket?.connected) {
   //     socket.on('appointmentStatus', async(u: any) => {
   //       if(Number(u?.recepient) === Number(user?.id)){
-      
+
   //         await refetch()
   //       }
-        
+
   //     })
   //   }
 
@@ -269,7 +273,7 @@ console.log(summary,'SUMARY__________________________')
   //   }
   // }, [drData]);
 
-  
+
 
 
 
@@ -299,7 +303,7 @@ console.log(summary,'SUMARY__________________________')
   // =========
   // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
   const [clinicPayload, setClinicPayload] = useState<any>([]);
- 
+
   // useEffect(() => {
   //   if (user?.role === 'patient' && userClinicData) {
   //     const { AllClinicUser } = userClinicData;
@@ -314,11 +318,11 @@ console.log(summary,'SUMARY__________________________')
       setClinicPayload(clinicItem);
     }
   }, [tableData]);
-  useEffect(()=>{
-    if(!openView.value && viewId){
+  useEffect(() => {
+    if (!openView.value && viewId) {
       setViewId(null)
     }
-  },[openView.value])
+  }, [openView.value])
   // ========================
 
   const dataFiltered = applyFilter({
@@ -340,7 +344,7 @@ console.log(summary,'SUMARY__________________________')
     !!filters.startDate ||
     !!filters.endDate;
 
-  const notFound = !state?.isLoading  && !state?.merchantData?.length;
+  const notFound = !getOrdersResult?.isLoading && tableData?.length === 0;
 
   const getAppointmentLength = (status: string | number) =>
     tableData?.filter((item: any) => item?.status === status).length;
@@ -349,18 +353,18 @@ console.log(summary,'SUMARY__________________________')
     (getAppointmentLength(status) / tableData.length) * 100;
 
   const TABS = [
-    { value: -1, label: 'All', color: 'default', count: state?.totalRecords },
+    { value: -1, label: 'All', color: 'default', count: totalRecords },
     {
-      value: 0,
+      value: 4,
       label: 'Done',
       color: 'success',
-      count: getAppointmentLength(0),
+      count: summary?.done,
     },
     {
-      value: 1,
+      value: 3,
       label: 'Cancelled',
       color: 'error',
-      count: getAppointmentLength(1),
+      count: summary?.cancelled,
     },
     // { value: 3, label: 'Done', color: 'success', count: getAppointmentLength(3) },
     // {
@@ -373,9 +377,9 @@ console.log(summary,'SUMARY__________________________')
 
   const [editRow, setEditRow] = useState(null)
 
-  
 
-  const handleEditRow = (row:any)=> {
+
+  const handleEditRow = (row: any) => {
     opencreate.onTrue()
     setEditRow(row)
 
@@ -443,7 +447,7 @@ console.log(summary,'SUMARY__________________________')
     [router]
   );
 
-  const handleDeleteRow = (id:string) => {
+  const handleDeleteRow = (id: string) => {
     // DeleteMerchantFunc(id)
     deletedMerchantMedFunc({
       id
@@ -464,9 +468,9 @@ console.log(summary,'SUMARY__________________________')
             mb: { xs: 3, md: 5 },
           }}
         >
-          <Typography variant="h5">Medicines</Typography>
+          <Typography variant="h5">History</Typography>
 
-{/*           
+          {/*           
             <Button
               onClick={opencreate.onTrue}
               // component={RouterLink}
@@ -476,7 +480,7 @@ console.log(summary,'SUMARY__________________________')
             >
               Create New Medecine
             </Button> */}
-         
+
         </Stack>
 
         {upMd && (
@@ -486,51 +490,37 @@ console.log(summary,'SUMARY__________________________')
             }}
           >
             <Scrollbar>
-              {/* <Stack
+              <Stack
                 direction="row"
                 divider={<Divider orientation="vertical" flexItem sx={{ borderStyle: 'dashed' }} />}
                 sx={{ py: 2 }}
               >
                 <AppointmentAnalytic
                   title="Total"
-                  total={total}
+                  total={totalRecords}
                   percent={100}
                   icon="solar:bill-list-bold-duotone"
                   color={theme.palette.text.primary}
                 />
 
                 <AppointmentAnalytic
-                  title="Pending"
-                  total={pending}
-                  percent={(pending / total) * 100}
-                  icon="solar:clock-circle-bold-duotone"
-                  color={theme.palette.warning.main}
-                />
-
-                <AppointmentAnalytic
-                  title="Approved"
-                  total={approved}
-                  percent={(approved / total) * 100}
-                  icon="solar:play-circle-bold-duotone"
-                  color={theme.palette.info.main}
-                />
-
-                <AppointmentAnalytic
                   title="Done"
-                  total={done}
-                  percent={(done / total) * 100}
-                  icon="solar:check-circle-bold-duotone"
+                  total={summary?.done}
+                  percent={(summary?.done / totalRecords) * 100}
+                  icon="solar:clock-circle-bold-duotone"
                   color={theme.palette.success.main}
                 />
 
                 <AppointmentAnalytic
                   title="Cancelled"
-                  total={cancelled}
-                  percent={(cancelled / total) * 100}
-                  icon="solar:close-circle-bold-duotone"
+                  total={summary?.cancelled}
+                  percent={(summary?.cancelled / totalRecords) * 100}
+                  icon="solar:play-circle-bold-duotone"
                   color={theme.palette.error.main}
                 />
-              </Stack> */}
+
+
+              </Stack>
             </Scrollbar>
           </Card>
         )}
@@ -564,7 +554,7 @@ console.log(summary,'SUMARY__________________________')
               />
             ))}
           </Tabs>
-{/* 
+          {/* 
           <AppointmentTableToolbar
             filters={filters}
             onFilters={handleFilters}
@@ -625,16 +615,16 @@ console.log(summary,'SUMARY__________________________')
                   <TableHeadCustom
                     order={table.order}
                     orderBy={table.orderBy}
-                    headLabel={TABLE_HEAD }
+                    headLabel={TABLE_HEAD}
                     // rowCount={tableData?.length}
                     // numSelected={table.selected.length}
                     onSort={table.onSort}
-                    // onSelectAllRows={(checked) =>
-                    //   table.onSelectAllRows(
-                    //     checked,
-                    //     tableData?.map((row: any) => row?.id)
-                    //   )
-                    // }
+                  // onSelectAllRows={(checked) =>
+                  //   table.onSelectAllRows(
+                  //     checked,
+                  //     tableData?.map((row: any) => row?.id)
+                  //   )
+                  // }
                   />
                 )}
                 {/* {user?.role === 'patient' && (
@@ -657,18 +647,18 @@ console.log(summary,'SUMARY__________________________')
                         />
                   ))
                       } */}
-                      {tableData?.map((row:any)=>(
-                        <HistoryTableRow
-                        key={row.id}
-                        row={row}
-                        selected={table.selected.includes(String(row.id))}
-                        onSelectRow={() => table.onSelectRow(String(row.id))}
-                        onViewRow={() => handleViewRow(row)}
-                        onViewPatient={() => handleViewPatient(row)}
-                        onDeleteRow={()=>handleDeleteRow(row?.id)}
-                        onEditRow={()=>handleEditRow(row)}
-                      />
-                      ))}
+                  {tableData?.map((row: any) => (
+                    <HistoryTableRow
+                      key={row.id}
+                      row={row}
+                      selected={table.selected.includes(String(row.id))}
+                      onSelectRow={() => table.onSelectRow(String(row.id))}
+                      onViewRow={() => handleViewRow(row)}
+                      onViewPatient={() => handleViewPatient(row)}
+                      onDeleteRow={() => handleDeleteRow(row?.id)}
+                      onEditRow={() => handleEditRow(row)}
+                    />
+                  ))}
                   {/* {state?.isLoading
                     ? [...Array(rowsPerPage)].map((_, i) => <MerchantMedicineSkeleton key={i} />)
                     : state?.merchantData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
@@ -696,12 +686,12 @@ console.log(summary,'SUMARY__________________________')
           </TableContainer>
 
           <TablePaginationCustom
-            count={state?.totalRecords}
+            count={totalRecords}
             page={table.page}
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}
             onRowsPerPageChange={table.onChangeRowsPerPage}
-            
+
             dense={table.dense}
             onChangeDense={table.onChangeDense}
           />
@@ -724,6 +714,7 @@ console.log(summary,'SUMARY__________________________')
         id={viewId}
       />} */}
 
+      {viewId && <HistoryView data={viewId} title="Order View" open={openView.value} onClose={openView.onFalse} />}
       <ConfirmDialog
         open={confirmApprove.value}
         onClose={confirmApprove.onFalse}

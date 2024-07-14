@@ -1,56 +1,47 @@
 // components
-import { Box, Card, CardContent, CardMedia, Grid, Typography, CardActionArea } from '@mui/material';
+
+import { Box, Stack, Typography } from '@mui/material';
 import Markdown from 'src/components/markdown';
-import { useRouter } from 'next/navigation';
 
 // ----------------------------------------------------------------------
 
 type Props = {
-  data: [];
+  description: any;
 };
 
-export default function StoreOtherProducts({ data }: Props) {
-    const router = useRouter();
-
+export default function ProductDetailsDescription({ data }: Props) {
+    const {manufacturer, description, dose, form} = data;
   return (
     <Box sx={{
-      p:3
+        p:3
     }}>
-      {/* Products */}
-            <Grid  justifyContent="flex-start" container gap={2}>
-                {
-                    data?.map(({ id, attachment_info, generic_name, brand_name, price }: any) => (
-                        <Grid xl={2}>
-
-                            <Card sx={{maxWidth:500}}>
-                                <CardActionArea
-                                onClick={()=>{
-                                    router.push(`/dashboard/medecine/${id}`)
-                                }}
-                                >
-                                    <CardMedia
-                                        component="img"
-                                        height="140"
-                                        image={`https://hip.apgitsolutions.com/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
-                                        alt={generic_name}
-                                    />
-                                    <CardContent>
-                                        <Typography gutterBottom variant="h5" component="div">
-                                            {generic_name}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                           {brand_name}
-                                        </Typography>
-                                        <Typography variant="body2" color="text.secondary">
-                                         ₱{price}
-                                        </Typography>
-                                    </CardContent>
-                                </CardActionArea>
-                            </Card>
-                        </Grid>
-                    ))
-                }
-            </Grid>
-        </Box>
-  );
+        <Stack>
+            <h3>Product Details</h3>
+            <Typography >
+            {`${description[0].toUpperCase()}${description.split('').splice(1).join('')}`}
+            </Typography>
+        </Stack>
+        
+        <Stack sx={{textTransform:'capitalize'}} gap={1}>
+            <h3>Specifications</h3>
+          
+            <table width="30%">
+                <tbody>
+                    <tr>
+                        <td>Manufacturer</td>
+                        <td>{manufacturer}</td>
+                    </tr>
+                    <tr>
+                        <td>Dose</td>
+                        <td>{dose}</td>
+                    </tr>
+                    <tr>
+                        <td>Form</td>
+                        <td>{form}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </Stack>
+    </Box>
+  )
 }

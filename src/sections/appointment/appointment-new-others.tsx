@@ -87,7 +87,7 @@ export default function AppointmentNewOthers({ values, hmoData }: Props) {
     },
     [setValue, values.attachments]
   );
-  console.log('gogog', hmoData);
+  console.log(hmoData,'_________________HMO_________________________________________' );
 
   return (
     <>
@@ -175,7 +175,7 @@ export default function AppointmentNewOthers({ values, hmoData }: Props) {
         </Stack>
       </Card>
 
-      {/* {!!hmoData && (
+      {hmoData?.length!==0 && (
         <Card>
           <CardHeader title="HMO ACCREDITATION (if applicable)" />
 
@@ -220,7 +220,7 @@ export default function AppointmentNewOthers({ values, hmoData }: Props) {
             )}
           </Stack>
         </Card>
-      )} */}
+      )}
     </>
   );
 }

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useReducer, useCallback } from 'react'
 import { useLazyQuery, useMutation } from '@apollo/client'
-import { QueryAllMedicineOrders, DeleteOrder } from '@/libs/gqls/Orders';
+import { QueryAllMedicineOrders, DeleteOrder, UpdateOrder } from '@/libs/gqls/Orders';
 import { QueryAllMerchantMedicine, CreateMerchantMedecine, DeleteMerchantMedicine } from '@/libs/gqls/merchantUser';
 import { useSnackbar } from 'src/components/snackbar';
 import { useAuthContext } from '@/auth/hooks';
@@ -33,7 +33,11 @@ const initialState = {
     orders: [],
     summary: {
         delivery: 0,
-        pickup: 0
+        pickup: 0,
+        pending:0,
+        cancelled:0,
+        done:0,
+        approved:0
     },
     totalRecords: 0
 }
@@ -77,7 +81,7 @@ const reducer = (state: any, action: any) => {
 
 const MerchantController = () => {
     const [state, dispatch] = useReducer(reducer, initialState)
-    const [loading, setLoading] = useState(false)
+    
     const [toRefetch, setToRefetch] = useState<number>(0);
     const { user, socket } = useAuthContext()
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -96,13 +100,13 @@ const MerchantController = () => {
     });
 
     useEffect(() => {
-        setLoading(true)
         getAllOrders({
             variables: {
                 data: {
                     skip: table.page * table.rowsPerPage,
                     take: table.rowsPerPage,
-                    is_deliver: filters.status
+                    status: filters.status,
+                    is_deliver:null
                 }
             }
         }).then((res: any) => {
@@ -115,7 +119,6 @@ const MerchantController = () => {
                 })
 
             }
-            setLoading(false)
         })
     }, [table.page, table.rowsPerPage, getOrdersResult?.data, filters.status])
 
@@ -148,6 +151,13 @@ const MerchantController = () => {
         notifyOnNetworkStatusChange: true,
     });
 
+    const [doneMerchantFuncOrder] = useMutation(UpdateOrder, {
+        context: {
+            requestTrackerId: 'Done_Merch[Merchant_Done_Key]',
+        },
+        notifyOnNetworkStatusChange: true,
+    });
+
     const deletedMerchantMedFunc = useCallback((user: any) => {
         deleteMerchantFuncOrder({
             variables: {
@@ -173,6 +183,23 @@ const MerchantController = () => {
         [table]
     );
 
+    // merchant / mark as done the order
+    
+    const doneMerchantOrderFunc = useCallback((model: any) => {
+        doneMerchantFuncOrder({
+            variables: {
+                data: {
+                    order_id:Number(model?.order_id),
+                    status:Number(model?.status)
+                }
+            }
+        }).then((res) => {
+            const { data } = res;
+            enqueueSnackbar("Updated successfully")
+            getOrdersResult.refetch()
+        })
+    }, [getOrdersResult])
+
 
     const handleFilterStatus = useCallback(
         (event: React.SyntheticEvent, newValue: string) => {
@@ -185,7 +212,7 @@ const MerchantController = () => {
 
     // end of create merchant user
 
-    return {state, handleFilterStatus,loading, handleFilters, filters, table, createMerchantMedFunc, deletedMerchantMedFunc}
+    return {state, handleFilterStatus,getOrdersResult,doneMerchantOrderFunc, handleFilters, filters, table, createMerchantMedFunc, deletedMerchantMedFunc}
 }
 
 export default MerchantController

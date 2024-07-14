@@ -18,7 +18,7 @@ import { useDispatch } from 'src/redux/store';
 import { PRODUCT_PUBLISH_OPTIONS } from 'src/_mock';
 // routes
 import { paths } from 'src/routes/paths';
-import { useParams } from 'src/routes/hook';
+// import { useParams } from 'src/routes/hook';
 import { RouterLink } from 'src/routes/components';
 // components
 import Iconify from 'src/components/iconify';
@@ -36,6 +36,13 @@ import StoreOtherProducts from '../product-details-description';
 import EcommerceWelcome from '@/sections/medecineFull/ecommerce-welcome';
 import { MotivationIllustration } from 'src/assets/illustrations';
 import ProductStoreDetails from '../product-store-details';
+import { useLazyQuery } from '@apollo/client';
+import { QuerySingleMedecine } from '@/libs/gqls/medecine'
+import { useParams } from 'next/navigation';
+import { Stack } from '@mui/material';
+import ProductDetailsDescription from '../product-details-description';
+import { useRouter } from 'next/navigation';
+import StoreDashboardBreadcramps from '@/sections/medecine-final/id/view/store-dashboard-breadcramps';
 // ----------------------------------------------------------------------
 
 const SUMMARY = [
@@ -59,37 +66,70 @@ const SUMMARY = [
 // ----------------------------------------------------------------------
 
 function useInitial() {
-  const dispatch = useDispatch();
 
-  const params = useParams();
 
-  const { id } = params;
 
-//   const getProductCallback = useCallback(() => {
-//     if (id) {
-//       dispatch(getProduct(id));
-//     }
-//   }, [dispatch, id]);
+  //   const getProductCallback = useCallback(() => {
+  //     if (id) {
+  //       dispatch(getProduct(id));
+  //     }
+  //   }, [dispatch, id]);
 
-//   useEffect(() => {
-//     getProductCallback();
-//   }, [getProductCallback]);
+  //   useEffect(() => {
+  //     getProductCallback();
+  //   }, [getProductCallback]);
 
   return null;
 }
 
 type MedecineViewByIdProps = {
-  data:[]
+  data: []
 }
 
-export default function MedecineViewById({data}:MedecineViewByIdProps) {
-  useInitial();
-  console.log(data)
+export default function MedecineViewById({id}:any) {
+  // useInitial();
+  const router = useRouter()
+  const [data, setData] = useState(null)
+  // const { id }: any = useParams();
+
+  const [getOrders, getOrdersResult] = useLazyQuery(QuerySingleMedecine, {
+    context: {
+      requestTrackerId: 'orders[QueryAllOrdersPatient]',
+    },
+    notifyOnNetworkStatusChange: true,
+    // fetchPolicy: 'no-cache'
+  });
+
+  useEffect(() => {
+    getOrders({
+      variables: {
+        data: {
+          id: Number(id)
+        }
+      }
+    }).then((res) => {
+      const { data } = res;
+      if(data){
+        const {QuerySingleMedecine} = data;
+        setData(QuerySingleMedecine)
+      }
+    })
+  }, [getOrdersResult.data])
+  
+  useEffect(()=>{
+    const toCart = localStorage?.getItem('toCart') === '1';
+
+    if(toCart){
+      router.push('/dashboard/medecine-checkout/checkout')
+      localStorage.removeItem('toCart')
+    }
+  },[])
+
 
   const settings = useSettingsContext();
 
 
-  const [currentTab, setCurrentTab] = useState('products');
+  const [currentTab, setCurrentTab] = useState('description');
 
   const [publish, setPublish] = useState('');
 
@@ -132,21 +172,13 @@ export default function MedecineViewById({data}:MedecineViewByIdProps) {
         publishOptions={PRODUCT_PUBLISH_OPTIONS}
       /> */}
 
-      <Grid container spacing={{ xs: 3, md: 5, lg: 8 }}>
-        {/* <Grid xs={12} md={8}>
-          <EcommerceWelcome
-            title={data?.user?.merchant_store?.name}
-            description={data?.user?.merchant_store?.address}
-            img={<MotivationIllustration />}
-            action={
-              <Button variant="contained" color="primary">
-                Go Now
-              </Button>
-            }
-          />
-        </Grid> */}
-        <Grid xs={12} md={8}>
-          <ProductStoreDetails item={data?.user?.merchant_store}/>
+      <Grid sx={{mb:1}} container spacing={{ xs: 3, md: 5, lg: 8 }}>
+        
+        <Grid xs={12} md={12}>
+          <StoreDashboardBreadcramps  path="single-med" storeName={data?.merchant_store?.name} address={data?.merchant_store?.address} />
+            <ProductStoreDetails item={data?.merchant_store} />
+          
+        
         </Grid>
         <Grid xs={12} md={6} lg={7}>
           <ProductDetailsCarousel product={data} />
@@ -159,7 +191,7 @@ export default function MedecineViewById({data}:MedecineViewByIdProps) {
         </Grid>
       </Grid>
 
-      <Box
+      {/* <Box
         gap={5}
         display="grid"
         gridTemplateColumns={{
@@ -181,36 +213,40 @@ export default function MedecineViewById({data}:MedecineViewByIdProps) {
             </Typography>
           </Box>
         ))}
-      </Box>
+      </Box> */}
 
-       <Card>
-         <Tabs
-           value={currentTab}
-           onChange={handleChangeTab}
+      <Card>
+        <Tabs
+          value={currentTab}
+          onChange={handleChangeTab}
           sx={{
-             px: 3,
+            px: 3,
             boxShadow: (theme) => `inset 0 -2px 0 0 ${alpha(theme.palette.grey[500], 0.08)}`,
           }}
-         >
-           {[
+        >
+          {[
              {
-               value: 'products',
-               label: 'Other Products',
-             },
-            //  {
-            //    value: 'reviews',
-            //    label: `Reviews (${product.reviews.length})`,
-            //  },
-           ].map((tab) => (
-             <Tab key={tab.value} value={tab.value} label={tab.label} />
-           ))}
-         </Tabs>
+              value: 'description',
+              label: `Description`,
+            },
+            // {
+            //   value: 'products',
+            //   label: 'Other Products',
+            // },
+            
+          ].map((tab) => (
+            <Tab key={tab.value} value={tab.value} label={tab.label} />
+          ))}
+        </Tabs>
 
-         {currentTab === 'products' && (
+        {/* {currentTab === 'products' && (
           <StoreOtherProducts data={data?.user?.merchant_store?.products} />
-         )}
+        )} */}
+         {currentTab === 'description' && (
+          <ProductDetailsDescription data={data} />
+        )}
 
-         {/* {currentTab === 'reviews' && (
+        {/* {currentTab === 'reviews' && (
            <ProductDetailsReview
              ratings={product.ratings}
              reviews={product.reviews}
@@ -218,17 +254,18 @@ export default function MedecineViewById({data}:MedecineViewByIdProps) {
              totalReviews={product.totalReviews}
            />
          )} */}
-       </Card>
-     </>
-   );
+      </Card>
+    </>
+  );
 
   return (
-    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+    <Container maxWidth={'lg'}>
       {/* {productStatus.loading ? (
         renderSkeleton
       ) : (
         <>{productStatus.error ? renderError : renderProduct}</>
       )} */}
+      
       {renderProduct}
     </Container>
   );
