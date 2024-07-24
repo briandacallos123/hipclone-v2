@@ -74,8 +74,19 @@ export const postUserObjs = objectType({
     t.string('EMP_MNAME');
     t.string('EMP_LNAME');
     t.string('EMP_TITLE');
+    t.nullable.field('attachment', {
+      type:attachment
+    })
   },
 });
+
+export const attachment = objectType({
+  name:"attachment",
+  definition(t) {
+      t.string('filename')
+  },
+})
+
 export const QueryPostSingle = extendType({
   type: 'Query',
   definition(t) {
@@ -142,10 +153,19 @@ export const QueryPosts = extendType({
       async resolve(_root, args, ctx) {
         const { session } = ctx;
         let result: any;
+        console.log(session?.user,'_______________________USERRR__________')
+
+        let userId:any;
+
+        if(session?.user?.role === 'patient'){
+          userId = session?.user?.s_id;
+        }else{
+          userId = session?.user?.id;
+        }
 
         const doctorList: any = await client.records.findMany({
           where: {
-            patientID: session?.user?.id,
+            patientID:userId,
           },
           select: {
             doctorID: true,
@@ -153,11 +173,20 @@ export const QueryPosts = extendType({
           distinct: ['doctorID'],
         });
 
+
         // console.log(
         //   `doctorList role: ${session?.user?.role} `,
         //   doctorList.map((doctor: any) => doctor.doctorID)
         // );
+        let doctorIds = doctorList.filter((doctor: any) =>{
+          if(doctor.doctorID !== null){
+            return doctor.doctorID
+          }
+        })
 
+        doctorIds = doctorIds?.map((item:any)=>item.doctorID)
+
+        
         if (session?.user?.role === 'patient') {
           result = await client.posts.findMany({
             skip: Number(args?.skip),
@@ -165,7 +194,10 @@ export const QueryPosts = extendType({
             where: {
               OR: [
                 {
-                  userID: { in: doctorList.map((doctor: any) => doctor.doctorID) },
+                  userID:{
+                    in:doctorIds
+                  }
+                  // userID: { in: doctorList.map((doctor: any) => doctor.doctorID) },
                 },
                 {
                   isPublic: 1,
@@ -179,6 +211,7 @@ export const QueryPosts = extendType({
             },
             include: {
               userData: true,
+              
             },
           });
         }
@@ -205,7 +238,41 @@ export const QueryPosts = extendType({
             },
           });
         }
-        const overwriteRes: any = await result.map((v: any) => ({
+
+        // console.log(result,'RESULT DOCOTRRRRRRRRRRR')
+        result = result?.map(async(item)=>{
+          const doctorId = await client.user.findFirst({
+            where:{
+              email:item?.userData?.EMP_EMAIL
+            },
+            select:{
+              id:true
+            }
+          })
+
+
+          console.log(doctorId,'DOCTOR IDDDDDDDDDD')
+          const attachment = await client.display_picture.findMany({
+            where:{
+              userID:Number(doctorId?.id)
+            },
+            orderBy:{
+              uploaded:'desc'
+            }
+          })
+
+          // console.log(attachment[0],'ITO NA YUNNN');
+          const userData = {
+            ...item.userData
+          }
+          return {...item, userData:{...userData, attachment:{...attachment[0]}}}
+        })
+
+        const data = await Promise.all(result)
+
+        console.log(data,'RESULT ULITTT')
+
+        const overwriteRes: any = await data.map((v: any) => ({
           ...v,
           requestType: String(args.requestType),
           /* String(args.requestType) */

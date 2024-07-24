@@ -259,7 +259,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
   const [valResult, setValResult] = useState([])
 
-  
+
 
 
   const successModal = useBoolean();
@@ -306,7 +306,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     </div>
   );
 
- 
+
 
   useEffect(() => {
     if (values.address.length >= 10) {
@@ -332,6 +332,74 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     }
   }, [values.address])
 
+  let isPassError = valResult?.find((item) => item.error)
+  const [openReq, setOpenReq] = useState(false);
+
+  const handleClose = () => {
+    setOpenReq(false)
+  }
+
+  useEffect(() => {
+    if (errors?.password) {
+      const validationResult: any = validatePassword(values.password);
+      setValResult([...validationResult])
+      setOpenReq(true)
+    }
+  }, [values.password, errors.password])
+
+  const ErrorDialog = () => {
+
+    return (
+      <div style={{
+        position: 'absolute',
+        bottom:0,
+        left:10,
+        backgroundColor: 'white',
+        padding: 10,
+        borderRadius: 10,
+        zIndex: 100,
+        boxShadow: '1px 1px 3px black'
+      }}>
+        <Stack direction="row" justifyContent="space-between" alignItems="center">
+          <h3>Password must meet the following requirements:</h3>
+          <Button variant="contained" onClick={handleClose}>Close</Button>
+        </Stack>
+        <div>
+          <ul>
+            {valResult?.map((item) => {
+              if (item?.error) {
+                return <li style={{
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <Iconify icon="entypo:cross" sx={{
+                    color: 'error.main',
+                    fontSize: 18
+                  }} />
+                  <Typography color="error.main">{item?.label}</Typography>
+                </li>
+              } else {
+                return <li style={{
+                  textDecoration: 'none',
+                  display: 'flex',
+                  alignItems: 'center'
+                }}>
+                  <Iconify icon="material-symbols:check" sx={{
+                    color: 'success.main',
+                    fontSize: 18
+                  }} />
+                  <Typography color="success.main">{item?.label}</Typography>
+                </li>
+              }
+            })}
+          </ul>
+
+        </div>
+      </div>
+    )
+  }
+
   const renderForm = (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack spacing={2.5} sx={{ mt: 1 }}>
@@ -348,32 +416,15 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         </Stack>
         <Stack direction="column" spacing={2}>
           <RHFTextField fullWidth name="address" label="Address" />
-          {/* <Controller
-            name="birthDate"
-            control={control}
-            render={({ field, fieldState: { error } }: CustomRenderInterface) => (
-              <DatePicker
-                label="Date of Birth"
-                value={field.value}
-                onChange={(newValue) => {
-                  field.onChange(newValue);
-                }}
-                slotProps={{
-                  textField: {
-                    fullWidth: true,
-                    error: !!error,
-                    helperText: error?.message,
-                  },
-                }}
-              />
-            )}
-          /> */}
+
         </Stack>
         <Stack>
           {map && <MapContainer lat={mapData?.lat} lng={mapData?.lng} />}
         </Stack>
 
-        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
+        <Stack sx={{
+          position: 'relative'
+        }} direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <RHFTextField
             name="password"
             label="Password"
@@ -388,6 +439,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
               ),
             }}
           />
+
 
           <RHFTextField
             name="confirmPassword"
@@ -425,73 +477,9 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     </FormProvider>
   );
 
-  let isPassError = valResult?.find((item)=>item.error)
-  const [openReq, setOpenReq] = useState(false);
 
-  const handleClose = () => {
-    setOpenReq(false)
-  }
 
-  useEffect(() => {
-    if (errors?.password) {
-      const validationResult: any = validatePassword(values.password);
-      setValResult([...validationResult])
-      setOpenReq(true)
-    }
-  }, [values.password, errors.password])
 
-  const ErrorDialog = () => {
-
-    return (
-      <div style={{
-        position: 'absolute',
-        bottom: 5,
-        left:10,
-        backgroundColor: 'white',
-        padding: 10,
-        borderRadius: 10,
-        zIndex: 100,
-        boxShadow:'1px 1px 3px black'
-      }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="center">
-          <h3>Password must meet the following requirements:</h3>
-          <Button variant="contained" onClick={handleClose}>Close</Button>
-        </Stack>
-        <div>
-          <ul>
-            {valResult?.map((item) => {
-              if (item?.error) {
-                return <li style={{
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
-                  <Iconify icon="entypo:cross" sx={{
-                    color: 'error.main',
-                    fontSize: 18
-                  }} />
-                  <Typography color="error.main">{item?.label}</Typography>
-                </li>
-              } else {
-                return <li style={{
-                  textDecoration: 'none',
-                  display: 'flex',
-                  alignItems: 'center'
-                }}>
-                  <Iconify icon="material-symbols:check" sx={{
-                    color: 'success.main',
-                    fontSize: 18
-                  }} />
-                  <Typography color="success.main">{item?.label}</Typography>
-                </li>
-              }
-            })}
-          </ul>
-         
-        </div>
-      </div>
-    )
-  }
 
 
 
@@ -515,8 +503,10 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         <TermsDialog open={successModal.value} handleClose={successModal.onFalse} />
 
         <PrivacyDialog open={privacyModal.value} handleClose={privacyModal.onFalse} />
-        {Object.keys(errors).length !== 0 && isPassError && openReq && <ErrorDialog />}
+
       </DialogContent>
+        {Object.keys(errors).length !== 0 && isPassError && openReq && <ErrorDialog />}
+
     </Dialog>
   );
 }

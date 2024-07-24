@@ -16,9 +16,11 @@ type Props = {
   items: any;
   loading?: boolean;
   isDashboard?: any;
+  addedCategory?: any;
+  items2: any
 };
 
-export default function VitalView({ items, loading, isDashboard }: Props) {
+export default function VitalView({ items2, items, loading, isDashboard, addedCategory }: Props) {
   const upMd = useResponsive('up', 'md');
   const weightData = items?.map((item: any) => item?.wt || 0);
   const HeightData = items?.map((item: any) => item?.ht || 0);
@@ -30,10 +32,98 @@ export default function VitalView({ items, loading, isDashboard }: Props) {
   const RespData = items?.map((item: any) => item?.rr || 0);
   const TempData = items?.map((item: any) => item?.bt || 0);
   const dataDate = items?.map((item: any) => item?.date || new Date());
-
   const categories = dataDate?.map((_: any) => `${fDate(_, 'MMM dd')}`);
 
-  // console.log('chart data1:', items);
+
+
+  let newData: any = [];
+
+  items2?.forEach((val: any) => {
+    if (newData.length === 0) {
+      const vitalDataArr = [];
+      const vitalDateArr = [];
+      const vitalDateArrNoFormat = [];
+
+      vitalDataArr.push(val.value)
+      vitalDateArr.push(fDate(val.createdAt))
+      vitalDateArrNoFormat.push(val.createdAt)
+
+      const payload = {
+        title: val?.vital_category?.title,
+        measuring_unit:val?.vital_category?.measuring_unit,
+        date:vitalDateArr,
+        data: vitalDataArr,
+        dateNoFormat:vitalDateArrNoFormat
+      
+      }
+
+      newData.push(payload)
+    } else {
+      const allTitles = newData?.map((item) => item.title);
+
+      if (allTitles.includes(val?.vital_category?.title)) {
+        const index = newData.findIndex((item) => item.title === val?.vital_category?.title);
+        if (index !== -1) {
+          newData[index].data.push(val.value)
+          newData[index].date.push(fDate(val.createdAt))
+          newData[index].dateNoFormat.push(val.createdAt)
+        }
+      } else {
+        const vitalDataArr = [];
+        const vitalDateArr = [];
+        const vitalDateArrNoFormat = [];
+
+        vitalDataArr.push(val.value)
+        vitalDateArr.push(fDate(val.createdAt))
+        vitalDateArrNoFormat.push(val.createdAt)
+
+        const payload = {
+          title: val?.vital_category?.title,
+          data: vitalDataArr,
+          measuring_unit:val?.vital_category?.measuring_unit,
+          date:vitalDateArr,
+          dateNoFormat:vitalDateArrNoFormat
+        }
+        newData.push(payload)
+      }
+
+    }
+  })
+
+  // newData = newData?.map((item)=>{
+  //   const newDate = item?.date?.map((item)=>{
+  //     const data = item?.split(" ");
+  //     const month = data[1];
+  //     const day = data[0];
+  //     return `${month} ${day}`
+  //   });
+  //   console.log(newDate)
+  //   return {...item, date:newDate}
+  // })
+  // console.log(categories,'dataDatedataDatedataDatedataDate_______________________________________________')
+
+  // console.log(newData,'AHEHEHEHEEEEEEEEEE_______________________________________________')
+
+
+  // [2]?.forEach((item)=>{
+
+  // })
+
+  // const vitalsDynamicData = items2?.map((item)=>{
+  //   const payload = {
+  //     title:"",
+  //     data:[]
+  //   }
+
+
+  // })
+
+ 
+  // console.log(newData,'WAWAWIIIIIIIII@@@@@@@@@@@@@@@@@@@@@@@@@@______________')
+
+
+
+
   return (
     <>
       {!isDashboard ? (
@@ -167,6 +257,24 @@ export default function VitalView({ items, loading, isDashboard }: Props) {
             loading={loading}
             isDashboard={isDashboard}
           />
+
+
+          {newData?.map((item: any) => (
+            <VitalChart
+              title={item?.title}
+              subheader={`by ${item?.measuring_unit}`}
+              chart={{
+                categories:item?.date?.map((item:any)=>fDate(item, 'MMM dd')),
+                data: [{ name: 'Celcius', data: item?.data }],
+              }}
+              list={[...Array(item?.dateNoFormat?.length)].map((_, index) => ({
+                value: `${item?.data[index]} ${item?.measuring_unit}`,
+                date: item?.dateNoFormat[index],
+              }))}
+              loading={loading}
+              isDashboard={isDashboard}
+            />
+          ))} 
         </Box>
       ) : (
         // for dashboard --------------------------------------------------------------------------------------------------------------------

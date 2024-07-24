@@ -3175,17 +3175,23 @@ export const QueryRecordBypatientUser = extendType({
                 R_DATE: 'desc',
               },
               where: {
-                patientID: Number(session?.user?.s_id),
-                // patientInfo: {
-                //   userInfo: {
-                //     uuid: String(args?.data!.uuid),
-                //   },
+                // where: {
+                  patientID: Number(session?.user?.s_id),
+                  NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                  isDeleted: 0,
+                  ...whereconditions,
                 // },
+                // patientID: Number(session?.user?.s_id),
+                // // patientInfo: {
+                // //   userInfo: {
+                // //     uuid: String(args?.data!.uuid),
+                // //   },
+                // // },
 
-                NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
-                isDeleted: 0,
-                isEMR: 0,
-                ...whereconditions,
+                // NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                // isDeleted: 0,
+                // isEMR: 0,
+                // ...whereconditions,
               },
               include: {
                 emr_patient: true,

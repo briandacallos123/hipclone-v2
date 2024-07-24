@@ -9,7 +9,9 @@ export const DR_APPTS = gql`
         patient_no
         isToday
         e_time
+        p_ref
         add_date
+        pendingPayment
         doctorPayment {
           filename
           dp_id
@@ -207,7 +209,9 @@ export const doctor_appointments_by_id_data = gql`
         voucherId
         remarks
         patient_no
+        p_ref
         e_time
+        pendingPayment
         doctorPayment {
           filename
           dp_id

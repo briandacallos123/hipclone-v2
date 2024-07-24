@@ -53,7 +53,6 @@ export default function VitalChart({
   const { user } = useAuthContext();
 
   const dashboardVital = isDashboard;
-  console.log('dashboardasdasdVital', dashboardVital);
 
   const isDoctor = user?.role === 'doctor';
   const {
@@ -65,6 +64,7 @@ export default function VitalChart({
     data,
     options,
   } = chart;
+  console.log('chart', chart);
 
   const chartOptions = useChart({
     colors: colors.map((colr) => colr[1]),

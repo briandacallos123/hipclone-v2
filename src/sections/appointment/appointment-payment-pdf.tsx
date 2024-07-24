@@ -89,8 +89,11 @@ export default function AppointmentPaymentPDF({ item }: Props) {
           </View>
 
           <View style={[styles.col4, { alignItems: 'flex-end', flexDirection: 'column' }]}>
-            <Text style={styles.h5}>PAYMENT # {item?.id}</Text>
+            <Text style={styles.h5}>Payment # {item?.id}</Text>
+            <Text style={styles.h5}>Reference # {item?.p_ref}</Text>
+
           </View>
+          
         </View>
 
         <View style={[styles.gridContainer, styles.mb8]}>

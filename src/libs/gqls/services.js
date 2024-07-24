@@ -9,14 +9,25 @@ export const GetPaymentMethod = gql`
         doctorID
         description
         acct
+        attachment{
+          id,
+          filename
+        }
       }
       totalRecords
     }
   }
 `;
+// export const CreatePayment = gql`
+//   mutation CreateNewStoreTesting($data: CreateNewStoreTestingInput,  $file: Upload!) {
+//     CreateNewStoreTesting(file: $file, data: $data) {
+//      message
+//     }
+//   }
+// `;
 export const CreatePayment = gql`
-  mutation CreatePayment($data: PaymentMethodInputs) {
-    CreatePayment(data: $data) {
+  mutation CreatePayment($data: PaymentMethodInputs,  $file: Upload!) {
+    CreatePayment(file: $file, data: $data) {
       description
       acct
       doctorID

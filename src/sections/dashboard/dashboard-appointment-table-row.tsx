@@ -157,7 +157,7 @@ export default function DashboardAppointmentTableRow({
                 sx={{ cursor: 'pointer' }}
                 onClick={() => onViewPatient()}
               />
-             <Box sx={{
+             {/* <Box sx={{
                 display:'flex',
                 alignItems:'center'
               }}>
@@ -167,7 +167,7 @@ export default function DashboardAppointmentTableRow({
                 <img onClick={handleCopy} style={{
                     cursor:'pointer'
                   }} src="/assets/clipboard.svg"/>
-             </Box>
+             </Box> */}
            </Stack>
           </div>
         </TableCell>

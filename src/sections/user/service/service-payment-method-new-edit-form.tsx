@@ -13,7 +13,7 @@ import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 // components
 import { useSnackbar } from 'src/components/snackbar';
-import FormProvider, { RHFSelect, RHFTextField } from 'src/components/hook-form';
+import FormProvider, { RHFSelect, RHFTextField, RHFUpload } from 'src/components/hook-form';
 import { useMutation } from '@apollo/client';
 import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
@@ -36,6 +36,7 @@ type Props = {
   resolveData?: any;
   updateData?: any;
   onSuccess?: any;
+  isView?:boolean;
 };
 
 export default function ServicePaymentMethodNewEditForm({
@@ -47,6 +48,7 @@ export default function ServicePaymentMethodNewEditForm({
   resolveData,
   updateData,
   onSuccess,
+  isView
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
@@ -71,6 +73,9 @@ export default function ServicePaymentMethodNewEditForm({
       accountNumber: currentItem?.acct ?? '',
       instruction: currentItem?.description ?? '',
       id: currentItem?.id ?? '',
+      attachment:(()=>{
+        return currentItem && `https://hip.apgitsolutions.com/${currentItem?.attachment?.filename?.split('/').splice(1).join("/")}`
+      })() || null
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentItem?.id]
@@ -85,13 +90,16 @@ export default function ServicePaymentMethodNewEditForm({
     reset,
     handleSubmit,
     watch,
+    setValue,
     formState: { isSubmitting },
   } = methods;
   const values = watch();
 
+ 
+
   const handleSubmitValue = useCallback(
-    async (model: NexusGenInputs['PaymentMethodInputs']) => {
-      const data: NexusGenInputs['PaymentMethodInputs'] = {
+    async (model: any) => {
+      const data: any = {
         acct: model.acct,
         description: model.description,
         title: model.title,
@@ -102,6 +110,7 @@ export default function ServicePaymentMethodNewEditForm({
       createEmr({
         variables: {
           data,
+          file: model?.attachment,
         },
       })
         .then(async (res) => {
@@ -125,7 +134,7 @@ export default function ServicePaymentMethodNewEditForm({
     [snackKey]
   );
 
-  // console.log('VALUES: ', values);
+  console.log('VALUES: ', values);
   // console.log('CURRENT ITEM: ', currentItem);
 
   useEffect(() => {
@@ -137,6 +146,7 @@ export default function ServicePaymentMethodNewEditForm({
           description: values.instruction,
           type: 'create',
           tempId,
+          attachment:values.attachment
         };
 
         const payload2 = {
@@ -145,6 +155,8 @@ export default function ServicePaymentMethodNewEditForm({
           description: values.instruction,
           id: values.id,
           type: 'update',
+          attachment:values.attachment
+
         };
 
         await handleSubmitValue(values.id !== '' ? payload2 : payload);
@@ -156,13 +168,11 @@ export default function ServicePaymentMethodNewEditForm({
   const onSubmit = useCallback(
     async (data: IUserPaymentItem) => {
       try {
-        if (currentItem) {
-          // if editing
-          updateData(data);
-        } else {
-          // if not editing
-          appendData(data);
-        }
+        // if (currentItem) {
+        //   updateData(data);
+        // } else {
+        //   appendData(data);
+        // }
 
         // await new Promise((resolve) => setTimeout(resolve, 500));
 
@@ -190,6 +200,30 @@ export default function ServicePaymentMethodNewEditForm({
     [currentItem, enqueueSnackbar, onClose, reset]
   );
 
+  const handleDrop = useCallback(
+    (acceptedFiles: File[]) => {
+      const files = values.attachment || null;
+      const newFiles = Object.assign(acceptedFiles[0], {
+        preview: URL.createObjectURL(acceptedFiles[0])
+      })
+      setValue('attachment', newFiles, { shouldValidate: true });
+    },
+    [values.attachment]
+  );
+
+  const handleRemoveFile = useCallback(
+    (inputFile: File | string) => {
+      const filtered =
+        values.attachment && values.attachment?.filter((file: any) => file !== inputFile);
+      setValue('attachment', filtered);
+    },
+    [setValue, values.attachment]
+  );
+
+  const handleRemoveAllFiles = useCallback(() => {
+    setValue('attachment', null)
+}, [setValue]);
+
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <DialogTitle>
@@ -210,7 +244,7 @@ export default function ServicePaymentMethodNewEditForm({
           }}
           sx={{ pt: 1 }}
         >
-          <RHFSelect name="name" label="Payment Method">
+          <RHFSelect disabled={isView} name="name" label="Payment Method">
             <MenuItem value="BDO">BDO</MenuItem>
             <MenuItem value="BPI">BPI</MenuItem>
             <MenuItem value="Philam">Philam</MenuItem>
@@ -218,10 +252,21 @@ export default function ServicePaymentMethodNewEditForm({
             <MenuItem value="PayMaya">PayMaya</MenuItem>
           </RHFSelect>
 
-          <RHFTextField name="accountNumber" label="Account Number" />
+          <RHFTextField disabled={isView} name="accountNumber" label="Account Number" />
         </Box>
 
-        <RHFTextField name="instruction" label="Instruction" multiline rows={3} sx={{ mt: 3 }} />
+        <RHFTextField disabled={isView} name="instruction" label="Instruction" multiline rows={3} sx={{ my:3 }} />
+        <RHFUpload
+          disabled={isView}
+          thumbnail
+
+          name="attachment"
+          maxSize={3145728}
+          onDrop={handleDrop}
+          onRemove={handleRemoveFile}
+          onRemoveAll={handleRemoveAllFiles}
+        />
+
       </DialogContent>
 
       <DialogActions>

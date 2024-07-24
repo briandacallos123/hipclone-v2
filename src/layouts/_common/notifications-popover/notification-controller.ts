@@ -86,10 +86,15 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
       let read_notif_group:any = [];
       let chatLength:any = []
       let chat_grouped:any = []
+      let payment_related = []
 
       let appt_grouped:any = []
 
       d?.forEach((item:any)=>{
+        // for payment
+        // if(item?.notification_type_id?.id === 8){
+
+        // }
         if(item?.is_read === 0){
           unread += 1;
         }

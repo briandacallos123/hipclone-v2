@@ -112,11 +112,11 @@ const GridItems = ({ item, handeView, handleDelete }: any) => {
                                 }} variant="body2" color="grey">
                                     {description}
                                 </Typography>
-                                <Typography sx={{
+                                {price && <Typography sx={{
                                     mt: 2
                                 }}>
                                     ₱ {fCurrency(price)}
-                                </Typography>
+                                </Typography>}
                             </Box>
                             <Box sx={{
                                 display: 'flex',

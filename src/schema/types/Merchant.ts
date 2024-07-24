@@ -5,6 +5,7 @@ import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import client from '../../../prisma/prismaClient';
 import bcrypt from 'bcryptjs';
 import { GraphQLError } from 'graphql';
+import { orderType } from './Orders';
 
 export const merchantType = objectType({
     name:'merchantType',
@@ -244,6 +245,87 @@ export const EditMerchant = extendType({
             } catch (error) {
                 throw new GraphQLError(error)
             }
+        }
+    })
+}
+})
+
+const QueryMerchantDashboardInp = inputObjectType({
+    name:"QueryMerchantDashboardInp",
+    definition(t) {
+        t.string('year');
+       
+    },
+})
+
+const QueryMerchantDashboardObj = objectType({
+    name:"QueryMerchantDashboardObj",
+    definition(t) {
+        t.int('ordersCount');
+        t.int('storeCount');
+        t.int('salesProfit');
+        t.list.field('orders',{
+            type:orderType
+        })
+    },
+})
+
+
+
+
+export const QueryMerchantDashboard = extendType({
+    type: 'Query',
+    definition(t) {
+      t.nullable.field('QueryMerchantDashboard', {
+        type: QueryMerchantDashboardObj,
+        args: { data:QueryMerchantDashboardInp },
+        async resolve(_root, args, ctx) {
+            // const { take, skip, search }: any = args.data;
+
+            const { session } = ctx;
+            const {user} = session;
+
+            await cancelServerQueryRequest(
+                client,
+                session?.user?.id,
+                '`appointments`',
+                'allAppointments'
+              );
+            
+              let storeByMerchant:any = await client.merchant_store.findMany({
+                where:{
+                    merchant_id:Number(session?.user?.id),
+                    is_active:1
+                }
+              })
+              storeByMerchant = storeByMerchant?.map((item)=>Number(item.id));
+         
+              const [orders]:any = await client.$transaction([
+                client.orders.findMany({
+                    where:{
+                        store_id:{
+                            in:storeByMerchant
+                        },
+                        is_deleted:0,
+                        status_id:1
+                    }
+                }),
+              ]);
+
+              let sales:any = 0;
+
+              orders?.forEach((item)=>{
+                const {price, quantity} = item;
+                sales += (price * quantity);
+              });
+
+              return {
+                ordersCount:orders.length,
+                storeCount:storeByMerchant.length,
+                salesProfit:sales,
+                orders:orders
+              }
+
         }
     })
 }

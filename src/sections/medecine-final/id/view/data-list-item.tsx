@@ -24,13 +24,11 @@ const DataListItem = ({ item, listView }: DataListItemProps) => {
     const [operation, setOperation] = useState(null);
 
 
-
-    console.log(state,'STATEEEEEEEEEEEEEEEEEEEEEEEEEEE_______________')
-    useEffect(() => {
-        if (targetItem?.quantity) {
-            setQtyValue(targetItem.quantity)
-        }
-    }, [state])
+    // useEffect(() => {
+    //     if (targetItem?.quantity) {
+    //         setQtyValue(targetItem.quantity)
+    //     }
+    // }, [state])
 
     const isRow = false
 
@@ -70,7 +68,7 @@ const DataListItem = ({ item, listView }: DataListItemProps) => {
 
             } else {
                 decretementItem(item?.id)
-            setOperation(null)
+                setOperation(null)
 
             }
 

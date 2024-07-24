@@ -6,6 +6,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 //
 import { useResponsive } from 'src/hooks/use-responsive';
 import ProfileVitalNewEditForm from '../vital-new-form';
+import { Button, Stack } from '@mui/material';
+import Iconify from '@/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -15,11 +17,13 @@ type Props = {
   refetch: any;
   items: any;
   user: any;
+  addedCategory:any;
+  openCategory:any;
 };
 
 // ----------------------------------------------------------------------
 
-export default function ProfileVitalCreateView({ open, onClose, refetch, items, user }: Props) {
+export default function ProfileVitalCreateView({openCategory, addedCategory, open, onClose, refetch, items, user }: Props) {
   const upMd = useResponsive('up', 'md');
   return (
     <Dialog
@@ -32,9 +36,14 @@ export default function ProfileVitalCreateView({ open, onClose, refetch, items, 
         sx: { maxWidth: 720 },
       }}
     >
-      <DialogTitle>Add New Vital Reading</DialogTitle>
+      {/* <DialogTitle>Add New Vital Reading</DialogTitle> */}
 
-      <ProfileVitalNewEditForm onClose={onClose} items={items} refetch={refetch} user={user} />
+      <Stack direction="row" sx={{pr:2}} alignItems="center" justifyContent="space-between">
+        <DialogTitle>Add New Vital Reading</DialogTitle>
+        <Button onClick={openCategory} startIcon={<Iconify icon="mingcute:add-line" />} variant="contained">Add New Vital Category</Button>
+      </Stack>
+
+      <ProfileVitalNewEditForm addedCategory={addedCategory} onClose={onClose} items={items} refetch={refetch} user={user} />
     </Dialog>
   );
 }

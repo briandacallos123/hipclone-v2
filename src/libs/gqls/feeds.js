@@ -22,6 +22,9 @@ export const FEEDS_QUERY = gql`
         EMP_LNAME
         EMP_MNAME
         EMP_TITLE
+        attachment{
+          filename
+        }
       }
     }
   }

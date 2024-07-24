@@ -62,7 +62,7 @@ type Props = {
   refetchToday?: any;
   refetchTabs?: any;
   isHistory?: any;
-  resetState?:any;
+  resetState?: any;
 };
 
 export default function AppointmentDetails({
@@ -90,11 +90,10 @@ export default function AppointmentDetails({
     [openPay, setPayId]
   );
 
-  console.log(listItem,'@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
+  // console.log(listItem,'@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@')
 
   const { refetch: refetchApprove } = ApprovedController();
 
-  // alert(isHistory);
 
   const pathname = usePathname();
 
@@ -136,7 +135,10 @@ export default function AppointmentDetails({
     userId
   } = currentItem;
 
-  console.log(currentItem?.appt_payment_attachment?.[0], 'mamaw');
+  // console.log(listItem,'LIST ITEM')
+
+
+  // console.log(currentItem?.appt_payment_attachment?.[0], 'mamaw');
 
   const NewAppointmentSchema = Yup.object().shape({
     // type: Yup.string().required('Appointment type is required'),
@@ -152,12 +154,10 @@ export default function AppointmentDetails({
         user?.role === 'secretary'
           ? true
           : false || user?.role === 'patient'
-          ? true
-          : false || currentItem?.appt_payment_attachment?.[0]
-          ? true
-          : false || isHistory
-          ? true
-          : false,
+            ? true
+            : false || isHistory
+              ? true
+              : false
     },
     {
       label: 'Approved',
@@ -166,12 +166,10 @@ export default function AppointmentDetails({
         user?.permissions?.appt_approve === 0
           ? true
           : false || user?.role === 'patient'
-          ? true
-          : false || currentItem?.appt_payment_attachment?.[0]
-          ? true
-          : false || isHistory
-          ? true
-          : false,
+            ? true
+            : false || isHistory
+              ? true
+              : false,
     },
     {
       label: 'Done',
@@ -180,12 +178,10 @@ export default function AppointmentDetails({
         user?.permissions?.appt_done === 0
           ? true
           : false || user?.role === 'patient'
-          ? true
-          : false || currentItem?.appt_payment_attachment?.[0]
-          ? true
-          : false || isHistory
-          ? true
-          : false,
+            ? true
+            : false || isHistory
+              ? true
+              : false
     },
     {
       label: 'Cancelled',
@@ -194,12 +190,10 @@ export default function AppointmentDetails({
         user?.permissions?.appt_cancel === 0
           ? true
           : false || user?.role === 'patient'
-          ? true
-          : false || currentItem?.appt_payment_attachment?.[0]
-          ? true
-          : false || isHistory
-          ? true
-          : false,
+            ? true
+            : false || isHistory
+              ? true
+              : false
     },
   ];
 
@@ -211,12 +205,12 @@ export default function AppointmentDetails({
         user?.permissions?.appt_pay === 0
           ? true
           : false || user?.role === 'patient'
-          ? true
-          : false || currentItem?.appt_payment_attachment?.[0]
-          ? true
-          : false || isHistory
-          ? true
-          : false,
+            ? true
+            : false || isHistory
+              ? true
+              : false || currentItem?.payment_status === 1
+                ? true
+                : false
     },
     {
       label: 'Unpaid',
@@ -225,12 +219,12 @@ export default function AppointmentDetails({
         user?.permissions?.appt_pay === 0
           ? true
           : false || user?.role === 'patient'
-          ? true
-          : false || currentItem?.appt_payment_attachment?.[0]
-          ? true
-          : false || isHistory
-          ? true
-          : false,
+            ? true
+            : false || isHistory
+              ? true
+              : false || currentItem?.payment_status === 1
+                ? true
+                : false
     },
   ];
 
@@ -242,12 +236,12 @@ export default function AppointmentDetails({
         user?.permissions?.appt_type === 0
           ? true
           : false || user?.role === 'patient'
-          ? true
-          : false || currentItem?.appt_payment_attachment?.[0]
-          ? true
-          : false || isHistory
-          ? true
-          : false,
+            ? true
+            : false || isHistory
+              ? true
+              : false || currentItem?.payment_status === 1
+                ? true
+                : false
     },
     {
       label: 'Face-to-Face',
@@ -256,12 +250,12 @@ export default function AppointmentDetails({
         user?.permissions?.appt_type === 0
           ? true
           : false || user?.role === 'patient'
-          ? true
-          : false || currentItem?.appt_payment_attachment?.[0]
-          ? true
-          : false || isHistory
-          ? true
-          : false,
+            ? true
+            : false || isHistory
+              ? true
+              : false || currentItem?.payment_status === 1
+                ? true
+                : false
     },
   ];
 
@@ -269,7 +263,7 @@ export default function AppointmentDetails({
     () => ({
       type: listItem?.type,
       payment: listItem?.payment_status,
-      status:Number(listItem?.status),
+      status: Number(listItem?.status),
       remarks: listItem?.remark,
       id: listItem?.id,
     }),
@@ -277,7 +271,7 @@ export default function AppointmentDetails({
     //  [listItem?.id]
   );
 
- console.log(defaultValues,'DEFALT_____________________________________#######################################')
+  //  console.log(defaultValues,'DEFALT_____________________________________#######################################')
 
 
   const methods = useForm<any>({
@@ -298,11 +292,11 @@ export default function AppointmentDetails({
   const [isQueue, setIsQuee] = useState(null);
 
 
-  useEffect(()=>{
+  useEffect(() => {
     setValue('status', Number(listItem?.status))
     setValue('payment', Number(listItem?.payment_status))
     setValue('type', Number(listItem?.type))
-  },[listItem?.status, listItem?.id])
+  }, [listItem?.status, listItem?.id])
 
   // useEffect(() => {
   //   alert(pathname);
@@ -335,18 +329,18 @@ export default function AppointmentDetails({
           reset()
           resetState()
 
-          socket.emit('send notification',{
-            recepient:Number(userId)
-            
+          socket.emit('send notification', {
+            recepient: Number(userId)
+
           })
-          socket.emit('updateAppointment',{
-            recepient:Number(userId),
-            notification_type:3 
+          socket.emit('updateAppointment', {
+            recepient: Number(userId),
+            notification_type: 3
           })
-          
-          console.log(clinicInfo,'INFO@@@@@@@@@@')
-          socket.emit('queueUpdate',{
-            clinicUuid:clinicInfo?.uuid
+
+          // console.log(clinicInfo,'INFO@@@@@@@@@@')
+          socket.emit('queueUpdate', {
+            clinicUuid: clinicInfo?.uuid
           })
 
           // console.log(values.status, 'WEW?');
@@ -357,8 +351,8 @@ export default function AppointmentDetails({
               triggerR('cancelled');
             } else if (Number(values?.status) === 3) {
               triggerR('done');
-            }else{
-              localStorage.setItem('isPending','true')
+            } else {
+              localStorage.setItem('isPending', 'true')
             }
           }
           socket.off('send notification')
@@ -385,7 +379,7 @@ export default function AppointmentDetails({
         .catch((error) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          console.log(error, 'error@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
+          // console.log(error, 'error@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@');
           enqueueSnackbar('Something went wrong t', { variant: 'error' });
           // runCatch();
         });
@@ -413,7 +407,7 @@ export default function AppointmentDetails({
           id: Number(values.id),
         });
         // setSnackKey(null);
-        
+
         onClose();
       })();
     }
@@ -468,6 +462,8 @@ export default function AppointmentDetails({
     </Dialog>
   );
 
+  // console.log(currentItem)
+
   const renderViewLoa = (
     <Dialog fullScreen open={viewLoa.value}>
       <Box sx={{ height: 1, display: 'flex', flexDirection: 'column' }}>
@@ -494,7 +490,7 @@ export default function AppointmentDetails({
       text = <></>;
     }
     if (user?.role === 'doctor') {
-      if (currentItem?.appt_payment_attachment?.[0]) {
+      if (currentItem?.payment_status === 3) {
         text = <></>;
       } else {
         text = (
@@ -522,7 +518,7 @@ export default function AppointmentDetails({
       ) {
         text = <></>;
       } else {
-        if (currentItem?.appt_payment_attachment?.[0]) {
+        if (currentItem?.payment_status === 1) {
           text = <></>;
         } else {
           text = (
@@ -768,23 +764,26 @@ export default function AppointmentDetails({
                   }
                   sx={{ pb: { md: 1, xs: 0.1 }, pt: { md: 2, xs: 1 }, px: { md: 2, xs: 0.5 } }}
                   action={
-                    <Box>
-                      {Boolean(currentItem?.payment_status || listItem?.payment_status) &&
-                        !isHistory && (
-                          <Button
-                            variant="contained"
-                            onClick={viewPay.onTrue}
-                            startIcon={<Iconify icon="solar:eye-bold" />}
-                          >
-                            View
-                          </Button>
-                        )}
+                    <Box sx={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      justifyContent: 'center'
+                    }}>
+                      {Boolean(currentItem?.payment_status === 1 || currentItem?.pendingPayment === 1) &&
+                        currentItem?.type === 1 && (currentItem?.status === 1 || currentItem?.status == 3) && !isHistory && <Button
+                          variant="contained"
+                          onClick={viewPay.onTrue}
+                          startIcon={<Iconify icon="solar:eye-bold" />}
+                        >
+                          View
+                        </Button>}
 
                       {currentItem?.type === 1 &&
                         currentItem?.payment_status === 0 &&
                         !currentItem?.patient_hmo &&
                         currentItem?.status === 1 &&
                         user?.role === 'patient' &&
+                        currentItem?.pendingPayment !== 1 &&
                         !isHistory && (
                           <Button
                             variant="contained"
@@ -794,6 +793,11 @@ export default function AppointmentDetails({
                             Pay
                           </Button>
                         )}
+                      {currentItem?.pendingPayment === 1 &&
+                        <Typography sx={{ mt: 2, mr: 1 }} color="success.main" variant="overline">
+                          PAID (For Approval)
+                        </Typography>
+                      }
                     </Box>
                   }
                 />
@@ -978,7 +982,7 @@ export default function AppointmentDetails({
                     {`${
                       // currentItem?.appt_hmo_attachment ?
                       currentItem?.appt_hmo_attachment?.length || 0
-                    } LOA attachment(s)`}
+                      } LOA attachment(s)`}
                   </Typography>
                 </CardContent>
               </Card>

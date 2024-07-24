@@ -415,6 +415,8 @@ export const labreport_patient_data = extendType({
         const formattedEndDateAsDate = new Date(formattedEndDate);
         // return result
         // ORDER BY
+
+        console.log("DITO NGAAAAAAAAAAAAA")
         let order: any;
         switch (args?.data?.orderBy) {
           case 'hospital':
@@ -606,29 +608,44 @@ export const labreport_patient_data = extendType({
               total_records: Number(_total?._count?.id),
               // summary_total: total_summary
             };
+            console.log(response,'RESPONSE SA unahan')
+
+
             return response;
             // OVERALL RESPONSE
             /// /////////////////////////////////////////////
           }
           // patient user
           else if (userType === 'patient') {
+            // console.log(session?.user,'USERRRRRRRRRRRRRRRR')
+            const idConditions = (()=>{
+              let condition = [];
+
+              if(session?.user?.emr_patient_id){
+                condition.push({
+                  emrPatientID: Number(session?.user?.emr_patient_id),
+                })
+              }
+              if(session?.user?.s_id){
+                condition.push({
+                  patientID: Number(session?.user?.s_id),
+                })
+              }
+
+              return condition
+            })()
+
+            // console.log(idConditions,'??????')
+
             const [labreport, _count, count]: any = await client.$transaction([
               /// /////////////////////////////////////////////
               client.labreport.findMany({
                 take,
                 skip,
                 where: {
-                  OR: [
-                    {
-                      emrPatientID: Number(session?.user?.emr_patient_id),
-                      ...whereconditions,
-                    },
-                    {
-                      patientID: Number(session?.user?.s_id),
-                      ...whereconditions,
-                    },
-                  ],
+                  OR: idConditions,
                   ...setCurrentDay,
+                  ...whereconditions,
                   // patientID: session?.user?.id,
 
                   isDeleted: 0,
@@ -675,16 +692,7 @@ export const labreport_patient_data = extendType({
                   id: 'desc',
                 },
                 where: {
-                  OR: [
-                    {
-                      emrPatientID: Number(session?.user?.emr_patient_id),
-                      ...whereconditions,
-                    },
-                    {
-                      patientID: Number(session?.user?.s_id),
-                      ...whereconditions,
-                    },
-                  ],
+                  OR: idConditions,
                   // NOT: {
                   //   doctorInfo: null,
                   // },
@@ -698,16 +706,7 @@ export const labreport_patient_data = extendType({
               }),
               client.labreport.aggregate({
                 where: {
-                  OR: [
-                    {
-                      emrPatientID: Number(session?.user?.emr_patient_id),
-                      ...whereconditions,
-                    },
-                    {
-                      patientID: Number(session?.user?.s_id),
-                      ...whereconditions,
-                    },
-                  ],
+                  OR: idConditions,
                   // NOT: {
                   //   doctorInfo: null,
                   // },
@@ -721,6 +720,8 @@ export const labreport_patient_data = extendType({
               }),
             ]);
 
+           
+
             const _result: any = labreport;
             const _total: any = count;
 
@@ -729,6 +730,8 @@ export const labreport_patient_data = extendType({
               total_records: Number(_total?._count?.id),
               // summary_total: total_summary
             };
+            // console.log(response,'RESPONSE SA pangalawa__')
+
             return response;
           } else {
             // eslint-disable-next-line @typescript-eslint/no-shadow
@@ -812,11 +815,14 @@ export const labreport_patient_data = extendType({
               total_records: Number(_total?._count?.id),
               // summary_total: total_summary
             };
+
+            console.log(response,'RESPONSE SA DULO__')
             return response;
             // OVERALL RESPONSE
             /// /////////////////////////////////////////////
           }
         } catch (error) {
+          console.log(error,'MAY ERROR DITO SAN KAYA NAG TRIGGER????')
           return console.log(error);
         }
       },
@@ -1104,7 +1110,7 @@ export const mutation_lab_report = extendType({
                       patientID,
                       doctorID,
                       isEMR,
-                      patient,
+                      patient:patientID,
                       doctor,
                       clinic,
                       labreport_id: labReportID,
@@ -1170,6 +1176,7 @@ export const mutation_lab_report = extendType({
               };
             }
           } catch (error) {
+            console.log(error,'ERRORRRRRRRRRRRRRRRRR_________ BRIAN')
             throw new GraphQLError(error);
           }
         }

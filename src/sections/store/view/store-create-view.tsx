@@ -214,7 +214,7 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
                 try {
                     // https://hip.apgitsolutions.com/api/getLocation
                     // https://hip.apgitsolutions.com/
-                    const response = await axios.post('http://localhost:9092/api/getLocation', payload);
+                    const response = await axios.post('https://hip.apgitsolutions.com/api/getLocation', payload);
                     console.log(response, 'RESPONSEEEEEEEEEE')
                     setMapData({
                         ...mapData,
@@ -234,16 +234,10 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
     const handleDropGcash = useCallback(
         (acceptedFiles: File[]) => {
             const files = values.attachment || null;
-
-
             const newFiles = Object.assign(acceptedFiles[0], {
                 preview: URL.createObjectURL(acceptedFiles[0])
             })
-
             console.log(newFiles, 'NEWFILES________')
-
-
-
             setValue('gcashAttachment', newFiles, { shouldValidate: true });
         },
         [setValue, values.attachment]

@@ -1,6 +1,6 @@
 import { RHFTextField, RHFMultiCheckbox, RHFUploadAvatar, RHFEditor, RHFCheckbox, RHFAutocomplete } from '@/components/hook-form';
 import { Box, Card, Grid, Stack, Typography } from '@mui/material';
-import React, { useCallback, useMemo } from 'react'
+import React, { useCallback, useEffect, useMemo } from 'react'
 import { useForm, Controller, CustomRenderInterface, FieldValues } from 'react-hook-form';
 import * as Yup from 'yup';
 import { yupResolver } from '@hookform/resolvers/yup';
@@ -28,11 +28,12 @@ const OPERATIONAL_DAY = [
 ];
 
 const UpdateUserSchema = Yup.object().shape({
-
+    product_types: Yup.array().of(Yup.string()).required('Product types are required'),
 });
 
 type StoreManageProfileProps = {
-    data: any
+    data: any,
+    singleResult:any
 }
 
 function convertTimeToDate(date: string) {
@@ -80,7 +81,9 @@ const convertTime = (timeStr: any) => {
     return date;
 };
 
-const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
+const medData = ['foods']
+
+const StoreManageProfile = ({ data, singleResult }: StoreManageProfileProps) => {
 
     const { handleSubmitUpdate } = StoreManageController()
 
@@ -89,7 +92,6 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
     const eTime = convertTime(data?.end_time);
     // const eTimeNew = newFormatTimeString(currentItem?.end_time);
 
-    console.log(data,'DATAAAAAAAAAAAAAAAAAA DAYSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSSS')
     const defaultValues = useMemo(
         () => ({
             id: data?.id,
@@ -100,15 +102,18 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
             attachment: (() => {
                 return `https://hip.apgitsolutions.com/${data?.attachment_store?.file_url?.split('/').splice(1).join('/')}`
             })() || '',
-            days: data?.days?.map((item)=>Number(item)) || [],
+            days: data?.days?.map((item) => Number(item)) || [],
             description: data?.description || '',
             delivery: data?.is_deliver ? true : false || 0,
-            product_types: (() => {
-                return data?.product_types?.split(',')
-            })()
+            // product_types: (() => {
+            //     return data?.product_types?.split(',').map((item) => item.trim())
+            // })()
+            product_types: data?.product_types?.split(',').map((item)=>item.trim()) || ''
         }),
         [data]
     );
+
+
 
     const methods = useForm<FieldValues>({
         resolver: yupResolver(UpdateUserSchema),
@@ -124,6 +129,33 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
         getValues,
         formState: { isSubmitting },
     } = methods;
+    const values = watch()
+
+
+    // useEffect(()=>{
+    //     alert(values.product_types)
+    // },[values.product_types])
+
+    // const handleChange = useCallback((e)=>{
+    //     const text = e.innerText;
+    //     let data = values.product_types?.map((item)=>item.trim())
+
+    //     if(!data.includes(text)){
+    //         data.push(text)
+    //         alert("wala pa")
+    //     }else{
+    //         let indexTarget = data.indexOf(text);
+    //         data = data.splice(indexTarget, 1)
+    //         alert("meron na")
+    //     }
+
+
+
+    //     setValue('product_types', data)
+    // },[values.product_types])
+
+
+
 
     const removeTags = (val: string) => {
         const cleanedDescription = val.replace(/<[^>]+>/g, '');
@@ -148,7 +180,8 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
 
             try {
                 await handleSubmitUpdate(newData)
-                revalidateStore()
+                singleResult.refetch()
+                // revalidateStore()
             } catch (error) {
                 console.error(error);
             }
@@ -172,6 +205,21 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
         [setValue]
     );
 
+    const handleChange = useCallback((e) => {
+        let myData = data.product_types
+        const value = e.innerText;
+
+       if(!myData.includes(value)){
+        myData.push(value)
+       }else{
+            const targetIndex = myData.indexOf(value);
+            myData = myData.splice(targetIndex, 1)
+       }
+    //    setValue('product_types', data)
+    console.log(myData,'DATAAAAAAAAAAAAAAAAAAAAAA')
+    }, [data?.product_types])
+
+   
     return (
         <Box sx={{
             mt: 3
@@ -281,14 +329,14 @@ const StoreManageProfile = ({ data }: StoreManageProfileProps) => {
                                     )}
                                 />
                             </Box>
-                            <Stack sx={{ mb: 2 }}>
-                                <RHFAutocomplete options={complete_option} name="product_types" />
-                            </Stack>
+                            {/* <Stack sx={{ mb: 2 }}>
+                                <RHFAutocomplete onChange={(e) => handleChange(e.target)} options={complete_option} name="product_types" />
+                            </Stack> */}
                             <RHFCheckbox name="delivery" label="Do you do delivery?" />
                             <Stack direction="row" alignItems="center">
                                 {/* <RHFEditor  simple  name="description" /> */}
                                 <RHFTextField
-                                   name="description"
+                                    name="description"
                                     multiline
                                     fullWidth
                                     rows={4}

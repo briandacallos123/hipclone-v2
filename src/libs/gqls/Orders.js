@@ -168,8 +168,8 @@ export const QueryAllMedecineByStore = gql`
 `;
 
 export const CreateOrders = gql`
-  mutation CreateOrders($data: CreateOrdersInp!) {
-    CreateOrders(data: $data) {
+  mutation CreateOrders($data: CreateOrdersInp!, $file: Upload) {
+    CreateOrders(data: $data, file:$file) {
       message
       }
   }

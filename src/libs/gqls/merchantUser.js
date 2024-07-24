@@ -21,6 +21,13 @@ export const QueryAllMerchantMedicine = gql`
         merchant_store{
           name
           id
+          onlinePayment{
+            filename
+            file_url
+            platform
+            recepient_contact
+          }
+
         }
       }
       totalRecords

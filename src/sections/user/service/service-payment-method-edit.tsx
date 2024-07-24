@@ -21,6 +21,7 @@ type Props = {
   appendData: any;
   updateData: any;
   onSuccess: any;
+  isView:boolean;
 };
 
 // ----------------------------------------------------------------------
@@ -34,6 +35,7 @@ export default function ServicePaymentMethodEdit({
   appendData,
   updateData,
   onSuccess,
+  isView
 }: Props) {
   const [currentItem, setCurrentItem] = useState();
   // alert(deleteId);
@@ -62,6 +64,7 @@ export default function ServicePaymentMethodEdit({
           refetch={refetch}
           appendData={appendData}
           updateData={updateData}
+          isView={isView}
           onSuccess={onSuccess}
         />
       )}

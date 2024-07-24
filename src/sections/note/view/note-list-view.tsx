@@ -72,6 +72,7 @@ type Props = {
   tableData1: any;
   totalData: any;
   Ids: any;
+  notesRecordResult:any
 };
 export default function NoteListView({
   refIds,
@@ -85,6 +86,7 @@ export default function NoteListView({
   tableData1,
   totalData,
   Ids,
+  notesRecordResult
   // isLoading,
 }: Props) {
   const upMd = useResponsive('up', 'md');
@@ -93,13 +95,13 @@ export default function NoteListView({
   const { user } = useAuthContext();
   const { page, rowsPerPage, order, orderBy } = table;
   const [filters, setFilters] = useState(defaultFilters);
-  const [isLoading, setLoading] = useState(true);
+  // const [isLoading, setLoading] = useState(true);
 
-  useEffect(()=>{
-    if(tableData1?.length){
-      setLoading(false)
-    }
-  },[tableData1])
+  // useEffect(()=>{
+  //   if(tableData1?.length){
+  //     setLoading(false)
+  //   }
+  // },[tableData1])
 
   useEffect(() => {
     setPayloads({
@@ -175,13 +177,13 @@ export default function NoteListView({
 
   const [isLoadingPatient, setIsLoadingPatient] = useState(true);
 
-  useEffect(() => {
-    if (tableData1) {
-      setIsLoadingPatient(false);
-    }
-  }, [isLoadingPatient, tableData1]);
+  // useEffect(() => {
+  //   if (tableData1) {
+  //     setIsLoadingPatient(false);
+  //   }
+  // }, [isLoadingPatient, tableData1]);
 
-  const notFound = !isLoadingPatient && !tableData1.length;
+  const notFound = !notesRecordResult?.loading && !tableData1.length;
 
   // console.log(tableData1?.length);
   const handleFilters = useCallback(
@@ -230,7 +232,7 @@ export default function NoteListView({
       notifyOnNetworkStatusChange: true,
     }
   );
-  const notFoundPatient = !isLoading && !tableData1.length;
+  const notFoundPatient = !notesRecordResult?.loading && !tableData1?.length;
   // const [getEMR, { data: EMRdata, loading: loadingEmr }]: any = useLazyQuery(EMR_MED_NOTE, {
   //   variables: {
   //     data: {
@@ -428,8 +430,8 @@ export default function NoteListView({
 
                   return <NoteTableRow key={row.id} row={row} />;
                 })} */}
-              {isLoading && [...Array(rowsPerPage)].map((_, i) => <NoteTableRowSkeleton key={i} />)}
-              {!isLoading &&
+              {notesRecordResult?.loading && [...Array(rowsPerPage)].map((_, i) => <NoteTableRowSkeleton key={i} />)}
+              {!notesRecordResult?.loading &&
                 tableData1?.map((row: any, index: number) => (
                   <NoteTableRow
                     key={index}

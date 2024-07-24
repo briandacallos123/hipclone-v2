@@ -76,7 +76,6 @@ export const notesVitalInputType = inputObjectType({
     t.nullable.string('uuid');
     t.nullable.int('doctorID');
     t.nullable.int('emrID');
-
     t.nullable.string('weight');
     t.nullable.string('height');
     t.nullable.string('bmi');
@@ -86,8 +85,19 @@ export const notesVitalInputType = inputObjectType({
     t.nullable.string('respRate');
     t.nullable.string('heartRate');
     t.nullable.string('bodyTemp');
+    t.nullable.list.field('categoryValues', {
+      type: categoryValues
+    })
   },
 });
+
+const categoryValues = inputObjectType({
+  name: "categoryValues",
+  definition(t) {
+    t.string('title');
+    t.int('value')
+  },
+})
 
 export const vitalTransaction = objectType({
   name: 'vitalTransaction',
@@ -652,6 +662,36 @@ export const PostVitals = extendType({
         const createData: any = args?.data;
         const { session } = ctx;
         try {
+
+          if (createData?.categoryValues?.length !== 0) {
+            const result = createData?.categoryValues.map(async (item) => {
+              const categoryId = await client.vital_category.findFirst({
+                where: {
+                  title: item?.title,
+                  patientId: Number(createData?.patientID),
+                  isDeleted: 0
+                },
+                select: {
+                  id: true
+                }
+              })
+
+              const vitalData = await client.vital_data.create({
+                data: {
+                  patientId: Number(createData?.patientID),
+                  doctorId: Number(session?.user?.id),
+                  categoryId: categoryId?.id,
+                  value: item?.value,
+                }
+              })
+
+              return vitalData
+            })
+
+            await Promise.all(result)
+          }
+
+
           const vitals = await client.notes_vitals.create({
             data: {
               clinic: createData?.clinicID,
@@ -785,6 +825,51 @@ export const PostVitalsUser = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostVitalsUser');
         try {
+
+          // pwede mag create ng vitals si patient, so hindi laging may value yung doctorId 
+          const patientIdCon = (() => {
+            if (session?.user?.role === 'patient') {
+              return session?.user?.s_id
+            }
+          })()
+
+          const doctorIdCon = (() => {
+            if (session?.user?.role !== 'patient') {
+              return session?.user?.id
+            }
+          })()
+
+
+          if (createData?.categoryValues?.length !== 0) {
+            const result = createData?.categoryValues.map(async (item) => {
+              if(!item?.value) return;
+              const categoryId = await client.vital_category.findFirst({
+                where: {
+                  title: item?.title,
+                  patientId: patientIdCon,
+                  isDeleted: 0
+                },
+                select: {
+                  id: true
+                }
+              })
+
+              const vitalData = await client.vital_data.create({
+                data: {
+                  patientId: patientIdCon,
+                  doctorId: doctorIdCon,
+                  categoryId: categoryId?.id,
+                  value: item?.value,
+                }
+              })
+
+              return vitalData
+            })
+
+            await Promise.all(result)
+          }
+
+
           const vitalsTransaction = await client.$transaction(async (trx) => {
             const recordVitals = await trx.records.create({
               data: {

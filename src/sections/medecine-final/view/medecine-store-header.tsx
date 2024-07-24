@@ -68,7 +68,7 @@ const MedecineStoreHeader = ({ address, storeName, product_type, startTime, endT
                     gap: 2
                 }}>
                     <Typography variant="body2" color="grey">Opening Hours</Typography>
-                    <Typography variant="body2" color="grey">{convertTimeFormat(startTime)}</Typography>
+                    {startTime && <Typography variant="body2" color="grey">{convertTimeFormat(startTime)}</Typography>}
                 </Box>
                 <Box sx={{
                     display: 'flex',
@@ -76,7 +76,7 @@ const MedecineStoreHeader = ({ address, storeName, product_type, startTime, endT
                     gap: 2
                 }}>
                     <Typography variant="body2" color="grey">Closing Hours</Typography>
-                    <Typography variant="body2" color="grey">{convertTimeFormat(endTime)}</Typography>
+                    {endTime && <Typography variant="body2" color="grey">{convertTimeFormat(endTime)}</Typography>}
                 </Box>
             </Stack>
         </Box>

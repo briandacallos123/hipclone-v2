@@ -125,7 +125,6 @@ export default function AppointmentListView() {
 
   const [viewId, setViewId] = useState(null);
 
-  console.log(viewId, "VIEW ID ______________________________________________________")
 
   const [filters, setFilters]: any = useState(defaultFilters);
 

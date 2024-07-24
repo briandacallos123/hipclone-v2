@@ -271,10 +271,13 @@ export default function AppointmentTableRow({
       </TableCell>
 
       <TableCell align="center">
-        {row?.patient_hmo?.hmoInfo ? (
-          'Hmo'
-        ) : (
-          <Iconify
+        {row?.patient_hmo?.hmoInfo && 'Hmo' || 
+        row?.pendingPayment === 1 &&
+        <Label variant="soft" color="success">
+          For Approval
+      </Label>
+        || 
+        <Iconify
             icon={row?.payment_status ? 'solar:check-circle-outline' : 'solar:close-circle-outline'}
             sx={{
               m: 0,
@@ -284,7 +287,7 @@ export default function AppointmentTableRow({
               ...(!row!.payment_status && { color: 'error.main' }),
             }}
           />
-        )}
+        }
       </TableCell>
 
 

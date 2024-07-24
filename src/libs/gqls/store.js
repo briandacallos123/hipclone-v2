@@ -85,3 +85,27 @@ export const QueryAllStoreNoId = gql`
     }
   }
 `;
+
+export const QuerySingleStore = gql`
+  query QuerySingleStore($data: QuerySingleStoreInp) {
+    QuerySingleStore(data: $data) {
+      address
+      days
+      distance
+      description
+      start_time
+      end_time
+      id
+      attachment_store {
+        file_url
+        filename
+        id
+      }
+      is_active
+      is_deliver
+      name
+      product_types
+      rating
+    }
+  }
+`;

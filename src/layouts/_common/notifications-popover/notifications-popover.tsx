@@ -57,42 +57,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
   console.log(notificationData,'______________AWITTTTTTTTTT________________')
   const navigate = useRouter();
   const {user} = useAuthContext()
-  // useEffect(() => {
-  //   const section: any = document.querySelector('.drawer');
-  //   console.log(section,'yay____________')
-
-  //   const ScrollHandle = () => {
-  //     console.log('23123');
-  //     const bottomScrollPosition = section.scrollHeight - section.scrollTop - section.clientHeight;
-  //     if (window.scrollY >= bottomScrollPosition || bottomScrollPosition === window.scrollY) {
-  //       alert("UYY@")
-        
-  //       // queryResults
-  //       //   .refetch({
-  //       //     skip: Page.current * Take,
-  //       //     take: Take,
-  //       //     requestType: 'ScrollFetch',
-  //       //   })
-  //       //   .then(async ({ data }: any) => {
-  //       //     const { QueryPosts } = data;
-  //       //     if (QueryPosts.length) {
-  //       //       Page.current = Page.current += 1;
-  //       //     }
-  //       //   });
-  //     }
-  //   };
-  //   window.addEventListener('scroll', ScrollHandle);
-  //   // if (typeof window !== 'undefined') {
-  //   //   if (
-  //   //     (!queryResults.loading && section && queryResults?.data?.QueryPosts?.length) ||
-  //   //     feedData.length
-  //   //   ) {
-        
-  //   //   }
-  //   // }
-  //   //prevent memory leak
-  //   return () => window.removeEventListener('scroll', ScrollHandle);
-  // }, [queryResults.loading]);
+  
   
   const notification_data = notificationData?.map((item:any)=>{
     return{
@@ -115,9 +80,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
       is_group_count: item?.group_child?.length && item?.group_child?.length + 1 || 0,
       group_child:item?.group_child || [],
       siblings:item?.siblings?.length && item?.siblings?.length + 1 || 0
-      // appt_approved:notificationData?.data?.apprChild?.length && notificationData?.data?.apprChild?.length + 1 ,
-      // appt_cancelled:notificationData?.data?.cancelChild?.length && notificationData?.data?.cancelChild?.length + 1,
-      // appt_done:notificationData?.data?.doneChild?.length && notificationData?.data?.doneChild?.length + 1
+     
     }
   })
   
@@ -235,7 +198,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
   },[])
  const handleViewRow = useCallback((d:any)=>{
     
-  console.log(d,'_____________________________________AWIT_______________________________________________________________________________')
+ 
     if(d?.chat_id){
       if(d?.many_chat || (d?.group_child?.length && d?.chat_id) || d?.siblings !== 0){
         navigate.push(paths.dashboard.chat);

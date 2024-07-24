@@ -62,15 +62,16 @@ export default function EcommerceWelcome({ onFilters, location, title, descripti
     setManualAddress(address)
   }, [manualAddress])
 
+
   useEffect(() => {
-    if (manualAddress?.length >= 10) {
+    if (manualAddress?.length) {
 
       (async () => {
         const payload = {
           address: manualAddress
         }
 
-        const response = await axios.post('https://hip.apgitsolutions.com//api/getLocation', payload);
+        const response = await axios.post('https://hip.apgitsolutions.com/api/getLocation', payload);
         setMapData({
           ...mapData,
           lat: response?.data?.latitude,
@@ -102,19 +103,23 @@ export default function EcommerceWelcome({ onFilters, location, title, descripti
     }
   }, [latitude, longitude])
 
+  const [done, setDone] = useState(false)
+
   const handleSubmitManual = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     onFilters('latitude', mapData.lat);
     onFilters('longitude', mapData.lng);
-    setDoneManual(true)
 
+    setMapData({ lat: null, lng: null })
+    showMap(false)
+    setDone(true)
   }, [mapData.lat, mapData.lng])
-  
 
-  useEffect(()=>{
-    if(doneManual){
-      setDoneManual(false)
-    }
-  },[doneManual])
+
+  // useEffect(()=>{
+  //   if(doneManual){
+  //     setDoneManual(false)
+  //   }
+  // },[doneManual])
 
   return (
     <Stack
@@ -164,13 +169,13 @@ export default function EcommerceWelcome({ onFilters, location, title, descripti
           sx={{
             opacity: 0.8,
             mb: { xs: 3, xl: 2 },
-            textTransform:'capitalize'
+            textTransform: 'capitalize'
           }}
         >
-          {(()=>{
-            if(manualAddress && doneManual){
+          {(() => {
+            if (manualAddress && done) {
               return manualAddress
-            }else{
+            } else {
               return userAddress ? userAddress : location
             }
           })()}
@@ -235,16 +240,37 @@ type ManualEditDialogProps = {
 }
 
 const ManualEditDialog = ({ open, map, handleSubmitManual, mapData, handleClose, useManualAddress }: ManualEditDialogProps) => {
+  const [searchVal, setSearchVal] = useState(null)
+  const [disableSubmit, setDisableSubmit] = useState(true);
+  const [isReset, setIsReset] = useState(false)
+
 
   const handleChange = (e) => {
-    useManualAddress(e)
+    setSearchVal(e)
   }
 
+  const handleSearch = () => {
+    useManualAddress(searchVal);
+  }
 
-  const handleSubmit = () => {
+  useEffect(()=>{
+    if(mapData?.lat && isReset){
+      setIsReset(false)
+    }
+  },[mapData?.lat])
+
+  useEffect(()=>{
+    if(map){
+      setDisableSubmit(false)
+    }
+  },[map])
+
+  const handleSubmitFinal = ()=> {
     handleClose()
     handleSubmitManual()
   }
+
+  console.log(mapData, map,'ANO TSURA NITO?')
 
   return (
     <Dialog
@@ -264,14 +290,17 @@ const ManualEditDialog = ({ open, map, handleSubmitManual, mapData, handleClose,
         p: 3,
       }}>
 
-        <TextField sx={{
-          mb: 3
-        }} placeholder='Ex. Tondo, Manila City' onChange={(e) => handleChange(e.target.value)} fullWidth name="address" />
-        {/* {<MapContainer reset={!map} lat={mapData?.lat} lng={mapData?.lng} />} */}
+        <Stack direction="row" gap={2} alignItems="stretch" justifyContent="space-between">
+          <TextField placeholder='Ex. Tondo, Manila City' onChange={(e) => handleChange(e.target.value)} fullWidth name="address" />
+          <Button onClick={handleSearch} variant="outlined">Search</Button>
+        </Stack>
+        {/* {mapData?.lat && map && <MapContainer reset={isReset} lat={mapData?.lat} lng={mapData?.lng} />} */}
 
       </DialogContent>
       <DialogActions>
-        <Button variant="contained" color="success" onClick={handleSubmit} autoFocus>
+        <Button disabled={disableSubmit} variant="contained" color="success" onClick={()=>{
+          handleSubmitFinal()
+        }} autoFocus>
           Submit
         </Button>
       </DialogActions>

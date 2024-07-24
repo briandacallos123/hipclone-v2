@@ -709,6 +709,7 @@ export const emr_labreport_patient_data = extendType({
               total_records: Number(_total?._count?.id),
               // summary_total: total_summary
             };
+            console.log(response,'RESPOSEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE_________sa taas')
             return response;
             // OVERALL RESPONSE
             ////////////////////////////////////////////////
@@ -815,6 +816,8 @@ export const emr_labreport_patient_data = extendType({
               total_records: Number(_total?._count?.id),
               // summary_total: total_summary
             };
+
+            console.log(response,'RESPOSEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE_________')
             return response;
           } else {
             const [emr_labreport, _count, count]: any = await client.$transaction([
@@ -896,6 +899,8 @@ export const emr_labreport_patient_data = extendType({
               total_records: Number(_total?._count?.id),
               // summary_total: total_summary
             };
+            console.log(response,'RESPONSEEEEEEEEEEEE sa kabila________________')
+            
             return response;
             // OVERALL RESPONSE
             ////////////////////////////////////////////////
@@ -1089,6 +1094,8 @@ export const emr_mutation_lab_report = extendType({
   
             const sFile = await args?.file;
             // console.log(sFile);
+            console.log(session?.user,'HAHAHAHAHAAAAAAAAAAAAAAAAAAAAAAAA')
+
             if (sFile) {
               const uploadResult = await useUpload(sFile, 'public/documents/');
               uploadResult.map(async (v: any) => {
@@ -1097,7 +1104,7 @@ export const emr_mutation_lab_report = extendType({
                     emrPatientID,
                     doctorID,
                     isEMR,
-                    patient,
+                    patient:patient || session?.user?.S_ID,
                     doctor,
                     clinic,
                     labreport_id: labReportID,

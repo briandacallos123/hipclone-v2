@@ -20,6 +20,8 @@ import { get_note_vitals_user } from '@/libs/gqls/notes/notesVitals';
 //
 import { VitalView } from 'src/sections/vital/view';
 import ProfileVitalCreateView from './vital-create-view';
+import VitalCreateNew from './vital-create-new';
+import {GetAllVitalCategories, QueryAllVitalData} from '@/libs/gqls/vitals'
 
 // ----------------------------------------------------------------------
 
@@ -27,21 +29,75 @@ type Props = {
   data: any;
 };
 
-export default function ProfileVitalView({ data }: Props) {
+export default function   ProfileVitalView({ data }: Props) {
   const openCreate = useBoolean();
+  const openCreateVital = useBoolean();
+
   const { user } = useAuthContext();
   const [chartData, setChartData] = useState<any>([]);
-
+  const [chart2Data, setChart2Data] = useState([]);
+  const [addCategory, setAddCategory] = useState([])
   // console.log('@@@@', user);
   const [
     getDataUser,
-    { data: dataUser, loading: userloading, error: userError, refetch: userRefetch },
+    dateResult
+    // { data: dataUser, loading: userloading, error: userError, refetch: userRefetch },
   ] = useLazyQuery(get_note_vitals_user, {
     context: {
       requestTrackerId: 'getVitals[gREC]',
     },
     notifyOnNetworkStatusChange: true,
   });
+
+  const [
+    getVitalDataDynamic,
+    vitalDataResults,
+  ] = useLazyQuery(QueryAllVitalData, {
+    context: {
+      requestTrackerId: 'getVitalsDynamicData[getDynamicVitals]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+
+  const [
+    getVitalsData,
+    vitalsResult,
+  ] = useLazyQuery(GetAllVitalCategories, {
+    context: {
+      requestTrackerId: 'getVitalsCategory[getRecVitals]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  useEffect(()=>{
+    getVitalsData().then(async(res:any)=>{
+      const {data} = res;
+      if(data){ 
+        const {QueryAllCategory} = data;
+        setAddCategory(QueryAllCategory?.dataList)
+      }
+    })
+  },[vitalsResult.data])
+
+  useEffect(() => {
+    if (user?.role === 'patient') {
+      getVitalDataDynamic({
+        variables: {
+          data: {
+            uuid: null,
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+    
+        if (data) {
+          const { QueryAllVitalData } = data;
+          setChart2Data(QueryAllVitalData?.listData);
+        }
+      });
+    }
+  }, [vitalDataResults.data, user?.role, user?.uuid]);
 
   useEffect(() => {
     if (user?.role === 'patient') {
@@ -59,26 +115,17 @@ export default function ProfileVitalView({ data }: Props) {
         }
       });
     }
-  }, [getDataUser, user?.role, user.uuid]);
+  }, [dateResult.data, user?.role, user.uuid]);
 
-  const handleRefetch2 = async () => {
-    await userRefetch({
-      variables: {
-        data: {},
-      },
-    }).then(async (result: any) => {
-      const { data } = result;
-      if (data) {
-        const { QueryNotesVitalsUser } = data;
-        setChartData(QueryNotesVitalsUser?.vitals_data);
-      }
-    });
-  };
-  // patient user vital
+  
+  const openVitalCategory = () => {
+    openCreateVital.onTrue()
+  }
+
   return (
     <>
       <Box>
-        <Stack direction="row" alignItems="center" justifyContent="flex-end" sx={{ mb: 3 }}>
+        <Stack  gap={1} direction="row" alignItems="center" justifyContent="flex-end" sx={{ mb: 3}}>
           <Button
             onClick={openCreate.onTrue}
             variant="contained"
@@ -86,16 +133,33 @@ export default function ProfileVitalView({ data }: Props) {
           >
             New Records
           </Button>
+        
         </Stack>
 
-        {chartData && <VitalView items={chartData} loading={userloading} />}
+        {chartData && <VitalView items2={chart2Data} items={chartData} loading={dateResult.loading} />}
       </Box>
 
       <ProfileVitalCreateView
         open={openCreate.value}
         onClose={openCreate.onFalse}
-        refetch={handleRefetch2}
+        refetch={()=>{
+          dateResult.refetch()
+          vitalDataResults.refetch()
+        }}
         items={chartData}
+        addedCategory={addCategory}
+        openCategory={openVitalCategory}
+        user={user}
+      />
+      <VitalCreateNew
+
+        open={openCreateVital.value}
+        onClose={openCreateVital.onFalse}
+        refetch={()=>{
+          vitalsResult.refetch()
+        }}
+        items={chartData}
+        addedCategory={addCategory}
         user={user}
       />
     </>

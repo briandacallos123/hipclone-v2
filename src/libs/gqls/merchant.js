@@ -23,6 +23,22 @@ export const QueryAllMerchant = gql`
   }
 `;
 
+export const QueryMerchantDashboard = gql`
+  query QueryMerchantDashboard{
+    QueryMerchantDashboard {
+      ordersCount
+      salesProfit
+      storeCount
+      orders {
+        created_at
+        price
+        quantity
+      }
+     }
+  }
+`;
+
+
 export const CreateMerchant = gql`
   mutation CreateMerchant($data: CreateMerchantInp!) {
     CreateMerchant(data: $data) {

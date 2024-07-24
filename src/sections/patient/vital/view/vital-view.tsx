@@ -18,6 +18,8 @@ import { useLazyQuery } from '@apollo/client';
 import { get_note_vitals, get_note_vitals_user, get_note_vitals_patient } from '@/libs/gqls/notes/notesVitals';
 import { VitalView } from 'src/sections/vital/view';
 import PatientVitalCreateView from './vital-create-view';
+import { GetAllVitalCategories, QueryAllVitalData } from '@/libs/gqls/vitals';
+import VitalCreateNew from './vital-create-new';
 
 // ----------------------------------------------------------------------
 
@@ -28,11 +30,14 @@ type Props = {
 
 export default function PatientVitalView({ items, uuid }: Props) {
   const openCreate = useBoolean();
+  const openCreateVital = useBoolean();
+
   // console.log('vitals Data: ', items);
   const { user } = useAuthContext();
   const pathname = usePathname();
   const [isPatient, setIspatient] = useState(true);
-
+  const [chart2Data, setChart2Data] = useState([]);
+  const [addCategory, setAddCategory] = useState([])
   // useEffect(() => {
   //   if (pathname.includes('user')) {
   //     setIspatient(true);
@@ -58,6 +63,61 @@ export default function PatientVitalView({ items, uuid }: Props) {
     },
     notifyOnNetworkStatusChange: true,
   });
+
+  const [
+    getVitalDataDynamic,
+    vitalDataResults,
+  ] = useLazyQuery(QueryAllVitalData, {
+    context: {
+      requestTrackerId: 'getVitalsDynamicData[getDynamicVitals]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  // category
+  const [
+    getVitalsData,
+    vitalsResult,
+  ] = useLazyQuery(GetAllVitalCategories, {
+    context: {
+      requestTrackerId: 'getVitalsCategory[getRecVitals]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  useEffect(() => {
+    getVitalsData({
+      variables:{
+        data:{
+          uuid
+        }
+      }
+    }).then(async (res: any) => {
+      const { data } = res;
+      if (data) {
+        const { QueryAllCategory } = data;
+        setAddCategory(QueryAllCategory?.dataList)
+      }
+    })
+  }, [vitalsResult.data])
+
+  useEffect(() => {
+    getVitalDataDynamic({
+      variables: {
+        data: {
+          uuid,
+        },
+      },
+    }).then(async (result: any) => {
+      const { data } = result;
+
+      if (data) {
+        const { QueryAllVitalData } = data;
+        setChart2Data(QueryAllVitalData?.listData);
+      }
+    });
+  }, [vitalDataResults.data, user?.role, user?.uuid]);
+
 
   useEffect(() => {
     if (user?.role === 'doctor') {
@@ -129,7 +189,11 @@ export default function PatientVitalView({ items, uuid }: Props) {
     });
   };
 
-  // console.log('newData: ', chartData);
+  const openVitalCategory = () => {
+    openCreateVital.onTrue()
+  }
+
+  
   return (
     <>
       <Box>
@@ -143,14 +207,32 @@ export default function PatientVitalView({ items, uuid }: Props) {
           </Button>
         </Stack>
 
-        {chartData && <VitalView items={chartData} loading={loading} />}
+        {chartData && <VitalView items2={chart2Data} items={chartData} loading={loading} />}
       </Box>
 
       <PatientVitalCreateView
         open={openCreate.value}
         onClose={openCreate.onFalse}
         items={items}
-        refetch={handleRefetch}
+        refetch={()=>{
+          refetch();
+          vitalDataResults.refetch()
+        }}
+        openCategory={openVitalCategory}
+        addedCategory={addCategory}
+      />
+
+      <VitalCreateNew
+
+        open={openCreateVital.value}
+        onClose={openCreateVital.onFalse}
+        refetch={() => {
+          vitalsResult.refetch()
+        }}
+        uuid={uuid}
+        items={chartData}
+        addedCategory={addCategory}
+        user={user}
       />
     </>
   );

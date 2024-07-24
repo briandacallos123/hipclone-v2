@@ -167,7 +167,6 @@ export const QueryAllMerchantMedicine = extendType({
                     }
                   }
 
-                  console.log(skip,'SKIPPPPPPPPPPPPP', take,'take')
 
                 //   const storeCon = storeCondition()
                   const priceCon = priceCondition()
@@ -213,12 +212,39 @@ export const QueryAllMerchantMedicine = extendType({
                                 id:Number(item?.attachment_id)
                             }
                         })
-                        return {...item, attachment_info:{...r}}
+
+                        let paymentAttachment;
+                        if(item?.merchant_store?.online_payment){
+
+                            const onlinePayment = await client.online_payment.findFirst({
+                                where:{
+                                    id:Number(item?.merchant_store?.online_payment)
+                                }
+                            })
+
+                            const pAttachment = await client.order_payment_attachment.findFirst({
+                                where:{
+                                    id:Number(onlinePayment?.id)
+                                }
+                            });
+
+                            paymentAttachment = {
+                                ...onlinePayment,
+                                ...pAttachment
+                            }
+                        }
+
+                      
+
+                        return {...item, attachment_info:{...r}, merchant_store:{...item.merchant_store, onlinePayment:{...paymentAttachment}}}
                     })
 
                     const fResult = await Promise.all(res)
 
+                  
 
+
+                     
 
                     return {
                         MedicineType: fResult,

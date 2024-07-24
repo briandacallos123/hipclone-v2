@@ -15,6 +15,8 @@ export const storeType = objectType({
         t.string('address');
         t.string('description');
         t.float('distance');
+        t.string('start_time');
+        t.string('end_time');
         t.float('rating');
         t.string('product_types');
         t.int('is_deliver')
@@ -32,8 +34,22 @@ export const storeType = objectType({
         t.int('is_active')
         t.nullable.field('attachment_store', {
             type: attachment_store,
+        });
+        t.nullable.field('onlinePayment',{
+            type:onlinePayment
         })
 
+    },
+})
+
+const onlinePayment = objectType({
+    name:"onlinePayment",
+    definition(t) {
+        t.int('id');
+        t.string('filename');
+        t.string('file_url');
+        t.string('platform');
+        t.string('recepient_contact')
     },
 })
 
@@ -289,7 +305,7 @@ export const QueryAllStore = extendType({
                         }
 
                     }
-                    console.log(response, 'RESPONE___________________')
+                    // console.log(response, 'RESPONE___________________')
 
                     return response
                 } catch (error) {
@@ -348,7 +364,7 @@ export const CreateNewStoreInp = inputObjectType({
         t.string('name');
         t.string('address');
         t.string('description');
-        t.boolean('delivery');
+        t.nullable.boolean('delivery');
         t.string('startTime');
         t.string('endTime');
         t.nullable.string('onlinePayment');
@@ -398,7 +414,7 @@ export const CreateNewStore = extendType({
 
                 const daysJson = serialize(serialize(args?.data?.days));
 
-                console.log(sFile,'SFILE______________________________________________________________________')
+                // console.log(sFile,'SFILE______________________________________________________________________')
 
                 try {
                     if (sFile) {

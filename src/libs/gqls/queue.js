@@ -80,6 +80,7 @@ export const QueryQueuePatient = gql`
             position
             is_not_today
             notApproved
+            is_paid
             is_done
             notAppNotToday{
               AddRequest

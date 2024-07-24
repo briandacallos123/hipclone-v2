@@ -7,6 +7,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 import { useResponsive } from 'src/hooks/use-responsive';
 
 import PatientVitalNewEditForm from '../vital-new-form';
+import { Button, Stack } from '@mui/material';
+import Iconify from '@/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -15,11 +17,13 @@ type Props = {
   onClose: VoidFunction;
   items: any;
   refetch: any;
+  addedCategory:any;
+  openCategory:any;
 };
 
 // ----------------------------------------------------------------------
 
-export default function PatientVitalCreateView({ open, onClose, items, refetch }: Props) {
+export default function PatientVitalCreateView({addedCategory, openCategory, open, onClose, items, refetch }: Props) {
   const upMd = useResponsive('up', 'md');
   return (
     <Dialog
@@ -32,9 +36,15 @@ export default function PatientVitalCreateView({ open, onClose, items, refetch }
         sx: { maxWidth: 720 },
       }}
     >
-      <DialogTitle>Add New Vital Reading</DialogTitle>
+      {/* <DialogTitle>Add New Vital Reading</DialogTitle>
+       */}
 
-      <PatientVitalNewEditForm onClose={onClose} items={items} refetch={refetch} />
+      <Stack direction="row" sx={{ pr: 2 }} alignItems="center" justifyContent="space-between">
+        <DialogTitle>Add New Vital Reading</DialogTitle>
+        <Button onClick={openCategory} startIcon={<Iconify icon="mingcute:add-line" />} variant="contained">Add New Vital Category</Button>
+      </Stack>
+
+      <PatientVitalNewEditForm addedCategory={addedCategory} onClose={onClose} items={items} refetch={refetch} />
     </Dialog>
   );
 }

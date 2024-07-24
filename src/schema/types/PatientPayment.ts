@@ -109,7 +109,8 @@ export const mutation_patient_payment = extendType({
                 data: {
                   p_ref,
                   p_desc,
-                  payment_status: 1,
+                  // si doctor mag ddecide kung paid na or hindi pa.
+                  // payment_status: 1,
                 },
               });
 
@@ -139,6 +140,26 @@ export const mutation_patient_payment = extendType({
                   });
                 });
               }
+
+              // console.log(session?.user,'HAAAAAAAAAAAA????????????????????')
+             
+              const notifContent = await client.notification_content.create({
+                data:{
+                  content:"send payment"
+                }
+              })
+             
+             
+              await client.notification.create({
+                data:{
+                  user_id:Number(session?.user?.id),
+                  notifiable_id:Number(doctorID),
+                  notification_type_id:8,
+                  notification_content_id:Number(notifContent?.id),
+                  appt_id:Number(appt_id)
+                }
+              })
+
               res = {
                 status: 'Success',
                 message: 'Create Payment Successfully',

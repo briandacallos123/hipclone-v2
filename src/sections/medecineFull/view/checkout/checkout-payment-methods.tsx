@@ -1,4 +1,4 @@
-import { Controller, useFormContext } from 'react-hook-form';
+import { Controller, FormProvider, useFormContext } from 'react-hook-form';
 // @mui
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
@@ -18,6 +18,9 @@ import Iconify from 'src/components/iconify';
 //
 import PaymentNewCardDialog from '../../../payment/payment-new-card-dialog';
 import Image from 'next/image';
+import { Typography } from '@mui/material';
+import { RHFUpload } from '@/components/hook-form';
+import { useCallback, useState } from 'react';
 
 // ----------------------------------------------------------------------
 
@@ -31,6 +34,10 @@ export default function CheckoutPaymentMethods({ options, cardOptions, ...other 
 
   const newCard = useBoolean();
 
+  console.log(cardOptions, 'OPTIONS_______________')
+
+
+
   return (
     <>
       <Card {...other}>
@@ -41,9 +48,11 @@ export default function CheckoutPaymentMethods({ options, cardOptions, ...other 
           control={control}
           render={({ field, fieldState: { error } }) => (
             <Stack sx={{ px: 3, pb: 3 }}>
+
               {options.map((option) => (
                 <OptionItem
                   option={option}
+                  control={control}
                   key={option.label}
                   onOpen={newCard.onTrue}
                   cardOptions={cardOptions}
@@ -78,6 +87,7 @@ type OptionItemProps = PaperProps & {
   selected: boolean;
   isCredit: boolean;
   onOpen: VoidFunction;
+  control: any;
 };
 
 function OptionItem({
@@ -86,9 +96,24 @@ function OptionItem({
   selected,
   isCredit,
   onOpen,
+  control,
   ...other
 }: OptionItemProps) {
   const { value, label, description } = option;
+  const [myThumb, setMyThumb] = useState(null)
+
+  const handleDropGcash = useCallback(
+    (acceptedFiles: File[]) => {
+    
+        const newFiles = Object.assign(acceptedFiles[0], {
+            preview: URL.createObjectURL(acceptedFiles[0])
+        })
+        setMyThumb(newFiles?.preview)
+        console.log(newFiles,'filesss')
+    },
+    []
+);
+
 
   return (
     <Paper
@@ -114,7 +139,7 @@ function OptionItem({
               {value === 'gcash' && (
                 <>
                   <Image src="/assets/gcash.png" height={24} alt="gcash" width={24} />
-                  
+
                 </>
               )}
               {value === 'paypal' && <Iconify icon="logos:paypal" width={24} />}
@@ -130,12 +155,13 @@ function OptionItem({
       {isCredit && (
         <Stack
           spacing={2.5}
-          alignItems="flex-end"
+          alignItems="flex-start"
           sx={{
             pt: 2.5,
+
           }}
         >
-          <TextField select fullWidth label="Cards" SelectProps={{ native: true }}>
+          <TextField select fullWidth label="Account Number" SelectProps={{ native: true }}>
             {cardOptions.map((card) => (
               <option key={card.value} value={card.value}>
                 {card.label}
@@ -143,14 +169,51 @@ function OptionItem({
             ))}
           </TextField>
 
-          <Button
-            size="small"
-            color="primary"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-            onClick={onOpen}
-          >
-            Add New Card
-          </Button>
+          {
+            (() => {
+              const image = `https://hip.apgitsolutions.com/${cardOptions[0]?.attachment?.split('/').splice(1).join("/")}`;
+              console.log(image, 'IMAGEEEEEEEEEEE')
+              return <Stack sx={{ ml: 2 }} gap={1}>
+                <Typography variant="overline" sx={{ color: 'gray' }}>QR Code</Typography>
+                <img src={image} alt="payment attachment" width={200} height={200} />
+              </Stack>
+            })()
+          }
+
+          <Controller
+            name="refNumber"
+            control={control}
+            render={({ field }) => (
+              <Stack>
+                <TextField onChange={(e) => {
+                  field.onChange(e.target.value)
+                }} label="Reference Number" name="refNumber" />
+              </Stack>
+            )}
+          />
+
+          <Controller
+            name="avatar"
+            control={control}
+            render={({ field }) => (
+              <Stack>
+                <RHFUpload
+                  name="avatar"
+                  thumbnail
+                  maxSize={3145728}
+                  onDrop={(acceptedFiles:File[])=>{
+                    const newFiles = Object.assign(acceptedFiles[0], {
+                      preview: URL.createObjectURL(acceptedFiles[0])
+                    })
+                    field.onChange(newFiles)
+                  }}
+                  onRemove={()=>{}}
+                  onRemoveAll={()=>{}}
+                />
+              </Stack>
+            )}
+          />
+
         </Stack>
       )}
     </Paper>

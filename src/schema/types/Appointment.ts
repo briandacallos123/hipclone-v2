@@ -708,19 +708,18 @@ export const UpdateAppointment = extendType({
               
             
 
-              if(user?.isOnline === 1){
-                beamsClient.publishToInterests([`forOnly_${user?.id}`],{
-                    web: {
-                      notification: {
-                        title:"New Appointment Update",
-                        body:`${session.user?.displayName} ${notifMessage}`
-                      },
-                    },
-                });
+              // if(user?.isOnline === 1){
+              //   beamsClient.publishToInterests([`forOnly_${user?.id}`],{
+              //       web: {
+              //         notification: {
+              //           title:"New Appointment Update",
+              //           body:`${session.user?.displayName} ${notifMessage}`
+              //         },
+              //       },
+              //   });
             
-              }
+              // }
 
-                // push notification
 
             const notifContent = await client.notification_content.create({
               data:{
@@ -804,6 +803,14 @@ export const UpdateAppointment = extendType({
                 payment_status,
               },
             });
+
+            await client.records.create({
+              data:{
+                patientID:Number(patient_findfirst?.S_ID),
+                doctorID:Number(session.user?.id),
+                CLINIC:Number(appt_findfirst?.clinic)
+              }
+            })
 
             // console.log(response,'RESPONSE TOOO')
             

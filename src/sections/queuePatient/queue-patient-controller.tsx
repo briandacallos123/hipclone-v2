@@ -21,6 +21,7 @@ const QueueController = () => {
   const [targetItem, setTargetItem] = useState(null)
   const [notApprovedVal, setNotApprovedVal] = useState(null)
   const [notAppNotToday, setNotApprNotToday] = useState(null)
+  const [apptPaid, setApptPaid] = useState(null)
   const navigate = useRouter();
 
   const { data: queryData, error, refetch }: any = useQuery(QueryQueuePatient, {
@@ -89,6 +90,9 @@ const QueueController = () => {
 
         if(queryData?.QueuePatient?.notAppNotToday){
           setNotApprNotToday(queryData?.QueuePatient?.notAppNotToday)
+        }
+        if(queryData?.QueuePatient?.is_paid){
+          setApptPaid(queryData?.QueuePatient?.is_paid)
         }
 
         if(queryData?.QueuePatient?.notApproved){
@@ -217,7 +221,7 @@ const QueueController = () => {
   }, [])
 
 
-  return { QueryQueue,isDoneAppt,notAppNotToday, targetItem, notApprovedVal, data,clinicData, clinicLoading, dataResults, refetch, loading, position, remainingP, newPosition, notToday }
+  return { QueryQueue,isDoneAppt, apptPaid, notAppNotToday, targetItem, notApprovedVal, data,clinicData, clinicLoading, dataResults, refetch, loading, position, remainingP, newPosition, notToday }
 }
 
 export default QueueController

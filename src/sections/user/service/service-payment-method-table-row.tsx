@@ -32,6 +32,7 @@ type Props = {
   onEditRow: VoidFunction;
   row: IUserPaymentItem;
   onSelectRow: VoidFunction;
+  onViewRow:()=>void;
   onDeleteRow: VoidFunction;
 };
 
@@ -62,6 +63,7 @@ export default function ServicePaymentMethodTableRow({
   selected,
   onEditRow,
   onSelectRow,
+  onViewRow,
   onDeleteRow,
 }: Props) {
   const upMd = useResponsive('up', 'md');
@@ -193,6 +195,18 @@ export default function ServicePaymentMethodTableRow({
         >
           <Iconify icon="solar:pen-bold" />
           Edit
+        </MenuItem>
+        <MenuItem
+          onClick={() => {
+            onViewRow();
+            popover.onClose();
+          }}
+          sx={{
+            color:'success.main'
+          }}
+        >
+          <Iconify icon="mdi:eye" />
+          View
         </MenuItem>
 
         <MenuItem

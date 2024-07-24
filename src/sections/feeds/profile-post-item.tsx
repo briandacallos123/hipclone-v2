@@ -15,7 +15,7 @@ import Typography from '@mui/material/Typography';
 import ImageList from '@mui/material/ImageList';
 import ImageListItem from '@mui/material/ImageListItem';
 import FormControlLabel from '@mui/material/FormControlLabel';
-
+import { getDateSpan } from 'src/utils/format-time';
 import MenuItem from '@mui/material/MenuItem';
 // Component
 // types
@@ -39,9 +39,10 @@ import { enqueueSnackbar } from 'src/components/snackbar';
 import EmptyContent from '@/components/empty-content';
 import { useLazyQuery, gql } from '@apollo/client';
 import FeedsController from './_feedController';
-import { AvatarGroup } from '@mui/material';
+import { AvatarGroup, Dialog, DialogContent, DialogTitle, Grid } from '@mui/material';
 // import { borderRadius } from '@mui/system';
-
+// import { useBoolean } from 'src/hooks/use-boolean';
+import FeedsDialog from './view/feeds-view-dialog';
 // ----------------------------------------------------------------------
 
 interface Props {
@@ -54,6 +55,9 @@ export default function ProfilePostItem({ data: unused }: Props) {
   const { handleLikePost, handleDeletePost } = FeedsController();
   const popover = usePopover();
   const confirm = useBoolean();
+  const openDialog = useBoolean();
+
+  console.log(unused, '?????????????????')
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>, id: number) => {
     setLike(event.target.checked);
@@ -145,9 +149,8 @@ export default function ProfilePostItem({ data: unused }: Props) {
         }
         title={
           <Link color="inherit" variant="subtitle1">
-            {`${data?.userData?.EMP_FNAME} ${data?.userData?.EMP_MNAME.charAt(0).toUpperCase()}. ${
-              data?.userData?.EMP_LNAME
-            } - ${data?.userData?.EMP_TITLE}`}
+            {`${data?.userData?.EMP_FNAME} ${data?.userData?.EMP_MNAME.charAt(0).toUpperCase()}. ${data?.userData?.EMP_LNAME
+              } - ${data?.userData?.EMP_TITLE}`}
           </Link>
         }
         subheader={
@@ -240,9 +243,140 @@ export default function ProfilePostItem({ data: unused }: Props) {
     setOpen(true);
   };
 
+  const fullName = unused?.userData?.EMP_MNAME ? `${unused?.userData?.EMP_FNAME} ${unused?.userData?.EMP_MNAME} ${unused?.userData?.EMP_LNAME}` : `${unused?.userData?.EMP_FNAME} ${unused?.userData?.EMP_LNAME}`
+
+  // const renderDialog = () => {
+  //   return (
+  //     <Dialog
+  //       // sx={{
+  //       //   p:0
+  //       // }}
+  //       fullScreen
+  //       open={openDialog.value}
+  //       onClose={openDialog.onFalse}
+  //       aria-labelledby="alert-dialog-title"
+  //       aria-describedby="alert-dialog-description"
+  //     >
+  //       {/* <DialogTitle id="alert-dialog-title">
+  //         {"Use Google's location service?"}
+  //       </DialogTitle> */}
+  //       <DialogContent >
+  //         <Grid gap={1} container alignItems="center">
+  //           <Grid item lg={8}>
+  //             <Box sx={{
+  //               mt: 10
+  //               // backgroundColor:'#000',
+  //               // height:'100vh'
+  //             }}>
+  //               <ImageList
+  //                 variant="quilted"
+
+  //                 cols={10}
+  //                 sx={{
+  //                   flexDirection: 'row',
+  //                   justifyContent: 'flex-start',
+
+  //                 }}
+
+  //               >
+
+  //                 {data?.attachmentData.slice(0, 2).map((item, index) => {
+  //                   const url = item?.imagePath;
+  //                   const parts = url?.split('public');
+  //                   const publicPart = parts ? parts[1] : null;
+  //                   return (
+  //                     <ImageListItem key={index}>
+  //                       <Stack
+  //                         // justifyContent="flex-start"
+  //                         // alignItems="flex-start"
+  //                         sx={{
+  //                           // width: '100%',
+  //                           height: 'auto',
+  //                         }}
+  //                       >
+  //                         <Image sx={{
+  //                           width: 200,
+  //                           height: 200,
+  //                           borderRadius: 2
+  //                         }} srcSet={publicPart} src={publicPart} alt={publicPart} loading="lazy" />
+  //                       </Stack>
+
+  //                       {index === 1 && data?.attachmentData.length >= 2 && (
+  //                         <div
+  //                           style={{
+  //                             position: 'absolute',
+  //                             bottom: 0,
+  //                             right: 0,
+  //                             background: 'rgba(0, 0, 0, 0.5)',
+  //                             color: '#fff',
+  //                             padding: '4px 8px',
+  //                             borderRadius: '4px',
+  //                             fontSize: '40px',
+  //                           }}
+  //                         >
+  //                           +{data?.attachmentData.length - 2}
+  //                         </div>
+  //                       )}
+  //                     </ImageListItem>
+  //                   );
+  //                 })}
+  //               </ImageList>
+  //             </Box>
+  //           </Grid>
+  //           <Grid item lg={3}>
+  //             <Stack sx={{
+  //               mt: 10
+  //             }}>
+  //               {/* doctor info */}
+  //               <Stack justifyContent="space-between" sx={{ mb: 5 }} direction="row" alignItems="center" gap={1}>
+  //                 <Stack direction="row" alignItems="flex-start">
+  //                   <Avatar src={unused?.userData?.attachment && (() => {
+  //                     return `http://localhost:9092/${unused?.userData?.attachment?.filename?.split('/').splice(1).join('/')}`
+  //                   })()} />
+  //                   <Box>
+  //                     <Typography variant="body1">{fullName}</Typography>
+  //                     <Stack direction="row" alignItems="center" gap={.5}>
+  //                       <Typography color="text.disabled">{getDateSpan(unused?.createdAt)} .</Typography>
+  //                       <Iconify sx={{
+  //                         color: "text.disabled"
+  //                       }} icon="material-symbols:public" />
+  //                     </Stack>
+  //                     {/* <Typography variant="body2">{unused?.userData?.EMP_TITLE}</Typography> */}
+  //                   </Box>
+  //                 </Stack>
+                  // <Stack direction="row" alignItems="center" gap={1}>
+                  //   <Iconify icon="mdi:heart" sx={{
+                  //     color: 'error.main'
+                  //   }} />
+                  //   <Typography>{unused?.likes}</Typography>
+                  // </Stack>
+  //               </Stack>
+
+  //               <Stack>
+  //                 <Typography color="text.disabled">Description</Typography>
+  //                 <Typography>{unused?.text}</Typography>
+  //               </Stack>
+
+
+  //             </Stack>
+  //           </Grid>
+  //         </Grid>
+  //       </DialogContent>
+  //       {/* <DialogActions>
+  //         <Button onClick={handleClose}>Disagree</Button>
+  //         <Button onClick={handleClose} autoFocus>
+  //           Agree
+  //         </Button>
+  //       </DialogActions> */}
+  //     </Dialog>
+  //   )
+  // }
+
   return (
     <Card>
       {renderHead}
+      {/* {renderDialog()} */}
+      <FeedsDialog open={openDialog.value} product={unused} onClose={openDialog.onFalse}/>
 
       <Typography
         variant="body2"
@@ -265,28 +399,31 @@ export default function ProfilePostItem({ data: unused }: Props) {
             }} alt="image" src={publicPart}/>
           })
         } */}
-        {data?.attachmentData.length ? (
+      {data?.attachmentData.length ? (
         <Box>
           <ImageList
             variant="quilted"
-            // cols={
-            //   data?.attachmentData.length === 1 ? 1 : 2
-            // }
+
             cols={10}
             sx={{
-              flexDirection:'row',
-              justifyContent:'flex-start',
-           
+              flexDirection: 'row',
+              justifyContent: 'flex-start',
+
             }}
 
           >
-         
+
             {data?.attachmentData.slice(0, 2).map((item, index) => {
               const url = item?.imagePath;
               const parts = url?.split('public');
               const publicPart = parts ? parts[1] : null;
               return (
-                <ImageListItem key={index} onClick={() => openLightbox(index)}>
+                <ImageListItem key={index} onClick={
+                  () => {
+                    // () => openLightbox(index)
+                    openDialog.onTrue()
+                  }
+                }>
                   <Stack
                     // justifyContent="flex-start"
                     // alignItems="flex-start"
@@ -296,13 +433,13 @@ export default function ProfilePostItem({ data: unused }: Props) {
                     }}
                   >
                     <Image sx={{
-                      width:200,
-                      height:200,
-                      borderRadius:2
+                      width: 200,
+                      height: 200,
+                      borderRadius: 2
                     }} srcSet={publicPart} src={publicPart} alt={publicPart} loading="lazy" />
                   </Stack>
 
-                  {index === 1 && data?.attachmentData.length >= 2 && (
+                  {index === 1 && data?.attachmentData.length > 2 && (
                     <div
                       style={{
                         position: 'absolute',
@@ -317,12 +454,12 @@ export default function ProfilePostItem({ data: unused }: Props) {
                     >
                       +{data?.attachmentData.length - 2}
                     </div>
-                  )} 
+                  )}
                 </ImageListItem>
               );
             })}
           </ImageList>
-        </Box>):""}
+        </Box>) : ""}
       {/* </AvatarGroup> */}
 
       {/* {data?.attachmentData.length ? (

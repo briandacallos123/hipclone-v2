@@ -26,9 +26,14 @@ type Props = {
   onClose: VoidFunction;
   items: any;
   refetch: any;
+  addedCategory: any;
 };
 
-export default function PatientVitalNewEditForm({ onClose, items, refetch }: Props) {
+export default function PatientVitalNewEditForm({ addedCategory, onClose, items, refetch }: Props) {
+  const addedCategoryTitle = addedCategory?.map((item) => item.title)
+
+
+
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const [condition, setCondition] = useState<boolean>(false);
@@ -52,6 +57,25 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
     return () => drClinicFetch();
   }, []);
 
+
+  const dynamicFields = (() => {
+    const validationSchema = addedCategory?.reduce((acc, item) => {
+      const { title } = item;
+      acc[title] = !condition ? Yup.number().default(0) : Yup.number().moreThan(0, `${title} must be greater than 0`).required(`${title} is required`);
+      return acc;
+    }, {});
+    return validationSchema;
+  })();
+
+  const defFields = (() => {
+    const validationSchema = addedCategory?.reduce((acc, item) => {
+      const { title } = item;
+      acc[title] = 0;
+      return acc;
+    }, {});
+    return validationSchema;
+  })();
+
   const NewVitalSchema = Yup.object().shape({
     hospitalId: Yup.number().nullable().required('Hospital ID is required'),
     weight: !condition
@@ -63,36 +87,37 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
     bodyMass: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Body Mass must be greater than 0')
-          .required('Body Mass is required'),
+        .moreThan(0, 'Body Mass must be greater than 0')
+        .required('Body Mass is required'),
     bloodPressureMm: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Blood Pressure (mm) must be greater than 0')
-          .required('Blood Pressure (mm) is required'),
+        .moreThan(0, 'Blood Pressure (mm) must be greater than 0')
+        .required('Blood Pressure (mm) is required'),
     bloodPressureHg: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Blood Pressure (Hg) must be greater than 0')
-          .required('Blood Pressure (Hg) is required'),
+        .moreThan(0, 'Blood Pressure (Hg) must be greater than 0')
+        .required('Blood Pressure (Hg) is required'),
     oxygen: !condition
       ? Yup.number().default(0)
       : Yup.number().moreThan(0, 'Oxygen must be greater than 0').required('Oxygen is required'),
     respiratory: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Respiratory rate must be greater than 0')
-          .required('Respiratory rate is required'),
+        .moreThan(0, 'Respiratory rate must be greater than 0')
+        .required('Respiratory rate is required'),
     heart: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Heart rate must be greater than 0')
-          .required('Heart rate is required'),
+        .moreThan(0, 'Heart rate must be greater than 0')
+        .required('Heart rate is required'),
     temperature: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Temperature must be greater than 0')
-          .required('Temperature is required'),
+        .moreThan(0, 'Temperature must be greater than 0')
+        .required('Temperature is required'),
+      ...dynamicFields
   });
 
   const defaultValues = useMemo(
@@ -107,6 +132,7 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
       respiratory: 0,
       heart: 0,
       temperature: 0,
+      ...defFields
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -129,14 +155,16 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
 
   useEffect(() => {
     if (
-      values.weight === 0 &&
-      values.height === 0 &&
-      values.bloodPressureMm === 0 &&
-      values.bloodPressureHg === 0 &&
-      values.oxygen === 0 &&
-      values.respiratory === 0 &&
-      values.heart === 0 &&
-      values.temperature === 0
+      (()=>{
+        let noZero = true;
+
+        Object.values(values).forEach((item)=>{
+          if(item !== 0){
+            noZero = false
+          }
+        })
+        return noZero;
+      })()
     ) {
       setCondition(true);
     } else if (
@@ -163,6 +191,7 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
     values.respiratory,
     values.temperature,
     values.weight,
+    defFields
   ]);
   // console.log(values, '@ffff');
   // console.log(condition, '@#####');
@@ -195,6 +224,8 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
         heartRate: String(model.heart),
         bodyTemp: String(model.temperature),
         respRate: String(model.respiratory),
+        categoryValues: [...model.categoryData]
+
       };
       createVitals({
         variables: {
@@ -219,27 +250,47 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
   );
 
   const [myData, setMyData]: any = useState(null);
-  useEffect(() => {
-    if (snackKey) {
-      (async () => {
-        await handleSubmitValue({ ...myData });
-        // setSnackKey(null);
-      })();
-    }
-  }, [snackKey, myData]);
+  // useEffect(() => {
+  //   if (snackKey) {
+  //     (async () => {
+  //       await handleSubmitValue({ ...myData });
+  //     })();
+  //   }
+  // }, [snackKey, myData]);
 
   const onSubmit = useCallback(
     async (data: NexusGenInputs['notesVitalInputType']) => {
       try {
+
+        const categoryData: any = [];
+
+        Object.entries(data).forEach((item) => {
+          const [key, val] = item;
+
+          if (addedCategoryTitle.includes(key)) {
+            categoryData.push({
+              title: key,
+              value: val
+            })
+          }
+        })
+
+
+
+        await handleSubmitValue({
+          ...data,
+          categoryData: [...categoryData]
+        });
         onClose();
 
-        const snackbarKey: any = enqueueSnackbar('Saving Data...', {
-          variant: 'info',
-          key: 'savingVitalsEMR',
-          persist: true, // Do not auto-hide
-        });
-        setSnackKey(snackbarKey);
-        setMyData(data);
+
+        // const snackbarKey: any = enqueueSnackbar('Saving Data...', {
+        //   variant: 'info',
+        //   key: 'savingVitalsEMR',
+        //   persist: true, // Do not auto-hide
+        // });
+        // setSnackKey(snackbarKey);
+        // setMyData(data);
         // await handleSubmitValue({
         //   ...data,
         // });
@@ -253,7 +304,7 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
         console.error(error);
       }
     },
-    [enqueueSnackbar, handleSubmitValue, onClose, reset, refetch]
+    [enqueueSnackbar, handleSubmitValue, onClose, reset, refetch, addedCategoryTitle]
   );
 
   return (
@@ -396,6 +447,19 @@ export default function PatientVitalNewEditForm({ onClose, items, refetch }: Pro
                 endAdornment: <InputAdornment position="end">°C</InputAdornment>,
               }}
             />
+
+            {addedCategory?.map((item) => (
+              <RHFTextField
+                type="number"
+                name={item?.title}
+                label={item?.title}
+                placeholder="0"
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{item?.measuring_unit}</InputAdornment>,
+                }}
+              />
+            ))}
           </Box>
         </FormProvider>
       </DialogContent>

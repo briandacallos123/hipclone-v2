@@ -245,18 +245,18 @@ export default function DashboardPatientView() {
                 {reader(allData?.patientInfo?.BLOOD_TYPE)}
               </Typography>
             </Stack>
-            <Stack>
+            {HeightData && <Stack>
               <Typography variant="caption" sx={{ color: theme.palette.primary.main }}>
                 Height:
               </Typography>
               <Typography variant="subtitle1">{`${HeightData} Cm`}</Typography>
-            </Stack>
-            <Stack>
+            </Stack>}
+            {weightData && <Stack>
               <Typography variant="caption" sx={{ color: theme.palette.primary.main }}>
                 Weight:
               </Typography>
               <Typography variant="subtitle1">{`${weightData} Kg`}</Typography>
-            </Stack>
+            </Stack>}
             <Stack>
 
              <VitalChartSmall

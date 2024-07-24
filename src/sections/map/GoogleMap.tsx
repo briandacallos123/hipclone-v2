@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 import Geocode from 'react-geocode'; // Import geocoding library
 
@@ -19,9 +19,13 @@ const MapContainer = ({reset, lat, lng}:Address) => {
   const [markerPosition, setMarkerPosition] = useState(null);
   const [inpAddress, setInpAddress] = useState(null);
 
-  const onLoad = (map: any) => {
-    setMap(map);
-  };
+  const onLoad = useCallback((map: any) => {
+    if(lat && lng){
+      // setMap(map);
+    }
+  },[lat, lng])
+
+//  console.log(reset,'RESETTTTTT?????????')
 
   useEffect(()=>{
     if(lat && lng){
@@ -34,13 +38,15 @@ const MapContainer = ({reset, lat, lng}:Address) => {
 
   useEffect(()=>{
     if(reset){
-      setCenter(null)
-      setMap(null);
+      setCenter({
+        lat:"",
+        lng:""
+      })
     }
   },[reset])
 
   const onUnmount = () => {
-    setMap(null);
+    // setMap(null);
   };
 
 

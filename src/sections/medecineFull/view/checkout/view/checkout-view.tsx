@@ -18,16 +18,23 @@ import CheckoutPayment from '../checkout-payment';
 import CheckoutOrderComplete from '../checkout-order-complete';
 import CheckoutBillingAddress from '../checkout-billing-address';
 import { useCheckoutContext } from '@/context/checkout/Checkout';
+import { PayPalScriptProvider } from '@paypal/react-paypal-js';
 
+
+const initialOptions = {
+  "client-id": "Ade90ExOQRf0oSF1PDxbAmrh7x3t9KsKyRv2aH-p0RD5sXM6EJXtGMwICl567C5sREE6uJgAN5TqyGFH",
+  currency: "PHP",
+  intent: "capture",
+};
 
 export default function CheckoutView() {
   const settings = useSettingsContext();
-  const { state, incrementCart, removeItem, incrementSetup, incrementCheckout,decrementSetup, removeToCart, addAddress}: any = useCheckoutContext()
+  const { state, incrementCart, removeItem, incrementSetup, incrementCheckout, decrementSetup, removeToCart, addAddress }: any = useCheckoutContext()
   const { cart, activeStep } = state
 
   const completed = activeStep === PRODUCT_CHECKOUT_STEPS.length;
 
- 
+
   const billing = true
 
 
@@ -48,23 +55,25 @@ export default function CheckoutView() {
           <CheckoutSteps activeStep={activeStep} steps={PRODUCT_CHECKOUT_STEPS} />
         </Grid>
       </Grid>
-      
+
 
       {completed ? (
         <CheckoutOrderComplete open={completed} onReset={() => { }} onDownloadPDF={() => { }} />
       ) :
-       
-         (
+
+        (
           <>
             {activeStep === 0 && (
+
               <CheckoutCart
                 checkout={state}
                 onNextStep={incrementSetup}
                 onDeleteCart={removeItem}
-                onApplyDiscount={()=>{}}
+                onApplyDiscount={() => { }}
                 onIncreaseQuantity={incrementCheckout}
                 onDecreaseQuantity={removeToCart}
               />
+
             )}
 
             {activeStep === 1 && (
@@ -76,14 +85,19 @@ export default function CheckoutView() {
             )}
 
             {activeStep === 2 && billing && (
-              <CheckoutPayment
-                checkout={state}
-                onNextStep={()=>{}}
-                onBackStep={decrementSetup}
-                onGotoStep={()=>{}}
-                onApplyShipping={()=>{}}
-                onReset={()=>{}}
-              />
+
+              <PayPalScriptProvider options={initialOptions}>
+                <CheckoutPayment
+                  checkout={state}
+                  onNextStep={() => { }}
+                  onBackStep={decrementSetup}
+                  onGotoStep={() => { }}
+                  onApplyShipping={() => { }}
+                  onReset={() => { }}
+                />
+              </PayPalScriptProvider>
+
+
             )}
           </>
         )

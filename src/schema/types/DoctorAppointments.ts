@@ -295,6 +295,20 @@ export const DoctorAppointments = objectType({
     t.nullable.string('patientID');
     t.nullable.string('doctorID');
     t.nullable.string('voucherId');
+    t.nullable.string('p_ref');
+    t.nullable.field('pendingPayment', {
+      type:'Int',
+      async resolve(root, _arg, _ctx){
+        // const {id} = root;
+        let result;
+        if(root?.p_ref && root?.payment_status === 0){
+          result = 1;
+        }else{
+          result = 0;
+        }
+        return result
+      }
+    })
     t.nullable.field('patientInfo', {
       type: PatientInfoObject,
     });
@@ -390,6 +404,13 @@ export const DoctorAppointments = objectType({
     });
   },
 });
+
+const PendingPayment = objectType({
+  name:"PendingPayment",
+  definition(t) {
+      t.boolean('isPending')
+  },
+})
 
 export const UserInfoOb = objectType({
   name: 'UserInfoOb',

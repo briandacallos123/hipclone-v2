@@ -273,7 +273,7 @@ export default function ServicePaymentMethodList() {
 
   const denseHeight = table.dense ? 52 : 72;
 
-  const notFound = !load && !services.GetPaymentMethod.data.length;
+  const notFound = !load && !services?.GetPaymentMethod?.data?.length;
 
   const handleDeleteRows = useCallback(() => {
     // const deleteRows = tableData.filter((row) => !table.selected.includes(row.id));
@@ -319,6 +319,13 @@ export default function ServicePaymentMethodList() {
     },
     [dataInPage.length, table, tableData]
   );
+  const [isView, setIsView] = useState(false)
+
+  const handleViewRow = (row) => {
+    setEditId(row);
+    setIsView(true)
+    openEdit.onTrue();
+  }
 
   return (
     <>
@@ -396,6 +403,7 @@ export default function ServicePaymentMethodList() {
                       onSelectRow={() => table.onSelectRow(row.id)}
                       onDeleteRow={() => handleDeleteRow(row)}
                       onEditRow={() => handleEditRow(row)}
+                      onViewRow={()=>handleViewRow(row)}
                     />
                   ))}
 
@@ -466,7 +474,11 @@ export default function ServicePaymentMethodList() {
           onClose={() => {
             setEditId(null);
             openEdit.onFalse();
+            if(isView){
+              setIsView(false)
+            }
           }}
+          isView={isView}
           onSuccess={onSuccessUpdate}
           id={editId}
           updateData={updateData}

@@ -238,6 +238,7 @@ export const NotifcationObjects = objectType({
     name:"NotificationType",
     definition(t){
         t.string('title');
+        t.int('id')
     }
   })
   

@@ -1,11 +1,13 @@
 import * as Yup from 'yup';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
 import LoadingButton from '@mui/lab/LoadingButton';
 import Button from '@mui/material/Button';
 import Grid from '@mui/material/Unstable_Grid2';
+import { PayPalButtons, usePayPalScriptReducer } from "@paypal/react-paypal-js";
+
 // types
 // import {
 //   ICheckoutCardOption,
@@ -28,6 +30,7 @@ import { paths } from '@/routes/paths';
 import { useRouter } from 'next/navigation';
 import { useCheckoutContext } from '@/context/checkout/Checkout';
 import { UseOrdersContext } from '@/context/dashboard/medecine/Medecine';
+import { Box, Typography } from '@mui/material';
 // ----------------------------------------------------------------------
 
 const DELIVERY_OPTIONS: any[] = [
@@ -61,11 +64,7 @@ const PAYMENT_OPTIONS: any[] = [
   },
 ];
 
-const CARDS_OPTIONS: any[] = [
-  { value: 'ViSa1', label: '**** **** **** 1212 - Jimmy Holland' },
-  { value: 'ViSa2', label: '**** **** **** 2424 - Shawn Stokes' },
-  { value: 'MasterCard', label: '**** **** **** 4545 - Cole Armstrong' },
-];
+
 
 type Props = {
   checkout: any;
@@ -89,24 +88,44 @@ export default function CheckoutPayment({
   onGotoStep,
   onApplyShipping,
 }: Props) {
-  const {resetCheckout, state}:any = useCheckoutContext()
+  const { resetCheckout, state }: any = useCheckoutContext()
   // const {resetOrder}:any = UseOrdersContext()
+  const [{ options, isPending }, dispatch] = usePayPalScriptReducer();
+  const [currency, setCurrency] = useState(options.currency);
+
+  const [CARDS_OPTIONS, setCardOptions] = useState([])
+  const formRef = useRef()
+
+  useEffect(() => {
+    if (checkout?.cart) {
+      const cardPayment = [];
+      checkout?.cart?.forEach((item) => {
+        if (item?.onlinePayment) {
+          if (cardPayment?.length === 0) {
+            cardPayment.push({ value: 'g cash', label: item?.onlinePayment?.recepient_contact, attachment: item?.onlinePayment?.file_url })
+          }
+        }
+      })
 
 
-  // const { total, discount, subTotal, shipping, billing } = checkout;
+      setCardOptions(cardPayment)
+    }
+  }, [checkout?.cart])
+
+
+
   const router = useRouter()
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const PaymentSchema = Yup.object().shape({
-    payment: Yup.string().required('Payment is required!'),
   });
 
-  // console.log(state,'STATEEEEEEEEEEEE_____________')
   const defaultValues = {
     delivery: state?.billingAddress?.name,
     payment: '',
-    products:checkout?.cart,
-    total:checkout?.total,
-    contact:state?.billingAddress?.contact
+    products: checkout?.cart,
+    total: checkout?.total,
+    contact: state?.billingAddress?.contact,
+    refNumber:""
   };
 
   const methods = useForm<FormValuesProps>({
@@ -116,8 +135,12 @@ export default function CheckoutPayment({
 
   const {
     handleSubmit,
+    setValue,
+    watch,
     formState: { isSubmitting },
   } = methods;
+
+  const values = watch()
 
   const [createMedFunc] = useMutation(CreateOrders, {
     context: {
@@ -126,59 +149,55 @@ export default function CheckoutPayment({
     notifyOnNetworkStatusChange: true,
   });
 
-  const createOrder = useCallback((model:any)=>{
-    console.log(model,'MODELLLLLLLLSSSSSSSSS');
-
+  const createOrder = useCallback((model: any) => {
+  
     createMedFunc({
-        variables:{
-            data:{
-              address:model.address,
-              payment:model.payment,
-              contact:model?.contact,
-              medicine_list:model.medicine_list
-            }
-        }
-    }).then((res)=>{
-        const {data} = res;
-        enqueueSnackbar("Created Order Succesfully")
-        router.push(paths.dashboard.medecine.root)
-        // empty the cart on local storage
-        localStorage.setItem('cart','')
-        resetCheckout()
-        // resetOrder()
-       
+      variables: {
+        data: {
+          address: model.address,
+          payment: model.payment,
+          contact: model?.contact,
+          medicine_list: model.medicine_list,
+          refNumber: model?.referenceNumber
+        },
+        file: model?.paymentAttachment
+      }
+    }).then((res) => {
+      const { data } = res;
+      enqueueSnackbar("Created Order Succesfully")
+      router.push(paths.dashboard.medecine.root)
+      // empty the cart on local storage
+      localStorage.setItem('cart', '')
+      resetCheckout()
+      // resetOrder()
+
     })
-},[])
+  }, [])
 
-// t.nullable.string('generic_name');
-// t.nullable.string('brand_name');
-// t.nullable.string('dose');
-// t.nullable.string('form');
-// t.nullable.int('quantity')
-// t.nullable.float('price')
-// t.nullable.int('store_id');
 
-  const onSubmit = useCallback(async (data:any) => {
+  const onSubmit = useCallback(async (data: any) => {
     try {
-      console.log(data,'DATA')
-     
-      const productPayloads = data?.products?.map((item:any)=>{
+
+
+      const productPayloads = data?.products?.map((item: any) => {
         return {
-          generic_name:item?.generic_name,
-          brand_name:item?.brand_name,
-          dose:item?.dose,
-          form:item?.form,
-          quantity:item?.quantity,
-          price:item?.price,
-          store_id:item?.store_id,
-          medecine_id:item?.id
+          generic_name: item?.generic_name,
+          brand_name: item?.brand_name,
+          dose: item?.dose,
+          form: item?.form,
+          quantity: item?.quantity,
+          price: item?.price,
+          store_id: item?.store_id,
+          medecine_id: item?.id
         }
       })
       const newPayloads = {
-        medicine_list:productPayloads,
-        payment:data?.payment,
-        contact:data?.contact,
-        address:data?.delivery,
+        medicine_list: productPayloads,
+        payment: data?.payment,
+        contact: data?.contact,
+        address: data?.delivery,
+        paymentAttachment: data?.avatar,
+        referenceNumber: data?.refNumber
       }
 
 
@@ -190,12 +209,72 @@ export default function CheckoutPayment({
     }
   }, [onNextStep, onReset]);
 
+  const onCurrencyChange = ({ target: { value } }) => {
+    setCurrency(value);
+    dispatch({
+      type: "resetOptions",
+      value: {
+        ...options,
+        currency: value,
+      },
+    });
+  }
+
+  const onCreateOrder = useCallback((data, actions) => {
+    return actions.order.create({
+      purchase_units: [
+        {
+          amount: {
+            value: checkout.total,
+            currency_code: 'PHP'
+          },
+        },
+      ],
+    });
+  },[checkout.total])
+
+  const loadingButtonRef:any = useRef();
+
+  const onApproveOrder = (data, actions) => {
+
+
+    return actions.order.capture().then((details) => {
+      if (loadingButtonRef.current) {
+        setValue('payment', 'paypal');
+        setValue('refNumber', details?.id)
+      }
+    });
+  }
+
+  useEffect(()=>{
+    if(values.payment === 'paypal'){
+      loadingButtonRef.current.click();
+    }
+  },[values.payment])
+
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Grid container spacing={3}>
-        <Grid xs={12} md={8}>
-          {/* <CheckoutDelivery onApplyShipping={onApplyShipping} options={DELIVERY_OPTIONS} /> */}
+      <Grid container>
+        {/* <Grid xs={12} md={8}>
+          
+          {
+            isPending ? <p>LOADING...</p> : (
+              <>
+                <select value={currency} onChange={onCurrencyChange}>
+                  <option value="USD">💵 USD</option>
+                  <option value="EUR">💶 Euro</option>
+                  <option value="PHP">💶 PHP</option>
 
+                </select>
+
+                <PayPalButtons
+                  style={{ layout: "vertical" }}
+                  createOrder={(data, actions) => onCreateOrder(data, actions)}
+                  onApprove={(data, actions) => onApproveOrder(data, actions)}
+                />
+              </>
+            )
+          }
           <CheckoutPaymentMethods
             cardOptions={CARDS_OPTIONS}
             options={PAYMENT_OPTIONS}
@@ -210,30 +289,65 @@ export default function CheckoutPayment({
           >
             Back
           </Button>
-        </Grid>
+        </Grid> */}
 
-        <Grid xs={12} md={4}>
-          <CheckoutBillingInfo onBackStep={onBackStep} billing={state?.billingAddress} />
+        <Grid xs={12} md={12} >
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', p: 2 }}>
+            <Box sx={{ width: { md: 700 } }}>
+              <CheckoutBillingInfo onBackStep={onBackStep} billing={state?.billingAddress} />
 
-          <CheckoutSummary
-            enableEdit
-            total={checkout.total}
+              <CheckoutSummary
+                enableEdit
+                total={checkout.total}
 
-            subTotal={checkout.total}
-            discount={checkout.discount}
-            shipping={checkout.billingAddress}
-            onEdit={() => onGotoStep(0)}
-          />
+                subTotal={checkout.total}
+                discount={checkout.discount}
+                shipping={checkout.billingAddress}
+                onEdit={() => onGotoStep(0)}
+              />
 
-          <LoadingButton
-            fullWidth
-            size="large"
-            type="submit"
-            variant="contained"
-            loading={isSubmitting}
-          >
-            Complete Order
-          </LoadingButton>
+              <Typography variant="overline" sx={{mb:10}}>Payment</Typography>
+              {
+                isPending ? <p>LOADING...</p> : (
+                  <>
+                    {/* <select value={currency} onChange={onCurrencyChange}>
+                      <option value="USD">💵 USD</option>
+                      <option value="EUR">💶 Euro</option>
+                      <option value="PHP">💶 PHP</option>
+
+                    </select> */}
+
+                    <PayPalButtons
+                      style={{ layout: "vertical" }}
+                      createOrder={(data, actions) => onCreateOrder(data, actions)}
+                      onApprove={(data, actions) => onApproveOrder(data, actions)}
+                    />
+                  </>
+                )
+              }
+
+              <LoadingButton
+                fullWidth
+                size="large"
+                type="submit"
+                variant="contained"
+                loading={isSubmitting}
+                ref={loadingButtonRef}
+                
+              >
+                Complete Order
+              </LoadingButton>
+              <Button
+                size="small"
+                color="inherit"
+                onClick={onBackStep}
+                sx={{mt:3}}
+                startIcon={<Iconify icon="eva:arrow-ios-back-fill" />}
+              >
+                Back
+              </Button>
+            </Box>
+          </Box>
         </Grid>
       </Grid>
     </FormProvider>

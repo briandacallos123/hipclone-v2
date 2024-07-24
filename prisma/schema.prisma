@@ -1211,6 +1211,7 @@ model patient {
   records                   records[]
   smoking                   smoking[]
   smslogs                   smslogs[]
+  vital_category            vital_category[]
 
   @@unique([EMAIL, userType])
   @@unique([S_ID, isEMR])
@@ -1726,15 +1727,19 @@ model notification_group {
 }
 
 model vital_category {
-  id         Int          @id @default(autoincrement())
-  title      String       @db.VarChar(255)
-  patientId  Int
-  doctorId   Int
-  createdBy  Int
-  isCategory Int          @default(1)
-  createdAt  DateTime     @default(now()) @db.DateTime(0)
-  isDeleted  Int          @default(0)
-  vital_data vital_data[]
+  id             Int          @id @default(autoincrement())
+  title          String       @db.VarChar(255)
+  measuring_unit String       @db.VarChar(255)
+  patientId      Int
+  doctorId       Int?
+  createdBy      Int
+  isCategory     Int          @default(1)
+  createdAt      DateTime     @default(now()) @db.DateTime(0)
+  isDeleted      Int          @default(0)
+  patient        patient      @relation(fields: [patientId], references: [S_ID], onUpdate: Restrict, map: "vital_category_ibfk_1")
+  vital_data     vital_data[]
+
+  @@index([patientId], map: "patientId")
 }
 
 model vital_data {
@@ -1824,34 +1829,37 @@ model merchant_medicine {
 }
 
 model orders {
-  id                Int               @id @default(autoincrement())
-  generic_name      String?           @db.VarChar(255)
-  brand_name        String?           @db.VarChar(255)
-  dose              String?           @db.VarChar(255)
-  form              String?           @db.VarChar(255)
-  quantity          Int
-  patient_id        Int
-  store_id          Int?
-  medecine_id       Int
-  payment           String?           @db.VarChar(255)
-  address           String            @db.VarChar(255)
-  contact           String            @db.VarChar(255)
-  COD               Int?              @default(0)
-  online_payment    Int?
-  price             Float
-  is_paid           Int               @default(0)
-  is_deliver        Int               @default(0)
-  status_id         Int
-  is_deleted        Int               @default(0)
-  patient           patient           @relation(fields: [patient_id], references: [S_ID], onUpdate: Restrict, map: "orders_ibfk_2")
-  status            status            @relation(fields: [status_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_3")
-  merchant_medicine merchant_medicine @relation(fields: [medecine_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_4")
-  merchant_store    merchant_store?   @relation(fields: [store_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_5")
+  id                   Int                   @id @default(autoincrement())
+  generic_name         String?               @db.VarChar(255)
+  brand_name           String?               @db.VarChar(255)
+  dose                 String?               @db.VarChar(255)
+  form                 String?               @db.VarChar(255)
+  quantity             Int
+  patient_id           Int
+  store_id             Int?
+  medecine_id          Int
+  payment              String?               @db.VarChar(255)
+  address              String                @db.VarChar(255)
+  contact              String                @db.VarChar(255)
+  COD                  Int?                  @default(0)
+  online_payment       Int?
+  price                Float
+  is_paid              Int                   @default(0)
+  is_deliver           Int                   @default(0)
+  status_id            Int
+  is_deleted           Int                   @default(0)
+  created_at           DateTime              @default(now()) @db.Date
+  patient              patient               @relation(fields: [patient_id], references: [S_ID], onUpdate: Restrict, map: "orders_ibfk_2")
+  status               status                @relation(fields: [status_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_3")
+  merchant_medicine    merchant_medicine     @relation(fields: [medecine_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_4")
+  merchant_store       merchant_store?       @relation(fields: [store_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_5")
+  online_order_payment online_order_payment? @relation(fields: [online_payment], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_6")
 
   @@index([patient_id], map: "patient_id")
   @@index([status_id], map: "status_id")
   @@index([store_id], map: "orders_ibfk_5")
   @@index([medecine_id], map: "medecine_id")
+  @@index([online_payment], map: "online_payment")
 }
 
 model merchant_store {
@@ -1938,6 +1946,32 @@ model order_payment_attachment {
   file_url       String           @db.VarChar(255)
   file_tyle      String           @db.VarChar(255)
   online_payment online_payment[]
+}
+
+model doctor_payment_method_attachment {
+  id         Int    @id @default(autoincrement())
+  filename   String @db.VarChar(255)
+  file_url   String @db.VarChar(255)
+  file_type  String @db.VarChar(255)
+  is_deleted Int
+}
+
+model online_order_payment {
+  id                 Int      @id @default(autoincrement())
+  reference_number   String   @db.VarChar(255)
+  payment_attachment Int?
+  created_at         DateTime @default(now()) @db.Date
+  orders             orders[]
+
+  @@index([payment_attachment], map: "payment_attachment")
+}
+
+model online_order_payment_attachment {
+  id         Int      @id @default(autoincrement())
+  filename   String   @db.VarChar(255)
+  file_url   String   @db.VarChar(255)
+  file_type  String   @db.VarChar(255)
+  created_at DateTime @default(now()) @db.Date
 }
 
 enum UserStatuses {

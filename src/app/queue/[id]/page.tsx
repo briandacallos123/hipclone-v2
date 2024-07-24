@@ -11,9 +11,22 @@ import Queue from '../view/Queue'
 import { useParams } from 'src/routes/hook';
 import { useAuthContext } from '@/auth/hooks'
 import QueueCarousel from '@/sections/queue/queue-carousel'
+import { LogoFull } from '@/components/logo'
+import { styled } from '@mui/material/styles';
+// import BG from '/assets/background/queue-bg.jpg'
+
+const StyledComponent = styled('div')({
+  background: `url('/assets/background/queue-bg.jpg')`,
+  backgroundSize: 'cover',
+  backgroundPosition: 'center',
+  height: '100vh', // Adjust the height as needed 
+  width: '100vw',
+  display: 'flex',
+  justifyContent: 'center',
+});
 
 const page = () => {
-  const { data, notToday, targetItem, clinicData, notApprovedVal, isDoneAppt, clinicLoading, QueryQueue, dataResults, loading, position, remainingP, newPosition, refetch, notAppNotToday } = QueueController()
+  const { data, notToday, targetItem, clinicData, notApprovedVal, isDoneAppt, clinicLoading, QueryQueue, dataResults, loading, position, remainingP, newPosition, refetch, notAppNotToday,apptPaid } = QueueController()
   const { id } = useParams();
   // const { socket } = useAuthContext()
 
@@ -36,53 +49,47 @@ const page = () => {
 
   const RenderLoadingContent = () => {
     return (
-        <Box sx={{
-            width:{xs:'100%',sm:'100%', md:400},
-            height:400,
-            border:'10px solid white',
-            borderRadius:'10px',
-            p:{
-                md:4
-            },
-            position:'relative',
-            left:'-10px',
-            display:'flex',
-            flexDirection:'column',
-            justifyContent:'flex-start'
-        }}>
-             <Stack spacing={2} alignItems="center">
-                {/* <Skeleton variant="circular" width={200} height={200}/> */}
-                <Box sx={{
-                    width:'100%',
-                    display:'flex',
-                    justifyContent:"flex-start"
-                }}>
-                    <Skeleton  width={100} height={20}/>
-                </Box>
-                <Skeleton  width="100%" height={20}/>
-                <Skeleton  width="100%" height={100}/>
-                <Box  sx={{
-                    width:'100%',
-                    flex:1,
-                    display:'flex',
-                    alignItems:'flex-end',
-                }}>
-                    <Skeleton  width='100%' height={20}/>
-                </Box>
-            </Stack>
-        </Box>
+      <Box sx={{
+        width: { xs: '100%', sm: '100%', md: 400 },
+        height: 400,
+        border: '10px solid white',
+        borderRadius: '10px',
+        p: {
+          md: 4
+        },
+        position: 'relative',
+        left: '-10px',
+        display: 'flex',
+        flexDirection: 'column',
+        justifyContent: 'flex-start'
+      }}>
+        <Stack spacing={2} alignItems="center">
+          {/* <Skeleton variant="circular" width={200} height={200}/> */}
+          <Box sx={{
+            width: '100%',
+            display: 'flex',
+            justifyContent: "flex-start"
+          }}>
+            <Skeleton width={100} height={20} />
+          </Box>
+          <Skeleton width="100%" height={20} />
+          <Skeleton width="100%" height={100} />
+          <Box sx={{
+            width: '100%',
+            flex: 1,
+            display: 'flex',
+            alignItems: 'flex-end',
+          }}>
+            <Skeleton width='100%' height={20} />
+          </Box>
+        </Stack>
+      </Box>
     )
-}
+  }
 
 
   return (
-    <Box sx={{
-      height: '100vh',
-      width: '100vw',
-      display: 'flex',
-      justifyContent: 'center',
-      // mt:10
-    }}  >
+    <StyledComponent>
       <Box sx={{
         height: 500,
         width: 1000,
@@ -90,13 +97,16 @@ const page = () => {
         // background:'green',
         paddingY: {
           // sm:2,
-          md: 2
+          md: 5
         },
         paddingX: {
           md: 5
         },
         // backgroundColor:'orange',
       }} >
+        <Box sx={{ position: 'absolute', top: 10, left: 10 }}>
+          <LogoFull disabledLink />
+        </Box>
 
         <QueueCover
           name={data?.[0]?.clinicInfo?.clinic_name}
@@ -111,16 +121,26 @@ const page = () => {
 
         }}>
 
-          <Stack gap={3}>
+          <Stack gap={3} >
 
-          
-            <Queue notAppNotToday={notAppNotToday} notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
+
+            <Queue apptPaid={apptPaid} notAppNotToday={notAppNotToday} notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
             {clinicData?.length !== 0 && !isDoneAppt && <QueueCarousel loading={clinicLoading} data={clinicData} />}
           </Stack>
         </Box>
 
       </Box>
-    </Box>
+    </StyledComponent>
+    // <Box sx={{
+      // height: '100vh',
+      // width: '100vw',
+      // display: 'flex',
+      // justifyContent: 'center',
+    //   backgroundImage:url()
+
+    // }}  >
+
+    // </Box>
   )
 }
 

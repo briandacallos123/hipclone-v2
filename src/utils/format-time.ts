@@ -79,7 +79,7 @@ export function formatClinicTime(dates: any) {
   return formattedTime;
 }
 
-export function convertTimeFormat(timeString:string) {
+export function convertTimeFormat(timeString: string) {
   // Split the time string into hours and minutes
   var timeParts = timeString.split(':');
 
@@ -93,7 +93,46 @@ export function convertTimeFormat(timeString:string) {
   time.setMinutes(minutes);
 
   // Format the time as HH:MM AM/PM
-  var formattedTime = time.toLocaleTimeString('en-PH', {hour12: true});
+  var formattedTime = time.toLocaleTimeString('en-PH', { hour12: true });
 
   return formattedTime;
+}
+
+export function getDateSpan(dateString: string) {
+  // Your date string
+  // const dateString = '2024-07-04T06:18:35.441Z';
+
+  // Parse the date string into a Date object
+  const dateCreated = new Date(dateString);
+
+  // Get the current date/time
+  const currentDate = new Date();
+
+  // Calculate the difference in milliseconds
+  const differenceMs = currentDate - dateCreated;
+
+  // Convert milliseconds to seconds, minutes, hours, days, etc.
+  // Example: Convert milliseconds to seconds
+  // const differenceSeconds = Math.floor(differenceMs / 1000);
+
+  // Example: Convert milliseconds to minutes
+  // const differenceMinutes = Math.floor(differenceMs / (1000 * 60));
+
+  // Example: Convert milliseconds to hours
+  const differenceHours = Math.floor(differenceMs / (1000 * 60 * 60));
+
+  // Example: Convert milliseconds to days
+  const differenceDays = Math.floor(differenceMs / (1000 * 60 * 60 * 24));
+
+  // Output the differences
+  // console.log(`Difference in seconds: ${differenceSeconds}`);
+  // console.log(`Difference in minutes: ${differenceMinutes}`);
+  // console.log(`Difference in hours: ${differenceHours}`);
+  // console.log(`Difference in days: ${differenceDays}`);
+
+  console.log(differenceDays, differenceHours,'DIFFERENCE____________')
+  return (()=>{
+    return differenceHours >= 24 ? `${differenceDays} ${differenceDays > 1 ? 'days ago':'day ago'}` : `${differenceHours} ${differenceHours > 1 ? 'hours ago':'hour ago'} `
+  })()
+
 }

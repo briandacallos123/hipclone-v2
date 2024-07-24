@@ -148,6 +148,7 @@ export const queue_data = objectType({
     t.nullable.list.field('appointments_data',{
       type:DoctorAppointments
     }),
+    t.boolean('is_paid')
     t.int('position');
     t.boolean('is_not_today')
     t.boolean('is_done')
@@ -191,11 +192,14 @@ export const QueuePatient = extendType({
           }
         })
 
+
         const patient = await client.patient.findFirst({
           where:{
             S_ID:Number(appt?.patientID)
           }
         })
+        
+      
 
 
         // get clinic based on id of clinic on appt
@@ -232,7 +236,6 @@ export const QueuePatient = extendType({
           
         })
 
-        console.log(notApprovedNotToday,'YAYYYY')
 
         const notApproved = await  client.appointments.findFirst({
           where:{
@@ -370,13 +373,13 @@ export const QueuePatient = extendType({
           }
         }
 
-        console.log(notApprovedNotToday,'HUHHGHHHHHHHHHHHHHHHH')
 
         return {
           appointments_data: resultFirst?.length ? resultFirst : result,
           position:patientPos !== -1 ? patientPos : (resultFirst && 1),
           is_not_today:haveSchedButNotToday(),
           is_done:isDoneAppt?.length !== 0,
+          is_paid:Number(appt?.payment_status) === 1,
           notApproved:(()=>{
             if(Number(notApproved?.status) === 0){
               return 4

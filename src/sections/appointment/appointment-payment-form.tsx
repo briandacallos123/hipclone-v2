@@ -24,9 +24,11 @@ import { useBoolean } from 'src/hooks/use-boolean';
 // components
 import Image from 'src/components/image';
 import { useSnackbar } from 'src/components/snackbar';
-import FormProvider, { RHFTextField, RHFUpload } from 'src/components/hook-form';
+import FormProvider, { RHFSelect, RHFTextField, RHFUpload } from 'src/components/hook-form';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { mutation_patient_payment } from '../../libs/gqls/patientPayment';
+import { Avatar, MenuItem } from '@mui/material';
+import { maxWidth } from '@mui/system';
 // ----------------------------------------------------------------------
 
 const _mock = [
@@ -116,6 +118,7 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
       appt_id: Number(currentItem?.id) || '',
       p_ref: '',
       p_desc: '',
+      method:null
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentItem]
@@ -146,6 +149,7 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
   const {
     reset,
     setValue,
+    getValues,
     handleSubmit,
     watch,
     formState: { isSubmitting },
@@ -261,7 +265,25 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
           <Grid container spacing={3}>
             <Grid xs={12} md={8}>
               <Typography variant="overline">Payment Methods</Typography>
-              <Box
+              <RHFSelect name="method">
+                <MenuItem value=""/>
+
+                {currentItem?.doctorPayment?.map((item, index) => (
+                  <MenuItem sx={{
+                    display:'flex',
+                    alignItems:"center"
+                  }} key={index} value={item?.dpDetails?.acct}>
+                    <Typography sx={{mr:1}}>
+                      {item?.dpDetails?.title}
+                    </Typography>
+                    {/* <Typography>
+                     ({item?.dpDetails?.acct})
+                    </Typography> */}
+                  </MenuItem>
+                ))}
+              </RHFSelect>
+
+              {/* <Box
                 rowGap={3}
                 columnGap={2}
                 display="grid"
@@ -278,21 +300,36 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
 
                     return <img src={publicPart} alt="payment" />;
                   })}
-                {/* {_mock.map((i) => (
-                  <StyledPaper key={i.id} onClick={() => handleSelect(i.id)}>
-                    <Image
-                      alt={i.name}
-                      src={i.attachmentUrl}
-                      sx={{ mb: 1, height: 48, width: 48, borderRadius: 1 }}
-                    />
+                
+              </Box> */}
+              {values?.method && 
+              <Box>
+                <Stack sx={{my:2}}>
+                  <Typography variant="overline">Account Number</Typography>
+                  <RHFTextField  disabled={true} name="method" />
+                </Stack>
+                {(()=>{
+                  
+                  let targetMethod = currentItem?.doctorPayment?.find((item:any)=>Number(item.dpDetails?.acct) === Number(getValues('method')))
+                  const myImg = `https://hip.apgitsolutions.com/${targetMethod?.filename?.split('/')?.splice(1)?.join("/")}`
+                  // console.log(targetMethod,'?????')
 
-                    <Typography variant="caption">{i.name}</Typography>
-                  </StyledPaper>
-                ))} */}
+                  return <Stack>
+                    <Typography variant="overline">QR Code</Typography>
+                    <Image src={myImg} alt="payment attachment" width={200} height={200}/>
+                  </Stack>
+                
+                })()}
+                {/*  */}
+
               </Box>
+              
+              }
 
+              <Stack spacing={3} sx={{ mt: 2 }}>
               <Typography variant="overline">Attach Proof of Payment</Typography>
-              <Stack spacing={3} sx={{ mt: 1 }}>
+                
+
                 <RHFTextField name="p_ref" label="Reference Number, Full Name" />
 
                 <RHFTextField name="p_desc" label="Description" multiline rows={3} />
@@ -311,9 +348,9 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
 
             <Grid xs={12} md={4}>
               <Typography variant="body2" color="error.main">
-                <strong>Reminder: </strong>HIPS does not handle payment transactions.
+                <strong>Reminder: </strong>Mediko Connect does not handle payment transactions.
                 Patients will pay directly to the account/s indicated by the doctor and attach proof
-                of payment in HIPS.
+                of payment in Mediko Connect.
               </Typography>
 
               <Card sx={{ mt: 3 }}>

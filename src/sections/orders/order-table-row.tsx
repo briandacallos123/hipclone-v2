@@ -131,9 +131,9 @@ export default function OrderTableRow({
     enqueueSnackbar('Copied to clipboard');
   }
 
-  const medecineImg = `http://localhost:9092/${row?.attachment?.file_path?.split('/').splice(1).join("/")}`
+  const medecineImg = `https://hip.apgitsolutions.com/${row?.attachment?.file_path?.split('/').splice(1).join("/")}`
 
-  const storeImage = `http://localhost:9092/${row?.store?.attachment_store?.file_url?.split('/').splice(1).join("/")}`
+  const storeImage = `https://hip.apgitsolutions.com/${row?.store?.attachment_store?.file_url?.split('/').splice(1).join("/")}`
 
   return (
 
@@ -167,17 +167,7 @@ export default function OrderTableRow({
                 typography: 'caption',
               }}
             />
-            {/* <Box sx={{
-                display:'flex',
-                alignItems:'center'
-              }}>
-                <Typography sx={{mr:1}} variant="body2">{row?.voucherId}</Typography>
-                <Tooltip>
-                  <img onClick={handleCopy} style={{
-                    cursor:'pointer'
-                  }} src="/assets/clipboard.svg"/>
-                </Tooltip>
-              </Box> */}
+            
           </Stack>
         </div>
       </TableCell>

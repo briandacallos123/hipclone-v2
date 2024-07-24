@@ -13,7 +13,7 @@ const HistoryView = ({ onClose, open, title, data }: HistoryViewProps) => {
     const { attachment, brand_name, dose, form, generic_name, id, is_deliver, is_paid, patient, quantity, status_id, store } = data;
 
 
-    const imgPath = `http://localhost:9092/${attachment?.file_path.split('/').splice(1).join('/')}`;
+    const imgPath = `https://hip.apgitsolutions.com/${attachment?.file_path.split('/').splice(1).join('/')}`;
 
     console.log(data, 'DATA___________________')
 

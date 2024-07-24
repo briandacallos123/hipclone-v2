@@ -71,6 +71,11 @@ export default function VitalFullscreen({ title, open, onClose, chart, list }: P
     setCollapseDesktop(!collapseDesktop);
   };
 
+  console.log(chart,'chart')
+
+  console.log( list,'list')
+
+
   const renderBtn = (
     <IconButton
       onClick={handleToggleNav}

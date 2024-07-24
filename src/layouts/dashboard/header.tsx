@@ -42,7 +42,7 @@ export default function Header({ onOpenNav }: Props) {
   const { state : ordersCart } = useOrdersContext();
 
  
-  console.log(ordersCart?.order,"HAYS")
+  console.log(cart,"HAYSSSSSSSSSSS")
 
   useEffect(()=>{
     if (socket?.connected) {

@@ -84,6 +84,7 @@ const reducer = (state: any, action: any) => {
                     dose,
                     generic_name,
                     store_id:merchant_store?.id,
+                    onlinePayment:merchant_store?.onlinePayment,
                     image: attachment_info?.file_path,
                     brand_name,
                     attachment_info,

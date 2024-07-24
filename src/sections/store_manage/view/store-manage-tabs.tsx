@@ -22,10 +22,11 @@ const TABS = [
 ];
 
 type StoreManageTabsProps = {
-    data: any
+    data: any,
+    singleResult:any;
 }
 
-const StoreManageTabs = ({ data }: StoreManageTabsProps) => {
+const StoreManageTabs = ({ data,singleResult }: StoreManageTabsProps) => {
 
     const [currentTab, setCurrentTab] = useState('products');
 
@@ -72,7 +73,7 @@ const StoreManageTabs = ({ data }: StoreManageTabsProps) => {
         }}>
             {renderTabs}
             {currentTab === 'products' && <StoreProducts />}
-            {currentTab === 'profile' && <StoreManageProfile data={data} />}
+            {currentTab === 'profile' && <StoreManageProfile singleResult={singleResult} data={data} />}
 
         </Box>
     )

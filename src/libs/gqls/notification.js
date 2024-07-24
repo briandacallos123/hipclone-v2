@@ -23,6 +23,7 @@ query MyQuery($data:NotificationPayloads) {
         }
         notification_type_id{
           title
+          id
         }
        
         notification_content {

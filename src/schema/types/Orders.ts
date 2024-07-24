@@ -21,6 +21,7 @@ export const orderType = objectType({
         t.float('price');
         t.int('is_paid');
         t.string('quantity')
+        t.date('created_at')
         t.int('status_id')
         t.field('patient', {
             type: patientInfos
@@ -483,6 +484,7 @@ export const CreateOrdersInp = inputObjectType({
         t.string('address');
         t.nullable.string('contact');
         t.string('payment');
+        t.nullable.string('refNumber');
         t.nonNull.list.field('medicine_list',{
             type:medecine_list
         })
@@ -527,13 +529,43 @@ export const CreateOrders = extendType({
     definition(t) {
         t.nullable.field('CreateOrders', {
             type: CreateOrdersRes,
-            args: { data: CreateOrdersInp },
+            args: { data: CreateOrdersInp!, file:'Upload'! },
             async resolve(_root, args, ctx) {
                 const {session} = ctx;
                 const {address, payment, contact} = args?.data;
 
-                
+                const sFile = await args?.file;
+                console.log(sFile,'SFILEEEEEEEEEEE')
+                let onlinePaymentAtt: any;
+                let onlinePayment:any;
+             
+
                 try {
+                    // pag may payment attachment ex: gcash
+                   
+                    if (sFile) {
+                        const res: any = useUpload(sFile, 'public/documents/');
+    
+                        onlinePaymentAtt = await client.online_order_payment_attachment.create({
+                            data: {
+                                filename: String(res[0]!.fileName),
+                                file_url: String(res[0]!.path),
+                                file_type: String(res[0]!.fileType),
+                            }
+                        })
+                    }
+
+                    console.log(onlinePaymentAtt,'online payment')
+
+                    if(payment!=="cash"){
+                        onlinePayment = await client.online_order_payment.create({
+                            data:{
+                                reference_number:args?.data?.refNumber,
+                                payment_attachment:Number(onlinePaymentAtt?.id)
+                            }
+                        })
+                    }
+
                     const patient = await client.patient.findUnique({
                         where:{
                             EMAIL: session?.user?.email
@@ -582,6 +614,7 @@ export const CreateOrders = extendType({
                                         address,
                                         contact,
                                         payment,
+                                        online_payment:onlinePayment ? Number(onlinePayment?.id):null,
                                         patient_id:Number(patient?.S_ID),
                                     }
                                 })

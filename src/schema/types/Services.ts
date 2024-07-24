@@ -1,6 +1,15 @@
-import { objectType, inputObjectType, extendType } from 'nexus';
+// import { objectType, inputObjectType, extendType } from 'nexus';
+// import { PrismaClient } from '@prisma/client';
+// import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+// import { useUpload } from '@/hooks/use-upload';
+
 import { PrismaClient } from '@prisma/client';
+import { extendType, objectType, inputObjectType, intArg, stringArg } from 'nexus';
+import { useUpload } from '../../hooks/use-upload';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import bcrypt from 'bcryptjs';
+import { GraphQLError } from 'graphql';
+import { serialize, unserialize } from 'php-serialize';
 
 const client = new PrismaClient();
 
@@ -15,8 +24,21 @@ const PaymentMethod = objectType({
     t.nullable.field('tempId', {
       type: 'String',
     });
+    t.nullable.field("attachment",{
+      type:attachmentDp
+    })
   },
 });
+
+const attachmentDp = objectType({
+  name:"attachmentDp",
+  definition(t) {
+      t.string('id');
+      t.string('filename');
+
+  },
+})
+
 const FeesType = objectType({
   name: 'FeesType',
   definition(t) {
@@ -75,9 +97,9 @@ const UpdateFeeInputsProf = inputObjectType({
 const PaymentMethodInputs = inputObjectType({
   name: 'PaymentMethodInputs',
   definition(t) {
-    t.string('acct');
-    t.string('description');
-    t.string('title');
+    t.nullable.string('acct');
+    t.nullable.string('description');
+    t.nullable.string('title');
     t.nullable.int('id');
     t.nullable.string('type');
     t.nullable.string('tempId');
@@ -106,7 +128,7 @@ export const GetPaymentMethod = extendType({
         const { take, skip }: any = args?.data;
 
         try {
-          const results = await client.doctor_payment.findMany({
+          let results = await client.doctor_payment.findMany({
             take,
             skip,
 
@@ -115,6 +137,21 @@ export const GetPaymentMethod = extendType({
               isDeleted: 0,
             },
           });
+
+          const attachment = results?.map(async(item)=>{
+            const attachment = await client.doctor_payment_dp.findFirst({
+              where:{
+                dp_id:String(item?.id)
+              }
+            })
+
+            return {...item, attachment:{...attachment}}
+          })
+
+          const attach = await Promise.all(attachment)
+
+
+          console.log(attach,"ALL DATAAAAAAAAAAAAAAAAAAA")
           const _count = await client.doctor_payment.count({
             where: {
               isDeleted: 0,
@@ -122,11 +159,11 @@ export const GetPaymentMethod = extendType({
             },
           });
 
-          console.log(results, 'hehe');
+
 
           return {
             totalRecords: _count,
-            data: results,
+            data: attach,
           };
         } catch (err) {
           console.log(err);
@@ -135,15 +172,45 @@ export const GetPaymentMethod = extendType({
     });
   },
 });
+
+export const PaymentMethodTest = objectType({
+  name:"PaymentMethodTest",
+  definition(t) {
+      t.string('message')
+  },
+})
+
+// export const CreateNewStoreTest = extendType({
+//   type: 'Mutation',
+//   definition(t) {
+//       t.nullable.list.field('CreateNewStoreTest', {
+//           type: PaymentMethodTest,
+//           args: { data: PaymentMethodInputs!, file: 'Upload' },
+//           async resolve(_root, args, ctx) {
+
+
+//             const sFile = await args?.file;
+//             console.log(sFile,'FILEEEEEEEEEE')
+//             return {
+//               message:"Success"
+//             }
+//       }
+//     })
+//   }
+// })
+
+
 export const CreatePayment = extendType({
   type: 'Mutation',
   definition(t) {
     // t.nullable.list.field('Hmo', {
     t.field('CreatePayment', {
       type: PaymentMethod,
-      args: { data: PaymentMethodInputs! },
+      args: { data: PaymentMethodInputs!, file: 'Upload'},
       async resolve(_root, args, _ctx) {
         const { session } = _ctx;
+
+   
 
         const { id, type } = args.data;
 
@@ -183,6 +250,24 @@ export const CreatePayment = extendType({
                 doctorID: session.user.id,
               },
             });
+            const sFile = await args?.file;
+            console.log(sFile,'SFILEEEEEEEEEEEEEEE')
+         
+            // console.log(await args?.file, 'sFilesFilesFilesFilesFilesFilesFile@@@');
+
+            if (sFile) {
+              const res: any = useUpload(sFile, 'public/documents/');
+              res?.map(async (v: any) => {
+                await client.doctor_payment_dp.create({
+                  data: {
+                    filename: String(v!.path),
+                    doctorID: Number(session?.user?.id),
+                    doctor:String(session?.user?.doctorId),
+                    dp_id:String(result?.id)
+                  },
+                });
+              });
+            }
           }
           // const results = await client.doctor_payment.create({
           //   data: {
@@ -190,7 +275,6 @@ export const CreatePayment = extendType({
           //     doctorID: session.user.id,
           //   },
           // });
-          console.log('R: ', result);
 
           return {
             ...result,

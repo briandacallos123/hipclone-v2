@@ -41,7 +41,6 @@ export default function AppointmentDetailsView({
 }: Props) {
   const upMd = useResponsive('up', 'md');
   // console.log(id,'ídto@@sss')
-  console.log(id, 'wews?: ________________________________________________');
   // const [currentItem, setCurrentItem] = useState({});
 
   // useEffect(() => {
@@ -61,8 +60,6 @@ export default function AppointmentDetailsView({
   const [isQueryDone, setQueryDone] = useState(false);
   const [isLoading, setLoading] = useState(true)
 
-  console.log(new_data, 'FU**************************************************************************______________________________________________________________ ');
-  console.log(isQueryDone,'YOUUUUUUUUUUU_________________________________________________________')
   const [getData, { data: queryData, error, loading, refetch: qRefetch }]: any = useLazyQuery(
     doctor_appointments_by_id_data,
     {
@@ -89,7 +86,6 @@ export default function AppointmentDetailsView({
     }).then(async (result: any) => {
       const { data } = result;
       if(data){
-        console.log(data,'_______________RESULT_________________ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@ ')
         setNewData(data?.doctor_appointments_by_id_data?.doctor_appointments_by_id);
       
       }

@@ -76,7 +76,8 @@ export default function UserProfileView() {
     tableData1,
     totalData,
     Ids,
-    isLoading
+    isLoading,
+    notesRecordResult
   } = useNotesHooks(payloads);
 
   const TABS = [
@@ -166,6 +167,7 @@ export default function UserProfileView() {
           tableData1={tableData1}
           totalData={totalData}
           Ids={Ids}
+          notesRecordResult={notesRecordResult}
         />
       )}
 

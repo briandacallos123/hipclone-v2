@@ -13,6 +13,8 @@ export * from './records';
 export * from './labreport_emr_patient';
 export * from './SubAccounts';
 export * from './PatientAppointment';
+export * from './Vital';
+
 export * from './Hmo';
 export * from './ClinicSched';
 export * from './UploadSchema';
