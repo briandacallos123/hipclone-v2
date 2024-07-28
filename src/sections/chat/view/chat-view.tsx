@@ -175,7 +175,7 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
     (async () => {
       handleMessageView(false, [], [], null);
       setcurrentConve(null);
-      setIsLoading(true)
+      // setIsLoading(true)
       await getConversation({
         variables: {
           id: conversationParam || id,
@@ -195,7 +195,7 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
             conversationParam || id
           );
           setcurrentConve(data?.conversation);
-          setIsLoading(false)
+          // setIsLoading(false)
         } else {
           router.push(baseUrl);
         }

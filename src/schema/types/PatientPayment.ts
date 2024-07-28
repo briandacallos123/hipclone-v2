@@ -143,22 +143,22 @@ export const mutation_patient_payment = extendType({
 
               // console.log(session?.user,'HAAAAAAAAAAAA????????????????????')
              
-              const notifContent = await client.notification_content.create({
-                data:{
-                  content:"send payment"
-                }
-              })
+              // const notifContent = await client.notification_content.create({
+              //   data:{
+              //     content:"send payment"
+              //   }
+              // })
              
              
-              await client.notification.create({
-                data:{
-                  user_id:Number(session?.user?.id),
-                  notifiable_id:Number(doctorID),
-                  notification_type_id:8,
-                  notification_content_id:Number(notifContent?.id),
-                  appt_id:Number(appt_id)
-                }
-              })
+              // await client.notification.create({
+              //   data:{
+              //     user_id:Number(session?.user?.id),
+              //     notifiable_id:Number(doctorID),
+              //     notification_type_id:8,
+              //     notification_content_id:Number(notifContent?.id),
+              //     appt_id:Number(appt_id)
+              //   }
+              // })
 
               res = {
                 status: 'Success',

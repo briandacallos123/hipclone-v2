@@ -19,10 +19,12 @@ const StyledComponent = styled('div')({
   background: `url('/assets/background/queue-bg.jpg')`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  height: '100vh', // Adjust the height as needed 
+  backgroundRepeat:'no-repeat',
+  minHeight: '100vh', // Adjust the height as needed 
   width: '100vw',
   display: 'flex',
   justifyContent: 'center',
+  overflow:'hidden'
 });
 
 const page = () => {
@@ -104,7 +106,7 @@ const page = () => {
         },
         // backgroundColor:'orange',
       }} >
-        <Box sx={{ position: 'absolute', top: 10, left: 10 }}>
+        <Box sx={{ position: 'fixed', top: 20, left: 20 }}>
           <LogoFull disabledLink />
         </Box>
 

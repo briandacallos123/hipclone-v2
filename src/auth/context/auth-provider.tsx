@@ -204,8 +204,16 @@ function NextAuthProvider({ children }: Props) {
   }, []);
 
   // LOGOUT
+  const storageCleanup = () =>{
+    localStorage?.removeItem('cart');
+    localStorage?.getItem('invalidVoucher') && localStorage.removeItem('invalidVoucher')
+  }
+
   const logout = useCallback(async () => {
-    signOut();
+    await signOut();
+
+    storageCleanup()
+
     dispatch({
       type: Types.LOGOUT,
     });

@@ -10,6 +10,8 @@ export { default as LanguagePopover } from './language-popover';
 export { default as ContactsPopover } from './contacts-popover';
 export { default as NavToggleButton } from './nav-toggle-button';
 export { default as NotificationsPopover } from './notifications-popover';
+export { default as NotificationPopoverMerchant } from './notifications-popover/notifications-popover-merchant';
+
 export { default as GotoDashboard } from './go-to-dashboard';
 export { default as Proceed } from './proceedButton';
 export { default as LoginUser } from './login-button-user';

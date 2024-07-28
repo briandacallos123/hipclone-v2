@@ -79,23 +79,37 @@ export function formatClinicTime(dates: any) {
   return formattedTime;
 }
 
-export function convertTimeFormat(timeString: string) {
+export function convertTimeFormat(timeString: string): string {
+  console.log(timeString,'TIMEEEEEEEEEEE')
   // Split the time string into hours and minutes
-  var timeParts = timeString.split(':');
+  const timeParts = timeString.split(':');
 
   // Extract hours and minutes
-  var hours = parseInt(timeParts[0], 10);
-  var minutes = parseInt(timeParts[1], 10);
+  const hours = parseInt(timeParts[0], 10);
+  const minutes = parseInt(timeParts[1], 10);
 
   // Construct a Date object with the given time values
-  var time = new Date();
+  const time = new Date();
   time.setHours(hours);
-  time.setMinutes(minutes);
+  time.setMinutes(minutes );
+  time.setSeconds(0); // Ensure seconds are set to zero
 
   // Format the time as HH:MM AM/PM
-  var formattedTime = time.toLocaleTimeString('en-PH', { hour12: true });
+  const formattedTime = time.toLocaleTimeString('en-PH', {
+    hour12: true,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit', // Optional: remove if you don't want seconds to be displayed
+  });
 
-  return formattedTime;
+  // Remove seconds from formatted time if present
+  // const fTime =  formattedTime.split(":").slice(0,2).join(":");
+  // console.log(fTime,'HUH__________________________????????????')
+  const fTime =  formattedTime.replace(/:\d{2}$/, ''); 
+  const lastPart = fTime?.split(" ")[1];
+  const lTime = fTime?.split(":").slice(0, 2).join(":");
+
+  return `${lTime} ${lastPart}`;
 }
 
 export function getDateSpan(dateString: string) {

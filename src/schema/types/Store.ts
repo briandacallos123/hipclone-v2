@@ -267,6 +267,9 @@ export const QueryAllStore = extendType({
                                     }
                                 ]
                             },
+                            orderBy:{
+                                created_at:'desc'
+                            },
                             include: {
                                 attachment_store: true
                             }

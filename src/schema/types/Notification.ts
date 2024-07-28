@@ -2,6 +2,8 @@ import { extendType, objectType, inputObjectType } from 'nexus';
 import client from '../../../prisma/prismaClient';
 import { GraphQLError } from "graphql/error/GraphQLError";
 import { unserialize, serialize } from 'php-serialize';
+import { medicineType } from './Medicine';
+import { equal } from 'assert';
 
 export const ChatPreview = objectType({
     name:'ChatPreview',
@@ -43,7 +45,7 @@ export const ApptData = objectType({
 export const NotifcationObjects = objectType({
     name:'NotifcationObjects',
     definition(t){
-        t.int('id');
+        t.bigInt('id');
         t.int('is_read');
         t.nullable.int('notif_group_id')
         t.dateTime('created_at');
@@ -67,98 +69,6 @@ export const NotifcationObjects = objectType({
             }
         });
         t.nullable.string('chat_id');
-        
-        // t.nullable.field('chat_preview',{
-        //     type:ChatPreview,
-        //     async resolve(t,args,ctx){
-        //        try {
-        //         const { session } = ctx;
-        //         if(!t?.chat_id){
-        //             return null
-        //         }
-              
-        //         const id = await new Promise(async(resolve, reject)=>{
-        //             if(session?.user?.role === 'patient'){
-        //                 const id = await client.user.findFirst({
-        //                     where:{
-        //                         email:session?.user?.email
-        //                     }
-        //                 });
-        //                 resolve(id)
-        //             }else{
-        //                 const id = await client.user.findFirst({
-        //                     where:{
-        //                         id:session?.user?.id
-        //                     }
-        //                 });
-        //                 resolve(id)
-        //             }
-        //         })
-
-        //         // console.log(id,'%%%%%%%%%%%%')
-             
-
-        //         const [data, count]:any = await client.$transaction([
-        //             client.message.findMany({
-        //                 where:{
-        //                     conversationId:t?.chat_id,
-        //                     senderId:{
-        //                         not:Number(id?.id)
-        //                     }
-        //                 },
-        //                 orderBy:{
-        //                     createdAt:'desc'
-        //                 }
-        //             }),
-        //             client.message.count({
-        //                 where:{
-        //                     conversationId:t?.chat_id
-        //                 },
-        //                 orderBy:{
-        //                     createdAt:'desc'
-        //                 }
-        //             }),
-
-        //         ])
-
-                
-        //         // console.log(data,'__________________________')
-
-        //         // console.log(session?.user)
-        //         const allData:any = data?.map((item:any)=>{
-        //             // if(!item?.read_ids){
-        //             //     return false
-        //             // }
-
-        //             let ids:any;
-        //             if(item?.read_ids){
-        //                 ids = unserialize(item?.read_ids);
-        //             }
-        //             // console.log(ids,'ids')
-        //             let isExists = ids?.find((i:any)=>Number(i.id) === Number(id?.id));
-               
-        //             console.log(isExists,'WAAHH')
-                   
-        //             if(!isExists){
-                     
-        //                 return {...item, read_ids:ids}
-        //             }
-
-                    
-        //         })
-
-        //         // console.log(allData,'___________________________')
-               
-        //         return {
-        //             data:allData,
-        //             count
-        //         }
-        //        } catch (error) {
-        //         throw new GraphQLError(error)
-        //        }
-        //     }
-        // })
-        // record to nung nag trigger ng notification
         t.field('user',{
             type:userInfoWAttach,
             async resolve(t){
@@ -292,6 +202,7 @@ export const NotificationPayloads = inputObjectType({
         });
         t.nullable.int('countAll');
         t.nullable.int('countUnread');
+        
     }
   })
 
@@ -319,6 +230,22 @@ export const NotifacationQuery = extendType({
                 const { session } = _ctx;
                 const user = session.user;
 
+            const userType = (()=>{
+                let userIdRole:any;
+
+                if(user?.role === 'doctor'){
+                    userIdRole = 3
+                }else if(user?.role === 'patient'){
+                    userIdRole = 5
+                }else if(user?.role === 'secretary'){
+                    userIdRole = 1
+                }else if(user?.role === 'merchant'){
+                    userIdRole = 4
+                }
+                return userIdRole
+            })()
+                
+
              
 
                 let [all, unread, allCount, allUnread]:any = await client.$transaction([
@@ -327,6 +254,7 @@ export const NotifacationQuery = extendType({
                         where:{
                             notifiable_id:Number(user?.id),
                             is_deleted:0,
+                            notifiable_user_role:userType
                         },
                         orderBy:{
                             created_at:'desc'
@@ -336,6 +264,7 @@ export const NotifacationQuery = extendType({
                         take,
                         where:{
                             notifiable_id:Number(user?.id),
+                            notifiable_user_role:userType,
                             is_deleted:0,
                             is_read:0
                         },
@@ -343,6 +272,7 @@ export const NotifacationQuery = extendType({
                     client.notification.count({
                         where:{
                             notifiable_id:Number(user?.id),
+                            notifiable_user_role:userType,
                             is_deleted:0,
                         }
                     }),
@@ -350,6 +280,7 @@ export const NotifacationQuery = extendType({
                         where:{
                             notifiable_id:Number(user?.id),
                             is_deleted:0,
+                            notifiable_user_role:userType,
                             is_read:0
                         }
                     })
@@ -365,8 +296,6 @@ export const NotifacationQuery = extendType({
                 unread = unread.map((item:any)=>{
                     return {...item, id: Number(item.id)}
                 })
-
-
                
 
                 return {
@@ -386,6 +315,229 @@ export const NotifacationQuery = extendType({
         }
         })
     }
+})
+
+export const NotifacationQueryMerchantObj = objectType({
+    name:"NotifacationQueryMerchantObj",
+    definition(t) {
+        t.list.field('notifData',{
+            type:notifData
+        })
+        // t.list.field('unreadOrders',{
+        //     type:NotifcationObjects
+        // });
+        // t.list.field('all',{
+        //     type:NotifcationObjects
+        // });
+        // t.list.field('shortSupply',{
+        //     type:medicineType,
+        //     async resolve(root){
+
+
+        //         const result =  root?.shortSupply?.map(async(item)=>{
+
+        //             const target = await client.merchant_medicine.findFirst({
+        //                 where:{
+        //                     id:Number(item?.medecine_id)
+        //                 }
+        //             });
+        //            return target;
+        //         });
+             
+        //         const fResult = await Promise.all(result);
+        //         console.log(fResult,'FRESULT______________')
+        //         return fResult
+        //     }
+        // })
+    }
+})
+
+const notifData = objectType({
+    name:"notifData",
+    definition(t) {
+        t.nullable.field('length',{
+            type:'Int',
+           async resolve(root){
+                return root?._count?.id
+            }
+        });
+        t.nullable.field('notification_type',{
+            type:'String',
+            resolve(_root){
+                let type:any;
+                
+                if(_root?.notification_type_id === 10){
+                    type = "supply"
+                }else if(_root?.notification_type_id === 9){
+                    type = "order"
+                };
+                return type;
+            }
+        });
+        t.nullable.boolean('is_read');
+        t.nullable.field('user',{
+            type:'String',
+            async resolve(root){
+                let myUser:any;
+
+                const targetUser = await client.user.findFirst({
+                    where:{
+                        id:Number(root?.user_id)
+                    }
+                });
+                
+                if(Number(targetUser?.userType) === 0){
+                    let patient = await client.patient.findFirst({
+                        where:{
+                            EMAIL:targetUser?.email
+                        },
+                        
+                    });
+                    myUser = patient?.LNAME ? `${patient?.FNAME} ${patient?.MNAME} ${patient?.LNAME}`:`${patient?.FNAME} ${patient?.LNAME}`
+                }
+
+                return myUser
+            }
+        })
+    },
+})
+
+const UserMerchantType = objectType({
+    name:"UserMerchantType",
+    definition(t) {
+        t.string('name')
+    },
+})
+
+const recordCount = objectType({
+    name:"recordCount",
+    definition(t) {
+        t.int('id');
+    },
+})
+
+export const NotificationQueryMerchant = extendType({
+    type: 'Query',
+    definition(t) {
+      t.nullable.field('NotificationQueryMerchant', {
+        type: NotifacationQueryMerchantObj,
+        args: { data: NotificationPayloads! },
+        async resolve(_, args, _ctx) {
+            const { session } = _ctx;
+            const {user} = session;
+
+           try {
+            let storeByMerchant:any = await client.merchant_store.findMany({
+                where:{
+                    merchant_id:Number(session?.user?.id)
+                }
+            })
+            storeByMerchant = storeByMerchant?.map((item)=>Number(item.id))
+            const nTypeId = [9, 10]
+
+
+            // const [ all, unreadOrders, shortSupplyUnread, groupedData]:any = await client.$transaction([
+               
+               
+            //     client.notification.findMany({
+            //         where:{
+            //             notification_type_id:{
+            //                 in:nTypeId
+            //             },
+            //             notifiable_user_role:4,
+            //             notifiable_id:Number(session?.user?.id),
+            //             is_deleted:0,
+            //         }
+            //     }),
+            //     client.notification.findMany({
+            //         where:{
+            //             notification_type_id:9,
+            //             notifiable_user_role:4,
+            //             notifiable_id:Number(session?.user?.id),
+            //             is_deleted:0,
+            //             is_read:0,
+            //         }
+            //     }),
+            //     client.notification.findMany({
+            //         where:{
+            //             notification_type_id:10,
+            //             notifiable_id:Number(session?.user?.id),
+            //             is_deleted:0,
+            //             notifiable_user_role:4,
+            //             is_read:0
+            //         }
+            //     }),
+            //     client.notification.groupBy({
+            //         by:['notification_type_id','is_read','user_id'],
+            //         where:{
+            //             notification_type_id:{
+            //                 in:nTypeId
+            //             },
+            //             notifiable_user_role:4,
+            //             notifiable_id:Number(session?.user?.id),
+            //             is_deleted:0,
+            //         },
+            //         _count:{
+            //             id:true,
+            //         }
+            //     }),
+            // ])
+
+            const groupedData = await client.notification.groupBy({
+                by:['notification_type_id','is_read','user_id'],
+                where:{
+                    notification_type_id:{
+                        in:nTypeId
+                    },
+                    notifiable_user_role:4,
+                    notifiable_id:Number(session?.user?.id),
+                    is_deleted:0,
+                },
+                _count:{
+                    id:true,
+                },
+            })
+           
+
+            const fData = groupedData?.map(async(item)=>{
+                const notifData = await client.notification.findFirst({
+                    where:{
+                        notification_type_id:item?.notification_type_id,
+                        is_read:item?.is_read,
+                        user_id:item?.user_id
+                    },
+                    include:{
+                            orders:true,
+                            merchant_medicine:true,
+                    },
+                    
+                })
+
+    
+                return {
+                    ...item,
+                    notifData:{...notifData}
+                }
+            })
+
+            const finalData = await Promise.all(fData)
+            //1.create orders related, not yet read
+            //2. supply shortage related, not yet read.
+            //3.supply shortage related, already read.
+    
+            
+            // console.log(finalData,'HAAAAAAAAAAAAAAAAAAAAA')
+            return {
+                notifData:finalData
+            }
+           } catch (error) {
+            console.log(error)
+            throw new GraphQLError(error)
+           }
+
+        }
+    })
+}
 })
 
 export const NotifUpdateInput = inputObjectType({

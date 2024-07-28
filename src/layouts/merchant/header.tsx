@@ -15,10 +15,11 @@ import { LogoFull } from 'src/components/logo';
 import { useSettingsContext } from 'src/components/settings';
 //
 import { HEADER, NAV } from '../config-layout';
-import { Searchbar, AccountPopover, Scanner, SettingsButton, NotificationsPopover } from '../_common';
+import { Searchbar, AccountPopover, Scanner, SettingsButton, NotificationsPopover, NotificationPopoverMerchant } from '../_common';
 import NotificationController from '../_common/notifications-popover/notification-controller';
 import { useEffect } from 'react';
 import { useAuthContext } from '@/auth/hooks';
+import NotificationControllerMerchant from '../_common/notifications-popover/notification-controller-merchant';
 // import Scanner from '../../sections/scan/view'
 
 // ----------------------------------------------------------------------
@@ -28,10 +29,14 @@ type Props = {
 };
 
 export default function Header({ onOpenNav }: Props) {
-  const theme = useTheme();
-  
-  const {allData, isLoading, summarize, queryResults, handleReadFunc} = NotificationController({isRun:true});
   const { user, socket } = useAuthContext();
+
+  const theme = useTheme();
+  const isMerchant = user?.role === 'merchant';
+  
+  const {allData, isLoading, summarize, queryResults, handleReadFunc} = NotificationController({isRun:!isMerchant});
+  const {allData:merchantData} = NotificationControllerMerchant({isRun:isMerchant});
+ 
 
   useEffect(()=>{
     if (socket?.connected) {
@@ -102,6 +107,10 @@ export default function Header({ onOpenNav }: Props) {
         {user?.role !== 'merchant' && user?.role !== 'admin' && <>
            <NotificationsPopover queryResults={queryResults} handleReadFunc={handleReadFunc} notificationData={allData} isLoading={isLoading} summarize={summarize}/>
         </>}
+        {user?.role !== 'admin' && <>
+           <NotificationPopoverMerchant queryResults={queryResults} handleReadFunc={handleReadFunc} notificationData={merchantData} isLoading={isLoading} />
+        </>}
+
 
         <SettingsButton />
 

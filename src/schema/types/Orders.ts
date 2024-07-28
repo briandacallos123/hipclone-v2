@@ -26,21 +26,21 @@ export const orderType = objectType({
         t.field('patient', {
             type: patientInfos
         })
-        t.nullable.field('store',{
-            type:merchant_store
+        t.nullable.field('store', {
+            type: merchant_store
         })
-        t.nullable.field('attachment',{
-            type:attachment_info
+        t.nullable.field('attachment', {
+            type: attachment_info
         })
     },
 })
 
 export const merchant_store = objectType({
-    name:"merchant_store",
+    name: "merchant_store",
     definition(t) {
         t.string('name')
-        t.field('attachment_store',{
-            type:attachment_store
+        t.field('attachment_store', {
+            type: attachment_store
         })
 
     },
@@ -70,14 +70,14 @@ export const orderResponse = objectType({
             type: orderType
         })
         t.int('totalRecords');
-        t.field('summary',{
-            type:summary
+        t.field('summary', {
+            type: summary
         })
     },
 })
 
 export const summary = objectType({
-    name:"summary",
+    name: "summary",
     definition(t) {
         t.int('delivery');
         t.int('pickup');
@@ -102,7 +102,7 @@ export const orderInputType = inputObjectType({
 });
 
 export const QueryAllMedicineOrdersPatientObj = objectType({
-    name:"QueryAllMedicineOrdersPatientObj",
+    name: "QueryAllMedicineOrdersPatientObj",
     definition(t) {
         t.int('id')
         t.string('generic_name');
@@ -125,7 +125,7 @@ export const QueryAllMedicineOrdersPatient = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
-                const {take, skip}:any = args?.data;
+                const { take, skip }: any = args?.data;
 
 
                 // console.log(session?.user,'user_')
@@ -133,15 +133,15 @@ export const QueryAllMedicineOrdersPatient = extendType({
                 try {
 
                     const patientId = await client.patient.findFirst({
-                        where:{
-                            EMAIL:session?.user?.email
+                        where: {
+                            EMAIL: session?.user?.email
                         }
                     })
 
-                    console.log(patientId,'email ?')
+                    console.log(patientId, 'email ?')
                     const result = await client.orders.findMany({
-                        where:{
-                            patient_id:Number(patientId?.S_ID)
+                        where: {
+                            patient_id: Number(patientId?.S_ID)
                         }
                     })
 
@@ -171,89 +171,89 @@ export const QueryAllPatientOrders = extendType({
                 const { session } = ctx;
 
 
-                const {take, skip, status}:any = args?.data;
+                const { take, skip, status }: any = args?.data;
 
-                const tabsOptions = (()=>{
-                    if(status !== -1){
+                const tabsOptions = (() => {
+                    if (status !== -1) {
                         return {
-                            status_id:status
+                            status_id: status
                         }
                     }
                 })()
 
-                const [result, totalRecords, pending, approved, done, cancelled]:any = await client.$transaction([
+                const [result, totalRecords, pending, approved, done, cancelled]: any = await client.$transaction([
                     client.orders.findMany({
                         take,
                         skip,
-                        where:{
-                            is_deleted:0,
-                            patient_id:Number(session?.user?.s_id),
+                        where: {
+                            is_deleted: 0,
+                            patient_id: Number(session?.user?.s_id),
                             ...tabsOptions
                         },
-                        include:{
-                            patient:true,
-                            
+                        include: {
+                            patient: true,
+
                         },
-                        
+
                     }),
                     client.orders.count({
-                        where:{
-                            is_deleted:0,
-                            patient_id:Number(session?.user?.s_id)
+                        where: {
+                            is_deleted: 0,
+                            patient_id: Number(session?.user?.s_id)
                         }
                     }),
                     client.orders.count({
-                        where:{
-                            is_deleted:0,
-                            patient_id:Number(session?.user?.s_id),
-                            status_id:1
+                        where: {
+                            is_deleted: 0,
+                            patient_id: Number(session?.user?.s_id),
+                            status_id: 1
                         }
                     }),
                     client.orders.count({
-                        where:{
-                            is_deleted:0,
-                            patient_id:Number(session?.user?.s_id),
-                            status_id:2
+                        where: {
+                            is_deleted: 0,
+                            patient_id: Number(session?.user?.s_id),
+                            status_id: 2
                         }
                     }),
                     client.orders.count({
-                        where:{
-                            is_deleted:0,
-                            patient_id:Number(session?.user?.s_id),
-                            status_id:4
+                        where: {
+                            is_deleted: 0,
+                            patient_id: Number(session?.user?.s_id),
+                            status_id: 4
                         }
                     }),
                     client.orders.count({
-                        where:{
-                            is_deleted:0,
-                            patient_id:Number(session?.user?.s_id),
-                            status_id:3
+                        where: {
+                            is_deleted: 0,
+                            patient_id: Number(session?.user?.s_id),
+                            status_id: 3
                         }
                     }),
                 ])
 
 
-                let new_result = result?.map(async(item:any)=>{
-                    const store =  await client.merchant_store.findUnique({
-                        where:{
-                            id:Number(item?.store_id)
+                let new_result = result?.map(async (item: any) => {
+                    const store = await client.merchant_store.findUnique({
+                        where: {
+                            id: Number(item?.store_id)
                         },
-                        include:{
-                            attachment_store:true
+                        include: {
+                            attachment_store: true
                         }
                     })
 
                     const medecine = await client.merchant_medicine.findFirst({
-                        where:{
-                            id:Number(item?.medecine_id)
+                        where: {
+                            id: Number(item?.medecine_id)
                         },
                     })
                     const medecine_attachment = await client.medecine_attachment.findFirst({
-                        where:{
-                            id:Number(medecine?.attachment_id)
+                        where: {
+                            id: Number(medecine?.attachment_id)
                         }
                     })
-                    return {...item, store:{...store}, attachment:{...medecine_attachment}}
+                    return { ...item, store: { ...store }, attachment: { ...medecine_attachment } }
                 })
 
                 new_result = await Promise.all(new_result)
@@ -264,16 +264,16 @@ export const QueryAllPatientOrders = extendType({
                 // t.nullable.int('done');
                 // t.nullable.int('approved');
                 return {
-                    orderType:new_result,
+                    orderType: new_result,
                     totalRecords,
-                    summary:{
+                    summary: {
                         pending,
                         done,
                         approved,
                         cancelled
                     }
                 }
-                
+
             }
         })
     }
@@ -292,166 +292,169 @@ export const QueryAllMedicineOrders = extendType({
                 const { session } = ctx;
 
                 const merchant_id = await client.merchant_user.findUnique({
-                    where:{
-                        id:Number(session?.user?.id)
+                    where: {
+                        id: Number(session?.user?.id)
                     },
-                    select:{
-                        id:true
+                    select: {
+                        id: true
                     }
                 })
                 // get all stores based on merchant_id
                 const stores = await client.merchant_store.findMany({
-                    where:{
-                        merchant_id:Number(merchant_id?.id)
+                    where: {
+                        merchant_id: Number(merchant_id?.id)
                     },
-                    select:{
-                        id:true
+                    select: {
+                        id: true
                     }
                 })
 
-                const statusOption = (()=>{
-                    if(status !== -1) {
-                         return {
-                            status_id:status
-                         }
+                const statusOption = (() => {
+                    if (status !== -1) {
+                        return {
+                            status_id: status
+                        }
                     }
                 })()
-            
-                 const delivery_option = (()=>{
-                    if(is_deliver === 1){
+
+                const delivery_option = (() => {
+                    if (is_deliver === 1) {
                         return {
-                            is_deliver:1
+                            is_deliver: 1
                         }
-                    }else if(is_deliver === 0){
+                    } else if (is_deliver === 0) {
                         return {
-                            is_deliver:0
+                            is_deliver: 0
                         }
                     }
-                 })()
+                })()
 
 
                 try {
-                  
+
 
                     const [result, totalRecords, deliver, pickup, pending, cancelled, done, approved] = await client.$transaction([
                         client.orders.findMany({
                             take,
                             skip,
-                            where:{
-                                store_id:{
-                                    in:stores?.map((item)=>item.id)
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
                                 },
                                 ...statusOption,
-                                is_deleted:0,
+                                is_deleted: 0,
                                 ...delivery_option
                             },
-                            include:{
-                                patient:true,
+                            include: {
+                                patient: true,
+                            },
+                            orderBy: {
+                                created_at: 'desc'
                             }
                         }),
                         client.orders.count({
-                            where:{
-                                store_id:{
-                                    in:stores?.map((item)=>item.id)
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
                                 },
-                                is_deleted:0,
+                                is_deleted: 0,
                             }
                         }),
                         // for delivery
                         client.orders.count({
-                            where:{
-                                store_id:{
-                                    in:stores?.map((item)=>item.id)
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
                                 },
-                                is_deliver:1,
-                                is_deleted:0,
+                                is_deliver: 1,
+                                is_deleted: 0,
                             }
                         }),
-                         // for pick up
-                         client.orders.count({
-                            where:{
-                                store_id:{
-                                    in:stores?.map((item)=>item.id)
+                        // for pick up
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
                                 },
-                                is_deliver:{
-                                    not:{
-                                        equals:1
+                                is_deliver: {
+                                    not: {
+                                        equals: 1
                                     }
                                 },
-                                is_deleted:0,
+                                is_deleted: 0,
                             }
                         }),
                         // pending / cancelled / done/ approve
                         client.orders.count({
-                            where:{
-                                store_id:{
-                                    in:stores?.map((item)=>item.id)
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
                                 },
                                 // is_deliver:{
                                 //     not:{
                                 //         equals:1
                                 //     }
                                 // },
-                                is_deleted:0,
-                                status_id:1
+                                is_deleted: 0,
+                                status_id: 1
                             }
                         }),
-                         //  cancelled / done/ approve
-                         client.orders.count({
-                            where:{
-                                store_id:{
-                                    in:stores?.map((item)=>item.id)
+                        //  cancelled / done/ approve
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
                                 },
                                 // is_deliver:{
                                 //     not:{
                                 //         equals:1
                                 //     }
                                 // },
-                                is_deleted:0,
-                                status_id:3
+                                is_deleted: 0,
+                                status_id: 3
                             }
                         }),
-                         // done/ approve
-                         client.orders.count({
-                            where:{
-                                store_id:{
-                                    in:stores?.map((item)=>item.id)
+                        // done/ approve
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
                                 },
                                 // is_deliver:{
                                 //     not:{
                                 //         equals:1
                                 //     }
                                 // },
-                                is_deleted:0,
-                                status_id:4
+                                is_deleted: 0,
+                                status_id: 4
                             }
                         }),
-                         //approve
-                         client.orders.count({
-                            where:{
-                                store_id:{
-                                    in:stores?.map((item)=>item.id)
+                        //approve
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
                                 },
                                 // is_deliver:{
                                 //     not:{
                                 //         equals:1
                                 //     }
                                 // },
-                                is_deleted:0,
-                                status_id:2
+                                is_deleted: 0,
+                                status_id: 2
                             }
                         }),
                     ])
 
 
-                    let new_result = result?.map(async(item:any)=>{
-                        const store =  await client.merchant_store.findUnique({
-                            where:{
-                                id:Number(item?.store_id)
+                    let new_result = result?.map(async (item: any) => {
+                        const store = await client.merchant_store.findUnique({
+                            where: {
+                                id: Number(item?.store_id)
                             }
                         })
 
-                        return {...item, store}
+                        return { ...item, store }
                     })
 
                     new_result = await Promise.all(new_result)
@@ -459,8 +462,8 @@ export const QueryAllMedicineOrders = extendType({
                     return {
                         orderType: new_result,
                         totalRecords,
-                        summary:{
-                            delivery:deliver,
+                        summary: {
+                            delivery: deliver,
                             pickup,
                             // pending, cancelled, done, approved
                             pending,
@@ -485,15 +488,15 @@ export const CreateOrdersInp = inputObjectType({
         t.nullable.string('contact');
         t.string('payment');
         t.nullable.string('refNumber');
-        t.nonNull.list.field('medicine_list',{
-            type:medecine_list
+        t.nonNull.list.field('medicine_list', {
+            type: medecine_list
         })
     },
 
 })
 
 export const medecine_list = inputObjectType({
-    name:"medecine_list",
+    name: "medecine_list",
     definition(t) {
         t.nullable.string('generic_name');
         t.nullable.string('brand_name');
@@ -509,9 +512,9 @@ export const medecine_list = inputObjectType({
 })
 
 export const CreateOrdersRes = objectType({
-    name:"CreateOrdersRes",
+    name: "CreateOrdersRes",
     definition(t) {
-       t.string('message')
+        t.string('message')
     },
 })
 
@@ -529,23 +532,22 @@ export const CreateOrders = extendType({
     definition(t) {
         t.nullable.field('CreateOrders', {
             type: CreateOrdersRes,
-            args: { data: CreateOrdersInp!, file:'Upload'! },
+            args: { data: CreateOrdersInp!, file: 'Upload'! },
             async resolve(_root, args, ctx) {
-                const {session} = ctx;
-                const {address, payment, contact} = args?.data;
+                const { session } = ctx;
+                const { address, payment, contact } = args?.data;
 
                 const sFile = await args?.file;
-                console.log(sFile,'SFILEEEEEEEEEEE')
                 let onlinePaymentAtt: any;
-                let onlinePayment:any;
-             
+                let onlinePayment: any;
+
 
                 try {
                     // pag may payment attachment ex: gcash
-                   
+
                     if (sFile) {
                         const res: any = useUpload(sFile, 'public/documents/');
-    
+
                         onlinePaymentAtt = await client.online_order_payment_attachment.create({
                             data: {
                                 filename: String(res[0]!.fileName),
@@ -555,80 +557,155 @@ export const CreateOrders = extendType({
                         })
                     }
 
-                    console.log(onlinePaymentAtt,'online payment')
 
-                    if(payment!=="cash"){
+                    if (payment !== "cash") {
                         onlinePayment = await client.online_order_payment.create({
-                            data:{
-                                reference_number:args?.data?.refNumber,
-                                payment_attachment:Number(onlinePaymentAtt?.id)
+                            data: {
+                                reference_number: args?.data?.refNumber,
+                                payment_attachment: Number(onlinePaymentAtt?.id)
                             }
                         })
                     }
 
                     const patient = await client.patient.findUnique({
-                        where:{
+                        where: {
                             EMAIL: session?.user?.email
                         }
                     })
 
-                    const updateMedecineStock = args?.data?.medicine_list?.map(async(item:any)=>{
-                        const {medecine_id, quantity} = item;
+                    const updateMedecineStock = args?.data?.medicine_list?.map(async (item: any) => {
+                        const { medecine_id, quantity } = item;
 
                         const targetMed = await client.merchant_medicine.findUnique({
-                            where:{
-                                id:Number(medecine_id)
+                            where: {
+                                id: Number(medecine_id)
                             }
                         })
 
                         return await client.merchant_medicine.update({
-                            where:{
-                                id:Number(medecine_id)
+                            where: {
+                                id: Number(medecine_id)
                             },
-                            data:{
-                                stock:Number(targetMed?.stock) - Number(quantity),
-                                quantity_sold:Number(targetMed.quantity_sold) + Number(quantity)
+                            data: {
+                                stock: Number(targetMed?.stock) - Number(quantity),
+                                quantity_sold: Number(targetMed.quantity_sold) + Number(quantity)
                             }
                         })
+
+                       
+
+                        
                     })
 
-                    await Promise.all(updateMedecineStock)
+                   await Promise.all(updateMedecineStock)
+
+                    // stockResult?.map(async(item)=>{
+
+                    // })
 
 
-                   const result =  args?.data?.medicine_list?.map(async(item:any)=>{
-                        const {generic_name,price, brand_name,dose, form, quantity, store_id, medecine_id} = item;
 
-                                return await client.orders.create({
-                                    data:{
-                                        medecine_id,
-                                        generic_name,
-                                        brand_name,
-                                        dose,
-                                        form,
-                                        quantity:Number(quantity),
-                                        store_id:Number(store_id),
-                                        is_deliver:1,
-                                        is_paid:1,
-                                        status_id:1,
-                                        price,
-                                        address,
-                                        contact,
-                                        payment,
-                                        online_payment:onlinePayment ? Number(onlinePayment?.id):null,
-                                        patient_id:Number(patient?.S_ID),
+
+
+                    const storeId: any = [];
+
+                    const result = args?.data?.medicine_list?.map(async (item: any) => {
+                        const { generic_name, price, brand_name, dose, form, quantity, store_id, medecine_id } = item;
+
+                        if (!storeId.includes(store_id)) {
+                            storeId.push(store_id)
+                        }
+
+                        const orderMade = await client.orders.create({
+                            data: {
+                                medecine_id,
+                                generic_name,
+                                brand_name,
+                                dose,
+                                form,
+                                quantity: Number(quantity),
+                                store_id: Number(store_id),
+                                is_deliver: 1,
+                                is_paid: 1,
+                                status_id: 1,
+                                price,
+                                address,
+                                value: Number(price * quantity),
+                                contact,
+                                payment,
+                                online_payment: onlinePayment ? Number(onlinePayment?.id) : null,
+                                patient_id: Number(patient?.S_ID),
+                            }
+                        })
+
+                        if (storeId.includes(store_id)) {
+                            const merchantId = await client.merchant_store.findFirst({
+                                where: {
+                                    id: Number(store_id)
+                                }
+                            })
+                            const content_id = await client.notification_content.create({
+                                data: {
+                                    content: "Create an order"
+                                }
+                            });
+
+                            const medecineStock:any = await client.merchant_medicine.findFirst({
+                                where:{
+                                    id:Number(medecine_id)
+                                }
+                            })
+
+                            await client.notification.create({
+                                data: {
+                                    user_id: Number(session?.user?.id),
+                                    notifiable_id: Number(merchantId?.merchant_id),
+                                    notifiable_user_role: 4,
+                                    notification_type_id: 9,
+                                    notification_content_id: Number(content_id?.id),
+                                    order_id: Number(orderMade?.id)
+                                }
+                            })
+
+                            
+
+                            if(medecineStock?.stock <= 10){
+                                let stockNotifContent = await client.notification_content.create({
+                                    data: {
+                                        content: "Shortage in supply"
+                                    }
+                                });
+                                
+                                await client.notification.create({
+                                    data: {
+                                        user_id: Number(session?.user?.id),
+                                        notifiable_id: Number(merchantId?.merchant_id),
+                                        notifiable_user_role: 4,
+                                        notification_type_id: 10,
+                                        notification_content_id: Number(stockNotifContent?.id),
+                                        medecine_id:Number(medecine_id)
                                     }
                                 })
+    
+                            }
+
+
+                        }
+
+                        return orderMade
                     })
 
-                     await Promise.all(result);
+                    await Promise.all(result);
 
-                   return {
-                    message:"Successfully created"
-                   }
+
+
+                    return {
+                        message: "Successfully created"
+                    }
                 } catch (error) {
                     console.log(error)
                 }
-               
+
 
             }
         })
@@ -711,7 +788,7 @@ export const EditOrders = extendType({
                 try {
                     await client.merchant_user.update({
                         data: {
-                           ...args.data
+                            ...args.data
                         },
                         where: {
                             id: args?.data?.id
@@ -739,171 +816,174 @@ export const QueryAllOrdersForMerchantHistory = extendType({
             args: { data: orderInputType },
             async resolve(_root, args, ctx) {
                 const { take, skip, search, is_deliver, status }: any = args.data;
-                const {session} = ctx;
+                const { session } = ctx;
 
                 // console.log(session?.user,'USER____________________')
-               try {
-                const merchant_id = await client.merchant_user.findUnique({
-                    where:{
-                        id:Number(session?.user?.id)
-                    },
-                    select:{
-                        id:true
-                    }
-                })
-                // get all stores based on merchant_id
-                const stores = await client.merchant_store.findMany({
-                    where:{
-                        merchant_id:Number(merchant_id?.id)
-                    },
-                    select:{
-                        id:true
-                    }
-                })
-
-                const status_options = (()=>{
-                    if(status === -1){
-                        return {
-                            status_id:{
-                                in:[4,3]
-                            }
-                        }
-                    }else{
-                        return {
-                            status_id:status
-                        }
-                    }
-                })()
-                
-                const delivery_option = (()=>{
-                    if(is_deliver === 1){
-                        return {
-                            is_deliver:1
-                        }
-                    }else if(is_deliver === 0){
-                        return {
-                            is_deliver:0
-                        }
-                    }
-                 })()
-
-                const [result, totalRecords, deliver, pickup, done, cancelled] = await client.$transaction([
-                    client.orders.findMany({
-                        take,
-                        skip,
-                        where:{
-                            store_id:{
-                                in:stores?.map((item)=>item.id)
-                            },
-                            is_deleted:0,
-                            ...delivery_option,
-                            ...status_options,
+                try {
+                    const merchant_id = await client.merchant_user.findUnique({
+                        where: {
+                            id: Number(session?.user?.id)
                         },
-                        include:{
-                            patient:true,
+                        select: {
+                            id: true
                         }
-                    }),
-                    client.orders.count({
-                        where:{
-                            store_id:{
-                                in:stores?.map((item)=>item.id)
-                            },
-                            is_deleted:0,
-                            status_id:{
-                                in:[3,4]
-                            }
+                    })
+                    // get all stores based on merchant_id
+                    const stores = await client.merchant_store.findMany({
+                        where: {
+                            merchant_id: Number(merchant_id?.id)
+                        },
+                        select: {
+                            id: true
                         }
-                    }),
-                    // for delivery
-                    client.orders.count({
-                        where:{
-                            store_id:{
-                                in:stores?.map((item)=>item.id)
-                            },
-                            is_deliver:1,
-                            is_deleted:0,
-                            status_id:4
-                        }
-                    }),
-                     // for pick up
-                     client.orders.count({
-                        where:{
-                            store_id:{
-                                in:stores?.map((item)=>item.id)
-                            },
-                            is_deliver:{
-                                not:{
-                                    equals:1
+                    })
+
+                    const status_options = (() => {
+                        if (status === -1) {
+                            return {
+                                status_id: {
+                                    in: [4, 3]
                                 }
+                            }
+                        } else {
+                            return {
+                                status_id: status
+                            }
+                        }
+                    })()
+
+                    const delivery_option = (() => {
+                        if (is_deliver === 1) {
+                            return {
+                                is_deliver: 1
+                            }
+                        } else if (is_deliver === 0) {
+                            return {
+                                is_deliver: 0
+                            }
+                        }
+                    })()
+
+                    const [result, totalRecords, deliver, pickup, done, cancelled] = await client.$transaction([
+                        client.orders.findMany({
+                            take,
+                            skip,
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
+                                },
+                                is_deleted: 0,
+                                ...delivery_option,
+                                ...status_options,
                             },
-                            is_deleted:0,
-                        }
-                    }),
-
-                    // done
-                    client.orders.count({
-                       where:{
-                           store_id:{
-                               in:stores?.map((item)=>item.id)
-                           },
-                           status_id:4,
-                           is_deleted:0,
-                       }
-                   }),
-                    // cancelled
-                    client.orders.count({
-                        where:{
-                            store_id:{
-                                in:stores?.map((item)=>item.id)
+                            include: {
+                                patient: true,
                             },
-                            status_id:3,
-                            is_deleted:0,
-                        }
-                    })
-                ])
-                let new_result = result?.map(async(item:any)=>{
-                    const store =  await client.merchant_store.findUnique({
-                        where:{
-                            id:Number(item?.store_id)
-                        }
-                    })
-                    const medecine = await client.merchant_medicine.findFirst({
-                        where:{
-                            id:Number(item?.medecine_id)
-                        },
-                    })
-                    const medecine_attachment = await client.medecine_attachment.findFirst({
-                        where:{
-                            id:Number(medecine?.attachment_id)
-                        }
+                            orderBy: {
+                                created_at: 'desc'
+                            }
+                        }),
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
+                                },
+                                is_deleted: 0,
+                                status_id: {
+                                    in: [3, 4]
+                                }
+                            }
+                        }),
+                        // for delivery
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
+                                },
+                                is_deliver: 1,
+                                is_deleted: 0,
+                                status_id: 4
+                            }
+                        }),
+                        // for pick up
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
+                                },
+                                is_deliver: {
+                                    not: {
+                                        equals: 1
+                                    }
+                                },
+                                is_deleted: 0,
+                            }
+                        }),
+
+                        // done
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
+                                },
+                                status_id: 4,
+                                is_deleted: 0,
+                            }
+                        }),
+                        // cancelled
+                        client.orders.count({
+                            where: {
+                                store_id: {
+                                    in: stores?.map((item) => item.id)
+                                },
+                                status_id: 3,
+                                is_deleted: 0,
+                            }
+                        })
+                    ])
+                    let new_result = result?.map(async (item: any) => {
+                        const store = await client.merchant_store.findUnique({
+                            where: {
+                                id: Number(item?.store_id)
+                            }
+                        })
+                        const medecine = await client.merchant_medicine.findFirst({
+                            where: {
+                                id: Number(item?.medecine_id)
+                            },
+                        })
+                        const medecine_attachment = await client.medecine_attachment.findFirst({
+                            where: {
+                                id: Number(medecine?.attachment_id)
+                            }
+                        })
+
+                        return { ...item, store: { ...store }, attachment: { ...medecine_attachment } }
                     })
 
-                    return {...item, store:{...store}, attachment:{...medecine_attachment}}
-                })
+                    new_result = await Promise.all(new_result)
 
-                new_result = await Promise.all(new_result)
-
-                console.log(new_result,'NEW RESLTTTTTTTTTTTT________')
-                return {
-                    orderType: new_result,
-                    totalRecords,
-                    summary:{
-                        delivery:deliver,
-                        pickup,
-                        done,
-                        cancelled
+                    console.log(new_result, 'NEW RESLTTTTTTTTTTTT________')
+                    return {
+                        orderType: new_result,
+                        totalRecords,
+                        summary: {
+                            delivery: deliver,
+                            pickup,
+                            done,
+                            cancelled
+                        }
                     }
+                } catch (error) {
+                    throw new GraphQLError(error)
                 }
-               } catch (error) {
-                throw new GraphQLError(error)
-               }
             }
         })
     }
 })
 
 export const UpdateOrderInputs = inputObjectType({
-    name:"UpdateOrderInputs",
+    name: "UpdateOrderInputs",
     definition(t) {
         t.int('status');
         t.int('order_id')
@@ -911,7 +991,7 @@ export const UpdateOrderInputs = inputObjectType({
 })
 
 export const UpdateOrderObjects = objectType({
-    name:"UpdateOrderObjects",
+    name: "UpdateOrderObjects",
     definition(t) {
         t.string('message')
     },
@@ -925,26 +1005,26 @@ export const UpdateOrderStatus = extendType({
             args: { data: UpdateOrderInputs },
             async resolve(_root, args, ctx) {
 
-                const { status, order_id}:any = args?.data;
+                const { status, order_id }: any = args?.data;
 
                 try {
-                     await client.orders.update({
-                        where:{
-                            id:Number(order_id)
+                    await client.orders.update({
+                        where: {
+                            id: Number(order_id)
                         },
-                        data:{
-                            status_id:status
+                        data: {
+                            status_id: status
                         }
                     })
 
                     return {
-                        message :"Successfully updated"
+                        message: "Successfully updated"
                     }
                 } catch (error) {
                     throw new GraphQLError(error)
                 }
 
-                
+
 
             }
         })

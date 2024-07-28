@@ -8,6 +8,21 @@ export const notification_read = gql`
   }
 `
 
+export const NotificationQueryMerchant = gql`
+query NotificationQueryMerchant($data:NotificationPayloads) {
+  NotificationQueryMerchant(data:$data) {
+    notifData {
+      is_read
+      notification_type
+      user 
+      length
+    }
+   
+    }
+  }
+`
+
+
 export const notification_query = gql`
 query MyQuery($data:NotificationPayloads) {
     NotifacationQuery(data:$data) {

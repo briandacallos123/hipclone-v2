@@ -39,7 +39,10 @@ export const merchantManyResponse = objectType({
     definition(t) {
         t.list.field('merchantType',{
             type:merchantType
-        })
+        });
+        t.nullable.int("active");
+        t.nullable.int("inactive");
+
     },
 })
 
@@ -49,7 +52,7 @@ export const merchantInputType = inputObjectType({
       t.nullable.int('take');
       t.nullable.int('skip');
       t.nullable.int('search');
-    //   t.nullable.int('status');
+      t.nullable.int('status');
     },
   });
 
@@ -62,20 +65,55 @@ export const QueryAllMerchant = extendType({
         async resolve(_root, args, ctx) {
             const { take, skip, search }: any = args.data;
 
+
+            const statusOption = (()=>{
+                let status:any;
+                // admin asking for active status
+                if(args?.data?.status === 1){
+                    status = "ONLINE"
+                // inactive status
+                }else if(args?.data?.status === 2){
+                    status = "OFFLINE"
+                }
+                return status;
+            })();
+
             try {
-                const result = await client.merchant_user.findMany({
-                    take,
-                    skip,
-                    where:{
-                        is_deleted:0
-                    }
-                })
+                const [result, active, inActive]:any = await client.$transaction([
+                    client.merchant_user.findMany({
+                        take,
+                        skip,
+                        where:{
+                            is_deleted:0,
+                            user_status:statusOption
+                        }
+                    }),
+                    client.merchant_user.findMany({
+                        take,
+                        skip,
+                        where:{
+                            is_deleted:0,
+                            user_status:"ONLINE"
+                        }
+                    }),
+                    client.merchant_user.findMany({
+                        take,
+                        skip,
+                        where:{
+                            is_deleted:0,
+                            user_status:"OFFLINE"
+                        }
+                    }),
+                ])
+
+              
 
                 const store2 = result.map(async(u:any)=>{
                     const storeRes = await client.merchant_store.findUnique({
                         where:{
-                            id:Number(u.store_id)
-                        }
+                            id:Number(u.store_id),
+                      
+                        },
                     })
                     return {...u, store:{...storeRes}}
                 })
@@ -84,7 +122,9 @@ export const QueryAllMerchant = extendType({
 
 
                 return {
-                    merchantType:res
+                    merchantType:res,
+                    active:active?.length,
+                    inactive:inActive?.length
                 }
             } catch (error) {
                 console.log(error)
@@ -137,7 +177,8 @@ export const CreateMerchant = extendType({
                         first_name:firstName,
                         last_name:lastName,
                         middle_name:middleName,
-                        contact
+                        contact,
+                        user_status:"ONLINE"
                      
                     }
                 })

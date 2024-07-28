@@ -90,7 +90,7 @@ export default function ChatRoomAttachments({ attachments }: Props) {
               // }}
               onDownload={async() =>{
                 
-                const response = await axios.get(`https://dev-hip.apgitsolutions.com/api/validateFile?name=${attachment?.name}`);
+                const response = await axios.get(`https://hip.apgitsolutions.com/api/checkFile?filename=${attachment?.name}`);
                 const {data} = response;
 
                 if(data?.status === "Found"){

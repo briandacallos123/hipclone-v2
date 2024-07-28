@@ -19,6 +19,8 @@ export const QueryAllMerchant = gql`
         }
         user_status
       }
+        active
+        inactive
       }
   }
 `;

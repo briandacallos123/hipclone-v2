@@ -18,7 +18,7 @@ declare module '@mui/material/styles/createPalette' {
   }
 }
 
-// SETUP COLORS
+// SETUP COLORS     
 
 const GREY = {
   0: '#FFFFFF',

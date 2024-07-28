@@ -91,10 +91,7 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
       let appt_grouped:any = []
 
       d?.forEach((item:any)=>{
-        // for payment
-        // if(item?.notification_type_id?.id === 8){
-
-        // }
+       
         if(item?.is_read === 0){
           unread += 1;
         }
@@ -137,8 +134,7 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
         }
       
         if(item?.chat_id && Number(item?.is_read) === 0){
-          // chatCount += 1;
-          // dito tayo need mag group
+        
 
           chatLength.push(item)
 
@@ -217,13 +213,7 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
         }
       })
 
-      // first, group all the chat based on user.
-      // if the group is > 3, merge
-
-                    
-
-
-      // for appt_approve
+    
       if(appt_grouped?.length < 3){
         appt_grouped?.forEach((item:any)=>{
           if(!item?.chat_id && item?.appt_data?.id && Number(item?.is_read) === 0 && !item?.notif_group_id){
@@ -250,8 +240,7 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
       }
 
 
-      console.log(chat_grouped,'_____________YAWAPPPPPPP_____________@@@@@@@_____________')
-      // for chat
+    
       if(chat_grouped.length < 3){
         chat_grouped?.forEach((item:any)=>{
           if(item?.chat_id !== null &&  !item?.app_data?.id && Number(item?.is_read) === 0 && !item?.notif_group_id){
@@ -279,9 +268,7 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
         })
       }
 
-      console.log(newNotif,' FOR CHAT________________________________')
-      console.log(newAppt,' FOR APPOINTMENT________________________________')
-      console.log(unread,'UNREAD________________________')
+    
 
       const isReadNotif = d?.filter((item:any)=>item?.is_read === 1 && !item?.notif_group_id);
 
@@ -314,7 +301,6 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
 
 
       newNotif = [...newNotif, ...newGroupedData,...isReadNotif];
-      // newNotif = [...newNotif, ...newAppt, ...read_notif_group,...isReadNotif];
 
       return {
         newNotif, unread, chatLength
@@ -322,11 +308,6 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
 
     }
 
-    // useEffect(()=>{
-    //   if(toRefetch){
-
-    //   }
-    // },[toRefetch])
 
     const handleReadFunc = useCallback(
       async (model: NexusGenInputs['NotificationUpdate']) => {
@@ -345,16 +326,7 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
         })
           .then(async (res) => {
             await queryResults.refetch()
-            // setToRefetch(true)
-            // if(model.isRefetch){
-            //   alert(true)
-            //   setToRefetch(true)
-            // }
-            // 
-            // if(model.isRefetch){
-            //   setToRefetch(true)
-              
-            // }
+           
           })
           .catch((error:any) => {
             console.log(error,'ERROR SA HANDLE READ FUND')
