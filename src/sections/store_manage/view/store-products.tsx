@@ -17,6 +17,9 @@ import {
     TableSelectedAction,
     TablePaginationCustom,
 } from 'src/components/table';
+import Label from '@/components/label'
+import MerchantCreateView from '@/sections/merchant/medecine/view/merchant-create-view'
+import { useBoolean } from '@/hooks/use-boolean'
 //   import StoreManageController from './storeManageController'
 
 const StoreProducts = () => {
@@ -24,7 +27,9 @@ const StoreProducts = () => {
     const router = useRouter();
     const { tableData, queryResults, handleSubmitDelete } = StoreManageController()
     const { id: pageId } = useParams()
-
+    const opencreate = useBoolean();
+    const [isEdit, setIsEdit] = useState(false)
+    const [editData, setEditData] = useState(null)
 
     const notFound = !queryResults.loading && tableData.length === 0;
 
@@ -38,7 +43,12 @@ const StoreProducts = () => {
         handleSubmitDelete(id)
     }
 
-  
+    const handleEdit = (data: any) => {
+        opencreate.onTrue()
+        setIsEdit(true)
+        setEditData(data);
+    }
+
 
     return (
         <Box sx={{
@@ -48,11 +58,20 @@ const StoreProducts = () => {
             <Grid justifyContent="flex-start" container gap={2}>
                 {queryResults.loading && <StoreProductSkeletonView />}
                 {tableData?.map((item) => (
-                    <GridItems handleDelete={() => {
-                        handleDelete(item?.id)
-                    }} handeView={() => handleView(item?.id)} item={item} />
+                    <GridItems
+                        handleDelete={() => {
+                            handleDelete(item?.id)
+                        }}
+                        handeView={() => handleView(item?.id)}
+                        handleEdit={() => handleEdit(item)}
+                        item={item}
+                    />
                 ))}
             </Grid>
+            <MerchantCreateView editData={editData} isEdit={isEdit} onClose={() => {
+                opencreate.onFalse();
+
+            }} open={opencreate.value} />
             <Table>
                 <TableNoData notFound={notFound} />
             </Table>
@@ -60,13 +79,13 @@ const StoreProducts = () => {
     )
 }
 
-const GridItems = ({ item, handeView, handleDelete }: any) => {
+const GridItems = ({ item, handeView, handleDelete, handleEdit }: any) => {
 
 
     const popover = usePopover();
     const isRow = false;
 
-    const { id, attachment_info, price, generic_name, description, address, rating, product_types } = item;
+    const { id, attachment_info, price, generic_name, description, address, rating, product_types, stock } = item;
     return (
         <Grid key={id} xl={3}>
             <Card sx={{ maxWidth: isRow ? '100%' : 400 }}>
@@ -105,6 +124,17 @@ const GridItems = ({ item, handeView, handleDelete }: any) => {
                                 <Typography variant="h6" >
                                     {`${generic_name}`}
                                 </Typography>
+                                {/* {stock && <Typography sx={{
+                                    color: stock > 10 ? "success.main" : "error.main"
+                                }}>
+                                    {fCurrency(stock)} {stock <= 10 && "stocks left!"}
+                                </Typography>} */}
+
+                                {stock && <Label variant="soft" color={stock > 10 ? "success" : "error"}>
+                                    {/* {}{fCurrency(stock)}  */}
+                                    
+                                    {stock <= 10 ? `${fCurrency(stock)} stocks left!`:`Stocks: ${fCurrency(stock)}`}
+                                </Label>}
 
                                 <Typography sx={{
                                     textTransform: 'capitalize',
@@ -117,6 +147,7 @@ const GridItems = ({ item, handeView, handleDelete }: any) => {
                                 }}>
                                     ₱ {fCurrency(price)}
                                 </Typography>}
+
                             </Box>
                             <Box sx={{
                                 display: 'flex',
@@ -142,11 +173,27 @@ const GridItems = ({ item, handeView, handleDelete }: any) => {
                             popover.onClose();
                             handeView()
                         }}
+                        sx={{
+                            color: 'success.main'
+                        }}
                     >
                         <Iconify icon="solar:eye-bold" />
                         View
                     </MenuItem>
-                   
+                    <MenuItem
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            popover.onClose();
+                            handleEdit()
+                        }}
+                        sx={{
+                            color: 'success.main'
+                        }}
+                    >
+                        <Iconify icon="bi:pen-fill" />
+                        Edit
+                    </MenuItem>
+
 
                     <MenuItem
                         onClick={(e) => {

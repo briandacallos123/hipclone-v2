@@ -69,8 +69,8 @@ export const DeleteMerchant = gql`
 
 
 export const EditMerchant = gql`
-  mutation EditMerchant($data: EditMerchInp!) {
-    EditMerchant(data: $data) {
+  mutation EditMerchant($data: EditMerchInp!, $file:Upload) {
+    EditMerchant(data: $data, file:$file) {
         message
       }
   }

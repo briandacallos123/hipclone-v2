@@ -22,6 +22,21 @@ export const orderType = objectType({
         t.int('is_paid');
         t.string('quantity')
         t.date('created_at')
+        t.float('value');
+        t.string('payment');
+        t.nullable.field('online_reference',{
+            type:'String',
+            async resolve(root){
+                if(!root?.online_payment) return;
+
+                const ref = await client.online_order_payment.findFirst({
+                    where:{
+                        id:Number(root?.online_payment)
+                    }
+                });
+                return ref?.reference_number;
+            }
+        })
         t.int('status_id')
         t.field('patient', {
             type: patientInfos

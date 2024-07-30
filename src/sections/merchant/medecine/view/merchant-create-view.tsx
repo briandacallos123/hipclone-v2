@@ -49,20 +49,20 @@ type FormValuesProps = {
 type Props = {
     open: boolean;
     onClose: VoidFunction;
-    id?: NULL | string;
+    id?: string;
     isLoggedIn?: any;
     setLoggedIn?: any;
     editRow?: any;
-
+    editData?:any;
     isEdit?: boolean
 };
 
 // ----------------------------------------------------------------------
 
-export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
+export default function MerchantCreateView({editData, editRow, isEdit, setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
     const { login, user } = useAuthContext();
     const path = usePathname();
-    const { state, createMerchantMedFunc }: any = MerchantUserContext()
+    const { state, createMerchantMedFunc, updateMerchantMedFunc}: any = MerchantUserContext()
 
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -75,8 +75,7 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
 
     const password = useBoolean();
 
-
-
+    // console.log(editData,'EDIT DATAAAAAAAAAAAAAAAAAAAAAAA')
 
     const LoginSchema = Yup.object().shape({
         generic_name: Yup.string().required('Password is required'),
@@ -95,20 +94,22 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
 
     const defaultValues = useMemo(() => {
         return {
-            generic_name: '',
-            dose: '',
-            form: "",
-            price: "",
-            manufacturer: "",
-            brand_name: "",
+            generic_name: editData?.generic_name || '',
+            dose: editData?.dose || '',
+            form: editData?.form || "",
+            price: editData?.price || "",
+            manufacturer: editData?.manufacturer || "",
+            brand_name:editData?.brand_name || "",
             attachment: null,
-            description: "",
-            stock: '',
+            description:editData?.description || "",
+            stock: editData?.stock || '',
             id,
             type: "",
             show_price: false
         }
-    }, [editRow?.id, editRow])
+    }, [editRow?.id, editRow, isEdit])
+
+  
 
 
 
@@ -140,26 +141,25 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
     const values = watch()
 
     useEffect(() => {
-        // if(editRow?.id){
-        //     setValue('email', editRow?.email)
-        //     setValue('firstName', editRow?.first_name)
-        //     setValue('lastName', editRow?.last_name)
-        //     setValue('middleName', editRow?.middle_name)
-        //     setValue('contact', editRow?.contact)
-        //     setValue('id', editRow?.id)
-        // }else{
-        //     reset()
-        // }
-        // setValue('contact', editRow?.contact)
-    }, [editRow?.id, editRow])
+        if(isEdit){
+            setValue('generic_name', editData?.generic_name)
+            setValue('dose', editData?.dose)
+            setValue('form', editData?.form)
+            setValue('price',  editData?.price)
+            setValue('type',  editData?.type)
+            setValue('manufacturer', editData?.manufacturer)
+            setValue('brand_name', editData?.brand_name)
+            setValue('stock', editData?.stock)
+            setValue('description', editData?.description)
+            setValue('id', editData?.id)
+            setValue('attachment',`/${editData?.attachment_info?.file_path?.split("/").splice(1).join("/")}`)
 
-    // useEffect(() => {
-    //   if (user) {
-    //     console.log(user, 'HAAAAAAAAAAAAAAAAAAAAAAAAAAAA?');
-    //   }
-    // }, [user]);
+        }else{
+            reset()
+        }
+    }, [editRow?.id, editData, isEdit])
 
-    //  console.log(user, 'HAAAAAAAAAAAAAAAAAAAAAAAAAAAA?');
+    
 
     const removeTags = (val: string) => {
         const cleanedDescription = val.replace(/<[^>]+>/g, '');
@@ -174,21 +174,15 @@ export default function MerchantCreateView({ editRow, isEdit, setLoggedIn, isLog
                 data.show_price = JSON.parse((data.show_price).toLowerCase())
                 data = { ...data, price: parseFloat(data.price), store_id: Number(data.id), stock: Number(data.stock) }
 
-                delete data.id;
+                
 
+                if(isEdit){
+                    await updateMerchantMedFunc(data, file)
+                }else{
+                    delete data.id
+                    await createMerchantMedFunc(data, file)
 
-                await createMerchantMedFunc(data, file)
-                // delete data.repassword
-
-                // if(isEdit){
-                //     // alert("bakit")
-                //     delete data.password
-                //     await UpdateMerchantFunc(data)
-                // }else{
-
-                //     delete data.id
-                //     await createMerchantFunc(data)
-                // }
+                }
                 onClose()
             } catch (error) {
                 console.error(error);

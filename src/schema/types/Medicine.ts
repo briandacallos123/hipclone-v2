@@ -17,6 +17,7 @@ export const medicineType = objectType({
         t.int('show_price')
         t.string('form');
         t.string('description')
+        t.string('type')
         t.float('price');
         t.string('manufacturer');
         t.nullable.field('attachment_info',{
@@ -351,6 +352,7 @@ export const CreateMedicineInputs = inputObjectType({
         t.string('manufacturer');
         t.string('brand_name');
         t.int('stock')
+        t.nullable.int('id')
         t.string('description');
         t.int('store_id')
         t.string('type')
@@ -482,23 +484,50 @@ export const UpdateMerchantMedicine = extendType({
     definition(t) {
         t.nullable.field('UpdateMerchantMedicine', {
             type: DeleteMerchantMedicineObj,
-            args: { data: CreateMedicineInputs },
+            args: { data: CreateMedicineInputs, file: 'Upload' },
             async resolve(_root, args, ctx) {
 
-                const { generic_name, brand_name, dose, form, price, manufacturer }: any = args.data
+
+              
+
 
                 try {
+
+                    let med:any;
+                    const sFile = await args?.file;
+                    if (typeof(sFile) !== "string") {
+                        const res: any = useUpload(sFile, 'public/documents/');
+    
+                        med = await client.medecine_attachment.create({
+                            data:{
+                                filename: String(res[0]!.fileName),
+                                file_path: String(res[0]!.path),
+                                file_type: String(res[0]!.fileType),
+                                file_size: String(res[0]!.file_size)
+                            }
+                        }) 
+                        
+                    }
+                    
+    
+                    // console.log(med,'MEDECINE________________________________ KOTOOOOOOOOOOOOOOOOO')
+                    const {id, generic_name, brand_name,type, dose,stock, description, form, price, manufacturer }: any = args.data
+
                     await client.merchant_medicine.update({
                         where: {
-                            id: args?.data?.id
+                            id:Number(id)
                         },
                         data: {
                             generic_name,
                             brand_name,
                             dose,
                             form,
-
-                            manufacturer
+                            type,
+                            manufacturer,
+                            stock,
+                            price,
+                            description,
+                            attachment_id:med && Number(med?.id)
                         }
                     })
 
@@ -506,6 +535,7 @@ export const UpdateMerchantMedicine = extendType({
                         message: "Successfully updated"
                     }
                 } catch (error) {
+                    console.log(error,'ERRORRRRRRRR')
                     return new GraphQLError(error)
                 }
             }

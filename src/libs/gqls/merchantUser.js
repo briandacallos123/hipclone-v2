@@ -56,8 +56,8 @@ export const DeleteMerchantMedicine = gql`
 
 
 export const UpdateMerchantMedicine = gql`
-  mutation UpdateMerchantMedicine($data: CreateMedicineInputs!) {
-    UpdateMerchantMedicine(data: $data) {
+  mutation UpdateMerchantMedicine($data: CreateMedicineInputs!, $file:Upload) {
+    UpdateMerchantMedicine(data: $data, file:$file) {
         message
       }
   }

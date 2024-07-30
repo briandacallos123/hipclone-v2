@@ -109,7 +109,7 @@ const StoreDashboardId = ({ data, id }: any) => {
                     startPrice: Number(filters.startingPrice),
                     endPrice: Number(filters.endPrice),
                     sort:filters.sort
-                }
+                }   
             }
         }).then((res: any) => {
             const { data } = res;

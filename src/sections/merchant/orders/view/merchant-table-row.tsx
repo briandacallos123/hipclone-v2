@@ -34,14 +34,13 @@ type Props = {
   row: any;
   selected: boolean;
   onSelectRow: VoidFunction;
-  onViewRow: VoidFunction;
   onDeleteRow: () => void;
   onViewPatient: VoidFunction;
   onEditRow: () => void;
   onDone?:()=>void;
   onApproved?:()=>void;
   onCancelled?:()=>void
-
+  onViewRow?:()=>void;
 
 };
 
@@ -60,7 +59,6 @@ export default function MerchantOrdersTableRow({
   /*  const { patient, hospital, schedule, isPaid, type } = row; */
   const upMd = useResponsive('up', 'md');
 
-  console.log(row, 'ROW__________')
   const { user } = useAuthContext();
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
@@ -135,6 +133,10 @@ export default function MerchantOrdersTableRow({
       }
     />
   );
+
+  const viewConfirm = useBoolean();
+
+  
 
   const approveConfirm = useBoolean();
 
@@ -240,8 +242,8 @@ export default function MerchantOrdersTableRow({
       <TableCell align='center'>
         <Label variant="soft" color={
           row?.status_id === 4 && 'success' ||
-          row?.status_id === 1 && 'error' ||
-          row?.status_id === 2 && 'warning' ||
+          row?.status_id === 1 && 'warning' ||
+          row?.status_id === 2 && 'primary' ||
           row?.status_id === 3 && 'error' 
 
         }>
@@ -268,6 +270,19 @@ export default function MerchantOrdersTableRow({
 
       <Stack direction="row" justifyContent="flex-end">
         <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+        <MenuItem
+            onClick={() => {
+              popover.onClose();
+              onViewRow()
+            }}
+            sx={{ color: 'success.main' }}
+          >
+            <Iconify icon="mdi:eye" />
+             View
+          </MenuItem>
+
+
+
           {row?.status_id !== 2 && row?.status_id !== 4 &&<MenuItem
             onClick={() => {
               approveConfirm.onTrue()

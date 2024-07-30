@@ -4,6 +4,7 @@ import { GraphQLError } from "graphql/error/GraphQLError";
 import { unserialize, serialize } from 'php-serialize';
 import { medicineType } from './Medicine';
 import { equal } from 'assert';
+import { orderType } from './Orders';
 
 export const ChatPreview = objectType({
     name:'ChatPreview',
@@ -375,6 +376,46 @@ const notifData = objectType({
             }
         });
         t.nullable.boolean('is_read');
+        t.nullable.list.field('medecine',{
+            type:medicineType,
+            async resolve(root){
+                if(root?.notification_type_id !== 10) return null;
+                console.log(root?.notifData,'NOTIFDATA')
+
+
+                const res =  root?.notifData?.map(async(item)=>{
+                    return await client.merchant_medicine.findFirst({
+                        where:{
+                            id:Number(item?.medecine_id)
+                        },
+                        include:{
+                            merchant_store:true
+                        }
+                    })
+                });
+                const fRes = await Promise.all(res);
+                return fRes
+             
+            }
+        });
+        t.nullable.list.field('orders',{
+            type:orderType,
+            async resolve(root){
+                if(root?.notification_type_id !== 9) return null;
+            
+
+                const res =  root?.notifData?.map(async(item)=>{
+                    return await client.orders.findFirst({
+                        where:{
+                            id:Number(item?.order_id)
+                        },
+                    })
+                });
+                const fRes = await Promise.all(res);
+                return fRes
+             
+            }
+        });
         t.nullable.field('user',{
             type:'String',
             async resolve(root){
@@ -500,7 +541,7 @@ export const NotificationQueryMerchant = extendType({
            
 
             const fData = groupedData?.map(async(item)=>{
-                const notifData = await client.notification.findFirst({
+                const notifData = await client.notification.findMany({
                     where:{
                         notification_type_id:item?.notification_type_id,
                         is_read:item?.is_read,
@@ -512,11 +553,10 @@ export const NotificationQueryMerchant = extendType({
                     },
                     
                 })
-
-    
+                
                 return {
                     ...item,
-                    notifData:{...notifData}
+                    notifData:[...notifData]
                 }
             })
 
@@ -526,7 +566,7 @@ export const NotificationQueryMerchant = extendType({
             //3.supply shortage related, already read.
     
             
-            // console.log(finalData,'HAAAAAAAAAAAAAAAAAAAAA')
+          
             return {
                 notifData:finalData
             }

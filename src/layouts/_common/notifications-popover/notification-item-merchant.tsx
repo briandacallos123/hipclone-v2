@@ -35,18 +35,6 @@ type NotificationItemProps = {
 };
 export default function NotificationItemMerchant({ notification, onViewRow}: NotificationItemProps) {
 
-  // const renderAvatar = (
-  //   <ListItemAvatar>
-  //       <Box
-  //     component="img"
-  //     src={`/assets/icons/notification/${
-  //       (notification?.notification_type === 'order' && 'order.png') ||
-  //       (notification?.notification_type === 'supply' && 'outofsupply.png') 
-  //      }`}
-  //     sx={{ width: 24, height: 24 }}
-  //   />
-  //   </ListItemAvatar>
-  // )
   const renderAvatar = (
     <ListItemAvatar>
       {(notification.avatarUrl && !notification?.group_child?.length && !notification?.many_appt && !notification?.many_chat)  ? (
@@ -81,9 +69,12 @@ export default function NotificationItemMerchant({ notification, onViewRow}: Not
   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length > 1 && `<p>You have <strong>${notification?.length}</strong> new orders from <strong>${notification?.user}</strong></p>`) ||
  // order && not read && length is equals 1
   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length === 1  && `<p>You have new order from <strong>${notification?.user}</strong></p>`) ||
- // supply && not read && length is equals 1
-  (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length === 1  && `<p>One of your medecine is <strong>running out of supply</strong></p>`) 
-
+ // supply && not read && length is > 1
+  (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length > 1  && `<p><strong>${notification?.length} of your product </strong> are getting out of stock, please review.</p>`) || 
+  // supply && not read && length is === 1
+  (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length === 1  && `<p><strong>${notification?.medecine[0]?.generic_name}</strong> is getting out of stock.</p>`) || 
+// supply && not read && length is === 1
+(notification?.notification_type === 'supply' && notification?.is_read && notification?.length === 1  && `<p><strong>${notification?.medecine[0]?.generic_name}</strong> already read.</p>`) 
   // (notification?.child?.length && notification?.isPatient   && `<p>You have <strong>${notification?.child?.length + 1} new updates from your appointments</strong></p>`) ||
   // (notification?.many_appt && notification?.isPatient && `<p>You have <strong>${notification?.appt_count} new updates from your appointments</strong></p>`) ||
   // (notification?.siblings !== 0 && notification?.appt_id && `<p><strong>${notification?.userName}</strong> have ${notification?.siblings} booking appointments</p>`) ||

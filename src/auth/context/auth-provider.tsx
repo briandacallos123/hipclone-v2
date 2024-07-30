@@ -97,6 +97,8 @@ function NextAuthProvider({ children }: Props) {
 
       const { user }: any = response;
 
+      console.log(user,'USER SA FRONTEND__________________')
+
       if (user) {
         dispatch({
           type: Types.INITIAL,

@@ -239,12 +239,11 @@ export const DeleteMerchant = extendType({
 export const EditMerchInp = inputObjectType({
     name:"EditMerchInp",
     definition(t) {
-        t.nonNull.int('id');
-        t.nonNull.string('email');
-        t.nonNull.string('firstName');
-        t.nullable.string('middleName');
-        t.nonNull.string('lastName');
-        t.nonNull.string('contact');
+        // t.nonNull.string('email');
+        t.nonNull.string('fname');
+        t.nullable.string('mname');
+        t.nonNull.string('lname');
+        t.nullable.string('contact');
     },
 })
 
@@ -260,23 +259,46 @@ export const EditMerchant = extendType({
     definition(t) {
       t.nullable.field('EditMerchant', {
         type: EditeMerchObj,
-        args: { data:EditMerchInp },
+        args: { data:EditMerchInp!, file: 'Upload' },
         async resolve(_root, args, ctx) {
+            const { session } = ctx;
+            const { fname, mname, lname, contact}:any = args?.data;
+            let imgUpload:any;
 
-            const {id, email, firstName, middleName, lastName, contact}:any = args?.data;
+            const sFile = await args?.file;
+            console.log(typeof(sFile) === 'string','STRINGGGGGGGG')
+            if (typeof(sFile) !== 'string') {
+                const res: any = useUpload(sFile, 'public/documents/');
+                imgUpload = res?.map(async (v: any) => {
+                   return await client.merchant_attachment.create({
+                      data: {
+                        filename: String(v!.fileName),
+                        file_url: String(v!.path),
+                        file_type: String(v!.fileType),
+                        merchant_id:Number(session?.user?.id)
+                      },
+                    });
+                  });
+            }
 
+            let res:any;
 
+            if(imgUpload){
+              res = await Promise.all(imgUpload)
+            }
+
+            
             try {
                 await client.merchant_user.update({
                     data:{
-                        email,
-                        first_name:firstName,
-                        middle_name:middleName,
-                        last_name:lastName,
-                        contact
+                        first_name:fname,
+                        middle_name:mname,
+                        last_name:lname,
+                        contact,
+                        attachment_id:res?.length && res[0]?.id
                     },
                     where:{
-                        id:args?.data?.id
+                        id:Number(session?.user?.id)
                     }
                 })
 

@@ -73,6 +73,7 @@ import { useSearch } from '@/auth/context/Search';
 import MerchantOrderSkeleton from './merchant-order-skeleton';
 import MerchantController from './MerchantController';
 import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
+import OrderView from './merchant-view';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import MerchantCreateView from './merchant-create-view';
 // import { UseMerchantMedContext } from '@/context/merchant/Merchant';
@@ -146,11 +147,11 @@ export default function MerchantOrdersView() {
 
 
 
-  useEffect(() => {
-    if (!openView.value && viewId) {
-      setViewId(null)
-    }
-  }, [openView.value])
+  // useEffect(() => {
+  //   if (!openView.value && viewId) {
+  //     setViewId(null)
+  //   }
+  // }, [openView.value])
   // ========================
 
 
@@ -547,6 +548,8 @@ export default function MerchantOrdersView() {
         opencreate.onFalse();
         setEditRow(null)
       }} open={opencreate.value}/> */}
+
+      <OrderView dataView={viewId} open={openView.value} onClose={openView.onFalse}/>
 
       {/* {viewId && <AppointmentDetailsView
         updateRow={updateRow}

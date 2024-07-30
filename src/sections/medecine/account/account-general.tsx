@@ -34,6 +34,7 @@ import FormProvider, {
 } from 'src/components/hook-form';
 import { gql, useMutation } from '@apollo/client';
 import { useAuthContext } from '@/auth/hooks';
+import { EditMerchant } from '@/libs/gqls/merchant';
 import { GeneralTabMutation, MutationESign } from '../../../libs/gqls/subprofilegeneral';
 // import { GeneralTabMutation, MutationESign } from '../../libs/gqls/subprofilegeneral';
 import { NexusGenInputs } from 'generated/nexus-typegen';
@@ -75,11 +76,6 @@ export default function AccountGeneral() {
     fname: Yup.string().required('First Name is required'),
     mname: Yup.string(),
     lname: Yup.string().required('Last Name is required'),
-    suffix: Yup.string(),
-    gender: Yup.string().oneOf(['1', '2'], 'Invalid Gender').required('Gender is required'),
-    birthDate: Yup.date().required('Date of Birth is required'),
-    nationality: Yup.string(),
-    ...useNotSec,
     contact: Yup.string().required('Contact is required'),
     avatarUrl: Yup.mixed().notRequired(),
   });
@@ -89,36 +85,11 @@ export default function AccountGeneral() {
       fname: user?.firstName || '',
       mname: user?.middleName || '',
       lname: user?.lastName || '',
-      email: user?.email || '',
-      contact: user?.contact || '',
-      suffix: user?.suffix || '',
-      gender: user?.sex,
-      defaultESig: null,
-      birthDate: user?.birthDate || new Date(),
-      nationality: user?.nationality || '',
-      address: user?.address || '',
-      avatarUrl: user?.photoURL || null,
-      title: user?.title || null,
-      prcNumber: user?.PRC ?? '',
-      prcExpiry: new Date(user?.validity),
-      ptrNumber: user?.PTR ?? '',
-      s2Number: user?.s2_number || '',
-      since: user?.practicing_since || '',
-      signatureUrl:
-        (() => {
-          const url = user?.esig?.filename;
-          const parts = url?.split('public');
-          const publicPart = parts ? parts[1] : null;
-
-          console.log(publicPart, '@@@@@@@');
-
-          return publicPart;
-        })() || null,
-      days: [] ?? new Date()
+      avatarUrl:user?.photoURL || null,
+      contact:user?.contact || ''
     }),
     [user]
   );
-  console.log(user, '##');
   const methods = useForm<FieldValues>({
     resolver: yupResolver(UpdateUserSchema),
     defaultValues,
@@ -134,7 +105,7 @@ export default function AccountGeneral() {
     formState: { isSubmitting },
   } = methods;
 
-  const [uploadData] = useMutation(GeneralTabMutation, {
+  const [uploadData] = useMutation(EditMerchant, {
     context: {
       requestTrackerId: 'Prescription_data[Prescription_data]',
     },
@@ -149,17 +120,16 @@ export default function AccountGeneral() {
   const [snackKey, setSnackKey]: any = useState(null);
   const [snackKey2, setSnackKey2]: any = useState(null);
   const handleSubmitValue = useCallback(
-    async (model: NexusGenInputs['GeneralTabInput']) => {
-      const data: NexusGenInputs['GeneralTabInput'] = {
+    async (model: any) => {
+
+
+      const data:any = {
         // email: model.email,
         fname: model.fname,
         mname: model.mname,
-        gender: model.gender,
-        nationality: model.nationality,
         lname: model.lname,
-        suffix: model.suffix,
-        address: model.address,
         contact: model.contact,
+      
       };
       uploadData({
         variables: {
@@ -172,6 +142,7 @@ export default function AccountGeneral() {
           closeSnackbar(snackKey);
           enqueueSnackbar('Updated successfully!');
           reInitialize();
+          setSnackKey(null)
         })
         .catch((error) => {
           closeSnackbar(snackKey);
@@ -230,8 +201,8 @@ export default function AccountGeneral() {
   useEffect(() => {
     if (snackKey) {
       (async () => {
-        await handleSubmitValue({ ...values, gender: values.gender.toString() });
-        setSnackKey(null);
+        await handleSubmitValue({ ...values });
+        // setSnackKey(null);
       })();
     }
   }, [snackKey]);
@@ -239,7 +210,7 @@ export default function AccountGeneral() {
   const onSubmit = useCallback(
     async (data: any) => {
       try {
-        const snackbarKey = enqueueSnackbar('Saving Data...', {
+        const snackbarKey = enqueueSnackbar('Saving Dataz...', {
           variant: 'info',
           key: 'savingGeneral',
           persist: true, // Do not auto-hide
@@ -388,10 +359,7 @@ export default function AccountGeneral() {
                     value: 'personal',
                     label: 'Personal Information',
                   },
-                  {
-                    value: 'store',
-                    label: 'Store Information',
-                  },
+                 
                   //  {
                   //    value: 'reviews',
                   //    label: `Reviews (${product.reviews.length})`,
@@ -432,84 +400,7 @@ export default function AccountGeneral() {
                 </>
               }
               {/* <Divider /> */}
-              {currentTab === 'store' && <Box sx={{ mt: 3 }}>
-
-                <Box
-                  rowGap={{ md: 3, xs: 1 }}
-                  columnGap={{ md: 2, xs: 1 }}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: 'repeat(1, 1fr)',
-                    sm: 'repeat(2, 1fr)',
-                  }}
-                  sx={{
-                    mb: 3
-                  }}
-                >
-                  <RHFTextField fullWidth name="storeName" label=" Name" />
-                  <RHFTextField fullWidth name="storeAdd" label="Address" />
-                  <Box
-                    rowGap={3}
-                    columnGap={2}
-                    display="grid"
-                    gridTemplateColumns={{
-                      xs: 'repeat(1, 1fr)',
-                      sm: 'repeat(2, 1fr)',
-                    }}
-                  >
-                    <Controller
-                      name="start_time"
-                      control={control}
-                      render={({ field, fieldState: { error } }: CustomRenderInterface) => (
-                        <TimePicker
-                          label="Start Time"
-                          value={field.value}
-                          onChange={(newValue) => {
-                            field.onChange(newValue);
-                          }}
-                          slotProps={{
-                            textField: {
-                              fullWidth: true,
-                              error: !!error,
-                              helperText: error?.message,
-                            },
-                          }}
-                        />
-                      )}
-                    />
-
-                    <Controller
-                      name="end_time"
-                      control={control}
-                      render={({ field, fieldState: { error } }: CustomRenderInterface) => (
-                        <TimePicker
-                          label="End Time"
-                          value={field.value}
-                          onChange={(newValue) => {
-                            field.onChange(newValue);
-                          }}
-                          slotProps={{
-                            textField: {
-                              fullWidth: true,
-                              error: !!error,
-                              helperText: error?.message,
-                            },
-                          }}
-                        />
-                      )}
-                    />
-                  </Box>
-                  <RHFMultiCheckbox
-                    row
-                    name="days"
-                    label="Operational Days"
-                    options={OPERATIONAL_DAY}
-                  />
-
-                </Box>
-                {/* <MyMapComponent /> */}
-              </Box>
-              }
+            
               <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
                 <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
                   Save Changes

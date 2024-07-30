@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useReducer, useCallback } from 'react'
 import { useLazyQuery, useMutation } from '@apollo/client'
-import { QueryAllMerchantMedicine, CreateMerchantMedecine, DeleteMerchantMedicine} from '@/libs/gqls/merchantUser';
+import { QueryAllMerchantMedicine, CreateMerchantMedecine, DeleteMerchantMedicine, UpdateMerchantMedicine} from '@/libs/gqls/merchantUser';
 import { useSnackbar } from 'src/components/snackbar';
 import { stateProps, actionProps } from '../workforce/merchant/MerchantContext';
 import {
@@ -98,6 +98,13 @@ const MerchantUserContext = () => {
         },
         notifyOnNetworkStatusChange: true,
       });
+
+      const [updateMerchantMedecine] = useMutation(UpdateMerchantMedicine, {
+        context: {
+          requestTrackerId: 'Update_Merch[Medecine_Merchant]',
+        },
+        notifyOnNetworkStatusChange: true,
+      });
     
     const createMerchantMedFunc = useCallback((user:any, file:any)=>{
         createMerchantFuncMed({
@@ -108,6 +115,21 @@ const MerchantUserContext = () => {
         }).then((res)=>{
             const {data} = res;
             enqueueSnackbar("Created Medecine Succesfully")
+            queryResults.refetch()
+
+        })
+    },[])
+
+    const updateMerchantMedFunc = useCallback((user:any, file:any)=>{
+      
+        updateMerchantMedecine({
+            variables:{
+                data:user,
+                file
+            }
+        }).then((res)=>{
+            const {data} = res;
+            enqueueSnackbar("Updated Medecine Succesfully")
             queryResults.refetch()
 
         })
@@ -142,7 +164,7 @@ const MerchantUserContext = () => {
     //     {children}
     // </MerchantUserProvider.Provider>
 
-    return {state, table, createMerchantMedFunc, deletedMerchantMedFunc}
+    return {state, table, createMerchantMedFunc, deletedMerchantMedFunc, updateMerchantMedFunc}
 }
 
 export default MerchantUserContext

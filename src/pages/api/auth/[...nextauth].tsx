@@ -83,7 +83,6 @@ export const authOptions: AuthOptions = {
 
         }
 
-        // console.log(user,'USE_______________')
 
         if (!user) {
           return null;
@@ -158,10 +157,10 @@ export const authOptions: AuthOptions = {
       return true;
     },
     async session({ session, user, token, account }: any) {
-
+         
 
       if (token?.isAdmin) {
-        const { email, id, first_name, last_name, middle_name, contact } = token;
+        const { email, id, first_name, last_name, middle_name, contact, attachment_id } = token;
 
      
         session.user.displayName = middle_name ? `${first_name} ${middle_name} ${last_name}` : `${first_name} ${last_name}`;
@@ -174,17 +173,40 @@ export const authOptions: AuthOptions = {
         session.user.id = id;
         return session;
       }else if(token?.isMerchant){
-        const { email, id, first_name, last_name, middle_name, contact } = token;
+        const { email, id, first_name, last_name, middle_name, contact, attachment_id } = token;
+       
+        const merchant = await client.merchant_user.findUnique({
+          where:{
+            id:Number(id)
+          }
+        })
 
-     
-        session.user.displayName = middle_name ? `${first_name} ${middle_name} ${last_name}` : `${first_name} ${last_name}`;
-        session.user.lastName = last_name;
-        session.user.firstName = first_name;
-        session.user.middleName = middle_name;
-        session.user.contact = contact;
-        session.user.username = email;
+        session.user.displayName = merchant?.middle_name ? `${merchant?.first_name} ${merchant?.middle_name} ${merchant?.last_name}` : `${merchant?.first_name} ${merchant?.last_name}`;
+        session.user.lastName = merchant?.last_name;
+        session.user.firstName = merchant?.first_name;
+        session.user.middleName = merchant?.middle_name;
+        session.user.contact = merchant?.contact;
+        session.user.username = merchant?.email;
         session.user.role = "merchant"
         session.user.id = id;
+
+        
+        const d: any = await client.merchant_attachment.findFirst({
+          where: {
+            id:Number(merchant?.attachment_id)
+          },
+          orderBy: {
+            created_at:'desc'
+          },
+        });
+        const photoURL = d
+          ? d?.file_url.split('public')[1] // /public/www/ww ->
+          : `https://ui-avatars.com/api/?name=${session.user.displayName}&size=100&rounded=true&color=fff&background=E12328`;
+        session.user.photoURL = photoURL;
+
+        session.user.coverURL =
+          'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg';
+
         return session;
       }
 

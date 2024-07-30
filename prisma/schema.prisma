@@ -1913,14 +1913,14 @@ model medecine_attachment {
   file_path         String              @db.LongText
   file_size         String              @db.VarChar(255)
   file_type         String              @db.VarChar(255)
-  date              Int                 @default(dbgenerated("(current_timestamp())"))
+  date              DateTime            @default(now()) @db.Date
   is_deleted        Int                 @default(0)
   merchant_medicine merchant_medicine[]
 }
 
 model merchant_attachment {
   id            Int             @id @default(autoincrement())
-  merchant_id   Int             @unique(map: "merchant_id")
+  merchant_id   Int
   filename      String
   file_url      String          @db.VarChar(255)
   file_type     String          @db.VarChar(255)

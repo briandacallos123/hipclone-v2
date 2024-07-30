@@ -50,12 +50,19 @@ export default function NotificationControllerMerchant({ isRun }: { isRun: boole
    
       const { notifData } = data?.NotificationQueryMerchant
 
-  
+      let unread = 0;
+      let totalData = 0;
 
-      // localStorage.setItem('chatCount', JSON.stringify(chatLength))
+      notifData?.forEach((item)=>{
+        if(!item?.is_read){
+          unread += item?.length
+        } 
+        totalData += item?.length;
+      })
 
       if (data) {
         setAllData(notifData);
+        setSummarize({all:totalData, unread})
       }
     }).catch((err) => {
       setLoading(false)

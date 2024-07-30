@@ -45,35 +45,42 @@ import NotificationItemMerchant from './notification-item-merchant';
 
 // ----------------------------------------------------------------------
 
-function getAvatar(image:any){
+function getAvatar(image: any) {
   const url = image || '';
   const parts = url.split('public');
   const publicPart = parts[1];
 
-  console.log(publicPart,'???????????')
+  console.log(publicPart, '???????????')
   return publicPart
 }
 
-export default function NotificationsPopoverMerchant({queryResults, notificationData, isLoading, handleReadFunc}:any) {
-  console.log(notificationData,'______________AWITTTTTTTTTT________________')
+export default function NotificationsPopoverMerchant({ queryResults, notificationData, summarize, isLoading, handleReadFunc }: any) {
+
   const navigate = useRouter();
-  const {user} = useAuthContext()
-  
-  
-  
-  
-  // const TABS = [
-  //   {
-  //     value: 'all',
-  //     label: 'All',
-  //     count: summarize?.all,
-  //   },
-  //   {
-  //     value: 'unread',
-  //     label: 'Unread',
-  //     count: summarize?.unread,
-  //   },
-  // ];
+  const { user } = useAuthContext()
+
+  const [unreadData, setUnreadData] = useState([]);
+
+  useEffect(() => {
+    if (notificationData) {
+      const data = notificationData?.filter((item) => !item.is_read);
+      setUnreadData(data)
+    }
+  }, [notificationData])
+
+
+  const TABS = [
+    {
+      value: 'all',
+      label: 'All',
+      count: summarize?.all,
+    },
+    {
+      value: 'unread',
+      label: 'Unread',
+      count: summarize?.unread,
+    },
+  ];
 
   const openView = useBoolean();
 
@@ -90,9 +97,9 @@ export default function NotificationsPopoverMerchant({queryResults, notification
 
   const [notifications, setNotifications] = useState(_notifications);
 
-  
 
-  const totalUnRead = 100
+
+  const totalUnRead = summarize?.unread
 
   const handleMarkAllAsRead = () => {
     setNotifications(
@@ -128,61 +135,61 @@ export default function NotificationsPopoverMerchant({queryResults, notification
   const renderTabs = (
     <>
       {totalUnRead >= 0 ? <Tabs value={currentTab} onChange={handleChangeTab}>
-      {/* {TABS.map((tab) => (
-        <Tab
-          key={tab.value}
-          iconPosition="end"
-          value={tab.value}
-          label={tab.label}
-          icon={
-            <Label
-              variant={((tab.value === 'all' || tab.value === currentTab) && 'filled') || 'soft'}
-              color={
-                (tab.value === 'unread' && 'info') ||
-                'default'
-              }
-            >
-              {tab.count}
-            </Label>
-          }
-          sx={{
-            '&:not(:last-of-type)': {
-              mr: 3,
-            },
-          }}
-        />
-      ))} */}
-    </Tabs>:
-    <Stack direction="row" alignItems="center" spacing={2}>
-        <Skeleton width={80} height={30} />
-        <Skeleton width={80} height={30} />
-    </Stack>
-    }
+        {TABS.map((tab) => (
+          <Tab
+            key={tab.value}
+            iconPosition="end"
+            value={tab.value}
+            label={tab.label}
+            icon={
+              <Label
+                variant={((tab.value === 'all' || tab.value === currentTab) && 'filled') || 'soft'}
+                color={
+                  (tab.value === 'unread' && 'info') ||
+                  'default'
+                }
+              >
+                {tab.count}
+              </Label>
+            }
+            sx={{
+              '&:not(:last-of-type)': {
+                mr: 3,
+              },
+            }}
+          />
+        ))}
+      </Tabs> :
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Skeleton width={80} height={30} />
+          <Skeleton width={80} height={30} />
+        </Stack>
+      }
     </>
   );
 
   const [viewId, setViewId] = useState(null);
   const [chatView, setChatView] = useState({
-    open:false,
-    id:null
+    open: false,
+    id: null
   })
 
 
-  const handleCloseChat = useCallback(()=>{
+  const handleCloseChat = useCallback(() => {
     setChatView({
-      open:false,
-      id:null
+      open: false,
+      id: null
     })
-  },[])
- const handleViewRow = useCallback((d:any)=>{
-      if(d?.notification_type === 'order'){
-        navigate.push(paths.merchant.orders)
-      }
- 
+  }, [])
+  const handleViewRow = useCallback((d: any) => {
+    if (d?.notification_type === 'order') {
+      navigate.push(paths.merchant.orders)
+    }
+
     // if(d?.chat_id){
     //   if(d?.many_chat || (d?.group_child?.length && d?.chat_id) || d?.siblings !== 0){
     //     navigate.push(paths.dashboard.chat);
-   
+
     //   }
     //  else{
     //   setChatView({
@@ -191,7 +198,7 @@ export default function NotificationsPopoverMerchant({queryResults, notification
     //   })
     //  }
     // }else{
-     
+
     //   if(d?.many_appt?.length || (d?.group_child?.length && !d?.chat_id) || d?.siblings !== 0){
     //     navigate.push(paths.dashboard.root);
 
@@ -208,31 +215,51 @@ export default function NotificationsPopoverMerchant({queryResults, notification
     //   chat_id:d?.chat_id,
     //   notifIds:d?.child && [...d?.child]
     // })
- },[])
+  }, [])
 
 
 
   const renderList = (
     <Scrollbar>
       <List disablePadding>
-       
-        {notificationData.map((notification:any) => (
+
+        {currentTab === 'all' &&
+          notificationData.map((notification: any) => (
+            <NotificationItemMerchant
+              onViewRow={() => {
+                handleViewRow(notification)
+              }}
+              key={notification.id}
+              notification={notification}
+            />
+          ))
+        }
+
+        {currentTab !== 'all' && unreadData?.length !== 0 &&  unreadData?.map((notification: any) => (
           <NotificationItemMerchant
-          onViewRow={()=>{
-            handleViewRow(notification)
-          }} 
-          // handleReadFunc={()=>{
-          //   handleReadFunc({
-          //     id:Number(notification?.id),
-          //     statusRead:1,
-          //     notifIds:notification?.child?.length !== 0 ? [...notification?.child] : []
-              
-          //   })
-          // }} 
-          key={notification.id} 
-          notification={notification} 
+            onViewRow={() => {
+              handleViewRow(notification)
+            }}
+            key={notification.id}
+            notification={notification}
           />
         ))}
+
+        {/* {currentTab !== 'all' &&
+          notificationData.filter((notification: any) => {
+            if (!notification?.is_read) {
+              return (
+                <NotificationItemMerchant
+                onViewRow={() => {
+                  handleViewRow(notification)
+                }}
+                key={notification.id}
+                notification={notification}
+              />
+              )
+            }
+          })
+        } */}
       </List>
     </Scrollbar>
   );
@@ -279,7 +306,7 @@ export default function NotificationsPopoverMerchant({queryResults, notification
           justifyContent="space-between"
           sx={{ pl: 2.5, pr: 1 }}
         >
-          {/* {renderTabs} */}
+          {renderTabs}
           <IconButton onClick={handleMarkAllAsRead}>
             <Iconify icon="solar:settings-bold-duotone" />
           </IconButton>
@@ -288,10 +315,10 @@ export default function NotificationsPopoverMerchant({queryResults, notification
         <Divider />
 
         {viewId && <AppointmentDetailsView
-          updateRow={()=>{
+          updateRow={() => {
             console.log("updatedrow")
           }}
-          refetch={()=>{
+          refetch={() => {
             console.log("refetech")
           }}
           refetchToday={() => {
@@ -301,10 +328,10 @@ export default function NotificationsPopoverMerchant({queryResults, notification
           onClose={openView.onFalse}
           id={viewId}
           notif={true}
-      />}
-          <Table>
-            {isLoading && !notificationData?.length &&  [...Array(5)].map((_, i) => <NotificationSkeleton key={i} />)}
-          </Table>
+        />}
+        <Table>
+          {isLoading && !notificationData?.length && [...Array(5)].map((_, i) => <NotificationSkeleton key={i} />)}
+        </Table>
 
         {renderList}
 

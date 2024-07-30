@@ -135,7 +135,8 @@ export default function AccountPopover() {
         </Box>
 
         <Divider sx={{ borderStyle: 'dashed' }} />
-        {OPTIONS.map((option) => (
+        
+        {user?.role === 'patient' && OPTIONS.map((option) => (
                 <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
                   {option.label}
                 </MenuItem>
@@ -156,7 +157,7 @@ export default function AccountPopover() {
               ))}
             </Stack>}
 
-            {user?.role === 'doctor' &&    <Stack sx={{ p: 1 }}>
+            {user?.role === 'doctor' &&  user?.role === 'secretary' &&  <Stack sx={{ p: 1 }}>
                 {DOCTOR_OPTIONS.map((option) => (
                   <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
                     {option.label}

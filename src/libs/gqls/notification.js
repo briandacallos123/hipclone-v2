@@ -15,7 +15,23 @@ query NotificationQueryMerchant($data:NotificationPayloads) {
       is_read
       notification_type
       user 
-      length
+      length 
+      medecine {
+        description
+        dose
+        generic_name
+        id
+        manufacturer
+        price
+        merchant_store{
+          name
+        }
+      }
+      orders{
+        id
+        generic_name
+         
+      }
     }
    
     }

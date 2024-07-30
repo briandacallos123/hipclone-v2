@@ -13,7 +13,16 @@ export const QueryAllMedicineOrders = gql`
         approved
       }
       orderType {
+        attachment{
+          file_path
+          id
+          filename
+        }
+        value
         dose
+        payment
+        price
+        online_reference
         status_id
         form
         generic_name
@@ -154,9 +163,12 @@ export const QueryAllMedecineByStore = gql`
         generic_name
         brand_name
         dose
+        type
         form
+        description
         price
         manufacturer
+        stock
         attachment_info{
           id
           file_path
