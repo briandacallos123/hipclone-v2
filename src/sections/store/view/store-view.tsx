@@ -265,6 +265,7 @@ export default function StoreListView() {
             }}
             variant="contained"
             startIcon={<Iconify icon="mingcute:add-line" />}
+           
           >
             Create New Store
           </Button>
@@ -309,25 +310,7 @@ export default function StoreListView() {
                   label="orders"
 
                 />
-                {/* <AppointmentAnalytic
-                  title="Done"
-                  total={state?.summary?.done}
-                  percent={(state?.summary?.done / state?.totalRecords) * 100}
-                  icon="solar:close-circle-bold-duotone"
-                  color={theme.palette.success.main}
-                  label="orders"
-
-                />
-                <AppointmentAnalytic
-                  title="Cancelled"
-                  total={state?.summary?.cancelled}
-                  percent={(state?.summary?.cancelled / state?.totalRecords) * 100}
-                  icon="solar:close-circle-bold-duotone"
-                  color={theme.palette.error.main}
-                  label="orders"
-
-                /> */}
-
+              
               </Stack>
             </Scrollbar>
           </Card>

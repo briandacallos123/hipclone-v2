@@ -137,12 +137,17 @@ export default function QueueApproveTableRow({
                   >
                     {row?.type === 1 ? 'telemedicine' : 'Face-To-Face'}
                   </Label>
-                  <Label
+                    {
+                      row?.pendingPayment && <Label variant="soft" color="success">
+                      For Approval
+                  </Label>
+                    }
+                  {!row?.pendingPayment && <Label
                     color={(row?.payment_status && 'success') || 'error'}
                     sx={{ textTransform: 'capitalize' }}
                   >
-                    {row?.payment_status === 1 ? 'paid' : 'unpaid'}
-                  </Label>
+                    {row?.payment_status === 1 ? 'paid' : 'unpaidz'}
+                  </Label>}
                 </Stack>
               </>
             }
@@ -204,10 +209,15 @@ export default function QueueApproveTableRow({
 
         <TableCell>
           <Label
-            color={(row?.payment_status && 'success') || 'error'}
+            color={(row?.payment_status || row?.pendingPayment && 'success') || 'error'}
             sx={{ textTransform: 'capitalize' }}
           >
-            {row?.payment_status === 1 ? 'paid' : 'unpaid'}
+            {/* {row?.payment_status === 1 ? 'paid' : 'unpaid'} */}
+
+            {row?.pendingPayment && 'For approval' ||
+            row?.payment_status === 1 && 'Paid' ||
+            'Unpaid'
+            }
           </Label>
         </TableCell>
 

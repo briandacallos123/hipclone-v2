@@ -37,10 +37,10 @@ type Props = {
   onDeleteRow: () => void;
   onViewPatient: VoidFunction;
   onEditRow: () => void;
-  onDone?:()=>void;
-  onApproved?:()=>void;
-  onCancelled?:()=>void
-  onViewRow?:()=>void;
+  onDone?: () => void;
+  onApproved?: () => void;
+  onCancelled?: () => void
+  onViewRow?: () => void;
 
 };
 
@@ -118,7 +118,7 @@ export default function MerchantOrdersTableRow({
       open={doneConfirm.value}
       onClose={doneConfirm.onFalse}
       title="Delete"
-      content="Are you sure want to delete?"
+      content="Are you sure want to mark this as done?"
       action={
         <Button
           variant="contained"
@@ -136,7 +136,7 @@ export default function MerchantOrdersTableRow({
 
   const viewConfirm = useBoolean();
 
-  
+
 
   const approveConfirm = useBoolean();
 
@@ -145,7 +145,7 @@ export default function MerchantOrdersTableRow({
       open={approveConfirm.value}
       onClose={approveConfirm.onFalse}
       title="Delete"
-      content="Are you sure want to delete?"
+      content="Are you sure want to approve?"
       action={
         <Button
           variant="contained"
@@ -189,6 +189,85 @@ export default function MerchantOrdersTableRow({
 
   const FULLNAME = row?.patient?.MNAME ? `${row?.patient?.FNAME} ${row?.patient?.MNAME} ${row?.patient?.LNAME}` : `${row?.patient?.FNAME} ${row?.patient?.LNAME}`;
 
+
+  if (!upMd) {
+    return (
+      <TableMobileRow
+        menu={[
+
+          {
+            label: 'View',
+            icon: 'mdi:eye',
+            func: onViewRow,
+            color: 'success'
+          },
+          {
+            label: "Approve",
+            icon: 'material-symbols:order-approve-sharp',
+            func: approveConfirm.onTrue,
+            color: 'success'
+          },
+          {
+            label: 'Cancel',
+            icon: 'material-symbols-light:cancel',
+            func: cancelConfirm.onTrue,
+            color: 'warning'
+          },
+          {
+            label: 'Done',
+            icon: 'eva:done-all-fill',
+            func: doneConfirm.onTrue,
+            color: 'success'
+          },
+          {
+            label: 'Delete',
+            icon: 'solar:trash-bin-trash-bold',
+            func: (() => {
+              confirm.onTrue()
+            }),
+            color: 'error'
+          },
+        ]}
+      >
+        <Box style={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar sx={{ mr: 2 }} alt="store" >
+            {row?.generic_name?.charAt(1).toUpperCase()}
+          </Avatar>
+
+          <ListItemText
+            primary={`#${row?.id}`}
+            secondary={
+              <>
+                <Typography variant="caption">{row?.generic_name}</Typography>
+                <Typography color={
+                  row?.status_id === 4 && 'success.main' ||
+                  row?.status_id === 1 && 'warning.main' ||
+                  row?.status_id === 2 && 'primary.main' ||
+                  row?.status_id === 3 && 'error.main'
+
+                } variant="caption">
+                {row?.status_id === 4 && "Done" ||
+                    row?.status_id === 1 && "Pending" ||
+                    row?.status_id === 2 && "Approved" ||
+                    row?.status_id === 3 && "Cancelled"
+
+                  }
+                </Typography>
+
+              </>
+            }
+            primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
+            secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
+          />
+          {renderConfirm}
+          {renderDoneConfirm}
+          {renderApprovedConfirm}
+          {renderCancelConfirm}
+        </Box>
+      </TableMobileRow>
+    );
+  }
+
   return (
     <TableRow hover selected={selected}>
       <TableCell sx={{
@@ -196,17 +275,14 @@ export default function MerchantOrdersTableRow({
         alignItems: 'center'
       }}>
         <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
-          {row?.store?.name?.charAt(0)?.toUpperCase()}
+          {`#`}
         </Avatar>
         <ListItemText
-          primary={row?.store?.name}
+          primary={`${row?.id}`}
           primaryTypographyProps={{ typography: 'subtitle2' }}
           sx={{
             cursor: 'pointer',
-            // textDecoration: 'underline',
-            // ':hover': {
-            //   color: 'primary.main',
-            // },
+
             textTransform: 'capitalize'
           }}
 
@@ -220,8 +296,13 @@ export default function MerchantOrdersTableRow({
         </Typography>
 
       </TableCell>
-     
-      <TableCell align='center'>
+
+      <TableCell align="center" sx={{
+        display: 'flex',
+        alignItems: "center",
+        justifyContent: "center",
+      }}>
+        <Avatar src={`/${row?.patient?.Attachment?.split('/').splice(1).join("/")}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }} />
         <Typography>
           {FULLNAME}
 
@@ -235,23 +316,23 @@ export default function MerchantOrdersTableRow({
       </TableCell>
       <TableCell align='center'>
         <Typography>
-        {row?.is_deliver ? 'Delivery' : 'Pick Up'}
+          {row?.is_deliver ? 'Delivery' : 'Pick Up'}
         </Typography>
       </TableCell>
-     
+
       <TableCell align='center'>
         <Label variant="soft" color={
           row?.status_id === 4 && 'success' ||
           row?.status_id === 1 && 'warning' ||
           row?.status_id === 2 && 'primary' ||
-          row?.status_id === 3 && 'error' 
+          row?.status_id === 3 && 'error'
 
         }>
-          {row?.status_id === 4 && "Done"||
-          row?.status_id === 1 && "Pending" ||
-          row?.status_id === 2 && "Approved" ||
+          {row?.status_id === 4 && "Done" ||
+            row?.status_id === 1 && "Pending" ||
+            row?.status_id === 2 && "Approved" ||
 
-          row?.status_id === 3 && "Cancelled" 
+            row?.status_id === 3 && "Cancelled"
 
           }
         </Label>
@@ -270,7 +351,7 @@ export default function MerchantOrdersTableRow({
 
       <Stack direction="row" justifyContent="flex-end">
         <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
-        <MenuItem
+          <MenuItem
             onClick={() => {
               popover.onClose();
               onViewRow()
@@ -278,12 +359,12 @@ export default function MerchantOrdersTableRow({
             sx={{ color: 'success.main' }}
           >
             <Iconify icon="mdi:eye" />
-             View
+            View
           </MenuItem>
 
 
 
-          {row?.status_id !== 2 && row?.status_id !== 4 &&<MenuItem
+          {row?.status_id !== 2 && row?.status_id !== 4 && <MenuItem
             onClick={() => {
               approveConfirm.onTrue()
               popover.onClose();
@@ -292,10 +373,10 @@ export default function MerchantOrdersTableRow({
             sx={{ color: 'success.main' }}
           >
             <Iconify icon="material-symbols:order-approve-sharp" />
-             Approve
+            Approve
           </MenuItem>}
-          
-          
+
+
           {row?.status_id !== 4 && <MenuItem
             onClick={() => {
               cancelConfirm.onTrue()
@@ -305,9 +386,9 @@ export default function MerchantOrdersTableRow({
             sx={{ color: 'warning.main' }}
           >
             <Iconify icon="material-symbols-light:cancel" />
-             Cancel
+            Cancel
           </MenuItem>}
-            {row?.status_id !== 4 &&   <MenuItem
+          {row?.status_id !== 4 && <MenuItem
             onClick={() => {
               doneConfirm.onTrue()
               popover.onClose();
@@ -316,7 +397,7 @@ export default function MerchantOrdersTableRow({
             sx={{ color: 'success.main' }}
           >
             <Iconify icon="eva:done-all-fill" />
-             Done
+            Done
           </MenuItem>}
 
           <MenuItem

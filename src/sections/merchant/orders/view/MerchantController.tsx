@@ -106,7 +106,8 @@ const MerchantController = () => {
                     skip: table.page * table.rowsPerPage,
                     take: table.rowsPerPage,
                     status: filters.status,
-                    is_deliver:null
+                    is_deliver:null,
+                    search:filters.search
                 }
             }
         }).then((res: any) => {
@@ -120,7 +121,7 @@ const MerchantController = () => {
 
             }
         })
-    }, [table.page, table.rowsPerPage, getOrdersResult?.data, filters.status])
+    }, [table.page, table.rowsPerPage, getOrdersResult?.data, filters.status, filters.search])
 
     // create merchant medecine
     const [createMerchantFuncMed] = useMutation(CreateMerchantMedecine, {

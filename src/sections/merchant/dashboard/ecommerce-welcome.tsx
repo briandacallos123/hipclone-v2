@@ -52,7 +52,7 @@ export default function EcommerceWelcome({ title, description, action, img, ...o
         </Typography>
 
         <Typography
-          variant="body2"
+          variant="body1"
           sx={{
             opacity: 0.8,
             maxWidth: 360,

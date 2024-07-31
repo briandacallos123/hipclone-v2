@@ -6,7 +6,7 @@ import prisma from '../../../../prisma/prismaClient'
 import StoreManageBreadcramps from './store-manage-breadcramps'
 import StoreManageTabs from './store-manage-tabs'
 import { serialize, unserialize } from 'php-serialize';
-import { Grid } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import StoreCreateMedecine from './store-create-medecine'
 import { useLazyQuery } from '@apollo/client';
 import { QuerySingleStore } from '@/libs/gqls/store'
@@ -44,7 +44,9 @@ const StoreManageView = async ({singleResult,  tableData }: StoreManageViewProps
       
 
     return (
-        <div>
+        <Box sx={{
+            p:{xs:2, lg:0}
+        }}>
             <StoreManageBreadcramps
                 storeName={tableData?.name}
                 address={tableData?.address}
@@ -59,7 +61,7 @@ const StoreManageView = async ({singleResult,  tableData }: StoreManageViewProps
                     />
             
             <StoreManageTabs singleResult={singleResult} data={tableData} />
-        </div>
+        </Box>
     )
 }
 

@@ -43,6 +43,7 @@ export const QueryAllMedicineOrders = gql`
           STATUS
           S_ID
           isDeleted
+          Attachment
         }
         is_deliver
         brand_name
@@ -72,7 +73,10 @@ export const QueryAllOrdersForMerchantHistory = gql`
         store{
           name
         }
+        value
         id
+        payment
+        online_reference
         is_paid
         attachment {
           file_path

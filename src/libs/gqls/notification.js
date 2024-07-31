@@ -8,6 +8,14 @@ export const notification_read = gql`
   }
 `
 
+export const notification_read_merchant = gql`
+  mutation NotificationUpdateMerchant($data:NotificationUpdateMerchantInp){
+    NotificationUpdateMerchant(data: $data) {
+      message
+    }
+  }
+`
+
 export const NotificationQueryMerchant = gql`
 query NotificationQueryMerchant($data:NotificationPayloads) {
   NotificationQueryMerchant(data:$data) {

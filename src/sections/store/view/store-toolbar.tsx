@@ -152,13 +152,13 @@ export default function StoreToolbar({
             }}
           />
 
-          <Stack direction="row">
+          {/* <Stack direction="row">
             {!upMd && <TableToolbarPopover>{renderFields}</TableToolbarPopover>}
 
             <IconButton onClick={popover.onOpen}>
               <Iconify icon="eva:more-vertical-fill" />
             </IconButton>
-          </Stack>
+          </Stack> */}
         </Stack>
       </Stack>
 

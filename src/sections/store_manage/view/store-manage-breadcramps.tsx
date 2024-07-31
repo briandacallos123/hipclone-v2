@@ -43,20 +43,12 @@ function handleClick(event: React.MouseEvent<Element, MouseEvent>) {
   return (
     <div role="presentation" onClick={handleClick}>
       <Breadcrumbs aria-label="breadcrumb">
-        {/* <StyledBreadcrumb
-          component="a"
-          href="#"
-          label="Home"
-          sx={{
-            color:'blue',
-            cursor:'pointer'
-          }}
-       
-        /> */}
+      
         <StyledBreadcrumb
          sx={{
             color:'blue',
-            cursor:'pointer'
+            cursor:'pointer',
+            // marginLeft:'-'
           }}
         component="a" href="#" label="List" />
         <Typography variant="h5" >

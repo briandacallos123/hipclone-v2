@@ -117,13 +117,17 @@ export default function QueueDoneCancelTableRow({ row, onViewRow }: Props) {
       </TableCell>
 
       <TableCell>
-        <Label
-          color={(row?.payment_status && 'success') || 'error'}
-          sx={{ textTransform: 'capitalize' }}
-        >
-          {row?.payment_status === 1 ? 'paid' : 'unpaid'}
-        </Label>
-      </TableCell>
+          <Label
+            color={(row?.payment_status || row?.pendingPayment && 'success') || 'error'}
+            sx={{ textTransform: 'capitalize' }}
+          >
+
+            {row?.pendingPayment && 'For approval' ||
+            row?.payment_status === 1 && 'Paid' ||
+            'Unpaid'
+            }
+          </Label>
+        </TableCell>
 
       <TableCell align="right" sx={{ px: 1 }}>
         <Tooltip title="View Details" placement="top" arrow>

@@ -20,18 +20,18 @@ export const medicineType = objectType({
         t.string('type')
         t.float('price');
         t.string('manufacturer');
-        t.nullable.field('attachment_info',{
-            type:attachment_info
+        t.nullable.field('attachment_info', {
+            type: attachment_info
         });
-        t.nullable.field('merchant_store',{
-            type:storeType
+        t.nullable.field('merchant_store', {
+            type: storeType
         })
         // t.date('created_at');
     },
 })
 
 export const attachment_info = objectType({
-    name:"attachment_info",
+    name: "attachment_info",
     definition(t) {
         t.int('id');
         t.string('file_path');
@@ -76,156 +76,166 @@ export const QueryAllMerchantMedicine = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
-                const {take, skip,type,startPrice,sort, endPrice, userType, store_id, search}:any = args?.data;
+                const { take, skip, type, startPrice, sort, endPrice, userType, store_id, search }: any = args?.data;
 
-                let merchantUser:any;
-                let list_store:any;
+                let merchantUser: any;
+                let list_store: any;
 
-                 // for best selling sort.
-                 const sortBestSelling = () => {
-                    if(sort === 'Best Selling'){
+                // for best selling sort.
+                const sortBestSelling = () => {
+                    if (sort === 'Best Selling') {
                         return {
-                            orderBy:{
-                                quantity_sold:'desc'
+                            orderBy: {
+                                quantity_sold: 'desc'
                             }
                         }
-                    }else if(sort === 'Latest Products'){
+                    } else if (sort === 'Latest Products') {
                         return {
-                            orderBy:{
-                                created_at:"desc"
+                            orderBy: {
+                                created_at: "desc"
                             }
                         }
-                    }else if(sort === 'Name Descending'){
+                    } else if (sort === 'Name Descending') {
                         return {
-                            orderBy:{
-                                generic_name:"desc"
+                            orderBy: {
+                                generic_name: "desc"
                             }
                         }
-                    }else if(sort === 'Name Ascending'){
+                    } else if (sort === 'Name Ascending') {
                         return {
-                            orderBy:{
-                                generic_name:"asc"
+                            orderBy: {
+                                generic_name: "asc"
                             }
                         }
                     }
                 }
                 const sortOptions = sortBestSelling()
-                console.log(sortOptions,'SORTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+                console.log(sortOptions, 'SORTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
                 // end of sort options
                 try {
 
-                  if(!userType){
+                    if (!userType) {
 
-                    merchantUser = await client.merchant_user.findUnique({
-                        where:{
-                            id:Number(session?.user?.id)
-                        }
-                    })
+                        merchantUser = await client.merchant_user.findUnique({
+                            where: {
+                                id: Number(session?.user?.id)
+                            }
+                        })
 
-                    list_store = await client.merchant_store.findMany({
-                        where:{
-                            merchant_id:Number(merchantUser?.id),
-                            is_deleted:0
-                        },
-                        select:{
-                            id:true
-                        }
-                    })
-                  }
-
-          
-                   
-                //   }
-
-                  const typeCondition = () => {
-                    if(type){
-                        return {
-                            type
-                        }
+                        list_store = await client.merchant_store.findMany({
+                            where: {
+                                merchant_id: Number(merchantUser?.id),
+                                is_deleted: 0
+                            },
+                            select: {
+                                id: true
+                            }
+                        })
                     }
-                  }
 
-                  const priceCondition = () => {
-                    if(startPrice && endPrice){
-                        return {
-                            price:{
-                                gte:startPrice,
-                                lte:endPrice
-                            }
-                        }
-                    }else if(startPrice){
-                        return {
-                            price:{
-                                gte:startPrice
-                            }
-                        }
-                    }else if(endPrice){
-                        return {
-                            price:{
-                                lte:endPrice
+
+
+                    //   }
+
+                    const typeCondition = () => {
+                        if (type) {
+                            return {
+                                type
                             }
                         }
                     }
-                  }
+
+                    const priceCondition = () => {
+                        if (startPrice && endPrice) {
+                            return {
+                                price: {
+                                    gte: startPrice,
+                                    lte: endPrice
+                                }
+                            }
+                        } else if (startPrice) {
+                            return {
+                                price: {
+                                    gte: startPrice
+                                }
+                            }
+                        } else if (endPrice) {
+                            return {
+                                price: {
+                                    lte: endPrice
+                                }
+                            }
+                        }
+                    }
+
+                    const storeId = (() => {
+                        let store_id: any;
+
+                        if (store_id) {
+                            store_id = Number(store_id);
+
+                        }
+                        return store_id
+                    })()
 
 
-                //   const storeCon = storeCondition()
-                  const priceCon = priceCondition()
-                  const typeCon = typeCondition()
-                    
-                    const [result, totalRecords]:any = await client.$transaction([
+                    //   const storeCon = storeCondition()
+                    const priceCon = priceCondition()
+                    const typeCon = typeCondition()
+
+                    const [result, totalRecords]: any = await client.$transaction([
                         client.merchant_medicine.findMany({
                             take,
                             skip,
                             where: {
                                 is_deleted: 0,
-                                stock:{
-                                    not:0
+                                stock: {
+                                    not: 0
                                 },
                                 // ...storeCon,
-                                store_id:Number(store_id),
+                                ...storeId,
                                 ...priceCon,
                                 ...typeCon,
-                               
-                                generic_name:{
-                                    contains:search
+
+                                generic_name: {
+                                    contains: search
                                 },
-                                
+
 
                             },
-                            include:{
-                                merchant_store:true
+                            include: {
+                                merchant_store: true
                             },
                             ...sortOptions,
                         }),
                         client.merchant_medicine.count({
                             where: {
                                 is_deleted: 0,
-                                store_id:Number(store_id),
+                                store_id: Number(store_id),
                             }
                         })
                     ])
-                    
 
-                    const res = result?.map(async(item:any)=>{
+
+                    const res = result?.map(async (item: any) => {
                         const r = await client.medecine_attachment.findFirst({
-                            where:{
-                                id:Number(item?.attachment_id)
+                            where: {
+                                id: Number(item?.attachment_id)
                             }
                         })
 
                         let paymentAttachment;
-                        if(item?.merchant_store?.online_payment){
+                        if (item?.merchant_store?.online_payment) {
 
                             const onlinePayment = await client.online_payment.findFirst({
-                                where:{
-                                    id:Number(item?.merchant_store?.online_payment)
+                                where: {
+                                    id: Number(item?.merchant_store?.online_payment)
                                 }
                             })
 
                             const pAttachment = await client.order_payment_attachment.findFirst({
-                                where:{
-                                    id:Number(onlinePayment?.id)
+                                where: {
+                                    id: Number(onlinePayment?.id)
                                 }
                             });
 
@@ -235,17 +245,17 @@ export const QueryAllMerchantMedicine = extendType({
                             }
                         }
 
-                      
 
-                        return {...item, attachment_info:{...r}, merchant_store:{...item.merchant_store, onlinePayment:{...paymentAttachment}}}
+
+                        return { ...item, attachment_info: { ...r }, merchant_store: { ...item.merchant_store, onlinePayment: { ...paymentAttachment } } }
                     })
 
                     const fResult = await Promise.all(res)
 
-                  
 
 
-                     
+
+
 
                     return {
                         MedicineType: fResult,
@@ -273,21 +283,21 @@ export const QueryAllMedecineByStore = extendType({
                     const result = await client.merchant_medicine.findMany({
                         where: {
                             is_deleted: 0,
-                            store_id:Number(args?.data?.store_id),
-                            stock:{
-                                not:{
-                                    equals:0
+                            store_id: Number(args?.data?.store_id),
+                            stock: {
+                                not: {
+                                    equals: 0
                                 }
                             }
                         }
                     })
-                    const res = result?.map(async(item:any)=>{
+                    const res = result?.map(async (item: any) => {
                         const r = await client.medecine_attachment.findFirst({
-                            where:{
-                                id:Number(item?.attachment_id)
+                            where: {
+                                id: Number(item?.attachment_id)
                             }
                         })
-                        return {...item, attachment_info:{...r}}
+                        return { ...item, attachment_info: { ...r } }
                     })
 
                     const fResult = await Promise.all(res)
@@ -319,13 +329,13 @@ export const QueryAllMedecine = extendType({
                             is_deleted: 0,
                         }
                     })
-                    const res = result?.map(async(item:any)=>{
+                    const res = result?.map(async (item: any) => {
                         const r = await client.medecine_attachment.findFirst({
-                            where:{
-                                id:Number(item?.attachment_id)
+                            where: {
+                                id: Number(item?.attachment_id)
                             }
                         })
-                        return {...item, attachment_info:{...r}}
+                        return { ...item, attachment_info: { ...r } }
                     })
 
                     const fResult = await Promise.all(res)
@@ -378,22 +388,22 @@ export const CreateMerchantMedicine = extendType({
 
                 const sFile = await args?.file;
 
-                const { generic_name,stock, show_price,type,description,store_id, brand_name, dose, form, price, manufacturer }: any = args.data
+                const { generic_name, stock, show_price, type, description, store_id, brand_name, dose, form, price, manufacturer }: any = args.data
 
                 try {
-                    let med:any;
+                    let med: any;
                     if (sFile) {
                         const res: any = useUpload(sFile, 'public/documents/');
 
                         med = await client.medecine_attachment.create({
-                            data:{
+                            data: {
                                 filename: String(res[0]!.fileName),
                                 file_path: String(res[0]!.path),
                                 file_type: String(res[0]!.fileType),
                                 file_size: String(res[0]!.file_size)
                             }
                         })
-                        
+
                     }
 
                     await client.merchant_medicine.create({
@@ -408,11 +418,11 @@ export const CreateMerchantMedicine = extendType({
                             type,
                             price,
                             attachment_id: Number(med?.id),
-                            store_id:Number(store_id),
-                            show_price:(()=>{
-                                if(!show_price){
+                            store_id: Number(store_id),
+                            show_price: (() => {
+                                if (!show_price) {
                                     return 0
-                                }else{
+                                } else {
                                     return 1
                                 }
                             })()
@@ -488,34 +498,34 @@ export const UpdateMerchantMedicine = extendType({
             async resolve(_root, args, ctx) {
 
 
-              
+
 
 
                 try {
 
-                    let med:any;
+                    let med: any;
                     const sFile = await args?.file;
-                    if (typeof(sFile) !== "string") {
+                    if (typeof (sFile) !== "string") {
                         const res: any = useUpload(sFile, 'public/documents/');
-    
+
                         med = await client.medecine_attachment.create({
-                            data:{
+                            data: {
                                 filename: String(res[0]!.fileName),
                                 file_path: String(res[0]!.path),
                                 file_type: String(res[0]!.fileType),
                                 file_size: String(res[0]!.file_size)
                             }
-                        }) 
-                        
+                        })
+
                     }
-                    
-    
+
+
                     // console.log(med,'MEDECINE________________________________ KOTOOOOOOOOOOOOOOOOO')
-                    const {id, generic_name, brand_name,type, dose,stock, description, form, price, manufacturer }: any = args.data
+                    const { id, generic_name, brand_name, type, dose, stock, description, form, price, manufacturer }: any = args.data
 
                     await client.merchant_medicine.update({
                         where: {
-                            id:Number(id)
+                            id: Number(id)
                         },
                         data: {
                             generic_name,
@@ -527,7 +537,7 @@ export const UpdateMerchantMedicine = extendType({
                             stock,
                             price,
                             description,
-                            attachment_id:med && Number(med?.id)
+                            attachment_id: med && Number(med?.id)
                         }
                     })
 
@@ -535,7 +545,7 @@ export const UpdateMerchantMedicine = extendType({
                         message: "Successfully updated"
                     }
                 } catch (error) {
-                    console.log(error,'ERRORRRRRRRR')
+                    console.log(error, 'ERRORRRRRRRR')
                     return new GraphQLError(error)
                 }
             }
@@ -545,7 +555,7 @@ export const UpdateMerchantMedicine = extendType({
 
 
 export const QuerySinelgMedecineInp = inputObjectType({
-    name:"QuerySinelgMedecineInp",
+    name: "QuerySinelgMedecineInp",
     definition(t) {
         t.int('id')
     },
@@ -560,33 +570,118 @@ export const QuerySingleMedecine = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
-               try {
-                const result = await client.merchant_medicine.findUnique({
+                try {
+                    const result = await client.merchant_medicine.findUnique({
+                        where: {
+                            id: Number(args?.data?.id)
+                        }
+                    })
+
+                    const r = await client.medecine_attachment.findFirst({
+                        where: {
+                            id: Number(result?.attachment_id)
+                        }
+                    })
+
+                    const store = await client.merchant_store.findFirst({
+                        where: {
+                            id: Number(result?.store_id)
+                        }
+                    })
+
+                    const fResult = { ...result, attachment_info: { ...r }, merchant_store: { ...store } }
+
+
+                    return fResult;
+
+                } catch (error) {
+                    throw new Error(error)
+                }
+            }
+        })
+    }
+});
+
+const QueryAllMedecineForMerchantInp = inputObjectType({
+    name: "QueryAllMedecineForMerchantInp",
+    definition(t) {
+        t.nullable.int('take');
+        t.nullable.int('skip');
+        t.nullable.string('search');
+        // t.nullable.int('store_id')
+        // t.nullable.string('userType');
+        // t.nullable.string('type');
+        // t.nullable.int('startPrice');
+        // t.nullable.int('endPrice');
+        // t.nullable.string('sort')
+
+    },
+})
+
+const QueryAllMedecineForMerchantObj = objectType({
+    name:"QueryAllMedecineForMerchantObj",
+    definition(t) {
+        t.list.field("all",{
+            type:medicineType
+        });
+        t.nullable.field('summaryObjMerchant',{
+            type:summaryObjMerchant
+        })
+    },
+})
+
+const summaryObjMerchant = objectType({
+    name:"summaryObjMerchant",
+    definition(t) {
+        t.int('total')
+    },
+})
+
+export const QueryAllMedecineForMerchant = extendType({
+    type: 'Query',
+    definition(t) {
+        t.nullable.field('QueryAllMedecineForMerchant', {
+            type: QueryAllMedecineForMerchantObj,
+            args: { data: QueryAllMedecineForMerchantInp },
+            async resolve(_root, args, ctx) {
+                const { session } = ctx;
+                const { take, skip, search }: any = args?.data;
+
+                let allStoreByMerchant:any = await client.merchant_store.findMany({
                     where:{
-                        id:Number(args?.data?.id)
+                        merchant_id:Number(session?.user?.id),
                     }
                 })
+                allStoreByMerchant = allStoreByMerchant?.map((item)=>Number(item?.id))
 
-                const r = await client.medecine_attachment.findFirst({
-                    where:{
-                        id:Number(result?.attachment_id)
+                console.log(allStoreByMerchant,'___________________________')
+                const [all, totalRecords]: any = await client.$transaction([
+                    client.merchant_medicine.findMany({
+                        take,
+                        skip,
+                        where:{
+                            store_id:{
+                                in:allStoreByMerchant
+                            },
+                            is_deleted:0
+                        }
+                    }),
+                    client.merchant_medicine.findMany({
+                        where:{
+                            store_id:{
+                                in:allStoreByMerchant
+                            },
+                            is_deleted:0
+                        }
+                    }),
+                ]);
+
+                return {
+                    all,
+                    summaryObjMerchant:{
+                        total:totalRecords.length
                     }
-                })
-
-                const store = await client.merchant_store.findFirst({
-                    where:{
-                        id:Number(result?.store_id)
-                    }
-                })
-
-                const fResult = {...result, attachment_info:{...r}, merchant_store:{...store}}
-
-               
-                return fResult;
-                
-               } catch (error) {
-                throw new Error(error)
-               }
+                }
             }
         })
     }

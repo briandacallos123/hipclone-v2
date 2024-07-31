@@ -109,6 +109,7 @@ const HeaderCart = ({count, cart}:HeaderCartProps) => {
                         </Box>
                     <Button onClick={()=>{
                         router.push('/dashboard/medecine-checkout/checkout')
+                        drawer.onFalse()
                     }} variant="contained" color="success" component={m.button}  fullWidth size="large">
                         Place Order
                     </Button>

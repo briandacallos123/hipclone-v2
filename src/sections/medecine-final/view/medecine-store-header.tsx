@@ -21,7 +21,10 @@ const MedecineStoreHeader = ({ address, storeName, product_type, startTime, endT
             flexDirection: 'column',
             gap: 0.5
         }}>
-            <Typography variant='h3'>{`${storeName} - ${address}`}</Typography>
+            <Typography sx={{
+                fontSize:{xs:"1.5rem", lg:'2rem'},
+                fontWeight:'semi-bold'
+            }}>{`${storeName} - ${address}`}</Typography>
             <Typography variant='body2' color="grey">{product_type}</Typography>
 
             <Box sx={{

@@ -273,7 +273,7 @@ export default function MerchantCreateView({editData, editRow, isEdit, setLogged
     const renderForm = (
         <Stack spacing={2.5} sx={{ mt: 1 }}>
             {!!errorMsg && <Alert severity="error">{errorMsg}</Alert>}
-            <Stack spacing={1} direction="row" alignItems="center">
+            <Stack spacing={1} direction={{xs:'column',lg:'row'}} alignItems="center">
                 <RHFTextField name="generic_name" label="Generic Name" />
                 <RHFSelect name="type" label="Type">
 
@@ -286,12 +286,12 @@ export default function MerchantCreateView({editData, editRow, isEdit, setLogged
 
                 </RHFSelect>
             </Stack>
-            <Stack spacing={1} direction="row" alignItems="center">
+            <Stack spacing={1} direction={{xs:'column',lg:'row'}} alignItems="center">
 
                 <RHFTextField name="dose" label="Dose" />
                 <RHFTextField name="form" label="Form" />
             </Stack>
-            <Stack spacing={1} direction="row" alignItems="center">
+            <Stack spacing={1} direction={{xs:'column',lg:'row'}} alignItems="center">
                 <RHFTextField name="price" label="Price" />
                 <RHFTextField name="manufacturer" label="Manufacturer" />
 
@@ -300,7 +300,7 @@ export default function MerchantCreateView({editData, editRow, isEdit, setLogged
                 <RHFCheckbox sx={{ ml: 1 }} name="show_price" label="Show Price?" />
 
             </Stack>
-            <Stack direction="row" spacing={1} alignItems="center">
+            <Stack direction={{xs:'column',lg:'row'}} spacing={1} alignItems="center">
                 <RHFTextField name="brand_name" label="Brand Name" />
                 <RHFTextField name="stock" label="Stocks" type="number" />
             </Stack>

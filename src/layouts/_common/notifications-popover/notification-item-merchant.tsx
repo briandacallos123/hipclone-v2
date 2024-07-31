@@ -31,10 +31,12 @@ type NotificationItemProps = {
     isPatient?:any;
   };
   handleReadFunc:void,
-  onViewRow:any
+  onViewRow:any,
+  onReadView:()=>void;
 };
-export default function NotificationItemMerchant({ notification, onViewRow}: NotificationItemProps) {
+export default function NotificationItemMerchant({ notification, onReadView, onViewRow}: NotificationItemProps) {
 
+  console.log(notification,'NOTIF__________________________')
   const renderAvatar = (
     <ListItemAvatar>
       {(notification.avatarUrl && !notification?.group_child?.length && !notification?.many_appt && !notification?.many_chat)  ? (
@@ -69,7 +71,12 @@ export default function NotificationItemMerchant({ notification, onViewRow}: Not
   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length > 1 && `<p>You have <strong>${notification?.length}</strong> new orders from <strong>${notification?.user}</strong></p>`) ||
  // order && not read && length is equals 1
   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length === 1  && `<p>You have new order from <strong>${notification?.user}</strong></p>`) ||
- // supply && not read && length is > 1
+  // order & already read && length is > 1
+  (notification?.notification_type === 'order' && notification?.is_read && notification?.length > 1  && `<p>${notification?.user} made ${notification?.length} orders!</strong></p>`) ||
+  // order & already read && length === 1
+  (notification?.notification_type === 'order' && notification?.is_read && notification?.length === 1  && `<p>${notification?.user} made an order!</strong></p>`) ||
+ 
+  // supply && not read && length is > 1
   (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length > 1  && `<p><strong>${notification?.length} of your product </strong> are getting out of stock, please review.</p>`) || 
   // supply && not read && length is === 1
   (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length === 1  && `<p><strong>${notification?.medecine[0]?.generic_name}</strong> is getting out of stock.</p>`) || 
@@ -176,19 +183,21 @@ export default function NotificationItemMerchant({ notification, onViewRow}: Not
         View Orders
       </Button>}
 
-       
-
-      {/* {notification?.type === 'approved appointment' &&  <Button onClick={()=>{
-          onViewRow()
+      {notification?.notification_type === 'order' && !notification?.is_read && <Button onClick={()=>{
+          onReadView()
         }} size="small" color="info" variant="outlined">
-         View
+         Mark as Read
       </Button>}
 
-      {notification?.type === 'sent a message' &&  <Button onClick={()=>{
+      {notification?.notification_type === 'supply' &&  <Button onClick={()=>{
           onViewRow()
         }} size="small" color="info" variant="outlined">
-         View Message
+         View Supplies
       </Button>}
+
+      {/* 
+
+   
 
       {notification?.type === 'done appointment' &&  <Button onClick={()=>{
           onViewRow()

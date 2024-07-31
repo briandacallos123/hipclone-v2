@@ -23,6 +23,12 @@ module.exports = {
         port: '',
         pathname: '/api/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '',
+        pathname: '/api/**',
+      },
     ],
   },
   modularizeImports: {

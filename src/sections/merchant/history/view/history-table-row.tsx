@@ -52,7 +52,6 @@ export default function HistoryTableRow({
     /*  const { patient, hospital, schedule, isPaid, type } = row; */
     const upMd = useResponsive('up', 'md');
 
-    console.log(row, 'ROW__________')
     const { user } = useAuthContext();
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
@@ -139,12 +138,6 @@ export default function HistoryTableRow({
     //       </TableMobileRow>
     //     );
     //   }
-
-    const handleCopy = async () => {
-        await navigator.clipboard.writeText(row?.voucherId)
-        enqueueSnackbar('Copied to clipboard');
-    }
-
     const confirm = useBoolean();
 
     const renderConfirm = (
@@ -167,6 +160,67 @@ export default function HistoryTableRow({
             }
         />
     );
+    if (!upMd) {
+        return (
+          <TableMobileRow
+            menu={[
+    
+              {
+                label: 'View',
+                icon: 'mdi:eye',
+                func: onViewRow,
+                color: 'success'
+              },
+             
+            ]}
+          >
+            <Box style={{ display: 'flex', alignItems: 'center' }}>
+              <Avatar sx={{ mr: 2 }} alt="store" >
+                {row?.generic_name?.charAt(1).toUpperCase()}
+              </Avatar>
+    
+              <ListItemText
+                primary={`#${row?.id}`}
+                secondary={
+                  <>
+                    <Typography variant="caption">{row?.generic_name}</Typography>
+                    <Typography color={
+                      row?.status_id === 4 && 'success.main' ||
+                      row?.status_id === 1 && 'warning.main' ||
+                      row?.status_id === 2 && 'primary.main' ||
+                      row?.status_id === 3 && 'error.main'
+    
+                    } variant="caption">
+                    {row?.status_id === 4 && "Done" ||
+                        row?.status_id === 1 && "Pending" ||
+                        row?.status_id === 2 && "Approved" ||
+                        row?.status_id === 3 && "Cancelled"
+    
+                      }
+                    </Typography>
+    
+                  </>
+                }
+                primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
+                secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
+              />
+              {renderConfirm}
+              {/* {renderDoneConfirm}
+              {renderApprovedConfirm}
+              {renderCancelConfirm} */}
+            </Box>
+          </TableMobileRow>
+        );
+      }
+
+    const handleCopy = async () => {
+        await navigator.clipboard.writeText(row?.voucherId)
+        enqueueSnackbar('Copied to clipboard');
+    }
+
+   
+
+  const FULLNAME = row?.patient?.MNAME ? `${row?.patient?.FNAME} ${row?.patient?.MNAME} ${row?.patient?.LNAME}` : `${row?.patient?.FNAME} ${row?.patient?.LNAME}`;
 
     const img_path = row?.attachment_info?.file_path && row?.attachment_info?.file_path.split('/').splice(1).join('/')
 
@@ -177,22 +231,18 @@ export default function HistoryTableRow({
                 display: 'flex',
                 alignItems: 'center'
             }}>
-                <Avatar src={`https://hip.apgitsolutions.com/${img_path}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
-                    {/* {row?.generic_name?.charAt(0)?.toUpperCase()} */}
-                    {/* <img src={img_path} alt="" /> */}
+                <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
+                    {`#`}
                 </Avatar>
                 <ListItemText
-                    primary={row?.generic_name}
+                    primary={`${row?.id}`}
                     primaryTypographyProps={{ typography: 'subtitle2' }}
                     sx={{
                         cursor: 'pointer',
-                        // textDecoration: 'underline',
-                        // ':hover': {
-                        //   color: 'primary.main',
-                        // },
+
                         textTransform: 'capitalize'
                     }}
-                // onClick={() => onViewPatient(row?.patientInfo?.userInfo?.uuid)}
+
                 />
             </TableCell>
             {/* <TableCell >
@@ -200,35 +250,38 @@ export default function HistoryTableRow({
                 {row?.generic_name}
             </Label>
         </TableCell> */}
-           
+
             <TableCell align='center'>
                 <Typography>
-                    {row?.dose}
+                    {row?.generic_name}
+
                 </Typography>
                 {/* <Label variant="soft" color={'success'}>
                
             </Label> */}
             </TableCell>
-            <TableCell align='center'>
+            <TableCell align="center" sx={{
+                display: 'flex',
+                alignItems: "center",
+                justifyContent: "center",
+            }}>
+                <Avatar src={`/${row?.patient?.Attachment?.split('/').splice(1).join("/")}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }} />
                 <Typography>
-                    {row?.form}
+                    {FULLNAME}
 
-                </Typography>
-                {/* <Label variant="soft" color={'success'}>
-            </Label> */}
-            </TableCell>
-            <TableCell align='center'>
-                <Typography>
-                    ₱ {row?.price}
                 </Typography>
 
             </TableCell>
             <TableCell align='center'>
-                <Typography>
-                    {`${row?.store?.name.charAt(0).toUpperCase()}${row?.store?.name?.split('').splice(1).join('')}`}
-                </Typography>
-
-            </TableCell>
+        <Label variant="soft" color={'success'}>
+          {row?.is_paid ? "Paid" : "Unpaid"}
+        </Label>
+      </TableCell>
+           <TableCell align='center'>
+        <Typography>
+          {row?.is_deliver ? 'Delivery' : 'Pick Up'}
+        </Typography>
+      </TableCell>
             <TableCell align='center'>
                 <Typography>
                     {/* {row?.status_id === 4 && "Done" ||

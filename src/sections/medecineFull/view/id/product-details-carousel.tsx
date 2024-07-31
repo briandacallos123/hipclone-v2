@@ -76,7 +76,7 @@ export default function ProductDetailsCarousel({ product }: Props) {
 
   const slides = {
     // https://hip.apgitsolutions.co
-    src:`https://hip.apgitsolutions.com/${product?.attachment_info?.file_path?.split('/').splice(1).join('/')}`
+    src:`/${product?.attachment_info?.file_path?.split('/').splice(1).join('/')}`
   }
 
 

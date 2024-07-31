@@ -16,12 +16,12 @@ const FeedsDialog = ({ open, onClose, product }: FeedsDialogProps) => {
   const renderProduct = (
     <>
    
-      <Grid container spacing={{ xs: 3, md: 5, lg: 2}}>
-        <Grid xs={12} md={6} lg={7}>
+      <Grid container gap={{xs:3, lg:0}} spacing={{ md: 5, lg: 2}}>
+        <Grid xs={12}  md={6} lg={7} xl={7} order={{ xs: 2, md: 1 }}>
           <ProductDetailsCarousel product={product} />
         </Grid>
 
-        <Grid xs={12} md={6} lg={5}>
+        <Grid xs={12} md={6} lg={5} xl={5} order={{ xs: 1, md: 2 }}>
          
           <ProductDetailsSummary
             disabledActions
@@ -48,7 +48,7 @@ const FeedsDialog = ({ open, onClose, product }: FeedsDialogProps) => {
         <LogoFull disabledLink />
       </Box>
       <DialogContent sx={{
-        mt: 10
+        mt: {lg:10}
       }} >
         <Container maxWidth={'lg'}>
           {renderProduct}

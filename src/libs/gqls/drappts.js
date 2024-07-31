@@ -376,6 +376,7 @@ export const GET_QUEUES = gql`
         time_slot
         payment_status
         status
+        pendingPayment
         type
         id
       }

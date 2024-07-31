@@ -78,7 +78,6 @@ type Props = {
   loading: boolean;
 };
 export default function QueueCarousel({ data, loading }: Props) {
-  console.log(data,'DATA SA CAROUSEL')
   const theme = useTheme();
 
   const upMd = useResponsive('up', 'md');
@@ -142,49 +141,23 @@ export default function QueueCarousel({ data, loading }: Props) {
         }),
         background: 'url(/assets/background/banner-bg.png)',
         backgroundSize: 'cover',
-        overflow: 'hidden',
-        position: 'relative',
+        // overflow: 'hidden',
+        // position: 'relative',
         p:2,
         borderRadius:2
       }}
     >
-      <Stack flexGrow={1} direction="row" alignItems="center" spacing={1.5} sx={{ mb: { md: 2 } }}>
-        {/* <Button
-          component={RouterLink}
-          href={paths.dashboard.patient.root}
-          color="inherit"
-          variant="contained"
-        >
-          Return to List
-        </Button> */}
-        <Typography variant="h5" color="white">List of other clinic that you're also scheduled</Typography>
+      <Stack flexGrow={1} direction="row" alignItems="center" spacing={1.5} sx={{ mb: {xs:1, md: 2 } }}>
+       
+        <Typography variant="h5" color="white">List of your other schedule</Typography>
+        {/* <Typography variant="h5" color="white">List of other clinic that you're also scheduled</Typography> */}
 
-        {/* {upMd && <PatientCarouselSearch item={data} />} */}
+       
 
         <Box sx={{ flexGrow: 1 }} />
 
-        {/* {!upMd && (
-          <>
-            <PatientCarouselSearch item={data} />
-
-            <PatientListPopover item={data} currentIndex={currentIndex} />
-
-            <IconButtonStyle
-              onClick={() => handleMove(currentIndex - 1)}
-              sx={{ width: 32, height: 32 }}
-            >
-              <Iconify icon="solar:alt-arrow-left-bold" />
-            </IconButtonStyle>
-
-            <IconButtonStyle
-              onClick={() => handleMove(currentIndex + 1)}
-              sx={{ width: 32, height: 32 }}
-            >
-              <Iconify icon="solar:alt-arrow-right-bold" />
-            </IconButtonStyle>
-          </>
-        )} */}
-
+       
+       
         {upMd && (
           <CarouselArrows
             filled
@@ -196,9 +169,18 @@ export default function QueueCarousel({ data, loading }: Props) {
             rightButtonProps={{ sx: { width: 32, height: 32 } }}
           />
         )}
+         {!upMd && <CarouselArrows
+            filled
+            spacing={1}
+            icon="solar:alt-arrow-right-bold"
+            onNext={carousel.onNext}
+            onPrev={carousel.onPrev}
+            leftButtonProps={{ sx: { width: 32, height: 32 } }}
+            rightButtonProps={{ sx: { width: 32, height: 32 } }}
+          />}
       </Stack>
 
-      {upMd &&
+      {
         (!loading ? (
           <Carousel ref={carouselRef} {...carousel.carouselSettings}>
             {data?.map((item: any) => (
@@ -239,7 +221,6 @@ type CarouselItemProps = {
 };
 
 function CarouselItem({ isActive, item, sx }: CarouselItemProps) {
-  console.log(item, "itemmmmmmmmmmmmmmmmmmmmmmmmmmm")
   const theme = useTheme();
   const router = useRouter();
 

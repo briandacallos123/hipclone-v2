@@ -271,14 +271,14 @@ export default function StoreDashboardFiltering({
           <Stack direction="row">
             {!upMd && <TableToolbarPopover>{renderFields}</TableToolbarPopover>}
 
-            <IconButton onClick={popover.onOpen}>
+            {/* <IconButton onClick={popover.onOpen}>
               <Iconify icon="eva:more-vertical-fill" />
-            </IconButton>
+            </IconButton> */}
           </Stack>
         </Stack>
       </Stack>
 
-      <CustomPopover
+      {/* <CustomPopover
         open={popover.open}
         onClose={popover.onClose}
         arrow="right-top"
@@ -310,7 +310,7 @@ export default function StoreDashboardFiltering({
           <Iconify icon="solar:export-bold" />
           Export
         </MenuItem>
-      </CustomPopover>
+      </CustomPopover> */}
     </>
   );
 }

@@ -11,6 +11,7 @@ import LoadingButton from '@mui/lab/LoadingButton';
 import { formatClinicTime } from '@/utils/format-time';
 import StoreManageController from './storeManageController';
 import { revalidateStore } from '../actions/store';
+import { useAuthContext } from '@/auth/hooks';
 
 const complete_option = [
     'medecine', 'foods'
@@ -84,7 +85,7 @@ const convertTime = (timeStr: any) => {
 const medData = ['foods']
 
 const StoreManageProfile = ({ data, singleResult }: StoreManageProfileProps) => {
-
+    const {user, reInitialize} = useAuthContext()
     const { handleSubmitUpdate } = StoreManageController()
 
     const sTime = convertTime(data?.start_time);
@@ -100,7 +101,7 @@ const StoreManageProfile = ({ data, singleResult }: StoreManageProfileProps) => 
             start_time: new Date(sTime) || '',
             end_time: new Date(eTime) || "",
             attachment: (() => {
-                return `https://hip.apgitsolutions.com/${data?.attachment_store?.file_url?.split('/').splice(1).join('/')}`
+                return `/${data?.attachment_store?.file_url?.split('/').splice(1).join('/')}`
             })() || '',
             days: data?.days?.map((item) => Number(item)) || [],
             description: data?.description || '',
@@ -132,30 +133,6 @@ const StoreManageProfile = ({ data, singleResult }: StoreManageProfileProps) => 
     const values = watch()
 
 
-    // useEffect(()=>{
-    //     alert(values.product_types)
-    // },[values.product_types])
-
-    // const handleChange = useCallback((e)=>{
-    //     const text = e.innerText;
-    //     let data = values.product_types?.map((item)=>item.trim())
-
-    //     if(!data.includes(text)){
-    //         data.push(text)
-    //         alert("wala pa")
-    //     }else{
-    //         let indexTarget = data.indexOf(text);
-    //         data = data.splice(indexTarget, 1)
-    //         alert("meron na")
-    //     }
-
-
-
-    //     setValue('product_types', data)
-    // },[values.product_types])
-
-
-
 
     const removeTags = (val: string) => {
         const cleanedDescription = val.replace(/<[^>]+>/g, '');
@@ -181,6 +158,7 @@ const StoreManageProfile = ({ data, singleResult }: StoreManageProfileProps) => 
             try {
                 await handleSubmitUpdate(newData)
                 singleResult.refetch()
+                // reInitialize()
                 // revalidateStore()
             } catch (error) {
                 console.error(error);
@@ -226,7 +204,7 @@ const StoreManageProfile = ({ data, singleResult }: StoreManageProfileProps) => 
         }}>
             <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
                 <Grid container gap={3}>
-                    <Grid lg={3}>
+                    <Grid xs={12} lg={3}>
                         <Card sx={{ py: { md: 10, xs: 1 }, px: { md: 3, xs: 1 }, mb: 3, textAlign: 'center' }}>
                             <RHFUploadAvatar
                                 name="attachment"

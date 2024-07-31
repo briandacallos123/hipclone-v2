@@ -54,7 +54,7 @@ function getAvatar(image: any) {
   return publicPart
 }
 
-export default function NotificationsPopoverMerchant({ queryResults, notificationData, summarize, isLoading, handleReadFunc }: any) {
+export default function NotificationsPopoverMerchant({handleReadFunc, queryResults, notificationData, summarize, isLoading }: any) {
 
   const navigate = useRouter();
   const { user } = useAuthContext()
@@ -181,41 +181,23 @@ export default function NotificationsPopoverMerchant({ queryResults, notificatio
       id: null
     })
   }, [])
+
   const handleViewRow = useCallback((d: any) => {
+
     if (d?.notification_type === 'order') {
       navigate.push(paths.merchant.orders)
     }
 
-    // if(d?.chat_id){
-    //   if(d?.many_chat || (d?.group_child?.length && d?.chat_id) || d?.siblings !== 0){
-    //     navigate.push(paths.dashboard.chat);
-
-    //   }
-    //  else{
-    //   setChatView({
-    //     open:true,
-    //     id:d?.chat_id
-    //   })
-    //  }
-    // }else{
-
-    //   if(d?.many_appt?.length || (d?.group_child?.length && !d?.chat_id) || d?.siblings !== 0){
-    //     navigate.push(paths.dashboard.root);
-
-    //   }else{
-    //     setViewId(d)
-    //     openView.onTrue();
-    //   }
-    // }
-
-    // handleReadFunc({
-    //   id:Number(d?.id),
-    //   statusRead:1,
-    //   conversation_id:d?.conversation_id,
-    //   chat_id:d?.chat_id,
-    //   notifIds:d?.child && [...d?.child]
-    // })
+    handleReadFunc({
+      orderIds:d?.orders?.map((item)=>Number(item?.id))
+    })
   }, [])
+
+  const handleReadView = (d) => {
+    handleReadFunc({
+      orderIds:d?.orders?.map((item)=>Number(item?.id))
+    })
+  }
 
 
 
@@ -228,6 +210,9 @@ export default function NotificationsPopoverMerchant({ queryResults, notificatio
             <NotificationItemMerchant
               onViewRow={() => {
                 handleViewRow(notification)
+              }}
+              onReadView={()=>{
+                handleReadView(notification)
               }}
               key={notification.id}
               notification={notification}

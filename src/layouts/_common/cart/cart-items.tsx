@@ -67,7 +67,7 @@ const CartItems = ({ row, increment, decrement }: CartItemsProps) => {
                     alignItems: 'center',
                     gap: 1,
                 }}>
-                    <img height={50} width={50} alt={name} src={`https://hip.apgitsolutions.com/${image?.split('/').splice(1).join('/')}`} />
+                    <img height={50} width={50} alt={name} src={`/${image?.split('/').splice(1).join('/')}`} />
                     <Typography variant="h6">
                         {name}
                     </Typography>

@@ -214,7 +214,7 @@ export default function StoreCreateView({ editRow, isEdit, setLoggedIn, isLogged
                 try {
                     // https://hip.apgitsolutions.com/api/getLocation
                     // https://hip.apgitsolutions.com/
-                    const response = await axios.post('https://hip.apgitsolutions.com/api/getLocation', payload);
+                    const response = await axios.post('/api/getLocation', payload);
                     console.log(response, 'RESPONSEEEEEEEEEE')
                     setMapData({
                         ...mapData,

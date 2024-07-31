@@ -120,14 +120,15 @@ console.log(series[2024]?.data,'DATAAAAAAAA')
       <Grid container spacing={3}>
         <Grid xs={12} md={12}>
           <EcommerceWelcome
+            
             title={`Welcome Back! \n ${u?.displayName}`}
-            description="Best seller of the month You have done 57.6% more sales today."
+            description="We hope you're having a good day!"
             img={<MotivationIllustration />}
-            action={
-              <Button variant="contained" color="primary">
-                Go Now
-              </Button>
-            }
+            // action={
+            //   <Button variant="contained" color="primary">
+            //     Go Now
+            //   </Button>
+            // }
           />
         </Grid>
 

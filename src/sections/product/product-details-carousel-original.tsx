@@ -71,7 +71,7 @@ export default function ProductDetailsCarousel({ product }: Props) {
   const theme = useTheme();
 
   const slides = product.attachmentData.map((img) => ({
-    src:`https://hip.apgitsolutions.com/${img?.imagePath?.split('/').splice(1).join('/')}`
+    src:`/${img?.imagePath?.split('/').splice(1).join('/')}`
   }));
 
 

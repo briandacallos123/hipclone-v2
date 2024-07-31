@@ -121,7 +121,7 @@ const DataListItem = ({ item, listView }: DataListItemProps) => {
                     }}>
                         <CardMedia
                             component="img"
-                            image={`https://hip.apgitsolutions.com/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
+                            image={`/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
                             alt={generic_name}
                             // height="100%"
                             height={listView ? 250 : '100%'}

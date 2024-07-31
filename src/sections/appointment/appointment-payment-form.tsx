@@ -311,7 +311,7 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
                 {(()=>{
                   
                   let targetMethod = currentItem?.doctorPayment?.find((item:any)=>Number(item.dpDetails?.acct) === Number(getValues('method')))
-                  const myImg = `https://hip.apgitsolutions.com/${targetMethod?.filename?.split('/')?.splice(1)?.join("/")}`
+                  const myImg = `/${targetMethod?.filename?.split('/')?.splice(1)?.join("/")}`
                   // console.log(targetMethod,'?????')
 
                   return <Stack>

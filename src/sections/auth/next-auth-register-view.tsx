@@ -317,7 +317,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         try {
           // https://hip.apgitsolutions.com/api/getLocation
           // https://hip.apgitsolutions.com/
-          const response = await axios.post('https://hip.apgitsolutions.com/api/getLocation', payload);
+          const response = await axios.post('/api/getLocation', payload);
           setMapData({
             ...mapData,
             lat: response?.data?.latitude,

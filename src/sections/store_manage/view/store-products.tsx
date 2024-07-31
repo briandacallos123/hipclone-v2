@@ -87,26 +87,26 @@ const GridItems = ({ item, handeView, handleDelete, handleEdit }: any) => {
 
     const { id, attachment_info, price, generic_name, description, address, rating, product_types, stock } = item;
     return (
-        <Grid key={id} xl={3}>
-            <Card sx={{ maxWidth: isRow ? '100%' : 400 }}>
+        <Grid key={id} xs={12} sm={4} xl={3} >
+            <Card sx={{ maxWidth: isRow ? '100%' : 400, height:150}}>
                 <CardActionArea
                     disableRipple
                     sx={{
-                        cursor: 'default'
+                        cursor: 'default',
+                        height:'100%'
                     }}
                 >
                     <Box
                         sx={{
                             display: 'flex',
+                            height:'100%'
                         }}
                     >
 
-                        <Box sx={{
-                            width: '30%'
-                        }}>
+                        <Box sx={{flex:1, height:'100%'}}>
                             <CardMedia
                                 component="img"
-                                image={`https://hip.apgitsolutions.com/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
+                                image={`/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
                                 alt={generic_name}
                                 height="100%"
                                 width="100%"
@@ -115,8 +115,9 @@ const GridItems = ({ item, handeView, handleDelete, handleEdit }: any) => {
                         <CardContent sx={{
                             display: isRow && 'flex',
                             alignItems: isRow && 'center',
-                            width: '70%',
+                            flex:1,
                             justifyContent: isRow && 'space-between',
+                            p:2
                         }}>
                             <Box sx={{
                                 width: '100%'
@@ -124,24 +125,18 @@ const GridItems = ({ item, handeView, handleDelete, handleEdit }: any) => {
                                 <Typography variant="h6" >
                                     {`${generic_name}`}
                                 </Typography>
-                                {/* {stock && <Typography sx={{
-                                    color: stock > 10 ? "success.main" : "error.main"
-                                }}>
-                                    {fCurrency(stock)} {stock <= 10 && "stocks left!"}
-                                </Typography>} */}
+                             
 
                                 {stock && <Label variant="soft" color={stock > 10 ? "success" : "error"}>
-                                    {/* {}{fCurrency(stock)}  */}
-                                    
                                     {stock <= 10 ? `${fCurrency(stock)} stocks left!`:`Stocks: ${fCurrency(stock)}`}
                                 </Label>}
 
-                                <Typography sx={{
+                                {/* <Typography sx={{
                                     textTransform: 'capitalize',
                                     mt: 2
                                 }} variant="body2" color="grey">
                                     {description}
-                                </Typography>
+                                </Typography> */}
                                 {price && <Typography sx={{
                                     mt: 2
                                 }}>
@@ -149,17 +144,17 @@ const GridItems = ({ item, handeView, handleDelete, handleEdit }: any) => {
                                 </Typography>}
 
                             </Box>
-                            <Box sx={{
-                                display: 'flex',
-                                justifyContent: 'flex-end'
+                           
+
+                        </CardContent>
+                        <Box sx={{
+                               pt:{xs:2}
                             }}>
                                 <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
                                     <Iconify icon="eva:more-vertical-fill" />
                                 </IconButton>
 
                             </Box>
-
-                        </CardContent>
                     </Box>
                 </CardActionArea>
             </Card>

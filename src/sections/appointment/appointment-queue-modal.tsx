@@ -32,7 +32,7 @@ const AppointmentQueueModal = ({ open, onClose, data }: AppointmentQueueModalPro
     useEffect(() => {
         (async () => {
 
-            const link = `https://hip.apgitsolutions.com/queue/${data?.voucherId}`
+            const link = `/queue/${data?.voucherId}`
             setLink(link)
             await generateQR(link)
         })()

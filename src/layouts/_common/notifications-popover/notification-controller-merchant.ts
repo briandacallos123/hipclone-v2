@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useLazyQuery, useMutation } from '@apollo/client';
 
 import { NexusGenInputs, NexusGenObjects } from 'generated/nexus-typegen';
-import {  notification_read, NotificationQueryMerchant } from 'src/libs/gqls/notification';
+import {  notification_read, notification_read_merchant, NotificationQueryMerchant } from 'src/libs/gqls/notification';
 import { useAuthContext } from '@/auth/hooks'
 
 export default function NotificationControllerMerchant({ isRun }: { isRun: boolean }) {
@@ -23,7 +23,7 @@ export default function NotificationControllerMerchant({ isRun }: { isRun: boole
     notifyOnNetworkStatusChange: true,
   });
 
-  const [readNotif] = useMutation(notification_read, {
+  const [readNotif] = useMutation(notification_read_merchant, {
     context: {
       requestTrackerId: 'Prescription_data[Prescription_data]',
     },
@@ -69,7 +69,7 @@ export default function NotificationControllerMerchant({ isRun }: { isRun: boole
     })
 
 
-  }, [])
+  }, [queryResults.data])
 
 
 
@@ -92,14 +92,10 @@ export default function NotificationControllerMerchant({ isRun }: { isRun: boole
 
 
   const handleReadFunc = useCallback(
-    async (model: NexusGenInputs['NotificationUpdate']) => {
-      const data: NexusGenInputs['NotificationUpdate'] = {
+    async (model: any) => {
+      const data: any = {
         // email: model.email,
-        id: model?.id,
-        statusRead: model?.read,
-        conversation_id: model?.conversation_id,
-        chat_id: model?.chat_id,
-        notifIds: model?.notifIds?.length !== 0 ? [...model?.notifIds?.map((i: any) => Number(i?.id)), model.id] : []
+        orderIds:model?.orderIds
       };
       readNotif({
         variables: {

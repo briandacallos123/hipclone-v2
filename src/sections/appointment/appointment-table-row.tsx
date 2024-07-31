@@ -69,13 +69,18 @@ export default function AppointmentTableRow({
   if (!upMd) {
     return (
       <TableMobileRow
-        // selected={selected}
-        // onSelectRow={onSelectRow}
         menu={[
           {
             label: 'View',
             icon: 'solar:eye-bold',
             func: onViewRow,
+            color:'success'
+          },
+          {
+            label: 'Preview Queue',
+            icon: 'solar:eye-bold',
+            func: onViewQueue,
+            color:'primary'
           },
         ]}
       >
@@ -95,9 +100,7 @@ export default function AppointmentTableRow({
               {row?.patientInfo?.FNAME.charAt(0).toUpperCase()}
             </Avatar>
           )}
-          {/* <Avatar alt={fullName} sx={{ mr: 2 }}>
-            {fullName.charAt(0).toUpperCase()}
-          </Avatar> */}
+        
 
           <ListItemText
             primary={!isPatient ? fullName : row?.clinicInfo?.clinic_name}
@@ -136,11 +139,7 @@ export default function AppointmentTableRow({
 
   return (
     <TableRow hover selected={selected}>
-      {/* {user?.role !== 'patient' && (
-        <TableCell padding="checkbox">
-          <Checkbox checked={selected} onClick={onSelectRow} />
-        </TableCell>
-      )} */}
+  
 
       {!isPatient && (
         <TableCell>
@@ -160,9 +159,7 @@ export default function AppointmentTableRow({
                 {row?.patientInfo?.FNAME.charAt(0).toUpperCase()}
               </Avatar>
             )}
-            {/* <Avatar alt={fullName} sx={{ mr: 2 }}>
-            {fullName.charAt(0).toUpperCase()}
-          </Avatar> */}
+         
 
             <Stack>
               <ListItemText
@@ -208,13 +205,7 @@ export default function AppointmentTableRow({
               {String(row?.clinicInfo?.clinic_name).charAt(0).toUpperCase()}
             </Avatar>
           )}
-          {/* <Avatar
-            alt={`${row?.clinicInfo?.clinic_name}`}
-            src={`${row?.clinicInfo?.clinicDPInfo?.filename}`}
-            sx={{ mr: 2 }}
-          >
-            {String(row?.clinicInfo?.clinic_name).charAt(0).toUpperCase()}
-          </Avatar> */}
+        
 
 
           <Stack>

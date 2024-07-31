@@ -62,3 +62,31 @@ export const UpdateMerchantMedicine = gql`
       }
   }
 `;
+
+
+
+export const QueryAllMedecineForMerchant = gql`
+  query QueryAllMedecineForMerchant($data: QueryAllMedecineForMerchantInp!) {
+    QueryAllMedecineForMerchant(data: $data) {
+      all {
+        brand_name
+        dose
+        form
+        generic_name
+        id
+        manufacturer
+        merchant_store {
+          name
+          is_active
+        }
+        description
+        stock
+        price
+        type
+      }
+      summaryObjMerchant {
+        total
+      }
+    }
+  }
+`;

@@ -322,11 +322,11 @@ export default function ProductDetailsSummary({
 
   const fullName = userData?.EMP_MNAME ? `${userData?.EMP_FNAME} ${userData?.EMP_MNAME} ${userData?.EMP_LNAME}` : `${userData?.EMP_FNAME} ${userData?.EMP_LNAME}`
 
-  console.log(userData?.attachment, 'ATTACHMENT')
+
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Stack sx={{ ml: 10, p:3, boxShadow:'3px 3px 40px #e6e6e6' }} spacing={3}  {...other}>
+      <Stack sx={{ ml: {lg:10}, p:{xs:1, lg:3}, boxShadow:'3px 3px 40px #e6e6e6' }} spacing={3}  {...other}>
         {/* <Button sx={{align:'left'}} size='large' variant="outlined">Back</Button> */}
         <Stack spacing={2} alignItems="flex-start">
           {/* {renderLabels} */}

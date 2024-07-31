@@ -19,7 +19,7 @@ import Iconify from 'src/components/iconify';
 import { TableMobileRow } from 'src/components/table';
 import Label from '@/components/label';
 import { useAuthContext } from '@/auth/hooks';
-import { Button, MenuItem, Rating } from '@mui/material';
+import { Box, Button, MenuItem, Rating } from '@mui/material';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
 import { ConfirmDialog } from '@/components/custom-dialog';
 
@@ -56,28 +56,44 @@ export default function StoreTableRow({ onDeleteRow, onUpdateStatusRow, row, onV
         return (
             <TableMobileRow
                 menu={[
+                   
                     {
-                        label: 'View',
-                        icon: 'solar:eye-bold',
-                        func: onViewRow,
+                        label: 'Manage',
+                        icon: 'ic:baseline-manage-accounts',
+                        func: onManageRow,
+                        color:'success'
+                    },
+                    {
+                        label: row?.is_active ? "Set Inactive":"Set Active",
+                        icon: 'solar:pen-bold',
+                        func: onUpdateStatusRow,
+                        color:'warning'
+                    },
+                    {
+                        label: 'Delete',
+                        icon: 'solar:trash-bin-trash-bold',
+                        func: onDeleteRow,
+                        color:'error'
                     },
                 ]}
             >
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <Iconify icon="healthicons:rx-outline" height={60} width={60} sx={{ mr: 1 }} />
+                <Box style={{ display: 'flex', alignItems: 'center'  }}>
+                    <Avatar sx={{mr:2}} alt="store" src={`/${row?.attachment_store?.file_url?.split('/').splice(1).join('/')}`}/>
 
                     <ListItemText
-                        primary={`#${row?.ID}`}
+                        primary={`${row?.name}`}
                         secondary={
                             <>
-                                <Typography variant="caption">{row?.clinicInfo?.clinic_name}</Typography>
-                                <Typography variant="caption">{timestampToDate(row?.DATE)}</Typography>
+                                {/* <Typography variant="caption"></Typography> */}
+                                <Typography variant="caption" color={
+                                    row?.is_active ? "success.main":"error.main"
+                                }>{row?.is_active ? "Active" : "Inactive"}</Typography>
                             </>
                         }
                         primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
                         secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
                     />
-                </div>
+                </Box>
             </TableMobileRow>
         );
     }
@@ -90,7 +106,7 @@ export default function StoreTableRow({ onDeleteRow, onUpdateStatusRow, row, onV
                 <div style={{ display: 'flex', alignItems: 'center' }}>
                     {row?.attachment_store?.file_url && <Avatar
                         alt={row?.name}
-                        src={`https://hip.apgitsolutions.com/${row?.attachment_store?.file_url?.split('/').splice(1).join('/')}`}
+                        src={`/${row?.attachment_store?.file_url?.split('/').splice(1).join('/')}`}
                         sx={{ mr: 2 }}
 
                     />
@@ -155,7 +171,7 @@ export default function StoreTableRow({ onDeleteRow, onUpdateStatusRow, row, onV
 
                     }}
                     sx={{
-                        color: 'sucesss'
+                        color: 'success.main'
                     }}
 
                 >

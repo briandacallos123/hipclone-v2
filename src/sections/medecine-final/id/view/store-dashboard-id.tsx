@@ -4,7 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import MedecineStoreHeader from '../../view/medecine-store-header'
 import StoreDashboardBreadcramps from './store-dashboard-breadcramps'
 import StoreDataList from './store-data-list'
-import { Grid } from '@mui/material'
+import { Box, Grid } from '@mui/material'
 import SidebarFitering from '../sidebar-filtering'
 import { useLazyQuery } from '@apollo/client'
 import { QueryAllMerchantMedicine } from '@/libs/gqls/merchantUser'
@@ -203,7 +203,9 @@ const StoreDashboardId = ({ data, id }: any) => {
 
 
     return (
-        <div>
+        <Box sx={{
+            p:{xs:2}
+        }}>
             <StoreDashboardBreadcramps storeName={name} address={address} />
             <MedecineStoreHeader
                 storeName={name}
@@ -221,8 +223,7 @@ const StoreDashboardId = ({ data, id }: any) => {
                     <SidebarFitering listView={listView} handleListView={handleListView} sortOptions={sortOptions} typeOptions={typeOptions} onFilters={handleFilters} filters={filters} />
                 </Grid>
             </Grid>
-
-        </div>
+        </Box>
     )
 }
 

@@ -37,8 +37,8 @@ const StoreManageTabs = ({ data,singleResult }: StoreManageTabsProps) => {
 
     const renderTabs = (
         <>
-            <Grid container>
-                <Grid lg={10}>
+            <Grid container alignItems="center" justifyContent="space-between">
+                <Grid xs={7} lg={10}>
                     <Tabs value={currentTab} onChange={handleChangeTab}>
                         {TABS.map((tab) => (
                             <Tab
@@ -58,7 +58,7 @@ const StoreManageTabs = ({ data,singleResult }: StoreManageTabsProps) => {
                         ))}
                     </Tabs>
                 </Grid>
-                <Grid lg={2}>
+                <Grid xs={5} lg={2} > 
                        {currentTab === 'products' &&  <StoreCreateMedecine/> }
                 </Grid>
             </Grid>

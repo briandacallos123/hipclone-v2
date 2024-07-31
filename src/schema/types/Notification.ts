@@ -609,13 +609,11 @@ export const NotificationUpdate = extendType({
             const { session } = _ctx;
             const user = session.user;
 
-            console.log(args?.data,'____________DATA______________')
           try {
 
             if(args?.data?.notifIds?.length){
                 const toSerialize = args.data.notifIds;
                 const group_ids = serialize(toSerialize);
-                console.log(group_ids,'GROUP IDS@@@')
                 const grpId = await client.notification_group.create({
                     data:{
                         notification_ids:group_ids,
@@ -733,4 +731,54 @@ export const NotificationUpdate = extendType({
         }
     })
     }
+})
+
+export const NotificationUpdateMerchantInp = inputObjectType({
+    name:"NotificationUpdateMerchantInp",
+    definition(t) {
+        t.nullable.list.int('orderIds');
+    },
+})
+
+
+export const NotificationUpdateMerchant = extendType({
+    type: 'Mutation',
+    definition(t) {
+      t.nullable.field('NotificationUpdateMerchant', {
+        type: NotificationObj,
+        args: { data: NotificationUpdateMerchantInp! },
+        async resolve(_, args, _ctx) {
+            const { session } = _ctx;
+            const user = session.user;
+
+           try{
+            // console.log(args?.data?.orderIds,'ORDERRRRRRRRRR')
+           if(args?.data?.orderIds?.length){
+                const idsNotEmpty = args?.data?.orderIds?.filter((item)=>item!==null)
+
+                await client.notification.updateMany({
+                    where:{
+                        order_id:{
+                            in:idsNotEmpty
+                        }
+                    },
+                    data:{
+                        is_read:1,
+                    },
+                })
+           }
+
+            return {
+                message:"Updated succesfully"
+            }
+           }catch(err){
+            
+            console.log(err)
+            throw new GraphQLError(err)
+           }
+
+
+        }
+    })
+}
 })

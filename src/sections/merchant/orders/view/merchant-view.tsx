@@ -12,7 +12,7 @@ import IconButton from '@mui/material/IconButton';
 import Typography from '@mui/material/Typography';
 import CloseIcon from '@mui/icons-material/Close';
 import Slide from '@mui/material/Slide';
-import { Box, DialogContent, Grid, InputAdornment, MenuItem } from '@mui/material';
+import { Box, DialogContent, Grid, InputAdornment, MenuItem, Stack } from '@mui/material';
 import { TransitionProps } from '@mui/material/transitions';
 import { LogoFull } from '@/components/logo';
 import FormProvider, { RHFSelect, RHFTextField, RHFUpload, RHFUploadAvatar } from '@/components/hook-form';
@@ -93,7 +93,7 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
             setValue('dose', dataView?.dose);
             setValue('form', dataView?.form);
             setValue('store', dataView?.store?.name);
-            setValue('attachment', dataView?.attachment);
+            // setValue('attachment', dataView?.attachment);
             setValue('quantity', dataView?.quantity);
             setValue('price', dataView?.price);
             setValue('value', dataView?.value);
@@ -153,10 +153,10 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                         <Typography sx={{ ml: 5, flex: 1 }} variant="h6" component="div">
                             Order View
                         </Typography>
-                        <Button sx={{ mr: 2 }} autoFocus variant="outlined" onClick={onClose}>
+                        {/* <Button sx={{ mr: 2, display: { xs: 'none', lg: 'block' } }} autoFocus variant="outlined" onClick={onClose}>
                             View PDF
-                        </Button>
-                        <Button autoFocus variant="contained" onClick={onClose}>
+                        </Button> */}
+                        <Button sx={{ display: { xs: "none", lg: "block" } }} autoFocus variant="contained" onClick={onClose}>
                             Close
                         </Button>
                     </Toolbar>
@@ -167,13 +167,13 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                         <Box sx={{
                             maxWidth: 1400,
                             margin: '0 auto',
-                            mt: { lg: 10 }
+                            my: { xs: 5, lg: 10 }
                         }}>
-                            <Grid container gap={1} justifyContent="space-between">
+                            <Grid container gap={2} justifyContent="space-between">
                                 <Grid item lg={8} rowSpacing={2}>
 
                                     <Box
-                                        rowGap={{ md: 3, xs: 1 }}
+                                        rowGap={{ md: 3, xs: 2 }}
                                         columnGap={{ md: 2, xs: 1 }}
                                         display="grid"
                                         gridTemplateColumns={{
@@ -182,7 +182,7 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                                         }}
                                     >
                                         <Box
-                                            rowGap={{ md: 3, xs: 1 }}
+                                            rowGap={{ md: 3, xs: 2 }}
                                             columnGap={{ md: 2, xs: 1 }}
                                             display="grid"
                                             gridTemplateColumns={{
@@ -236,12 +236,15 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
 
 
                                 </Grid>
-                                <Grid item lg={3}>
+                                <Grid item xs={12} lg={3}>
 
                                     <Box
-                                        rowGap={{ md: 3, xs: 1 }}
+                                        rowGap={{ md: 3, xs: 2 }}
                                         columnGap={{ md: 2, xs: 1 }}
                                         display="grid"
+                                        sx={{
+                                            width: '100%'
+                                        }}
                                         gridTemplateColumns={{
                                             xs: 'repeat(1, 1fr)',
                                             sm: 'repeat(1, 1fr)',
@@ -267,11 +270,11 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                                         }} name="price" label="Price" />
 
                                         <RHFTextField
-                                        
-                                        InputProps={{
-                                            readOnly: true,
-                                            startAdornment: <InputAdornment position="start">₱</InputAdornment>
-                                        }} name="value" label="Total" />
+
+                                            InputProps={{
+                                                readOnly: true,
+                                                startAdornment: <InputAdornment position="start">₱</InputAdornment>
+                                            }} name="value" label="Total" />
 
                                         <RHFTextField InputProps={{
                                             readOnly: true,
@@ -288,7 +291,16 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                                             <MenuItem value={0}>Unpaid</MenuItem>
 
                                         </RHFSelect>
+                                        <Stack  flexDirection="row" justifyContent="flex-end" sx={{mt:5}}>
+                                            {/* <Button sx={{ mr: 2, display: { lg: 'none' } }} autoFocus variant="outlined" onClick={onClose}>
+                                                View PDF
+                                            </Button> */}
+                                            <Button sx={{ display: { lg: "none" } }} autoFocus variant="contained" onClick={onClose}>
+                                                Close
+                                            </Button>
+                                        </Stack>
                                     </Box>
+
                                 </Grid>
                             </Grid>
                         </Box>

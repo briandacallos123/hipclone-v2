@@ -179,15 +179,7 @@ export default function AppointmentListView() {
    }
   },[socket?.connected])
 
-  // useEffect(() => {
-  //   if (getDefaultFilters('clinic')) {
-  //     let { clinic }: any = getDefaultFilters('clinic');
-  //     setFilters({
-  //       ...filters,
-  //       hospital: [Number(clinic?.id)],
-  //     });
-  //   }
-  // }, []);
+ 
 
   useEffect(() => {
     if (drData) {
@@ -204,51 +196,6 @@ export default function AppointmentListView() {
     }
   }, [drData]);
 
-  //  useEffect(() => {
-  //    getData({
-  //      variables: {
-  //        // payload request
-  //        data: {
-  //          status: Number(filters?.status),
-  //          typeStatus: -1,
-  //          skip: page * rowsPerPage,
-  //          take: rowsPerPage,
-  //          orderBy,
-  //          orderDir: order,
-  //          searchKeyword: filters?.name,
-  //          clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //          startDate: filters?.startDate,
-  //          endDate: filters?.endDate,
-  //          isDashboard: 0,
-  //          userType: user?.role,
-  //        },
-  //      },
-  //    }).then(async (result: any) => {
-  //      const { data } = result;
-  //      if (data) {
-  //        const { allAppointments } = data;
-  //        setTableData(allAppointments?.appointments_data);
-  //        setTotalRecords(allAppointments?.total_records);
-
-  //        setTotal(allAppointments?.summary?.total);
-  //        setPending(allAppointments?.summary?.pending);
-  //        setApproved(allAppointments?.summary?.approved);
-  //        setDone(allAppointments?.summary?.done);
-  //        setCancelled(allAppointments?.summary?.cancelled);
-  //      }
-  //    });
-  //  }, [
-  //    totalRecords,
-  //    page,
-  //    rowsPerPage,
-  //    order,
-  //    orderBy,
-  //    filters?.endDate,
-  //    filters?.startDate,
-  //    filters?.hospital,
-  //    filters?.name,
-  //    filters?.status,
-  //  ]);
 
   const [tableData, setTableData] = useState<any>([]);
   const [totalRecords, setTotalRecords] = useState(0);

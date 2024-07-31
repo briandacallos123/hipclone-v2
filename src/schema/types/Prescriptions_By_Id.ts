@@ -392,6 +392,8 @@ export const QueryAllPrescriptionUserQr = extendType({
           }
         })()
 
+        console.log(condition, take, skip, whereconditions,'OY?')
+
         try {
           const [prescriptionsData]: any = await client.$transaction([
             client.prescriptions.findFirst({

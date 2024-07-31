@@ -24,7 +24,11 @@ const StyledComponent = styled('div')({
   width: '100vw',
   display: 'flex',
   justifyContent: 'center',
-  overflow:'hidden'
+  overflow:'hidden',
+  p:{
+    xs:10,
+    lg:5
+  }
 });
 
 const page = () => {
@@ -93,20 +97,28 @@ const page = () => {
   return (
     <StyledComponent>
       <Box sx={{
-        height: 500,
-        width: 1000,
+        height: {
+          xs:'100vh',
+          lg:'auto'
+        },
+        width:{
+          xs:400,
+          md:1000
+        },
+        p:{
+          xs:2
+        },
         borderRadius: '20px',
-        // background:'green',
-        paddingY: {
-          // sm:2,
-          md: 5
+        mt:{
+          xs:7,
         },
-        paddingX: {
-          md: 5
+        overflow:{
+          xs:'scroll',
+          md:"hidden"
         },
-        // backgroundColor:'orange',
       }} >
-        <Box sx={{ position: 'fixed', top: 20, left: 20 }}>
+
+        <Box sx={{ position: 'absolute', top: 20, left: 20 }}>
           <LogoFull disabledLink />
         </Box>
 
@@ -115,17 +127,11 @@ const page = () => {
           address={`${data?.[0]?.clinicInfo?.location}, ${data?.[0]?.clinicInfo?.Province} `}
           isLoading={loading}
         />
-
-
         <Box sx={{
-
           borderRadius: '20px',
-
         }}>
-
           <Stack gap={3} >
-
-
+        
             <Queue apptPaid={apptPaid} notAppNotToday={notAppNotToday} notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
             {clinicData?.length !== 0 && !isDoneAppt && <QueueCarousel loading={clinicLoading} data={clinicData} />}
           </Stack>
@@ -133,16 +139,7 @@ const page = () => {
 
       </Box>
     </StyledComponent>
-    // <Box sx={{
-      // height: '100vh',
-      // width: '100vw',
-      // display: 'flex',
-      // justifyContent: 'center',
-    //   backgroundImage:url()
-
-    // }}  >
-
-    // </Box>
+  
   )
 }
 

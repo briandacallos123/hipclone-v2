@@ -46,7 +46,7 @@ const MedecineTableRowNew = ({ data, alignment }: MedecineTableRowProps) => {
 
                                             <CardMedia
                                                 component="img"
-                                                image={`https://hip.apgitsolutions.com/${attachment_store?.file_url?.split('/').splice(1).join('/')}`}
+                                                image={`/${attachment_store?.file_url?.split('/').splice(1).join('/')}`}
                                                 alt={name}
                                                 height="100%"
                                                 width="100%"
@@ -55,7 +55,7 @@ const MedecineTableRowNew = ({ data, alignment }: MedecineTableRowProps) => {
 
                                             <CardMedia
                                                 component="img"
-                                                image={`https://hip.apgitsolutions.com/${attachment_store?.file_url?.split('/').splice(1).join('/')}`}
+                                                image={`/${attachment_store?.file_url?.split('/').splice(1).join('/')}`}
                                                 alt={name}
                                                 height={150}
                                             />}

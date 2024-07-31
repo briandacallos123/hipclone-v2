@@ -75,6 +75,31 @@ export const patientInfos = objectType({
         t.int('SEX');
         t.int('STATUS');
         t.int('isDeleted');
+        t.nullable.field('Attachment',{
+            type:'String',
+            async resolve(root){
+                const fUser = await client.user.findFirst({
+                    where:{
+                        email:root?.EMAIL
+                    }
+                })
+                console.log(fUser,'USERRRRRRRRRRRR')
+                console.log(root,'rootrootrootroot')
+
+
+                const file = await client.display_picture.findFirst({
+                    where:{
+                        userID:Number(fUser?.id)
+                    },
+                    orderBy:{
+                        uploaded:'desc'
+                    }
+                });
+                console.log(file,'filefilefilefile')
+
+                return file?.filename
+            }
+        })
     },
 })
 
@@ -108,7 +133,7 @@ export const orderInputType = inputObjectType({
     definition(t) {
         t.nullable.int('take');
         t.nullable.int('skip');
-        t.nullable.int('search');
+        t.nullable.string('search');
         t.nullable.int('is_deliver')
         t.nullable.int('status')
 
@@ -344,6 +369,18 @@ export const QueryAllMedicineOrders = extendType({
                     }
                 })()
 
+                const isSearch = (()=>{
+                    let searchVal:any;
+
+                    if(search){
+
+                        searchVal = {
+                            id:Number(search)
+                        }
+                    }
+                    return searchVal;
+                })()
+
 
                 try {
 
@@ -356,6 +393,7 @@ export const QueryAllMedicineOrders = extendType({
                                 store_id: {
                                     in: stores?.map((item) => item.id)
                                 },
+                                ...isSearch,
                                 ...statusOption,
                                 is_deleted: 0,
                                 ...delivery_option
@@ -879,6 +917,19 @@ export const QueryAllOrdersForMerchantHistory = extendType({
                         }
                     })()
 
+                    
+                const isSearch = (()=>{
+                    let searchVal:any;
+
+                    if(search){
+
+                        searchVal = {
+                            id:Number(search)
+                        }
+                    }
+                    return searchVal;
+                })()
+
                     const [result, totalRecords, deliver, pickup, done, cancelled] = await client.$transaction([
                         client.orders.findMany({
                             take,
@@ -887,6 +938,7 @@ export const QueryAllOrdersForMerchantHistory = extendType({
                                 store_id: {
                                     in: stores?.map((item) => item.id)
                                 },
+                                ...isSearch,
                                 is_deleted: 0,
                                 ...delivery_option,
                                 ...status_options,

@@ -17,19 +17,20 @@ const StoreCreateMedecine = () => {
          <Stack
           direction="row"
           alignItems="center"
-          justifyContent="space-between"
+          justifyContent={{xs:"flex-end",lg:'center'}}
           sx={{
-            mb: { xs: 3, md: 5 },
+            p:{lg:2}
           }}
         >
             <Button
               onClick={opencreate.onTrue}
-              // component={RouterLink}
-              // href={paths.dashboard.appointment.find}
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
+              sx={{
+                fontSize:{xs:'.8rem', lg:'1rem'}
+              }}
             >
-              Create New Medecine
+             New Medecine
             </Button>
          
         </Stack>

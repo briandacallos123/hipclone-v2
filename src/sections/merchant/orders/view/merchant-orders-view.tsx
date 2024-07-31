@@ -74,6 +74,8 @@ import MerchantOrderSkeleton from './merchant-order-skeleton';
 import MerchantController from './MerchantController';
 import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
 import OrderView from './merchant-view';
+import AppointmentTableToolbar from '@/sections/appointment/appointment-table-toolbar';
+import MerchantTableToolbar from './merchant-table-toolbar';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import MerchantCreateView from './merchant-create-view';
 // import { UseMerchantMedContext } from '@/context/merchant/Merchant';
@@ -83,12 +85,8 @@ import OrderView from './merchant-view';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'store', label: 'Store Name' },
+  { id: 'id', label: 'Order ID',  },
   { id: 'Medicine Name', label: 'Generic Name' },
-  // { id: 'hospital', label: 'Hospital/Clinic' },
-  // { id: 'brandName', label: 'Dose' },
-  // { id: 'Form', label: 'Form', align: 'center' },
-  // { id: 'Quantiy', label: 'Quantity', align: 'center' },
   { id: 'Patient', label: 'Patient', align: 'center' },
   { id: 'Status', label: 'Payment Status', align: 'center' },
   { id: 'Type', label: 'Delivery Type', align: 'center' },
@@ -403,13 +401,13 @@ export default function MerchantOrdersView() {
               />
             ))}
           </Tabs>
-          {/* 
-          <AppointmentTableToolbar
+          <MerchantTableToolbar
             filters={filters}
             onFilters={handleFilters}
             //
-            hospitalOptions={clinicData}
           />
+          {/* 
+          
 
           {canReset && (
             <AppointmentTableFiltersResult
