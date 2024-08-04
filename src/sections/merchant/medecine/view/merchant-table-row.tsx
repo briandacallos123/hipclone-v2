@@ -35,9 +35,9 @@ type Props = {
   selected: boolean;
   onSelectRow: VoidFunction;
   onViewRow: VoidFunction;
-  onDeleteRow:()=>void;
+  onDeleteRow: () => void;
   onViewPatient: VoidFunction;
-  onEditRow:()=>void;
+  onEditRow: () => void;
 };
 
 export default function MerchantMedecineTableRow({
@@ -52,7 +52,7 @@ export default function MerchantMedecineTableRow({
   /*  const { patient, hospital, schedule, isPaid, type } = row; */
   const upMd = useResponsive('up', 'md');
 
-  console.log(row,'ROW__________')
+  console.log(row, 'ROW__________')
   const { user } = useAuthContext();
   const theme = useTheme();
   const { enqueueSnackbar } = useSnackbar();
@@ -74,73 +74,70 @@ export default function MerchantMedecineTableRow({
     return `${hour}:${min} ${AMPM}`;
   };
 
+  const img_path = `/${row?.attachment_info?.file_path && row?.attachment_info?.file_path.split('/').splice(1).join('/')}`
+
+
   const popover = usePopover();
 
 
-//   if (!upMd) {
-//     return (
-//       <TableMobileRow
-//         // selected={selected}
-//         // onSelectRow={onSelectRow}
-//         menu={[
-//           {
-//             label: 'View',
-//             icon: 'solar:eye-bold',
-//             func: onViewRow,
-//           },
-//         ]}
-//       >
-//         <div style={{ display: 'flex', alignItems: 'center' }}>
-//           {row?.patientInfo?.userInfo?.[0]?.display_picture?.[0] ? (
-//             <Avatar
-//               alt={row?.patientInfo?.FNAME}
-//               src={
-//                 row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]
-//               }
-//               sx={{ mr: 2 }}
-//             >
-//               {row?.patientInfo?.FNAME.charAt(0).toUpperCase()}
-//             </Avatar>
-//           ) : (
-//             <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
-//               {row?.patientInfo?.FNAME.charAt(0).toUpperCase()}
-//             </Avatar>
-//           )}
-//           {/* <Avatar alt={fullName} sx={{ mr: 2 }}>
-//             {fullName.charAt(0).toUpperCase()}
-//           </Avatar> */}
+  if (!upMd) {
+    return (
+      <TableMobileRow
+        // selected={selected}
+        // onSelectRow={onSelectRow}
+        menu={[
+          {
+            label: 'Update',
+            icon: 'solar:eye-bold',
+            func: onEditRow,
+          },
+        ]}
+      >
+        <div style={{ display: 'flex', alignItems: 'center' }}>
+          <Avatar src={img_path} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }} />
+          {/* {row?.patientInfo?.userInfo?.[0]?.display_picture?.[0] ? (
+              <Avatar
+                alt={row?.patientInfo?.FNAME}
+                src={
+                  row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]
+                }
+                sx={{ mr: 2 }}
+              >
+                {row?.patientInfo?.FNAME.charAt(0).toUpperCase()}
+              </Avatar>
+            ) : (
+             
+            )} */}
+          {/* <Avatar alt={fullName} sx={{ mr: 2 }}>
+              {fullName.charAt(0).toUpperCase()}
+            </Avatar> */}
 
-//           <ListItemText
-//             primary={!isPatient ? fullName : row?.clinicInfo?.clinic_name}
-//             secondary={
-//               <>
-//                 <Typography variant="caption">
-//                   {format(new Date(row?.date), `dd MMM yyyy`)}&nbsp;({convertTime(row?.time_slot)})
-//                 </Typography>
-//                 <Stack direction="row" spacing={1} sx={{ typography: 'caption' }}>
-//                   <Label variant="soft" color={(row?.type === 1 && 'success') || 'info'}>
-//                     {row?.type === 1 ? 'telemedicine' : 'face-to-face'}
-//                   </Label>
-//                   <Label
-//                     color={(row?.payment_status && 'success') || 'error'}
-//                     sx={{ textTransform: 'capitalize' }}
-//                   >
-//                     {row?.payment_status ? 'paid' : 'unpaid'}
-//                   </Label>
-//                 </Stack>
-//               </>
-//             }
-//             primaryTypographyProps={{
-//               typography: 'subtitle2',
-//             }}
-//             secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
-//           />
-//         </div>
-//       </TableMobileRow>
-//     );
-//   }
+          <ListItemText
+            primary={`#${row?.id}`}
+            secondary={
+              <>
+                <Typography variant="caption">
+                  {row?.generic_name}
+                </Typography>
+                <Stack direction="row" spacing={1} sx={{ typography: 'caption' }}>
+                  <Label variant="soft" color={row?.stock <= 10 ? "error" : "success"}>
+                    Stocks: {row?.stock}
+                  </Label>
 
-  const handleCopy = async() => {
+                </Stack>
+              </>
+            }
+            primaryTypographyProps={{
+              typography: 'subtitle2',
+            }}
+            secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
+          />
+        </div>
+      </TableMobileRow>
+    );
+  }
+
+  const handleCopy = async () => {
     await navigator.clipboard.writeText(row?.voucherId)
     enqueueSnackbar('Copied to clipboard');
   }
@@ -168,114 +165,106 @@ export default function MerchantMedecineTableRow({
     />
   );
 
-  const img_path = row?.attachment_info?.file_path && row?.attachment_info?.file_path.split('/').splice(1).join('/')
 
 
   return (
     <TableRow hover selected={selected}>
-        <TableCell sx={{
-          display:'flex',
-          alignItems:'center'
-        }}>
-                <Avatar src={`https://hip.apgitsolutions.com/${img_path}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
-                {/* {row?.generic_name?.charAt(0)?.toUpperCase()} */}
-                  {/* <img src={img_path} alt="" /> */}
-              </Avatar>
-              <ListItemText
-                primary={row?.generic_name}
-                primaryTypographyProps={{ typography: 'subtitle2' }}
-                sx={{
-                  cursor: 'pointer',
-                  // textDecoration: 'underline',
-                  // ':hover': {
-                  //   color: 'primary.main',
-                  // },
-                  textTransform:'capitalize'
-                }}
-                // onClick={() => onViewPatient(row?.patientInfo?.userInfo?.uuid)}
-              />
-        </TableCell>
-        {/* <TableCell >
-            <Label variant="soft" color={'info'}>
-                {row?.generic_name}
-            </Label>
-        </TableCell> */}
-        <TableCell >
-          <Typography>
-          {row?.brand_name}
-          </Typography>
-            {/* <Label variant="soft" color={'success'}>
-               
-            </Label> */}
-        </TableCell>
-        <TableCell align='center'>
-          <Typography>
-          {row?.dose}
-          </Typography>
-            {/* <Label variant="soft" color={'success'}>
-               
-            </Label> */}
-        </TableCell>
-        <TableCell align='center'>
-          <Typography>
-          {row?.form}
+      <TableCell>
+        <Stack gap={1} direction="row" alignItems="center">
+          <Avatar>#</Avatar>
+          <ListItemText
+            primary={`${row?.id}`}
+            primaryTypographyProps={{ typography: 'subtitle2' }}
+            sx={{
+              cursor: 'pointer',
+              fontSize: '1.2rem',
+              textTransform: 'capitalize'
+            }}
 
-          </Typography>
-            {/* <Label variant="soft" color={'success'}>
-            </Label> */}
-        </TableCell>
-        <TableCell align='center'>
-          <Typography>
-          {row?.price}
-          </Typography>
-           
-        </TableCell>
-        <TableCell align='center'>
-          <Typography>
-          {/* {row?.merchant_store?.name} */}
-          {`${row?.merchant_store?.name.charAt(0).toUpperCase()}${row?.merchant_store?.name?.split('').splice(1).join('')}`}
-          </Typography>
-           
-        </TableCell>
+          />
+        </Stack>
+      </TableCell>
 
-        <TableCell align="center">
-          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
-                <Iconify icon="eva:more-vertical-fill" />
-              </IconButton>
-          {/* <Tooltip title="actions" placement="top" arrow>
-            <IconButton onClick={() => onViewRow()}>
-              <Iconify icon="solar:clipboard-text-bold" />
-            </IconButton>
-          </Tooltip> */}
+      <TableCell sx={{
+        display: 'flex',
+        alignItems: 'center'
+      }}>
+        <Avatar src={`${img_path}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
+
+        </Avatar>
+        <ListItemText
+          primary={row?.generic_name}
+          primaryTypographyProps={{ typography: 'subtitle2' }}
+          sx={{
+            cursor: 'pointer',
+
+            textTransform: 'capitalize'
+          }}
+
+        />
+      </TableCell>
+
+      <TableCell align='center' >
+        <Box sx={{ display: 'flex', alignItems: "center", gap: 2 }}>
+          <Avatar src={`/${row?.merchant_store?.attachment_store?.file_url.split('/').splice(1).join('/')}`} />
+          <Typography>
+            {`${row?.merchant_store?.name.charAt(0).toUpperCase()}${row?.merchant_store?.name?.split('').splice(1).join('')}`}
+          </Typography>
+        </Box>
+
+      </TableCell>
+      <TableCell align="center">
+
+        <Label variant="soft" color={row?.stock <= 10 ? "error" : "success"}>
+          {row?.stock}
+        </Label>
+
+      </TableCell>
+
+
+      <TableCell align='center'>
+        <Typography>
+          ₱ {row?.price}
+        </Typography>
+      </TableCell>
+
+
+      <TableCell align="center">
+        <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+          <Iconify icon="eva:more-vertical-fill" />
+        </IconButton>
       </TableCell>
 
       <Stack direction="row" justifyContent="flex-end">
-          <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
-            <MenuItem
-              onClick={() => {
-                onEditRow();
-                popover.onClose();
-              }}
-            >
-              <Iconify icon="solar:pen-bold" />
-              Edit
-            </MenuItem>
+        <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+          <MenuItem
+            onClick={() => {
+              onEditRow();
+              popover.onClose();
+            }}
+            sx={{
+              color: 'success.main'
+            }}
+          >
+            <Iconify icon="solar:pen-bold" />
+            Update
+          </MenuItem>
 
-            <MenuItem
-              onClick={() => {
-                confirm.onTrue();
-                popover.onClose();
-              }}
-              sx={{ color: 'error.main' }}
-            >
-              <Iconify icon="solar:trash-bin-trash-bold" />
-              Delete
-            </MenuItem>
+          {/* <MenuItem
+            onClick={() => {
+              confirm.onTrue();
+              popover.onClose();
+            }}
+            sx={{ color: 'error.main' }}
+          >
+            <Iconify icon="solar:trash-bin-trash-bold" />
+            Delete
+          </MenuItem> */}
 
-            
-          </CustomPopover>
-        </Stack>
-        {renderConfirm}
+
+        </CustomPopover>
+      </Stack>
+      {renderConfirm}
     </TableRow>
   );
 }

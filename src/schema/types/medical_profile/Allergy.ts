@@ -371,13 +371,21 @@ export const view_patient_allegy_data = extendType({
   
             return response;
           }else{
+            let patientId: any;
+
+            if (emrPatientId) {
+              patientId = emrPatientId?.patientID
+            } else {
+              patientId = patientInfo?.patientInfo?.S_ID
+            }
+
             const [AllergyObject,AllergyObject_data, _count,]: any = await client.$transaction([ 
               client.allergy.findMany({
                 take,
                 skip,
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                       ...whereconditions,
                 },
                 orderBy: {
@@ -387,7 +395,7 @@ export const view_patient_allegy_data = extendType({
               client.allergy.findMany({
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                 },
                 orderBy: {
                   dateCreated: 'desc',
@@ -396,7 +404,7 @@ export const view_patient_allegy_data = extendType({
               }),client.allergy.aggregate({
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                       ...whereconditions,
                 },
                 _count: {

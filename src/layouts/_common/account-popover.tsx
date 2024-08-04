@@ -44,6 +44,14 @@ const OPTIONS_MERCHANT = [
 ];
 
 const DOCTOR_OPTIONS = [
+   {
+    label: 'Manage Profile',
+    linkTo: paths.dashboard.user.account,
+  },
+  {
+    label: 'Manage Log-in',
+    linkTo: paths.dashboard.user.login,
+  },
   {
     label: 'Manage Clinic',
     linkTo: paths.dashboard.user.clinic,
@@ -157,7 +165,7 @@ export default function AccountPopover() {
               ))}
             </Stack>}
 
-            {user?.role === 'doctor' &&  user?.role === 'secretary' &&  <Stack sx={{ p: 1 }}>
+            {(user?.role === 'doctor' ||  user?.role === 'secretary') &&  <Stack sx={{ p: 1 }}>
                 {DOCTOR_OPTIONS.map((option) => (
                   <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
                     {option.label}

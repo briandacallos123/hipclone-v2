@@ -94,6 +94,7 @@ export const QueryAllOrdersForMerchantHistory = gql`
           SEX
           STATUS
           S_ID
+          Attachment
           isDeleted
         }
         store {

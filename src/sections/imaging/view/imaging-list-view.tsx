@@ -46,6 +46,7 @@ import { get_note_vitals } from '@/libs/gqls/notes/notesVitals';
 
 //
 import { usePathname, useParams } from 'src/routes/hook';
+import { useSessionStorage } from '@/hooks/use-sessionStorage';
 //
 // ----------------------------------------------------------------------
 
@@ -136,7 +137,7 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
   const [tableData1, setTableData1] = useState<any>([]);
   const [isLoading, setIsLoading] = useState<any>(true);
   const { page, rowsPerPage, order, orderBy } = table;
-
+  const { getItem } = useSessionStorage();
   // console.log(tableData1, 'HAAALAAAAAAAAAAAAAAAAA@@@');
 
   const [filters, setFilters] = useState(defaultFilters);
@@ -232,7 +233,10 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
       }
       setIsLoading(false)
     }
-  }, [data]);
+  }, [data, filters.clinic]);
+
+  
+
   ////////////////////////////////////////////////////////////////////////////
 
   //////////////////////////////////////////////////////////////////////////
@@ -265,7 +269,9 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
       },
     },
   });
-  console.log('@@', clinicPayload);
+
+
+
   useEffect(() => {
     if (user?.role === 'patient' && userClinicData) {
       const { AllClinicUser } = userClinicData;
@@ -297,6 +303,14 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
       });
     }
   }, [tableData1]);
+
+  useEffect(() => {
+    if(!id) return;
+    const data = getItem('defaultFilters');
+    if (data?.clinic) {
+      filters.clinic = [Number(data?.clinic?.id)]
+    }
+  }, []);
 
   return (
     <Card>

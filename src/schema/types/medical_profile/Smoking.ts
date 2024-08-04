@@ -374,6 +374,15 @@ export const view_smoking_transactions = objectType({
             
             return response;
           }else{
+            let patientId: any;
+
+            if (emrPatientId) {
+              patientId = emrPatientId?.patientID
+            } else {
+              patientId = patientInfo?.patientInfo?.S_ID
+            }
+
+
             const [smoking_record,smoking_record_data,_count,]: any = await client.$transaction([
               ////////////////////////////////////////////////
               client.smoking.findMany({
@@ -381,7 +390,7 @@ export const view_smoking_transactions = objectType({
                 skip,
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                   ...whereconditions,
                 },
                 orderBy: {
@@ -391,7 +400,7 @@ export const view_smoking_transactions = objectType({
               client.smoking.findMany({
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                 },
                 orderBy: {
                   dateCreated: 'desc',
@@ -401,7 +410,7 @@ export const view_smoking_transactions = objectType({
               client.smoking.aggregate({
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                   ...whereconditions,
                 },
                 _count: {

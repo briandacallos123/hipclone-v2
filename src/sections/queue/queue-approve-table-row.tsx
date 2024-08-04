@@ -209,10 +209,10 @@ export default function QueueApproveTableRow({
 
         <TableCell>
           <Label
-            color={(row?.payment_status || row?.pendingPayment && 'success') || 'error'}
+            color={(row?.payment_status && 'success' || row?.pendingPayment && 'success' || 'error')}
             sx={{ textTransform: 'capitalize' }}
           >
-            {/* {row?.payment_status === 1 ? 'paid' : 'unpaid'} */}
+         
 
             {row?.pendingPayment && 'For approval' ||
             row?.payment_status === 1 && 'Paid' ||

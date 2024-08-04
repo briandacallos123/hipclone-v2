@@ -19,6 +19,7 @@ import { _hospitals } from 'src/_mock';
 // components
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFAutocomplete, RHFTextField } from 'src/components/hook-form';
+import { useSessionStorage } from '@/hooks/use-sessionStorage';
 
 // ----------------------------------------------------------------------
 
@@ -307,6 +308,16 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
     [enqueueSnackbar, handleSubmitValue, onClose, reset, refetch, addedCategoryTitle]
   );
 
+  const {getItem} = useSessionStorage()
+
+  useEffect(()=>{
+    const data = getItem('defaultFilters');
+    if(data?.clinic){
+      setValue('hospitalId',Number(data?.clinic?.id))
+    }
+   },[])
+
+   
   return (
     <>
       <DialogContent>

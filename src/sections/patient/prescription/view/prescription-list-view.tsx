@@ -57,6 +57,7 @@ import { reset } from 'numeral';
 import { C } from '@fullcalendar/core/internal-common';
 import { useAuthContext } from 'src/auth/hooks';
 import { useContextData } from '../../@view/patient-details-view';
+import { useSessionStorage } from '@/hooks/use-sessionStorage';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -110,27 +111,12 @@ export default function PatientPrescriptionListView({ slug }: Props) {
 
   const dateError = isDateError(filters.startDate, filters.endDate);
 
-  // const [isRefetch, setIsRefetch] = useState(false);
-  // const [getData, { data, error, loading }]: any = useLazyQuery(labreport_patient_data, {
-  //   context: {
-  //     requestTrackerId: 'labreport_patient_data[labreport_patient_data]',
-  //   },
-  //   notifyOnNetworkStatusChange: true,
-  // });
+ 
   const { loading: clinicLoading, data: clinicData } = useQuery(DR_CLINICS);
-  // const [isSubmit, setIsSubmit] = useState(false);
   const containsLetters = (value: any) => /[a-zA-Z]/.test(value);
   const [smartFilters, setSmartFilters]: any = useState(null);
-
-  // useEffect(() => {
-  //   if (getDefaultFilters('clinic')) {
-  //     let { clinic }: any = getDefaultFilters('clinic');
-  //     setFilters({
-  //       ...filters,
-  //       hospital: [clinic?.clinic_name],
-  //     });
-  //   }
-  // }, []);
+  const { getItem } = useSessionStorage();
+  
   const [isLoading, setIsLoading] = useState(true);
 
   const {
@@ -154,22 +140,11 @@ export default function PatientPrescriptionListView({ slug }: Props) {
         endDate: filters?.endDate,
         uuid: id,
         isEmr: containsLetters(id) ? 2 : 1,
+        // clinicID: filters?.hospital.map((v: any) => Number(v)) || filters?.hospital,
         clinicID: (() => {
           const myArray: any = [];
 
-          // if (filters?.hospital?.length) {
-          //   filters?.hospital?.map((i: any) => {
-          //     clinicData?.doctorClinics?.map((c: any) => {
-          //       if (i === c?.clinic_name) {
-          //         myArray.push(Number(c.id));
-          //       }
-          //       return true;
-          //     });
-          //     return true;
-          //   });
-          // } else if (smartFilters?.clinic) {
-          //   myArray.push(Number(smartFilters?.clinic?.id));
-          // }
+         
 
           filters?.hospital?.map((i: any) => {
             clinicData?.doctorClinics?.map((c: any) => {
@@ -200,13 +175,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
       setIsLoading(false);
     }
   }, [prescriptionData]);
-  // const [getData, { data, error, loading, refetch }]: any = useLazyQuery(Prescriptions, {
-  //   context: {
-  //     requestTrackerId: 'Prescription_data[Prescription_data]',
-  //   },
-  //   notifyOnNetworkStatusChange: true,
 
-  // });
 
   const queryData = () => {
     refetch()
@@ -219,61 +188,18 @@ export default function PatientPrescriptionListView({ slug }: Props) {
         console.log(err);
       });
 
-    // refetch({
-    //   variables: {
-    //     data: {
-    //       skip: page * rowsPerPage,
-    //       take: rowsPerPage,
-    //       orderBy: orderBy,
-    //       orderDir: order,
-    //       startDate: filters?.startDate,
-    //       endDate: filters?.endDate,
-    //       uuid: id,
-    //       isEmr: containsLetters(id) ? 2 : 1,
-    //       clinicID: (() => {
-    //         const myArray: any = [];
-
-    //         filters?.hospital?.map((i: any) => {
-    //           clinicData?.doctorClinics?.map((c: any) => {
-    //             if (i === c?.clinic_name) {
-    //               myArray.push(Number(c.id));
-    //             }
-    //             return true;
-    //           });
-    //           return true;
-    //         });
-
-    //         return myArray;
-    //       })(),
-
-    //       searchKeyword: Number(filters?.name) || null,
-    //     },
-    //   },
-    // })
-    //   .then(async (result: any) => {
-    //     const { data } = result;
-    //     setTableData(data?.QueryAllPrescription?.Prescription_data);
-    //     setSummary(data?.QueryAllPrescription?.totalRecords);
-    //   })
-    //   .catch((err: any) => {
-    //     console.log(err);
-    //   });
   };
 
   const [randKey, setRandkey] = useState(null);
   const [tempData, setTempData]: any = useState(null);
   const [tempId, setTempId]: any = useState(uuidv4());
-  // const [uuid, setUuid] = useState(uuidv4());
 
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const [isFail, setIsFail] = useState(false);
-  // remove client side data if server got an error
 
-  // console.log(tableData, 'yamateee@@@#@#@');
   const [removeSlice, setRemoveSlice] = useState(null);
 
-  // console.log(tableData, 'tableData');
   useEffect(() => {
     if (isFail) {
       const newData = tableData.filter((i: any) => {
@@ -294,13 +220,10 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   const SubmitClient = (data: any, caller: any) => {
     setOpenEdit(null);
     setEditId(null);
-    // console.log('data@@: ', data);
-    // console.log('clinicData?.doctorClinics@@: ', clinicData?.doctorClinics);
-
+   
     const tempClinicData = clinicData?.doctorClinics?.filter(
       (i) => Number(i?.id) === Number(data?.CLINIC?.id)
     );
-    // console.log('CLINIC DATA: ', tempClinicData);
 
     setTableData((prev: any) => {
       const allIds: any = [];
@@ -357,10 +280,9 @@ export default function PatientPrescriptionListView({ slug }: Props) {
       .slice(0, rowsPerPage);
 
     setTableData(findSingle);
-    // setSnackKey(null);
+  
   }
 
-  // remove item if something went wrong.
   const removeAdded = () => {};
 
   useEffect(() => {
@@ -399,6 +321,13 @@ export default function PatientPrescriptionListView({ slug }: Props) {
     filters,
     dateError,
   });
+
+  useEffect(() => {
+    const data = getItem('defaultFilters');
+    if (data?.clinic) {
+      filters.hospital = [data?.clinic?.clinic_name]
+    }
+  }, []);
 
   // const loading = false;
 

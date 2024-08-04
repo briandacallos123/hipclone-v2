@@ -53,6 +53,7 @@ import AppointmentHistoryTableToolbar from '../history-table-toolbar';
 import AppointmentHistoryTableFiltersResult from '../history-table-filters-result';
 import { AppointmentDetailsView } from '../../appointment/view';
 import { YMD } from 'src/utils/format-time';
+import { useSessionStorage } from '@/hooks/use-sessionStorage';
 
 // ----------------------------------------------------------------------
 
@@ -201,7 +202,16 @@ export default function AppointmentHistoryListView() {
     filters?.name,
     filters?.status,
   ]);
+  const { getItem } = useSessionStorage();
 
+
+  useEffect(() => {
+    if(!id) return;
+    const data = getItem('defaultFilters');
+    if (data?.clinic) {
+      filters.hospital = [Number(data?.clinic?.id)]
+    }
+  }, []);
   // useEffect(() => {
   //   if (getDefaultFilters('clinic')) {
   //     let { clinic }: any = getDefaultFilters('clinic');

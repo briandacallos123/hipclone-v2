@@ -608,8 +608,7 @@ const QueryAllMedecineForMerchantInp = inputObjectType({
         t.nullable.int('take');
         t.nullable.int('skip');
         t.nullable.string('search');
-        // t.nullable.int('store_id')
-        // t.nullable.string('userType');
+        t.nullable.int('supply')
         // t.nullable.string('type');
         // t.nullable.int('startPrice');
         // t.nullable.int('endPrice');
@@ -634,6 +633,7 @@ const summaryObjMerchant = objectType({
     name:"summaryObjMerchant",
     definition(t) {
         t.int('total')
+        t.int('shortSupply')
     },
 })
 
@@ -645,7 +645,7 @@ export const QueryAllMedecineForMerchant = extendType({
             args: { data: QueryAllMedecineForMerchantInp },
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
-                const { take, skip, search }: any = args?.data;
+                const { take, skip, search, supply }: any = args?.data;
 
                 let allStoreByMerchant:any = await client.merchant_store.findMany({
                     where:{
@@ -654,11 +654,57 @@ export const QueryAllMedecineForMerchant = extendType({
                 })
                 allStoreByMerchant = allStoreByMerchant?.map((item)=>Number(item?.id))
 
-                console.log(allStoreByMerchant,'___________________________')
-                const [all, totalRecords]: any = await client.$transaction([
+                const isSupply = (()=>{
+                    let stock:any;
+
+                    if(supply === 1){
+                       stock = {
+                        stock:{
+                            lte:10
+                        }
+                       }
+                    }
+                    return stock;
+                })();
+
+                const isSearch = (()=>{
+                    let searchVal:any;
+                    const containsNumber = /\d/.test(search);
+
+               
+                    if(!containsNumber){
+                        searchVal = {
+                            generic_name:{
+                                contains:search
+                            }
+                        }
+                    }else if(containsNumber){
+                        searchVal = {
+                            id:Number(search)
+                        }
+                    };
+
+                    return searchVal;
+                })()
+
+                
+                const [all, totalRecords, shortSupply]: any = await client.$transaction([
                     client.merchant_medicine.findMany({
                         take,
                         skip,
+                        where:{
+                            store_id:{
+                                in:allStoreByMerchant
+                            },
+                            is_deleted:0,
+                            ...isSearch,
+                            ...isSupply
+                        },
+                        include: {
+                            merchant_store: true
+                        },
+                    }),
+                    client.merchant_medicine.findMany({
                         where:{
                             store_id:{
                                 in:allStoreByMerchant
@@ -668,6 +714,9 @@ export const QueryAllMedecineForMerchant = extendType({
                     }),
                     client.merchant_medicine.findMany({
                         where:{
+                            stock:{
+                                lte:10
+                            },
                             store_id:{
                                 in:allStoreByMerchant
                             },
@@ -676,12 +725,79 @@ export const QueryAllMedecineForMerchant = extendType({
                     }),
                 ]);
 
+                const res = all?.map(async (item: any) => {
+                    const r = await client.medecine_attachment.findFirst({
+                        where: {
+                            id: Number(item?.attachment_id)
+                        }
+                    })
+                    
+                    const merchantStore = await client.attachment_store.findFirst({
+                        where:{
+                            id:Number(item?.merchant_store?.id)
+                        }
+                    })
+                  
+
+                   return { ...item, attachment_info: { ...r }, merchant_store: { ...item.merchant_store, attachment_store:{...merchantStore} } }
+                })
+
+                const fResult = await Promise.all(res)
+
                 return {
-                    all,
+                    all:fResult,
                     summaryObjMerchant:{
-                        total:totalRecords.length
+                        total:totalRecords.length,
+                        shortSupply:shortSupply.length
                     }
                 }
+            }
+        })
+    }
+});
+
+const UpdateMerchantStockObj = objectType({
+    name:"UpdateMerchantStockObj",
+    definition(t) {
+        t.string("message")
+    },
+})
+
+const UpdateMerchantStockInp = inputObjectType({
+    name:"UpdateMerchantStockInp",
+    definition(t) {
+        t.nonNull.int('id');
+        t.nonNull.int("stock");
+    },
+})
+
+export const UpdateMerchantStock = extendType({
+    type: 'Mutation',
+    definition(t) {
+        t.nullable.field('UpdateMerchantStock', {
+            type: UpdateMerchantStockObj,
+            args: { data: UpdateMerchantStockInp },
+            async resolve(_root, args, ctx) {
+                const { session } = ctx;
+                const { id, stock }: any = args?.data;
+
+               try {
+                    await client.merchant_medicine.update({
+                        where:{
+                            id:Number(id)
+                        },
+                        data:{
+                            stock
+                        }
+                    })
+                    return {
+                        message:"Updated successfully"
+                    }
+               } catch (error) {
+                    console.log(error);
+                    throw new GraphQLError(error)
+               }
+
             }
         })
     }

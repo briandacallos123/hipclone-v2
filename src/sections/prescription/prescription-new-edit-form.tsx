@@ -72,6 +72,9 @@ export default function PrescriptionNewEditForm({
     },
     notifyOnNetworkStatusChange: true,
   });
+
+  console.log(clinic,'CLINICCCCCCCC')
+
   const [createPrescriptionChild] = useMutation(MutationPrescriptionChild);
 
   const NewPrescriptionSchema = Yup.object().shape({
@@ -310,7 +313,7 @@ export default function PrescriptionNewEditForm({
               }
               isOptionEqualToValue={(option, value) => option === value}
               renderOption={(props, option) => {
-                const { id, name } = clinic?.doctorClinics?.filter(
+                const { id, clinic_name } = clinic?.doctorClinics?.filter(
                   (hospital) => hospital.id === option
                 )[0];
 
@@ -320,7 +323,7 @@ export default function PrescriptionNewEditForm({
 
                 return (
                   <li {...props} key={id}>
-                    {name}
+                    {clinic_name}
                   </li>
                 );
               }}

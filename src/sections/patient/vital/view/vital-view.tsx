@@ -38,16 +38,9 @@ export default function PatientVitalView({ items, uuid }: Props) {
   const [isPatient, setIspatient] = useState(true);
   const [chart2Data, setChart2Data] = useState([]);
   const [addCategory, setAddCategory] = useState([])
-  // useEffect(() => {
-  //   if (pathname.includes('user')) {
-  //     setIspatient(true);
-  //   } else {
-  //     setIspatient(false);
-  //   }
-  // }, [pathname]);
-
+  
   const [chartData, setChartData] = useState<any>([]);
-  const [getData, { data, loading, error, refetch }] = useLazyQuery(get_note_vitals_patient, {
+  const [getData, dataResults] = useLazyQuery(get_note_vitals_patient, {
     context: {
       requestTrackerId: 'getVitals[gREC]',
     },
@@ -135,7 +128,7 @@ export default function PatientVitalView({ items, uuid }: Props) {
         }
       });
     }
-  }, [getData, isPatient, user?.role, uuid]);
+  }, [dataResults.data, isPatient, user?.role, uuid]);
 
   const handleRefetch = async () => {
     await refetch({
@@ -207,7 +200,7 @@ export default function PatientVitalView({ items, uuid }: Props) {
           </Button>
         </Stack>
 
-        {chartData && <VitalView items2={chart2Data} items={chartData} loading={loading} />}
+        {chartData && <VitalView items2={chart2Data} items={chartData} loading={dataResults.loading} />}
       </Box>
 
       <PatientVitalCreateView
@@ -215,7 +208,7 @@ export default function PatientVitalView({ items, uuid }: Props) {
         onClose={openCreate.onFalse}
         items={items}
         refetch={()=>{
-          refetch();
+          dataResults.refetch()
           vitalDataResults.refetch()
         }}
         openCategory={openVitalCategory}

@@ -81,7 +81,9 @@ export default function NotificationItemMerchant({ notification, onReadView, onV
   // supply && not read && length is === 1
   (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length === 1  && `<p><strong>${notification?.medecine[0]?.generic_name}</strong> is getting out of stock.</p>`) || 
 // supply && not read && length is === 1
-(notification?.notification_type === 'supply' && notification?.is_read && notification?.length === 1  && `<p><strong>${notification?.medecine[0]?.generic_name}</strong> already read.</p>`) 
+(notification?.notification_type === 'supply' && notification?.is_read && notification?.length === 1  && `<p>${notification?.medecine[0]?.generic_name} already read.</p>`) ||
+// supply && already read && length is > 1
+(notification?.notification_type === 'supply' && notification?.is_read && notification?.length > 1  && `<p>${notification?.medecine[0]?.generic_name} and ${notification?.length - 1} are short in supplies.</p>`)  
   // (notification?.child?.length && notification?.isPatient   && `<p>You have <strong>${notification?.child?.length + 1} new updates from your appointments</strong></p>`) ||
   // (notification?.many_appt && notification?.isPatient && `<p>You have <strong>${notification?.appt_count} new updates from your appointments</strong></p>`) ||
   // (notification?.siblings !== 0 && notification?.appt_id && `<p><strong>${notification?.userName}</strong> have ${notification?.siblings} booking appointments</p>`) ||
@@ -195,6 +197,11 @@ export default function NotificationItemMerchant({ notification, onReadView, onV
          View Supplies
       </Button>}
 
+      {notification?.notification_type === 'supply' && !notification?.is_read && <Button onClick={()=>{
+          onReadView()
+        }} size="small" color="info" variant="outlined">
+         Mark as Read
+      </Button>}
       {/* 
 
    

@@ -2356,8 +2356,6 @@ export const QueryRecordBypatientNew = extendType({
         const skip: Number | any = args?.data!.skip ? args?.data!.skip : 0;
         let orderConditions: any;
 
-        // console.log('1392');
-
         let order: any;
         switch (args?.data!.orderBy) {
           case 'date':
@@ -2447,7 +2445,6 @@ export const QueryRecordBypatientNew = extendType({
           // }
           // console.log('here data: ', myData);
 
-          // console.log('Ok na');
           const patientData = await client.user.findFirst({
             where: {
               uuid: String(args?.data!.uuid),
@@ -2457,6 +2454,8 @@ export const QueryRecordBypatientNew = extendType({
             },
           });
 
+
+
           const recordData = await client.records.findFirst({
             where: {
               patientID: Number(patientData?.patientInfo?.S_ID),
@@ -2465,6 +2464,9 @@ export const QueryRecordBypatientNew = extendType({
               patientInfo: true,
             },
           });
+
+          console.log(recordData,'Ok na__________');
+
 
           // console.log('ang dta? ', patientData);
           // console.log('record dta? ', recordData);
@@ -2542,7 +2544,9 @@ const customFuncPatient = async (
     };
   })();
 
-  // console.log(recordData, '_____');
+  console.log(patientData, 'patientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientData');
+  console.log(recordData.emrPatientID !== null,'LINKEDDDDDDDDDD');
+  
   if (patientData) {
     const isLinked = recordData.emrPatientID !== null;
     if (isLinked) {
@@ -2629,6 +2633,9 @@ const customFuncPatient = async (
       records = medNoteData;
       count = _count;
     } else {
+      console.log(patientData?.patientInfo?.S_ID,'YAYYYYYYYYYYYYYYYYYYYYYYYYYY');
+      
+
       const [medNoteData, _count]: any = await client.$transaction([
         client.records.findMany({
           skip,

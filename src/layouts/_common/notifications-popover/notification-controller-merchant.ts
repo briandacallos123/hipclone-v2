@@ -83,19 +83,15 @@ export default function NotificationControllerMerchant({ isRun }: { isRun: boole
       notificationData.push(item);
     })
 
-  
     return notificationData;
-
-    
-    
   }
 
 
   const handleReadFunc = useCallback(
     async (model: any) => {
       const data: any = {
-        // email: model.email,
-        orderIds:model?.orderIds
+        orderIds:model?.orderIds,
+        supplyIds:model?.supplyIds
       };
       readNotif({
         variables: {
@@ -112,8 +108,6 @@ export default function NotificationControllerMerchant({ isRun }: { isRun: boole
     },
     []
   );
-
-
 
   return {
     allData, isLoading, summarize, queryResults, handleReadFunc, chatLength

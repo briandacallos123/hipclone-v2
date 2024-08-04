@@ -187,9 +187,13 @@ export default function NotificationsPopoverMerchant({handleReadFunc, queryResul
     if (d?.notification_type === 'order') {
       navigate.push(paths.merchant.orders)
     }
+    if (d?.notification_type === 'supply') {
+      navigate.push(paths.merchant.medicine)
+    }
 
     handleReadFunc({
-      orderIds:d?.orders?.map((item)=>Number(item?.id))
+      orderIds:d?.orders?.map((item)=>Number(item?.id)),
+      supplyIds:d?.medecine?.map((item)=>Number(item?.id))
     })
   }, [])
 

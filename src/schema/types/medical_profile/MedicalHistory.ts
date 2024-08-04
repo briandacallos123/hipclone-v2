@@ -377,6 +377,14 @@ export const view_patient_medical_history_data = extendType({
           return response;
           ////////////////////////////////////
           }else{
+            let patientId: any;
+
+            if (emrPatientId) {
+              patientId = emrPatientId?.patientID
+            } else {
+              patientId = patientInfo?.patientInfo?.S_ID
+            }
+
             ////////////////////////////////////
             const [medical_history_record, medical_history_record_data, _count,]: any = await client.$transaction([
               client.medicalhistory.findMany({
@@ -384,7 +392,7 @@ export const view_patient_medical_history_data = extendType({
                 skip,
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                   ...whereconditions,
                 },
                 orderBy: {
@@ -394,7 +402,7 @@ export const view_patient_medical_history_data = extendType({
               client.medicalhistory.findMany({
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                 },
                 orderBy: {
                   dateCreated: 'desc',
@@ -404,7 +412,7 @@ export const view_patient_medical_history_data = extendType({
               client.medicalhistory.aggregate({
                 where: {
                   isDeleted: 0,
-                  patientID: Number(emrPatientId?.patientID),
+                  patientID: Number(patientId),
                   ...whereconditions,
                 },
                 _count: {

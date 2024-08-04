@@ -378,6 +378,12 @@ export default function AppointmentListView() {
 
   const handleViewPatient = useCallback(
     (id: any) => {
+      let myObj = {
+        clinic:{
+          ...id?.clinicInfo
+        }
+      }
+      sessionStorage.setItem('defaultFilters',JSON.stringify(myObj))
       // const refID = id?.patientInfo?.userInfo?.uuid;
       const refID = id?.patientInfo?.userInfo[0]?.uuid;
       // console.log('uuid', id);

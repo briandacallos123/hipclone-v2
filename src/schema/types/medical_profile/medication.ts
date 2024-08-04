@@ -287,156 +287,172 @@ export const view_patient_medication_data = extendType({
         try {
 
 
-          const patientInfo:any = await client.user.findFirst({
-              where:{
-                uuid:String(args?.data!.uuid),
-              },
-              include:{
-                patientInfo:true
-              }
-            })
-          const emrPatientId = await client.emr_patient.findFirst({
-            where:{
-              patientID:Number(patientInfo?.patientInfo?.S_ID)
+          const patientInfo: any = await client.user.findFirst({
+            where: {
+              uuid: String(args?.data!.uuid),
+            },
+            include: {
+              patientInfo: true
             }
           })
+
+          console.log(patientInfo, 'patientInfopatientInfopatientInfo')
+
+          const emrPatientId = await client.emr_patient.findFirst({
+            where: {
+              patientID: Number(patientInfo?.patientInfo?.S_ID)
+            }
+          })
+
+          console.log(emrPatientId, 'emrPatientIdemrPatientIdemrPatientId')
+
 
 
           // console.log(patientInfo,"@@@@2")
           // console.log(emrPatientId,"@@@@23")
 
-          if(emrPatientId && Number(emrPatientId?.link) === 1){
+          if (emrPatientId && Number(emrPatientId?.link) === 1) {
 
             ////////////////////////////////////
-          const [medication_record, data_medication, _count,]: any = await client.$transaction([
-            ////////////////////////////////////////////////
-            client.medication.findMany({
-              take,
-              skip,
-              where: {
-                isDeleted: 0,
-                OR: [
-                  {
-                    emrPatientID: Number(emrPatientId?.id),
-                    ...whereconditions,
-                  },
-                  {
-                    patientID: Number(emrPatientId?.patientID),
-                    ...whereconditions,
-                  },
-                ],
-              },
-              orderBy: {
-                dateCreated: 'desc',
-              },
-            }),
-            client.medication.findMany({
-              where: {
-                isDeleted: 0,
-                OR: [
-                  {
-                    emrPatientID: Number(emrPatientId?.id),
-                  },
-                  {
-                    patientID: Number(emrPatientId?.patientID),
-                  },
-                ],
-              },
-              orderBy: {
-                dateCreated: 'desc',
-              },
-              take: 5,
-            }),
-            client.medication.aggregate({
-              where: {
-                isDeleted: 0,
-                OR: [
-                  {
-                    emrPatientID: Number(emrPatientId?.id),
-                    ...whereconditions,
-                  },
-                  {
-                    patientID: Number(emrPatientId?.patientID),
-                    ...whereconditions,
-                  },
-                ],
-              },
-              _count: {
-                id: true, 
-              },
-            }),
-            
-          ]);
+            const [medication_record, data_medication, _count,]: any = await client.$transaction([
+              ////////////////////////////////////////////////
+              client.medication.findMany({
+                take,
+                skip,
+                where: {
+                  isDeleted: 0,
+                  OR: [
+                    {
+                      emrPatientID: Number(emrPatientId?.id),
+                      ...whereconditions,
+                    },
+                    {
+                      patientID: Number(emrPatientId?.patientID),
+                      ...whereconditions,
+                    },
+                  ],
+                },
+                orderBy: {
+                  dateCreated: 'desc',
+                },
+              }),
+              client.medication.findMany({
+                where: {
+                  isDeleted: 0,
+                  OR: [
+                    {
+                      emrPatientID: Number(emrPatientId?.id),
+                    },
+                    {
+                      patientID: Number(emrPatientId?.patientID),
+                    },
+                  ],
+                },
+                orderBy: {
+                  dateCreated: 'desc',
+                },
+                take: 5,
+              }),
+              client.medication.aggregate({
+                where: {
+                  isDeleted: 0,
+                  OR: [
+                    {
+                      emrPatientID: Number(emrPatientId?.id),
+                      ...whereconditions,
+                    },
+                    {
+                      patientID: Number(emrPatientId?.patientID),
+                      ...whereconditions,
+                    },
+                  ],
+                },
+                _count: {
+                  id: true,
+                },
+              }),
 
-          
-          const _result: any = medication_record;
-          const _result_data: any = data_medication;
-          const _total: any = _count;
+            ]);
 
-          const response: any = {
-            view_medication_data: _result,
-            medication_data: _result_data,
-            total_records: Number(_total?._count?.id),
+
+            const _result: any = medication_record;
+            const _result_data: any = data_medication;
+            const _total: any = _count;
+
+            const response: any = {
+              view_medication_data: _result,
+              medication_data: _result_data,
+              total_records: Number(_total?._count?.id),
+            }
+
+            return response;
+            ////////////////////////////////////
+
+          } else {
+            let patientId: any;
+
+            if (emrPatientId) {
+              patientId = emrPatientId?.patientID
+            } else {
+              patientId = patientInfo?.patientInfo?.S_ID
+            }
+
+            ////////////////////////////////////
+            const [medication_record, data_medication, _count,]: any = await client.$transaction([
+              ////////////////////////////////////////////////
+              client.medication.findMany({
+                take,
+                skip,
+                where: {
+                  isDeleted: 0,
+                  patientID: Number(patientId),
+                  ...whereconditions,
+                },
+                orderBy: {
+                  dateCreated: 'desc',
+                },
+              }),
+              client.medication.findMany({
+                where: {
+                  isDeleted: 0,
+                  patientID: Number(patientId),
+                },
+                orderBy: {
+                  dateCreated: 'desc',
+                },
+                take: 5,
+              }), client.medication.aggregate({
+                where: {
+                  isDeleted: 0,
+                  patientID: Number(patientId),
+                  ...whereconditions,
+                },
+                _count: {
+                  id: true,
+                },
+              }),
+
+            ]);
+
+
+            const _result: any = medication_record;
+            const _result_data: any = data_medication;
+            const _total: any = _count;
+
+            console.log(_result, 'RESULT_______________________________')
+
+            const response: any = {
+              view_medication_data: _result,
+              medication_data: _result_data,
+              total_records: Number(_total?._count?.id),
+            }
+
+            return response;
+            ////////////////////////////////////
           }
 
-          return response;
-          ////////////////////////////////////
 
-          }else{
-              ////////////////////////////////////
-          const [medication_record, data_medication, _count,]: any = await client.$transaction([
-            ////////////////////////////////////////////////
-            client.medication.findMany({
-              take,
-              skip,
-              where: {
-                isDeleted: 0,
-                patientID: Number(emrPatientId?.patientID),
-                ...whereconditions,
-              },
-              orderBy: {
-                dateCreated: 'desc',
-              },
-            }),
-            client.medication.findMany({
-              where: {
-                isDeleted: 0,
-                patientID: Number(emrPatientId?.patientID),
-              },
-              orderBy: {
-                dateCreated: 'desc',
-              },
-              take: 5,
-            }),client.medication.aggregate({
-              where: {
-                isDeleted: 0,
-                patientID: Number(emrPatientId?.patientID),
-                ...whereconditions,
-              },
-              _count: {
-                id: true, 
-              },
-            }),
-            
-          ]);
 
-          
-          const _result: any = medication_record;
-          const _result_data: any = data_medication;
-          const _total: any = _count;
-
-          const response: any = {
-            view_medication_data: _result,
-            medication_data: _result_data,
-            total_records: Number(_total?._count?.id),
-          }
-
-          return response;
-          ////////////////////////////////////
-          }
-          
-          
-        
         } catch (error) {
           console.log(error);
           return res;
@@ -485,28 +501,28 @@ const emr_patient_medication = objectType({
   name: 'emr_patient_medication',
   definition(t) {
     t.nullable.int('id')
-      t.nullable.int('patientID')
-      t.nullable.int('doctorID')
-      t.nullable.int('isEMR')
-      t.nullable.int('link')
-      t.nullable.bigInt('idno')
-      t.nullable.string('fname')
-      t.nullable.string('mname')
-      t.nullable.string('lname')
-      t.nullable.string('suffix')
-      t.nullable.int('gender')
-      t.nullable.string('contact_no')
-      t.nullable.string('email')
-      t.nullable.string('doctor')
-      t.nullable.string('patient')
-      t.nullable.dateTime('date_added')
-      t.nullable.string('dateofbirth')
-      t.nullable.string('address')
-      t.nullable.int('status')
-      t.nullable.int('isdeleted')
-      t.nullable.list.field('medication', {
-        type: emr_a_medication,
-      });
+    t.nullable.int('patientID')
+    t.nullable.int('doctorID')
+    t.nullable.int('isEMR')
+    t.nullable.int('link')
+    t.nullable.bigInt('idno')
+    t.nullable.string('fname')
+    t.nullable.string('mname')
+    t.nullable.string('lname')
+    t.nullable.string('suffix')
+    t.nullable.int('gender')
+    t.nullable.string('contact_no')
+    t.nullable.string('email')
+    t.nullable.string('doctor')
+    t.nullable.string('patient')
+    t.nullable.dateTime('date_added')
+    t.nullable.string('dateofbirth')
+    t.nullable.string('address')
+    t.nullable.int('status')
+    t.nullable.int('isdeleted')
+    t.nullable.list.field('medication', {
+      type: emr_a_medication,
+    });
   },
 });
 
@@ -606,146 +622,146 @@ export const emr_view_patient_medication_data = extendType({
         let res: any = {};
         try {
 
-        const record:any = await client.emr_patient.findFirst({
-          where:{
-            id:Number(args?.data!.uuid)
-          }
-        }); 
+          const record: any = await client.emr_patient.findFirst({
+            where: {
+              id: Number(args?.data!.uuid)
+            }
+          });
 
-        if(Number(record?.link) === 1){
-          ////////////////////////////////////
+          if (Number(record?.link) === 1) {
+            ////////////////////////////////////
             const [emr_medication_record, data_medication, _count,]: any = await client.$transaction([
-            ////////////////////////////////////////////////
-            client.medication.findMany({
-              take,
-              skip,
-              where: {
-                isDeleted: 0,
-                OR: [
-                  {
-                    emrPatientID: Number(record?.id),
-                    ...whereconditions,
-                  },
-                  {
-                    patientID: Number(record?.patientID),
-                    ...whereconditions,
-                  },
-                ],
-              },
-              orderBy: {
-                dateCreated: 'desc',
-              },
-            }),
-            client.medication.findMany({
-              where: {
-                isDeleted: 0,
-                OR: [
-                  {
-                    emrPatientID: Number(record?.id),
-                  },
-                  {
-                    patientID: Number(record?.patientID),
-                  },
-                ],
-              },
-              orderBy: {
-                dateCreated: 'desc',
-              },
-               take: 5,
-            }),client.medication.aggregate({
-              where: {
-                isDeleted: 0,
-                OR: [
-                  {
-                    emrPatientID: Number(record?.id),
-                    ...whereconditions,
-                  },
-                  {
-                    patientID: Number(record?.patientID),
-                    ...whereconditions,
-                  },
-                ],
-              },
-              _count: {
-                id: true, 
-              },
-            }),
+              ////////////////////////////////////////////////
+              client.medication.findMany({
+                take,
+                skip,
+                where: {
+                  isDeleted: 0,
+                  OR: [
+                    {
+                      emrPatientID: Number(record?.id),
+                      ...whereconditions,
+                    },
+                    {
+                      patientID: Number(record?.patientID),
+                      ...whereconditions,
+                    },
+                  ],
+                },
+                orderBy: {
+                  dateCreated: 'desc',
+                },
+              }),
+              client.medication.findMany({
+                where: {
+                  isDeleted: 0,
+                  OR: [
+                    {
+                      emrPatientID: Number(record?.id),
+                    },
+                    {
+                      patientID: Number(record?.patientID),
+                    },
+                  ],
+                },
+                orderBy: {
+                  dateCreated: 'desc',
+                },
+                take: 5,
+              }), client.medication.aggregate({
+                where: {
+                  isDeleted: 0,
+                  OR: [
+                    {
+                      emrPatientID: Number(record?.id),
+                      ...whereconditions,
+                    },
+                    {
+                      patientID: Number(record?.patientID),
+                      ...whereconditions,
+                    },
+                  ],
+                },
+                _count: {
+                  id: true,
+                },
+              }),
 
-            
-            
-          ]);
-          
-          
-          const _result: any = emr_medication_record;
-          const _result_data: any = data_medication;
-          const _total: any = _count;
 
-          const response: any = {
-            emr_view_medication_data: _result,
-            emr_medication_data: _result_data,
-            total_records: Number(_total?._count?.id),
+
+            ]);
+
+
+            const _result: any = emr_medication_record;
+            const _result_data: any = data_medication;
+            const _total: any = _count;
+
+            const response: any = {
+              emr_view_medication_data: _result,
+              emr_medication_data: _result_data,
+              total_records: Number(_total?._count?.id),
+            }
+            return response;
+
+
+            ////////////////////////////////////
+          } else {
+            ////////////////////////////////////
+            const [emr_medication_record, data_medication, _count,]: any = await client.$transaction([
+              ////////////////////////////////////////////////
+              client.medication.findMany({
+                take,
+                skip,
+                where: {
+                  isDeleted: 0,
+                  emrPatientID: Number(record?.id),
+                  ...whereconditions,
+                },
+                orderBy: {
+                  dateCreated: 'desc',
+                },
+              }),
+              client.medication.findMany({
+                where: {
+                  isDeleted: 0,
+                  emrPatientID: Number(record?.id),
+                  ...whereconditions,
+                },
+                orderBy: {
+                  dateCreated: 'desc',
+                },
+                take: 5,
+              }), client.medication.aggregate({
+                where: {
+                  isDeleted: 0,
+                  emrPatientID: Number(record?.id),
+                  ...whereconditions,
+                },
+                _count: {
+                  id: true,
+                },
+              }),
+
+
+
+            ]);
+
+
+            const _result: any = emr_medication_record;
+            const _result_data: any = data_medication;
+            const _total: any = _count;
+
+            const response: any = {
+              emr_view_medication_data: _result,
+              emr_medication_data: _result_data,
+              total_records: Number(_total?._count?.id),
+            }
+            return response;
+
+
+            ////////////////////////////////////
           }
-          return response;
 
-          
-          ////////////////////////////////////
-        }else{
-          ////////////////////////////////////
-          const [emr_medication_record, data_medication, _count,]: any = await client.$transaction([
-            ////////////////////////////////////////////////
-            client.medication.findMany({
-              take,
-              skip,
-              where: {
-                isDeleted: 0,
-                emrPatientID: Number(record?.id),
-                ...whereconditions,
-              },
-              orderBy: {
-                dateCreated: 'desc',
-              },
-            }),
-            client.medication.findMany({
-              where: {
-                isDeleted: 0,
-                emrPatientID: Number(record?.id),
-                ...whereconditions,
-              },
-              orderBy: {
-                dateCreated: 'desc',
-              },
-              take: 5,
-            }),client.medication.aggregate({
-              where: {
-                isDeleted: 0,
-                emrPatientID: Number(record?.id),
-                ...whereconditions,
-              },
-              _count: {
-                id: true, 
-              },
-            }),
-
-            
-            
-          ]);
-          
-          
-          const _result: any = emr_medication_record;
-          const _result_data: any = data_medication;
-          const _total: any = _count;
-
-          const response: any = {
-            emr_view_medication_data: _result,
-            emr_medication_data: _result_data,
-            total_records: Number(_total?._count?.id),
-          }
-          return response;
-
-          
-          ////////////////////////////////////
-        }
-          
         } catch (error) {
           console.log(error);
           return res;

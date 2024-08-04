@@ -70,15 +70,31 @@ export const QueryAllMedecineForMerchant = gql`
     QueryAllMedecineForMerchant(data: $data) {
       all {
         brand_name
+        attachment_info{
+          file_path
+          filename
+        }
+        merchant_store{
+          name
+          id
+          is_active
+          attachment_store{
+            file_url
+          }
+          onlinePayment{
+            filename
+            file_url
+            platform
+            recepient_contact
+          }
+
+        }
         dose
         form
         generic_name
         id
         manufacturer
-        merchant_store {
-          name
-          is_active
-        }
+        
         description
         stock
         price
@@ -86,6 +102,7 @@ export const QueryAllMedecineForMerchant = gql`
       }
       summaryObjMerchant {
         total
+        shortSupply
       }
     }
   }

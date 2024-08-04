@@ -59,7 +59,7 @@ import { DR_CLINICS } from '@/libs/gqls/drprofile';
 import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 // import MerchantTableRow from '../merchant-table-row';
-// import AppointmentAnalytic from '../appointment-analytic';
+import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
 // import AppointmentTableRow from '../appointment-table-row';
 // import AppointmentTableRowSkeleton from '../appointment-table-row-skeleton';
 // import AppointmentTableToolbar from '../appointment-table-toolbar';
@@ -71,20 +71,21 @@ import { useSearch } from '@/auth/context/Search';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import MerchantCreateView from './merchant-create-view';
 import { UseMerchantMedContext } from '@/context/merchant/Merchant';
-import MerchantCreateView from './merchant-create-view';
+import MerchantCreateView from './merchant-create-view-2';
 import MerchantMedicineSkeleton from './merchant-table-skeleton';
 import MerchantMedecineTableRow from './merchant-table-row';
 import { QueryAllMedecineForMerchant, QueryAllMerchantMedicine } from '@/libs/gqls/merchantUser';
+import AppointmentTableToolbar from '@/sections/appointment/appointment-table-toolbar';
+import MedecineMerchantToolbar from './appointment-table-toolbar';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'genericName', label: 'Generic Name' },
-  // { id: 'hospital', label: 'Hospital/Clinic' },
-  { id: 'brandName', label: 'Brand Name' },
-  { id: 'dose', label: 'Dose', align: 'center' },
-  { id: 'form', label: 'Form', align: 'center' },
+  { id: 'id', label: 'ID'},
+
+  { id: 'name', label: 'Medecine Name' },
+  { id: 'store', label: 'Store Name' },
+  { id: 'stock', label: 'Stock', align: 'center' },
   { id: 'price', label: 'Price', align: 'center' },
-  { id: 'store', label: 'Store', align: 'center' },
 
   // { id: 'status', label: 'Status', align: 'center' },
   { id: 'action', label: 'Action', align: 'center' },
@@ -121,6 +122,8 @@ export default function MerchantMedicineView() {
   const confirmDone = useBoolean();
   const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
   const { page, rowsPerPage, order, orderBy } = table;
+  const [tableData, setTableData] = useState<any>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   const [getMedecines, getMedecinesResult] = useLazyQuery(QueryAllMedecineForMerchant, {
     context: {
@@ -129,7 +132,7 @@ export default function MerchantMedicineView() {
     notifyOnNetworkStatusChange: true,
   });
   const [filters, setFilters]: any = useState(defaultFilters);
-
+  const [summary, setSummary] = useState({totalRecords:0, shortSupply:0})
 
   useEffect(() => {
     getMedecines({
@@ -138,17 +141,22 @@ export default function MerchantMedicineView() {
           skip: page * rowsPerPage,
           take: rowsPerPage,
           search: filters.name,
+          supply:filters.status,
+          
         }
       }
     }).then((res: any) => {
       const { data } = res;
       if (data) {
-        const { QueryAllMerchantMedicine } = data;
-        setTableData(QueryAllMerchantMedicine?.MedicineType)
-        setTotalRecords(QueryAllMerchantMedicine?.totalRecords)
+        const { QueryAllMedecineForMerchant } = data;
+        setTableData(QueryAllMedecineForMerchant?.all)
+        setSummary({
+          totalRecords:QueryAllMedecineForMerchant?.summaryObjMerchant?.total,
+          shortSupply:QueryAllMedecineForMerchant?.summaryObjMerchant?.shortSupply
+        })
       }
     })
-  }, [table.page, table.rowsPerPage, filters.sort, filters.name, filters.type, filters.startingPrice, filters.endPrice])
+  }, [table.page, table.rowsPerPage, filters.sort, filters.name, filters.status, getMedecinesResult.data ])
 
 
 
@@ -165,8 +173,6 @@ export default function MerchantMedicineView() {
 
 
 
-  const [tableData, setTableData] = useState<any>([]);
-  const [totalRecords, setTotalRecords] = useState(0);
 
   const [total, setTotal] = useState(0);
   const [pending, setPending] = useState(0);
@@ -179,18 +185,7 @@ export default function MerchantMedicineView() {
   const [clinicData, setclinicData] = useState<any>([]);
 
   const [clinicPayload, setClinicPayload] = useState<any>([]);
-  const {
-    data: userClinicData,
-    error: userClinicError,
-    loading: userClinicLoad,
-    refetch: userClinicFetch,
-  }: any = useQuery(GET_CLINIC_USER, {
-    variables: {
-      data: {
-        clinicIds: clinicPayload,
-      },
-    },
-  });
+
 
 
   const dataFiltered = applyFilter({
@@ -212,7 +207,7 @@ export default function MerchantMedicineView() {
     !!filters.startDate ||
     !!filters.endDate;
 
-  // const notFound = !state?.isLoading && !state?.merchantData?.length;
+  const notFound = !getMedecinesResult?.loading && !tableData?.length;
 
   const getAppointmentLength = (status: string | number) =>
     tableData?.filter((item: any) => item?.status === status).length;
@@ -221,13 +216,13 @@ export default function MerchantMedicineView() {
     (getAppointmentLength(status) / tableData.length) * 100;
 
   const TABS = [
-    { value: -1, label: 'All', color: 'default', count:0 },
-    // {
-    //   value: 0,
-    //   label: 'Online',
-    //   color: 'warning',
-    //   count: getAppointmentLength(0),
-    // },
+    { value: -1, label: 'All', color: 'default', count:summary?.totalRecords },
+    {
+      value:1,
+      label: 'Short in Stock',
+      color: 'error',
+      count: summary.shortSupply,
+    },
     // {
     //   value: 1,
     //   label: 'Offline',
@@ -334,7 +329,7 @@ export default function MerchantMedicineView() {
             mb: { xs: 3, md: 5 },
           }}
         >
-          <Typography variant="h5">Medicines</Typography>
+          <Typography variant="h5">Supply</Typography>
 
           {/*           
             <Button
@@ -356,28 +351,31 @@ export default function MerchantMedicineView() {
             }}
           >
             <Scrollbar>
-              {/* <Stack
+              <Stack
                 direction="row"
                 divider={<Divider orientation="vertical" flexItem sx={{ borderStyle: 'dashed' }} />}
                 sx={{ py: 2 }}
               >
                 <AppointmentAnalytic
                   title="Total"
-                  total={total}
+                  total={summary?.totalRecords}
                   percent={100}
                   icon="solar:bill-list-bold-duotone"
                   color={theme.palette.text.primary}
+                  label="Medecines"
                 />
 
                 <AppointmentAnalytic
-                  title="Pending"
-                  total={pending}
-                  percent={(pending / total) * 100}
+                  title="Short In Stock"
+                  total={summary?.shortSupply}
+                  percent={(summary?.shortSupplying / summary?.totalRecords) * 100}
                   icon="solar:clock-circle-bold-duotone"
-                  color={theme.palette.warning.main}
+                  color={theme.palette.error.main}
+                  label="Medecines"
+
                 />
 
-                <AppointmentAnalytic
+                {/* <AppointmentAnalytic
                   title="Approved"
                   total={approved}
                   percent={(approved / total) * 100}
@@ -399,8 +397,8 @@ export default function MerchantMedicineView() {
                   percent={(cancelled / total) * 100}
                   icon="solar:close-circle-bold-duotone"
                   color={theme.palette.error.main}
-                />
-              </Stack> */}
+                /> */}
+              </Stack>
             </Scrollbar>
           </Card>
         )}
@@ -434,13 +432,12 @@ export default function MerchantMedicineView() {
               />
             ))}
           </Tabs>
-          {/* 
-          <AppointmentTableToolbar
+          <MedecineMerchantToolbar
             filters={filters}
             onFilters={handleFilters}
-            //
-            hospitalOptions={clinicData}
           />
+          {/* 
+
 
           {canReset && (
             <AppointmentTableFiltersResult
@@ -527,9 +524,7 @@ export default function MerchantMedicineView() {
                         />
                   ))
                       } */}
-                  {/* {state?.isLoading
-                    ? [...Array(rowsPerPage)].map((_, i) => <MerchantMedicineSkeleton key={i} />)
-                    : state?.merchantData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
+                      {/* {tableData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
                       <MerchantMedecineTableRow
                         key={row.id}
                         row={row}
@@ -541,20 +536,34 @@ export default function MerchantMedicineView() {
                         onEditRow={() => handleEditRow(row)}
                       />
                     ))} */}
+                  {getMedecinesResult?.loading
+                    ? [...Array(rowsPerPage)].map((_, i) => <MerchantMedicineSkeleton key={i} />)
+                    : tableData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
+                      <MerchantMedecineTableRow
+                        key={row.id}
+                        row={row}
+                        selected={table.selected.includes(String(row.id))}
+                        onSelectRow={() => table.onSelectRow(String(row.id))}
+                        onViewRow={() => handleViewRow(row)}
+                        onViewPatient={() => handleViewPatient(row)}
+                        onDeleteRow={() => handleDeleteRow(row?.id)}
+                        onEditRow={() => handleEditRow(row)}
+                      />
+                    ))}
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, totalRecords)}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, summary?.totalRecords)}
                   />
 
-                  {/* <TableNoData notFound={notFound} /> */}
+                  <TableNoData notFound={notFound} />
                 </TableBody>
               </Table>
             </Scrollbar>
           </TableContainer>
 
           <TablePaginationCustom
-            count={10}
+            count={summary?.totalRecords}
             page={table.page}
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}
@@ -566,7 +575,9 @@ export default function MerchantMedicineView() {
         </Card>
       </Container>
 
-      <MerchantCreateView editRow={editRow} isEdit={editRow && true} onClose={() => {
+      <MerchantCreateView refetch={()=>{
+        getMedecinesResult.refetch()
+      }} editRow={editRow} isEdit={editRow && true} onClose={() => {
         opencreate.onFalse();
         setEditRow(null)
       }} open={opencreate.value} />

@@ -40,6 +40,7 @@ import NoteTableToolbar from '../note-table-toolbar';
 import NoteTableFiltersResult from '../note-table-filters-result';
 import NoteTableRowSkeleton from '../note-table-row-skeleton';
 import useNotesHooks from '../_notesHooks';
+import { useSessionStorage } from '@/hooks/use-sessionStorage';
 
 // ----------------------------------------------------------------------
 
@@ -96,12 +97,14 @@ export default function NoteListView({
   const { page, rowsPerPage, order, orderBy } = table;
   const [filters, setFilters] = useState(defaultFilters);
   // const [isLoading, setLoading] = useState(true);
-
+  const { getItem } = useSessionStorage();
   // useEffect(()=>{
   //   if(tableData1?.length){
   //     setLoading(false)
   //   }
   // },[tableData1])
+
+  // console.log(refIds,'REFFFFFFFFFF_______________________________________________________________')
 
   useEffect(() => {
     setPayloads({
@@ -136,7 +139,7 @@ export default function NoteListView({
     user?.role,
     filters?.recType,
   ]);
-  console.log('the payloads', tableData1);
+
   // const [tableData1, setTableData1] = useState<any>([]);
   // const [totalData, setTotalData] = useState(0);
   // const [Ids, setIds] = useState<any>([]);
@@ -152,17 +155,14 @@ export default function NoteListView({
     dateError,
   });
 
-  // useEffect(() => {
-  //   if (getDefaultFilters('clinic')) {
-  //     let { clinic }: any = getDefaultFilters('clinic');
-  //     setFilters({
-  //       ...filters,
-  //       hospital: [clinic?.id],
-  //     });
-  //   }
-  // }, []);
+  useEffect(() => {
+   if(!refIds) return;
+    const data = getItem('defaultFilters');
+    if (data?.clinic) {
+      filters.hospital = [Number(data?.clinic?.id)]
+    }
+  }, []);
 
-  // const loading = false;
 
   const denseHeight = table.dense ? 56 : 76;
   const [isPatient, setIspatient] = useState<boolean>();

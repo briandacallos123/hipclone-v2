@@ -1,5 +1,14 @@
 import { gql } from '@apollo/client';
 
+
+export const UpdateMerchantStock = gql`
+  mutation UpdateMerchantStock($data: UpdateMerchantStockInp!) {
+    UpdateMerchantStock(data: $data) {
+      message
+    }
+  }
+  `;
+
 export const QuerySingleMedecine = gql`
   query QuerySingleMedecine($data: QuerySinelgMedecineInp!) {
     QuerySingleMedecine(data: $data) {

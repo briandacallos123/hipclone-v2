@@ -737,6 +737,8 @@ export const NotificationUpdateMerchantInp = inputObjectType({
     name:"NotificationUpdateMerchantInp",
     definition(t) {
         t.nullable.list.int('orderIds');
+        t.nullable.list.int('supplyIds');
+
     },
 })
 
@@ -759,6 +761,20 @@ export const NotificationUpdateMerchant = extendType({
                 await client.notification.updateMany({
                     where:{
                         order_id:{
+                            in:idsNotEmpty
+                        }
+                    },
+                    data:{
+                        is_read:1,
+                    },
+                })
+           }
+           if(args?.data?.supplyIds?.length){
+             const idsNotEmpty = args?.data?.supplyIds?.filter((item)=>item!==null)
+
+                await client.notification.updateMany({
+                    where:{
+                        medecine_id:{
                             in:idsNotEmpty
                         }
                     },
