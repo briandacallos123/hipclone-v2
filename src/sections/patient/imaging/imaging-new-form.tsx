@@ -93,7 +93,7 @@ export default function PatientImagingNewForm({
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {getItem} = useSessionStorage()
-  console.log(data1,'data1wowwwwww_____________')
+  // console.log(data1,'data1wowwwwww_____________')
 
   const {
     data: drClinicData,

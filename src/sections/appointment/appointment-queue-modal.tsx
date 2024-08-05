@@ -20,6 +20,7 @@ const AppointmentQueueModal = ({ open, onClose, data }: AppointmentQueueModalPro
 
     const generateQR = async (text: any) => {
         try {
+            console.log(text,'TEXTTTTTTTTTTTTTTTTTTTTTTTT')
             const res = await QRCode.toDataURL(text)
             // return <img width="50%" height="50%" src={res}/>
             setQrImage(res)
@@ -32,7 +33,7 @@ const AppointmentQueueModal = ({ open, onClose, data }: AppointmentQueueModalPro
     useEffect(() => {
         (async () => {
 
-            const link = `/queue/${data?.voucherId}`
+            const link = `https://hip.apgitsolutions.com/queue/${data?.voucherId}`
             setLink(link)
             await generateQR(link)
         })()

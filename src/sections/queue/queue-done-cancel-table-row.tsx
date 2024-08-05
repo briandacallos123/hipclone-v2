@@ -129,7 +129,7 @@ export default function QueueDoneCancelTableRow({ row, onViewRow }: Props) {
           </Label>
         </TableCell>
 
-      <TableCell align="right" sx={{ px: 1 }}>
+      <TableCell align="left" sx={{ px: 1 }}>
         <Tooltip title="View Details" placement="top" arrow>
           <IconButton onClick={() => onViewRow()}>
             <Iconify icon="solar:clipboard-text-bold" />

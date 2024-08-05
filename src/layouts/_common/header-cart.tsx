@@ -43,7 +43,6 @@ const HeaderCart = ({count, cart}:HeaderCartProps) => {
 
     useEffect(()=>{
         const isOpen = localStorage.getItem('openCart');
-        console.log(isOpen,'ISOPENNNNN__________', typeof isOpen)
         if(Number(isOpen) !== 0){
             drawer.onTrue()
         }

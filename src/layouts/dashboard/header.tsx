@@ -42,7 +42,7 @@ export default function Header({ onOpenNav }: Props) {
   const { state : ordersCart } = useOrdersContext();
 
  
-  console.log(cart,"HAYSSSSSSSSSSS")
+  // console.log(allData,"allDataallDataallDataallDataallDataallDataallDataallDataallData")
 
   useEffect(()=>{
     if (socket?.connected) {
@@ -114,7 +114,7 @@ export default function Header({ onOpenNav }: Props) {
         {user?.role === 'patient' && ordersCart?.order &&  <HeaderOrders order={ordersCart?.order} />}
 
         
-        <NotificationsPopover queryResults={queryResults} handleReadFunc={handleReadFunc} notificationData={allData} isLoading={isLoading} summarize={summarize}/>
+        <NotificationsPopover queryResults={queryResults} handleReadFunc={handleReadFunc} notificationData={allData} isLoading={queryResults.loading} summarize={summarize}/>
 
         <SettingsButton />
 

@@ -38,6 +38,8 @@ import { Skeleton, Table, TableCell, TableRow } from '@mui/material';
 import NotificationSkeleton from './NotificationSkeleton';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/auth/hooks';
+import NotificationItemFinal from './notification-item-final';
+// import NotificationsPopoverFinal from './notifications-popover-final';
 // ----------------------------------------------------------------------
 
 
@@ -54,35 +56,42 @@ function getAvatar(image:any){
 }
 
 export default function NotificationsPopover({queryResults, notificationData, isLoading, summarize, handleReadFunc}:any) {
-  console.log(notificationData,'______________AWITTTTTTTTTT________________')
+  const [unreadData, setUnreadData] = useState([]);
+ 
   const navigate = useRouter();
   const {user} = useAuthContext()
   
-  
-  const notification_data = notificationData?.map((item:any)=>{
-    return{
-      userName:item?.user?.name,
-      id:item?.id,
-      isUnRead:item?.is_read === 1 ? true:false,
-      title:item?.notification_content?.content,
-      createdAt:item?.created_at,
-      avatarUrl:getAvatar(item?.user?.avatarAttachment?.filename),
-      type:item?.notification_type_id?.title,
-      appt_id: Number(item?.appt_data?.id),
-      chat_id:item?.chat_id,
-      many_chat:item?.is_many_chat,
-      chat_count:item?.chat_length,
-      child:item?.children || item?.siblings,
-      many_appt:item?.appt_data?.id && item?.children,
-      appt_count:item?.appt_count,
-      // isPatient:item?.isPatient,
-      isPatient:user?.role === "patient",
-      is_group_count: item?.group_child?.length && item?.group_child?.length + 1 || 0,
-      group_child:item?.group_child || [],
-      siblings:item?.siblings?.length && item?.siblings?.length + 1 || 0
-     
+  useEffect(() => {
+    if (notificationData) {
+      const data = notificationData?.filter((item) => !item.is_read);
+      setUnreadData(data)
     }
-  })
+  }, [notificationData])
+  
+  // const notification_data = notificationData?.map((item:any)=>{
+  //   return{
+  //     userName:item?.user?.name,
+  //     id:item?.id,
+  //     isUnRead:item?.is_read === 1 ? true:false,
+  //     title:item?.notification_content?.content,
+  //     createdAt:item?.created_at,
+  //     avatarUrl:getAvatar(item?.user?.avatarAttachment?.filename),
+  //     type:item?.notification_type_id?.title,
+  //     appt_id: Number(item?.appt_data?.id),
+  //     chat_id:item?.chat_id,
+  //     many_chat:item?.is_many_chat,
+  //     chat_count:item?.chat_length,
+  //     child:item?.children || item?.siblings,
+  //     many_appt:item?.appt_data?.id && item?.children,
+  //     appt_count:item?.appt_count,
+  //     // isPatient:item?.isPatient,
+  //     isPatient:user?.role === "patient",
+  //     is_group_count: item?.group_child?.length && item?.group_child?.length + 1 || 0,
+  //     group_child:item?.group_child || [],
+  //     siblings:item?.siblings?.length && item?.siblings?.length + 1 || 0
+     
+  //   }
+  // })
   
   const TABS = [
     {
@@ -198,37 +207,58 @@ export default function NotificationsPopover({queryResults, notificationData, is
   },[])
  const handleViewRow = useCallback((d:any)=>{
     
+  // if(d?.chat_id){
+  //   if(d?.many_chat || (d?.group_child?.length && d?.chat_id) || d?.siblings !== 0){
+  //     navigate.push(paths.dashboard.chat);
  
-    if(d?.chat_id){
-      if(d?.many_chat || (d?.group_child?.length && d?.chat_id) || d?.siblings !== 0){
-        navigate.push(paths.dashboard.chat);
-   
-      }
-     else{
+  //   }
+  //  else{
+  //   setChatView({
+  //     open:true,
+  //     id:d?.chat_id
+  //   })
+  //  }
+  // }
+  if(d?.notification_type === 'sent a message' || d?.notification_type === 'reply a message'){
+    if(d?.length > 1){
+      navigate.push(paths.dashboard.chat);
+    }else{
       setChatView({
         open:true,
         id:d?.chat_id
       })
-     }
-    }else{
-     
-      if(d?.many_appt?.length || (d?.group_child?.length && !d?.chat_id) || d?.siblings !== 0){
-        navigate.push(paths.dashboard.root);
-
-      }else{
-        setViewId(d)
-        openView.onTrue();
-      }
     }
+  }else if(d?.notification_type === 'post feed'){
+    navigate.push(paths.dashboard.feeds)
+  }
+  else{
 
+      // if(d?.many_appt?.length || (d?.group_child?.length && !d?.chat_id) || d?.siblings !== 0){
+      //   navigate.push(paths.dashboard.root);
+
+      // }else{
+      //   setViewId(d)
+      //   openView.onTrue();
+      // }
+    }
     handleReadFunc({
-      id:Number(d?.id),
-      statusRead:1,
-      conversation_id:d?.conversation_id,
-      chat_id:d?.chat_id,
-      notifIds:d?.child && [...d?.child]
+      notifIds:d?.notifIds
     })
+
+    // handleReadFunc({
+    //   id:Number(d?.id),
+    //   statusRead:1,
+    //   conversation_id:d?.conversation_id,
+    //   chat_id:d?.chat_id,
+    //   notifIds:d?.child && [...d?.child]
+    // })
  },[])
+
+ const handleReadView = (d) => {
+  handleReadFunc({
+    notifIds:d?.notifIds
+  })
+}
 
 
 
@@ -236,23 +266,21 @@ export default function NotificationsPopover({queryResults, notificationData, is
     <Scrollbar>
       <List disablePadding>
        
-        {notification_data.map((notification:any) => (
-          <NotificationItem 
-          onViewRow={()=>{
-            handleViewRow(notification)
-          }} 
-          handleReadFunc={()=>{
-            handleReadFunc({
-              id:Number(notification?.id),
-              statusRead:1,
-              notifIds:notification?.child?.length !== 0 ? [...notification?.child] : []
-              
-            })
-          }} 
-          key={notification.id} 
-          notification={notification} 
-          />
-        ))}
+      {currentTab === 'all' &&
+          notificationData.map((notification: any) => (
+            <NotificationItemFinal
+              onViewRow={() => {
+                handleViewRow(notification)
+              }}
+              onReadView={()=>{
+                handleReadView(notification)
+              }}
+              key={notification.id}
+              notification={notification}
+            />
+          ))
+        }
+       
       </List>
     </Scrollbar>
   );
@@ -285,7 +313,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
           backdrop: { invisible: true },
         }}
         PaperProps={{
-          sx: { width: 1, maxWidth: 420 },
+          sx: { width: 1, maxWidth: 420, px:2},
         }}
         className="drawer"
       >
@@ -297,7 +325,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
           direction="row"
           alignItems="center"
           justifyContent="space-between"
-          sx={{ pl: 2.5, pr: 1 }}
+          sx={{ pl: 2.5, pr: 1, }}
         >
           {renderTabs}
           <IconButton onClick={handleMarkAllAsRead}>
@@ -323,7 +351,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
           notif={true}
       />}
           <Table>
-            {isLoading && !notification_data?.length &&  [...Array(5)].map((_, i) => <NotificationSkeleton key={i} />)}
+            {queryResults.loading && !notificationData?.length &&  [...Array(5)].map((_, i) => <NotificationSkeleton key={i} />)}
           </Table>
 
         {renderList}

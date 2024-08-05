@@ -221,7 +221,7 @@ export default function QueueApproveTableRow({
           </Label>
         </TableCell>
 
-        <TableCell align="center" sx={{ px: 1 }}>
+        <TableCell align="left" sx={{ px: 1 }}>
           <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>

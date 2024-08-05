@@ -61,10 +61,13 @@ const reducer = (state: any, action: any) => {
             const isExists = state.cart.find((item: any) => Number(item.id) === Number(id));
 
             if (isExists) {
+                console.log("exist_____________________________")
                 // If the item already exists in the cart, update its quantity and calculate the new total
                 const updatedCart = state.cart.map((item: any) => {
                     if (Number(item.id) === Number(id)) {
-                        return { ...item, quantity: Number(item?.quantity) +  itemQty};
+                        // Number(item?.quantity) +  itemQty}
+                        return {...item, quantity:itemQty ? item?.quantity + itemQty : item?.quantity + 1 }
+                        // return { ...item, quantity:Number(item?.quantity *  (itemQty ? itemQty : 1))};
                     }
                     return item;
                 });
@@ -237,7 +240,7 @@ const Checkout = ({ children }: any) => {
 
 
     const addToCart = useCallback((data: any) => {
-        console.log(data,'DATAAAAAAAAAAAAAAAAA ADD TO CARTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+        // console.log(data,'DATAAAAAAAAAAAAAAAAA ADD TO CARTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
         dispatch({
             type: "Add",
             payload: {

@@ -804,13 +804,13 @@ export const UpdateAppointment = extendType({
               },
             });
 
-            await client.records.create({
-              data:{
-                patientID:Number(patient_findfirst?.S_ID),
-                doctorID:Number(session.user?.id),
-                CLINIC:Number(appt_findfirst?.clinic)
-              }
-            })
+            // await client.records.create({
+            //   data:{
+            //     patientID:Number(patient_findfirst?.S_ID),
+            //     doctorID:Number(session.user?.id),
+            //     CLINIC:Number(appt_findfirst?.clinic)
+            //   }
+            // })
 
             // console.log(response,'RESPONSE TOOO')
             

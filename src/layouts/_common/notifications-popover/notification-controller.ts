@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react';
 import { useLazyQuery, useMutation } from '@apollo/client';
 
 import { NexusGenInputs, NexusGenObjects } from 'generated/nexus-typegen';
-import { notification_query, notification_read } from 'src/libs/gqls/notification';
+import { notification_query_final, notification_read, NotificationReadFinal } from 'src/libs/gqls/notification';
 import { useAuthContext } from '@/auth/hooks'
 
 export default function NotificationController({isRun}:{isRun:boolean}) {
@@ -15,15 +15,22 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
     const [chatLength, setChatLength] = useState([])
   const {user} = useAuthContext()
   const [toRefetch, setToRefetch] = useState(false)
-    
-  const [queryFunc, queryResults] = useLazyQuery(notification_query, {
+
+  const [queryFunc, queryResults] = useLazyQuery(notification_query_final, {
     context: {
       requestTrackerId: 'queryFunc[notification_query]',
     },
     notifyOnNetworkStatusChange: true,
   });
+    
+  // const [queryFunc, queryResults] = useLazyQuery(notification_query, {
+  //   context: {
+  //     requestTrackerId: 'queryFunc[notification_query]',
+  //   },
+  //   notifyOnNetworkStatusChange: true,
+  // });
 
-  const [readNotif] = useMutation(notification_read, {
+  const [readNotif] = useMutation(NotificationReadFinal, {
     context: {
       requestTrackerId: 'Prescription_data[Prescription_data]',
     },
@@ -41,28 +48,31 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
          queryFunc({
           variables: {
               data: {
-                take:50
+                take:50,
+                skip:0
               },
             },
       }).then(async (result:any) => {
           const { data } = result;
           
-          const {NotificationData, countAll, countUnread} = data?.NotifacationQuery
+          const { notifDataFinal } = data?.NotifacationQueryFinal
 
-          const {newNotif, unread, chatLength} = modifyData(NotificationData)
+          let unread = 0;
+          let totalData = 0;
+    
+          notifDataFinal?.forEach((item)=>{
+            if(!item?.is_read){
+              unread += item?.length
+            } 
+            totalData += item?.length;
+          })
 
-          localStorage.setItem('chatCount', JSON.stringify(chatLength))
-      
+          // console.log(notifDataFinal,'############################################################')
+    
           if (data) {
-
-          
-              setAllData(newNotif);
-              setSummarize({
-                  all:countAll,
-                  unread:unread
-              })
+            setAllData(notifDataFinal);
+            setSummarize({all:totalData, unread})
           }
-          setLoading(false)
       }).catch((err)=>{
         setLoading(false)
       })
@@ -72,7 +82,7 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
 
     
     const getChat = () => {
-      console.log(chatLength,'CHAT_LENGTHHH@@@@@@@@@@@@@@@@@@@@')
+      // console.log(chatLength,'CHAT_LENGTHHH@@@@@@@@@@@@@@@@@@@@')
     }
 
     function modifyData(d:any){
@@ -312,12 +322,7 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
     const handleReadFunc = useCallback(
       async (model: NexusGenInputs['NotificationUpdate']) => {
         const data: NexusGenInputs['NotificationUpdate'] = {
-          // email: model.email,
-          id:model?.id,
-          statusRead:model?.read,
-          conversation_id:model?.conversation_id,
-          chat_id:model?.chat_id,
-          notifIds:model?.notifIds?.length !== 0 ? [...model?.notifIds?.map((i:any)=>Number(i?.id)), model.id] : []
+          notifIds:model?.notifIds
         };
         readNotif({
           variables: {

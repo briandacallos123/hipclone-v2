@@ -2465,7 +2465,6 @@ export const QueryRecordBypatientNew = extendType({
             },
           });
 
-          console.log(recordData,'Ok na__________');
 
 
           // console.log('ang dta? ', patientData);
@@ -2482,6 +2481,7 @@ export const QueryRecordBypatientNew = extendType({
             orderConditions,
             patientData
           );
+          console.log(data,'DATAAAAAAAAAAAA_________________________')
 
           return {
             Records_data: data,
@@ -2544,8 +2544,7 @@ const customFuncPatient = async (
     };
   })();
 
-  console.log(patientData, 'patientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientDatapatientData');
-  console.log(recordData.emrPatientID !== null,'LINKEDDDDDDDDDD');
+
   
   if (patientData) {
     const isLinked = recordData.emrPatientID !== null;

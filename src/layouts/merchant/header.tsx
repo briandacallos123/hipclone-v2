@@ -35,7 +35,7 @@ export default function Header({ onOpenNav }: Props) {
   const isMerchant = user?.role === 'merchant';
   
   const {allData, isLoading, summarize, queryResults, handleReadFunc} = NotificationController({isRun:!isMerchant});
-  const {allData:merchantData,handleReadFunc:handleReadFuncMerchant, summarize:summarizeMerchant} = NotificationControllerMerchant({isRun:isMerchant});
+  const {allData:merchantData,handleReadFunc:handleReadFuncMerchant, queryResults:queryResultMerchant, summarize:summarizeMerchant} = NotificationControllerMerchant({isRun:isMerchant});
  
 
   useEffect(()=>{
@@ -108,7 +108,7 @@ export default function Header({ onOpenNav }: Props) {
            <NotificationsPopover queryResults={queryResults} handleReadFunc={handleReadFunc} notificationData={allData} isLoading={isLoading} summarize={summarize}/>
         </>}
         {user?.role !== 'admin' && <>
-           <NotificationPopoverMerchant queryResults={queryResults} handleReadFunc={handleReadFuncMerchant} notificationData={merchantData} isLoading={isLoading} summarize={summarizeMerchant}/>
+           <NotificationPopoverMerchant queryResults={queryResultMerchant} handleReadFunc={handleReadFuncMerchant} notificationData={merchantData} isLoading={queryResultMerchant.loading} summarize={summarizeMerchant}/>
         </>}
 
 

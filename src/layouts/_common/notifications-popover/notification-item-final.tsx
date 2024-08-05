@@ -24,39 +24,47 @@ type NotificationItemProps = {
     isUnRead: boolean;
     type: string;
     avatarUrl?: string | null;
-    group_child?:any;
-    is_group_count?:any;
-    chat_id?:any;
-    siblings?:any;
-    isPatient?:any;
+    group_child?: any;
+    is_group_count?: any;
+    chat_id?: any;
+    siblings?: any;
+    isPatient?: any;
   };
-  handleReadFunc:void,
-  onViewRow:any,
-  onReadView:()=>void;
+  handleReadFunc: void,
+  onViewRow: any,
+  onReadView: () => void;
 };
-export default function NotificationItemMerchant({ notification, onReadView, onViewRow}: NotificationItemProps) {
+export default function NotificationItemFinal({ notification, onReadView, onViewRow }: NotificationItemProps) {
 
   const renderAvatar = (
     <ListItemAvatar>
       <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            bgcolor: 'background.neutral',
-          }}
-        >
+        alignItems="center"
+        justifyContent="center"
+        sx={{
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          bgcolor: 'background.neutral',
+        }}
+      >
 
         <Box
-              component="img"
-              src={`/assets/${
-                (notification?.notification_type === 'order' && 'order.png') ||
-                (notification?.notification_type === 'supply' && 'outofsupply.png')
-               }`}
-              sx={{ width: 24, height: 24 }}
-            />
+          component="img"
+          src={`/assets/icons/notification/${(notification?.notification_type === 'approved appointment' && 'ic_file') ||
+            (notification?.notification_type === 'done appointment' && 'ic_file') ||
+            (notification?.notification_type === 'cancelled appointment' && 'ic_file_deleted') ||
+            (notification?.notification_type === 'to approve appointment' && 'ic_file') ||
+            (notification?.notification_type === 'delivery' && 'ic_delivery') ||
+            (notification?.notification_type === 'sent a message' && 'ic_chat') ||
+            (notification?.notification_type === 'sent payment' && 'ic_payment') ||
+            (notification?.notification_type === 'reply a message' && 'ic_chat') ||
+            (notification?.notification_type === 'post feed' && 'ic_post')
+            // reply a message
+            // post feed
+            }.svg`}
+          sx={{ width: 24, height: 24 }}
+        />
       </Stack>
       {/* {(notification.avatarUrl && !notification?.group_child?.length && !notification?.many_appt && !notification?.many_chat)  ? (
         <Avatar src={notification.avatarUrl} sx={{ bgcolor: 'background.neutral' }} />
@@ -85,24 +93,55 @@ export default function NotificationItemMerchant({ notification, onReadView, onV
     </ListItemAvatar>
   );
 
-  const message = 
-  // order && not read && length is > 1
-  (notification?.notification_type === 'order' && !notification?.is_read && notification?.length > 1 && `<p>You have <strong>${notification?.length}</strong> new orders from <strong>${notification?.user}</strong></p>`) ||
- // order && not read && length is equals 1
-  (notification?.notification_type === 'order' && !notification?.is_read && notification?.length === 1  && `<p>You have new order from <strong>${notification?.user}</strong></p>`) ||
-  // order & already read && length is > 1
-  (notification?.notification_type === 'order' && notification?.is_read && notification?.length > 1  && `<p>${notification?.user} made ${notification?.length} orders!</strong></p>`) ||
-  // order & already read && length === 1
-  (notification?.notification_type === 'order' && notification?.is_read && notification?.length === 1  && `<p>${notification?.user} made an order!</strong></p>`) ||
- 
-  // supply && not read && length is > 1
-  (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length > 1  && `<p><strong>${notification?.length} of your product </strong> are getting out of stock, please review.</p>`) || 
-  // supply && not read && length is === 1
-  (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length === 1  && `<p><strong>${notification?.medecine[0]?.generic_name}</strong> is getting out of stock.</p>`) || 
-// supply && not read && length is === 1
-(notification?.notification_type === 'supply' && notification?.is_read && notification?.length === 1  && `<p>${notification?.medecine[0]?.generic_name} already read.</p>`) ||
-// supply && already read && length is > 1
-(notification?.notification_type === 'supply' && notification?.is_read && notification?.length > 1  && `<p>${notification?.medecine[0]?.generic_name} and ${notification?.length - 1} are short in supplies.</p>`)  
+  const message =
+    // appointment&& for approval && not read && length is > 1
+    (notification?.notification_type === 'to approve appointment' && notification?.length === 1 && `<p>${notification?.user}</strong> book an appointment<strong></p>`) ||
+
+
+    // appointment&& for approval && not read && length is > 1
+    (notification?.notification_type === 'to approve appointment' && notification?.length > 1 && `<p>${notification?.user}</strong> booked ${notification?.length} appointments<strong></p>`) ||
+
+
+    // appointment&& already approved && not read && length is === 1
+    (notification?.notification_type === 'approved appointment' && notification?.length === 1 && `<p>${notification?.user}</strong> already approved your appointment</p>`) ||
+    // appointment&& already approved && not read && length is > 1
+    (notification?.notification_type === 'approved appointment' && notification?.length > 1 && `<p>${notification?.user}</strong> already approved your ${notification?.length} appointments</p>`) ||
+    // chat && already approved && not read && length is > 1
+    (notification?.notification_type === 'sent a message' && notification?.length > 1 && `<p>${notification?.user}</strong> sent you ${notification?.length} messages</p>`) ||
+    // chat && already approved && not read && length is === 1
+    (notification?.notification_type === 'sent a message' && notification?.length === 1 && `<p>${notification?.user}</strong> sent you a message</p>`) ||
+    //post feed && length === 1
+    (notification?.notification_type === 'post feed' && notification?.length === 1 && `<p>${notification?.user}</strong> have a new post</p>`) ||
+    //post feed && length > 1
+    (notification?.notification_type === 'post feed' && notification?.length > 1 && `<p>You're missing ${notification?.length} new post by <strong>${notification?.user}</strong></p>`) ||
+    //sent payment && length > 1
+    (notification?.notification_type === 'sent payment' && notification?.length > 1 && `<p>${notification?.user}</strong> sent ${notification?.length} appointment payments</p>`) ||
+    //sent payment && length === 1
+    (notification?.notification_type === 'sent payment' && notification?.length === 1 && `<p>${notification?.user}</strong> sent a payment</p>`) ||
+    //sent reply && length > 1
+    (notification?.notification_type === 'reply a message' && notification?.length > 1 && `<p>${notification?.user}</strong> reply ${notification?.length} new messages</p>`) ||
+    //sent reply && length > 1
+    (notification?.notification_type === 'reply a message' && notification?.length === 1 && `<p>${notification?.user}</strong> sent a reply message</p>`) ||
+    //done appt && length === 1
+    (notification?.notification_type === 'done appointment' && notification?.length === 1 && `<p>${notification?.user}</strong> marked your appointment as done!</p>`) ||
+    //done appt && length === 1
+    (notification?.notification_type === 'done appointment' && notification?.length > 1 && `<p>${notification?.user}</strong> marked your ${notification?.length} appointments as done!</p>`)
+  //   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length > 1 && `<p>You have <strong>${notification?.length}</strong> new orders from <strong>${notification?.user}</strong></p>`) ||
+  //  // order && not read && length is equals 1
+  //   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length === 1  && `<p>You have new order from <strong>${notification?.user}</strong></p>`) ||
+  //   // order & already read && length is > 1
+  //   (notification?.notification_type === 'order' && notification?.is_read && notification?.length > 1  && `<p>${notification?.user} made ${notification?.length} orders!</strong></p>`) ||
+  //   // order & already read && length === 1
+  //   (notification?.notification_type === 'order' && notification?.is_read && notification?.length === 1  && `<p>${notification?.user} made an order!</strong></p>`) ||
+
+  //   // supply && not read && length is > 1
+  //   (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length > 1  && `<p><strong>${notification?.length} of your product </strong> are getting out of stock, please review.</p>`) || 
+  //   // supply && not read && length is === 1
+  //   (notification?.notification_type === 'supply' && !notification?.is_read && notification?.length === 1  && `<p><strong>${notification?.medecine[0]?.generic_name}</strong> is getting out of stock.</p>`) || 
+  // // supply && not read && length is === 1
+  // (notification?.notification_type === 'supply' && notification?.is_read && notification?.length === 1  && `<p>${notification?.medecine[0]?.generic_name} already read.</p>`) ||
+  // // supply && already read && length is > 1
+  // (notification?.notification_type === 'supply' && notification?.is_read && notification?.length > 1  && `<p>${notification?.medecine[0]?.generic_name} and ${notification?.length - 1} are short in supplies.</p>`)  
   // (notification?.child?.length && notification?.isPatient   && `<p>You have <strong>${notification?.child?.length + 1} new updates from your appointments</strong></p>`) ||
   // (notification?.many_appt && notification?.isPatient && `<p>You have <strong>${notification?.appt_count} new updates from your appointments</strong></p>`) ||
   // (notification?.siblings !== 0 && notification?.appt_id && `<p><strong>${notification?.userName}</strong> have ${notification?.siblings} booking appointments</p>`) ||
@@ -114,9 +153,9 @@ export default function NotificationItemMerchant({ notification, onReadView, onV
   // (notification?.many_appt && `<p>You have <strong>${notification?.appt_count} pending appointments</strong></p>`) ||
   // (notification?.many_chat && `<p>You have <strong>${notification?.chat_count} unread messages</strong></p>`)
   // ;
-   
+
   // (!notification?.many_chat ? `<p><strong>${notification?.userName} </strong>${notification?.title}</p>`:`<p>You have <strong>${notification?.chat_count} unread messages</strong></p>`)
-   
+
 
 
   const renderText = (
@@ -137,7 +176,7 @@ export default function NotificationItemMerchant({ notification, onReadView, onV
           }
         >
           {/* {fToNow(notification.createdAt)} */}
-          {`${notification?.notification_type.charAt(0).toUpperCase()}${notification?.notification_type.split("").splice(1).join("")}`}
+          {/* {`${notification?.notification_type.charAt(0).toUpperCase()}${notification?.notification_type.split("").splice(1).join("")}`} */}
         </Stack>
       }
     />
@@ -195,55 +234,73 @@ export default function NotificationItemMerchant({ notification, onReadView, onV
   const btnContainer = (
     <Stack spacing={1} direction="row" sx={{ mt: 1.5 }}>
 
+
+
+      {notification?.notification_type === 'approved appointment' && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
+      </Button>}
+
+      {notification?.notification_type === 'to approve appointment' && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
+      </Button>}
+
+      
+      {notification?.notification_type === 'sent payment' && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
+      </Button>}
+
+
+
+     
+      {notification?.notification_type === 'reply a message' && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
+      </Button>}
+
+
      
 
-       {notification?.notification_type === 'order' &&  <Button onClick={()=>{
+
+      {notification?.notification_type === 'sent a message' && <Button onClick={() => {
         onViewRow()
-       }} size="small" color="info" variant="outlined">
-      
-        View Orders
+      }} size="small" color="info" variant="outlined">
+        View Message
       </Button>}
 
-      {notification?.notification_type === 'order' && !notification?.is_read && <Button onClick={()=>{
-          onReadView()
-        }} size="small" color="info" variant="outlined">
-         Mark as Read
+      {notification?.notification_type === 'done appointment' && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
+      </Button>}
+      {notification?.notification_type === 'cancelled appointment' && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
       </Button>}
 
-      {notification?.notification_type === 'supply' &&  <Button onClick={()=>{
-          onViewRow()
-        }} size="small" color="info" variant="outlined">
-         View Supplies
+      {notification?.notification_type === 'post feed' && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
       </Button>}
 
-      {notification?.notification_type === 'supply' && !notification?.is_read && <Button onClick={()=>{
-          onReadView()
-        }} size="small" color="info" variant="outlined">
-         Mark as Read
-      </Button>}
-      {/* 
 
-   
-
-      {notification?.type === 'done appointment' &&  <Button onClick={()=>{
-          onViewRow()
-        }} size="small" color="info" variant="outlined">
-         View
+      {!notification?.is_read && <Button size="small" variant="outlined" color="warning" onClick={onReadView}>
+        Mark as Read
       </Button>}
-      {notification?.type === 'cancelled appointment' &&  <Button onClick={()=>{
-          onViewRow()
-        }} size="small" color="info" variant="outlined">
-         View
-      </Button>}
-      {!notification?.isUnRead && <Button size="small" variant="outlined" color="warning" onClick={()=>handleReadFunc()}>
-         Mark as Read
-      </Button>} */}
     </Stack>
   )
 
   const projectAction = (
-    <Stack spacing={2}alignItems="flex-start" sx={{my:1}}>
-       {/* {notification.avatarUrl ? (
+    <Stack spacing={2} alignItems="flex-start" sx={{ my: 1 }}>
+      {/* {notification.avatarUrl ? (
           <Avatar src={notification.avatarUrl} sx={{ bgcolor: 'background.neutral' }} />
         ):
         <Box
@@ -386,9 +443,10 @@ export default function NotificationItemMerchant({ notification, onReadView, onV
 
       <Stack sx={{ flexGrow: 1 }}>
         {renderText}
-        { projectAction}
+        {/* { projectAction}
+        */}
         {btnContainer}
-     
+
       </Stack>
     </ListItemButton>
   );
@@ -402,7 +460,7 @@ function reader(data: string) {
       dangerouslySetInnerHTML={{ __html: data }}
       sx={{
         mb: 0.5,
-        textTransform:'capitalize',
+        textTransform: 'capitalize',
         '& p': { typography: 'body2', m: 0 },
         '& a': { color: 'inherit', textDecoration: 'none' },
         '& strong': { typography: 'subtitle2' },

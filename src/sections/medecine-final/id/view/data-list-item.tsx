@@ -123,10 +123,11 @@ const DataListItem = ({ item, listView }: DataListItemProps) => {
                             component="img"
                             image={`/${attachment_info?.file_path?.split('/').splice(1).join('/')}`}
                             alt={generic_name}
-                            // height="100%"
-                            height={listView ? 250 : '100%'}
-                            // width="100%"
-                            width={listView ? 300:'100%'}
+                            height={listView ? 200 : '100%'}
+                            width={listView ? 200:'100%'}
+                            sx={{
+                                objectFit:'contain'
+                            }}
                         />
                     </Box>
                     <CardContent sx={{

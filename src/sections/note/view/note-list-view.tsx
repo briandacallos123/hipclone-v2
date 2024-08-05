@@ -41,6 +41,7 @@ import NoteTableFiltersResult from '../note-table-filters-result';
 import NoteTableRowSkeleton from '../note-table-row-skeleton';
 import useNotesHooks from '../_notesHooks';
 import { useSessionStorage } from '@/hooks/use-sessionStorage';
+import { DoctorClinicsHistory } from '@/libs/gqls/drprofile';
 
 // ----------------------------------------------------------------------
 
@@ -88,7 +89,6 @@ export default function NoteListView({
   totalData,
   Ids,
   notesRecordResult
-  // isLoading,
 }: Props) {
   const upMd = useResponsive('up', 'md');
   const table = useTable({ defaultOrder: 'desc', defaultOrderBy: 'date' });
@@ -96,15 +96,8 @@ export default function NoteListView({
   const { user } = useAuthContext();
   const { page, rowsPerPage, order, orderBy } = table;
   const [filters, setFilters] = useState(defaultFilters);
-  // const [isLoading, setLoading] = useState(true);
   const { getItem } = useSessionStorage();
-  // useEffect(()=>{
-  //   if(tableData1?.length){
-  //     setLoading(false)
-  //   }
-  // },[tableData1])
-
-  // console.log(refIds,'REFFFFFFFFFF_______________________________________________________________')
+  const [isClinic, setIsClinic] = useState(0);
 
   useEffect(() => {
     setPayloads({
@@ -140,13 +133,14 @@ export default function NoteListView({
     filters?.recType,
   ]);
 
-  // const [tableData1, setTableData1] = useState<any>([]);
-  // const [totalData, setTotalData] = useState(0);
-  // const [Ids, setIds] = useState<any>([]);
-  // console.log('uuid pat: ', id);
-  // const [tableData, setTableData] = useState<any>(_hospitals);
-
   const dateError = isDateError(filters.startDate, filters.endDate);
+
+  const {
+    data: drClinicData,
+    error: drClinicError,
+    loading: drClinicLoad,
+    refetch: drClinicFetch,
+  }: any = useQuery(DoctorClinicsHistory);
 
   const dataFiltered = applyFilter({
     inputData: tableData1,
@@ -173,19 +167,12 @@ export default function NoteListView({
     (!!filters.startDate && !!filters.endDate) ||
     !!filters.startDate ||
     !!filters.endDate;
-  // const notFound = (!tableData1?.length && canReset) || !tableData1?.length;
-
+  
   const [isLoadingPatient, setIsLoadingPatient] = useState(true);
 
-  // useEffect(() => {
-  //   if (tableData1) {
-  //     setIsLoadingPatient(false);
-  //   }
-  // }, [isLoadingPatient, tableData1]);
 
   const notFound = !notesRecordResult?.loading && !tableData1.length;
 
-  // console.log(tableData1?.length);
   const handleFilters = useCallback(
     (name: string, value: INoteTableFilterValue) => {
       table.onResetPage();
@@ -201,27 +188,6 @@ export default function NoteListView({
     setFilters(defaultFilters);
   }, []);
 
-  // const { data, loading, refetch }: any = useQuery(GET_RECORD_BY_PATIENT, {
-  //   variables: {
-  //     data: {
-  //       clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //       skip: page * rowsPerPage,
-  //       take: rowsPerPage,
-  //       orderBy,
-  //       orderDir: order,
-  //       userType: String(user?.role),
-  //       uuid: String(refIds),
-  //       emrID: Number(id),
-  //       startDate: filters?.startDate,
-  //       endDate: filters?.endDate,
-  //       searchKeyword: filters.name,
-  //     },
-  //   },
-  //   context: {
-  //     requestTrackerId: 'getRecords[gPATMedNote]',
-  //   },
-  //   notifyOnNetworkStatusChange: true,
-  // });
 
   const [getDataUser, { data: userData, loading: patLoad }]: any = useLazyQuery(
     GET_RECORD_BY_PATIENT_USER,
@@ -233,118 +199,8 @@ export default function NoteListView({
     }
   );
   const notFoundPatient = !notesRecordResult?.loading && !tableData1?.length;
-  // const [getEMR, { data: EMRdata, loading: loadingEmr }]: any = useLazyQuery(EMR_MED_NOTE, {
-  //   variables: {
-  //     data: {
-  //       clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //       skip: page * rowsPerPage,
-  //       take: rowsPerPage,
-  //       orderBy,
-  //       orderDir: order,
-  //       userType: String(user?.role),
-  //       uuid: String(refIds),
-  //       emrID: Number(id),
-  //       startDate: filters?.startDate,
-  //       endDate: filters?.endDate,
-  //       searchKeyword: filters.name,
-  //     },
-  //   },
-  //   context: {
-  //     requestTrackerId: 'getRecords[gPATMedNoteEMR]',
-  //   },
-  //   notifyOnNetworkStatusChange: true,
-  // });
+ 
 
-  // useEffect(() => {
-  //   if (user?.role === 'doctor' && data) {
-  //     const { allRecordsbyPatient } = data;
-  //     // setTable(todaysAPR);
-  //     setTableData1(allRecordsbyPatient?.Records_data);
-  //     setIds(allRecordsbyPatient?.RecordIds);
-  //     setTotalData(allRecordsbyPatient?.total_records);
-  //   }
-  // }, [data, user?.role]);
-
-  // patient
-  // useEffect(() => {
-  //   if (user?.role === 'patient') {
-  //     getDataUser({
-  //       variables: {
-  //         data: {
-  //           clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //           skip: page * rowsPerPage,
-  //           take: rowsPerPage,
-  //           orderBy,
-  //           orderDir: order,
-  //           startDate: filters?.startDate,
-  //           endDate: filters?.endDate,
-  //           searchKeyword: filters.name,
-  //         },
-  //       },
-  //     }).then(async (result: any) => {
-  //       const { data } = result;
-  //       if (data) {
-  //         const { allRecordsbyPatientUser } = data;
-  //         // setTable(todaysAPR);
-  //         setTableData1(allRecordsbyPatientUser?.Records_data);
-  //         setIds(allRecordsbyPatientUser?.RecordIds);
-  //         setTotalData(allRecordsbyPatientUser?.total_records);
-  //       }
-  //     });
-  //   }
-  // }, [
-  //   page,
-  //   isPatient,
-  //   rowsPerPage,
-  //   filters.name,
-  //   orderBy,
-  //   order,
-  //   filters?.hospital,
-  //   filters?.endDate,
-  //   filters?.startDate,
-  //   refIds,
-  //   id,
-  //   user?.role,
-  // ]);
-  // emr
-
-  // useEffect(() => {
-  //   getEMR({
-  //     variables: {
-  //       data: {
-  //         skip: page * rowsPerPage,
-  //         take: rowsPerPage,
-  //       },
-  //     },
-  //   }).then(async (result: any) => {
-  //     const { data } = result;
-  //     if (data && isEMR) {
-  //       const { QueryEMR_Record } = data;
-  //       // setTable(todaysAPR);
-  //       setTableData1(QueryEMR_Record?.EMR_Record?.records);
-  //       // setIds(allRecordsbyPatient?.RecordIds);
-  //       setTotalData(QueryEMR_Record?.total);
-  //     }
-  //   });
-  // }, [
-  //   page,
-  //   rowsPerPage,
-  //   filters.name,
-  //   orderBy,
-  //   order,
-  //   getData,
-  //   filters?.hospital,
-  //   filters.endDate,
-  //   getEMR,
-  //   isEMR,
-  // ]);
-
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
   const [clinicData, setclinicData] = useState<any>([]);
 
   useEffect(() => {
@@ -354,7 +210,14 @@ export default function NoteListView({
     }
   }, [drClinicData, user?.role]);
 
-  // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
+  useEffect(() => {
+    if (isClinic === 1) {
+      const clinicItem = tableData1?.map((item: any) => Number(item?.CLINIC));
+      setClinicPayload(clinicItem);
+    }
+  }, [tableData1, isClinic]);
+  // console.log(tableData1,'BOSSSSSSSSSSSSSSSSSSSSSSS________________________')
+
   const [clinicPayload, setClinicPayload] = useState<any>([]);
   const {
     data: userClinicData,
@@ -368,21 +231,21 @@ export default function NoteListView({
       },
     },
   });
-  // console.log('@@', clinicData);
   useEffect(() => {
     if (user?.role === 'patient' && userClinicData) {
       const { AllClinicUser } = userClinicData;
       setclinicData(AllClinicUser);
+      setIsClinic(isClinic + 1);
     }
   }, [user?.role, userClinicData]);
+
+  // console.log(clinicData,'HAHAAAAAAAAAAAAAAAAAAAAA_____________________________AWITTTTTTTTTTTTTT');
+  
 
   useEffect(() => {
     const clinicItem = tableData1?.map((item: any) => Number(item?.CLINIC));
     setClinicPayload(clinicItem);
   }, []);
-  // ========================
-
-  // -paloads-
 
   return (
     <Card>

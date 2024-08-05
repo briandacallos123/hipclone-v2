@@ -120,6 +120,7 @@ model appointments {
   appt_payment_attachment appt_payment_attachment[]
   appt_queue              appt_queue[]
   hmo_claims              hmo_claims[]
+  notification            notification[]
 
   @@index([patientID], map: "appointments_ibfk_1")
   @@index([doctorID], map: "appointments_ibfk_2")
@@ -1629,12 +1630,13 @@ model Participant {
 }
 
 model Conversation {
-  id           String        @id @default(uuid())
+  id           String         @id @default(uuid())
   type         String
-  unreadCount  Int           @default(0)
-  lastActivity DateTime      @updatedAt
+  unreadCount  Int            @default(0)
+  lastActivity DateTime       @updatedAt
   messages     Message[]
   participants Participant[]
+  notification notification[]
 
   @@map("conversations")
 }
@@ -1663,6 +1665,8 @@ model notification {
   notification_group                    notification_group?  @relation(fields: [notif_group_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_5")
   orders                                orders?              @relation(fields: [order_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_6")
   merchant_medicine                     merchant_medicine?   @relation(fields: [medecine_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_7")
+  appointments                          appointments?        @relation(fields: [appt_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_8")
+  conversations                         Conversation?        @relation(fields: [chat_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_9")
   notification_read                     notification_read[]
 
   @@index([notification_content_id], map: "notification_content_id")
@@ -1673,6 +1677,7 @@ model notification {
   @@index([notif_group_id], map: "notif_group_id")
   @@index([order_id], map: "order_id")
   @@index([medecine_id], map: "medecine_id")
+  @@index([chat_id], map: "chat_id")
 }
 
 model notification_content {

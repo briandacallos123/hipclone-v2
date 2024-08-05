@@ -199,7 +199,8 @@ export default function NotificationsPopoverMerchant({handleReadFunc, queryResul
 
   const handleReadView = (d) => {
     handleReadFunc({
-      orderIds:d?.orders?.map((item)=>Number(item?.id))
+      orderIds:d?.orders?.map((item)=>Number(item?.id)),
+      supplyIds:d?.medecine?.map((item)=>Number(item?.id))
     })
   }
 

@@ -35,15 +35,15 @@ export const storeType = objectType({
         t.nullable.field('attachment_store', {
             type: attachment_store,
         });
-        t.nullable.field('onlinePayment',{
-            type:onlinePayment
+        t.nullable.field('onlinePayment', {
+            type: onlinePayment
         })
 
     },
 })
 
 const onlinePayment = objectType({
-    name:"onlinePayment",
+    name: "onlinePayment",
     definition(t) {
         t.int('id');
         t.string('filename');
@@ -76,7 +76,7 @@ export const storeInputType = inputObjectType({
         t.nullable.string('name')
         t.nullable.float('latitude');
         t.nullable.float('longitude');
- 
+
 
     },
 });
@@ -97,9 +97,9 @@ const calculateDistance = (lat1: any, lon1: any, lat2: any, lon2: any) => {
 };
 
 const filterMerchantsByDistance = (patientLocation: any, merchants: any, radius: any) => {
-    const myData:any = [];
+    const myData: any = [];
 
-    
+
     merchants.forEach(merchant => {
         const distance = calculateDistance(
             patientLocation.latitude,
@@ -107,15 +107,15 @@ const filterMerchantsByDistance = (patientLocation: any, merchants: any, radius:
             merchant.lat,
             merchant.lng
         );
-      
-        if(radius === 100){
+
+        if (radius === 100) {
             myData.push({
                 ...merchant,
                 distance
             })
         }
-        else if(distance <= radius){
-          
+        else if (distance <= radius) {
+
             myData.push({
                 ...merchant,
                 distance
@@ -124,6 +124,27 @@ const filterMerchantsByDistance = (patientLocation: any, merchants: any, radius:
     });
     return myData;
 };
+
+const filterMerchantsByDays = (value) => {
+    let currentDay = new Date().getDay(); // Adjust getDay() to make 0 = Monday
+ 
+
+    if (currentDay === -1) {
+        currentDay = 6; // If getDay() returns 0 (Sunday), set currentDay to 6 (Saturday)
+    }
+ 
+    return value?.filter((item) => {
+        let res = [];
+        if (item?.days) {
+            res = unserialize(unserialize(item?.days));
+        }
+        let result = res ? res.map((v) => Number(v)) : [];
+
+        if(result?.includes(currentDay)){
+            return item;
+        }
+    });
+}
 
 export const QueryAllStoreNoId = extendType({
     type: 'Query',
@@ -143,10 +164,10 @@ export const QueryAllStoreNoId = extendType({
                     } else if (delivery === 'Pick up') {
                         return 0
                     }
-                   
+
                 }
 
-               
+
 
                 const deliveryFilter = deliveryOptions()
 
@@ -161,13 +182,15 @@ export const QueryAllStoreNoId = extendType({
                             is_deliver: deliveryFilter,
                             name: {
                                 contains: search
-                            }
+                            },
+                            is_active: 1,
+
                         },
                         include: {
                             attachment_store: true
                         },
-                        
-                        
+
+
                     })
 
                     // console.log(latitude, longitude,'___________TUDE_____________________________')
@@ -176,13 +199,12 @@ export const QueryAllStoreNoId = extendType({
                         longitude: longitude || user?.longitude
                     }
                     let filteredByKlm = filterMerchantsByDistance(patient, result, radius)
-
-                    // if(radius === 100){
-                        
-                    //     filteredByKlm = result;
-                    // }
-                  
-                    return filteredByKlm
+                    let filteredByDays = filterMerchantsByDays(filteredByKlm);
+                    
+                    console.log(filteredByKlm,'???????HAHAAHA')
+                    console.log(filteredByDays,'???????')
+                    
+                    return filteredByDays
                 } catch (error) {
                     throw new GraphQLError(error)
                 }
@@ -267,8 +289,8 @@ export const QueryAllStore = extendType({
                                     }
                                 ]
                             },
-                            orderBy:{
-                                created_at:'desc'
+                            orderBy: {
+                                created_at: 'desc'
                             },
                             include: {
                                 attachment_store: true
@@ -407,13 +429,13 @@ export const CreateNewStore = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
                 const { user } = session;
-                const { name, address,gcashContact, onlinePayment, latitude, longitude, description, delivery, product_types, startTime, endTime }: any = args?.data;
+                const { name, address, gcashContact, onlinePayment, latitude, longitude, description, delivery, product_types, startTime, endTime }: any = args?.data;
 
                 const sFile = await args?.file;
                 let med: any;
 
-                let paymentAttachment:any;
-                let payment:any;
+                let paymentAttachment: any;
+                let payment: any;
 
                 const daysJson = serialize(serialize(args?.data?.days));
 
@@ -431,7 +453,7 @@ export const CreateNewStore = extendType({
                             }
                         })
                     }
-                    if(sFile?.length > 1 && sFile[1] !== null){
+                    if (sFile?.length > 1 && sFile[1] !== null) {
                         const res: any = useUpload(sFile, 'public/documents/');
                         paymentAttachment = await client.order_payment_attachment.create({
                             data: {
@@ -441,15 +463,15 @@ export const CreateNewStore = extendType({
                             }
                         })
 
-                        
+
                     }
 
-                    if(onlinePayment === 'g cash'){
-                         payment = await client.online_payment.create({
-                            data:{
-                                platform:'g cash',
-                                recepient_contact:gcashContact,
-                                attachment_id:paymentAttachment?.id
+                    if (onlinePayment === 'g cash') {
+                        payment = await client.online_payment.create({
+                            data: {
+                                platform: 'g cash',
+                                recepient_contact: gcashContact,
+                                attachment_id: paymentAttachment?.id
                             }
                         })
                     }
@@ -470,8 +492,8 @@ export const CreateNewStore = extendType({
                             merchant_id: Number(user?.id),
                             is_deliver: delivery ? 1 : 0,
                             is_deleted: 0,
-                            COD:onlinePayment.includes('cash on delivery') ? 1 : 0,
-                            online_payment:payment && payment?.id
+                            COD: onlinePayment.includes('cash on delivery') ? 1 : 0,
+                            online_payment: payment && payment?.id
 
                         }
                     })
@@ -514,6 +536,18 @@ export const UpdateStore = extendType({
                             }
                         })
                     }
+
+                    if(daysJson){
+                        await client.merchant_store.update({
+                            where:{
+                                id
+                            },
+                            data:{
+                                days:null
+                            }
+                        });
+                    }
+
                     await client.merchant_store.update({
                         where: {
                             id
@@ -591,25 +625,25 @@ export const UpdateStatusStore = extendType({
     definition(t) {
         t.nullable.field('UpdateStatusStore', {
             type: CreateNewStoreObj,
-            args: { data: DeleteStoreInp!},
+            args: { data: DeleteStoreInp! },
             async resolve(_root, args, ctx) {
 
                 try {
                     const targetStore = await client.merchant_store.findUnique({
-                        where:{
-                            id:Number(args?.data?.id)
+                        where: {
+                            id: Number(args?.data?.id)
                         }
                     })
 
                     const negateStatus = () => {
-                        if(targetStore?.is_active === 1){
+                        if (targetStore?.is_active === 1) {
                             return {
-                                is_active:0
+                                is_active: 0
                             }
                         }
-                        if(targetStore?.is_active === 0){
+                        if (targetStore?.is_active === 0) {
                             return {
-                                is_active:1
+                                is_active: 1
                             }
                         }
                     }

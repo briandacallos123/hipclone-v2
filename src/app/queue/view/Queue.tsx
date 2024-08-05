@@ -287,6 +287,11 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
         )
     }
 
+    if(!apptPaid){
+        return <RenderNotPaid/>
+    }
+
+    
     if (notApprovedVal) {
         return <RenderNotApproved />
     }
@@ -306,10 +311,7 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
         return <RenderNotToday />
     }
 
-    if(!apptPaid){
-        return <RenderNotPaid/>
-    }
-
+   
 
 
     return (

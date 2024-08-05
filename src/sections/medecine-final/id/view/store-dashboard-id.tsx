@@ -134,7 +134,6 @@ const StoreDashboardId = ({ data, id }: any) => {
         },
         []
     );
-    console.log(filters,'FILTERSSSSSSSS')
 
         const checkExistedData = useCallback((prev, data:any) => {
             const dataIds = prev?.map((item)=>Number(item.id))

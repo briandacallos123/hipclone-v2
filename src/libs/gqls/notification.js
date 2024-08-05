@@ -93,3 +93,44 @@ query MyQuery($data:NotificationPayloads) {
     }
   }
 `
+export const notification_query_final = gql`
+  query NotifacationQueryFinal($data:NotificationPayloads){
+    NotifacationQueryFinal(data:$data){
+        notifDataFinal{
+          is_read
+          length
+          notification_type
+          user
+          notifIds
+          post_feed
+          chat{
+            id
+          }
+          appointments {
+            Others
+            add_date
+            clinic
+            id
+            date
+            doctorID
+            e_time
+            doctor_no
+            remarks
+            status
+            symptoms
+            time_slot
+          }
+        }
+      }
+  }
+`;
+
+
+
+export const NotificationReadFinal = gql`
+  mutation NotificationUpdateFinal($data:NotificationUpdateFinalInp){
+    NotificationUpdateFinal(data: $data) {
+      message
+    }
+  }
+`

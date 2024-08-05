@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 // @mui
 import { useTheme, alpha } from '@mui/material/styles';
 import Tab from '@mui/material/Tab';
@@ -51,6 +51,7 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from 'src/components/table';
+import { QueryAllOrdersForMerchantHistory } from '@/libs/gqls/Orders';
 
 //
 import { useLazyQuery, useQuery } from '@apollo/client';
@@ -58,7 +59,7 @@ import { DR_APPTS } from '@/libs/gqls/drappts';
 import { DR_CLINICS } from '@/libs/gqls/drprofile';
 import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
 import { NexusGenInputs } from 'generated/nexus-typegen';
-// import MedecineSkeleton from '../medecine-skeleton';
+// import MerchantTableRow from '../merchant-table-row';
 // import AppointmentAnalytic from '../appointment-analytic';
 // import AppointmentTableRow from '../appointment-table-row';
 // import AppointmentTableRowSkeleton from '../appointment-table-row-skeleton';
@@ -66,86 +67,84 @@ import { NexusGenInputs } from 'generated/nexus-typegen';
 // import AppointmentTableFiltersResult from '../appointment-table-filters-result';
 // import AppointmentDetailsView from './appointment-details-view';
 import { YMD } from 'src/utils/format-time';
+// import MerchantTableSkeleton from '../merchant-table-skeleton';
 import { useSearch } from '@/auth/context/Search';
-import { UseOrdersContext } from '@/context/dashboard/medecine/Medecine';
-// import MedecineTableRow from '../medecine-table-row';
-// import MedecineCreateView from './merchant-create-view';
-// import MedecineCreateFullView from './merchant-create-view-full';
-import StoreCreateView from './store-create-view';
-import storeController from '../StoreController';
-import StoreSkeletonView from './store-skeleton-view';
-import StoreTableRow from './store-table-row';
-import StoreSkeletonRow from './store-skeleton';
-import StoreToolbar from './store-toolbar';
+// import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
+// import MerchantCreateView from './merchant-create-view';
+import { UseMerchantMedContext } from '@/context/merchant/Merchant';
+import HistoryTableRow from './logs-table-row';
 import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
+import HistoryView from '@/sections/history/view/history-view';
+import MerchantTableToolbar from '../../orders/view/merchant-table-toolbar';
+import MerchantOrderSkeleton from '../../orders/view/merchant-order-skeleton';
+import OrderView from '../../orders/view/merchant-view';
+// import MerchantCreateView from './merchant-create-view';
+// import MerchantMedicineSkeleton from './merchant-table-skeleton';
+// import MerchantMedecineTableRow from './merchant-table-row';
 // ----------------------------------------------------------------------
 
-const TABLE_HEAD = [
-  { id: 'name', label: 'Name' },
-  // { id: 'productType', label: 'Product Types' },
-  { id: 'rating', label: 'Rating', align: 'left' },
-  { id: 'active', label: 'Status', align: 'left' },
-  // { id: 'desc', label: 'Description', align: 'left' },
+// const TABLE_HEAD = [
+//   { id: 'genericName', label: 'Generic Name' },
+//   { id: 'dose', label: 'Dose', align: 'center' },
+//   { id: 'form', label: 'Form', align: 'center' },
+//   { id: 'price', label: 'Price', align: 'center' },
+//   { id: 'store', label: 'Store', align: 'center' },
+//   { id: 'status', label: 'Status', align: 'center' },
+//   { id: 'action', label: 'Action', align: 'center' },
 
-  { id: '', label: "Action", align: 'center' },
+
+// ];
+
+const TABLE_HEAD = [
+  { id: 'id', label: 'Order ID', },
+  { id: 'Medicine Name', align: 'center', label: 'Generic Name' },
+  { id: 'Patient', label: 'Patient', align: 'center' },
+  { id: 'Status', label: 'Payment Status', align: 'center' },
+  { id: 'Type', label: 'Delivery Type', align: 'center' },
+  { id: 'Status_Id', label: 'Status', align: 'center' },
+
+  { id: 'Action', label: "action" },
 ];
 
 
-// const defaultFilters = {
-//   name: '',
-//   status: -1,
-//   hospital: [],
-//   startDate: null,
-//   endDate: null,
-// };
+
+
+const defaultFilters = {
+  name: '',
+  status: -1,
+  hospital: [],
+  startDate: null,
+  endDate: null,
+};
 
 // ----------------------------------------------------------------------
 
-// type StoreViewProps = {
-//   data:[],
-// }
 
-export default function StoreListView() {
+export default function LogsListView() {
   const upMd = useResponsive('up', 'md');
   const { setTriggerRef, triggerRef }: any = useSearch();
   const theme = useTheme();
-  const { user, socket } = useAuthContext();
-  const isPatient = user?.role === 'patient';
+  // const { user } = useAuthContext();
+  // const isPatient = user?.role === 'patient';
   const settings = useSettingsContext();
   const confirmApprove = useBoolean();
+  const confirmEdit = useBoolean();
+  const opencreate = useBoolean();
+
   const [isClinic, setIsClinic] = useState(0);
   const confirmCancel = useBoolean();
-  const confirmUpdate = useBoolean();
-
-
-
-  const { queryResults, table,handleSubmitUpdateStore, state: tableState,handleSubmitDelete, handleFilterStatus, filters, setFilters, handleFilters }: any = storeController()
-  const { tableData, summary, totalRecords } = tableState
-
-
-
-
-
-  const { state, deletedOrderFunc }: any = UseOrdersContext()
 
   const confirmDone = useBoolean();
 
-  const confirmOrder = useBoolean();
+  const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
 
-  const { page, rowsPerPage, order, orderBy } = table;
 
   const openView = useBoolean();
 
   const [viewId, setViewId] = useState(null);
 
-
-  // const [filters, setFilters]: any = useState(defaultFilters);
-
-  const dateError = isDateError(filters.startDate, filters.endDate);
-
-
-
-  // const [totalRecords, setTotalRecords] = useState(0);
+  const [tableData, setTableData] = useState<any>([]);
+  const [totalRecords, setTotalRecords] = useState(0);
 
   const [total, setTotal] = useState(0);
   const [pending, setPending] = useState(0);
@@ -153,15 +152,96 @@ export default function StoreListView() {
   const [done, setDone] = useState(0);
   const [cancelled, setCancelled] = useState(0);
 
+  const [summary, setSummary] = useState(null)
+
+
   const router = useRouter();
   const [clinicData, setclinicData] = useState<any>([]);
 
+
+  const [filters, setFilters]: any = useState(defaultFilters);
+
+
+  const dateError = isDateError(filters.startDate, filters.endDate);
+
+  const [getAllOrders, getOrdersResult] = useLazyQuery(QueryAllOrdersForMerchantHistory, {
+    context: {
+      requestTrackerId: 'orders[QueryAllOrderUser]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+
+  useEffect(() => {
+    getAllOrders({
+      variables: {
+        data: {
+          skip: table.page * table.rowsPerPage,
+          take: table.rowsPerPage,
+          is_deliver: null,
+          status: filters.status,
+          search: filters.search
+        },
+      },
+    }).then(async (result: any) => {
+      const { data } = result;
+      if (data) {
+        const { QueryAllOrdersForMerchantHistory } = data;
+        //  const { allAppointments } = data;
+        //  setTableData(allAppointments?.appointments_data);
+        setTableData(QueryAllOrdersForMerchantHistory?.orderType);
+        setTotalRecords(QueryAllOrdersForMerchantHistory?.totalRecords);
+        setSummary(QueryAllOrdersForMerchantHistory.summary)
+        //  setPending(allAppointments?.summary?.pending);
+        //  setApproved(allAppointments?.summary?.approved);
+        //  setDone(allAppointments?.summary?.done);
+        //  setCancelled(allAppointments?.summary?.cancelled);
+      }
+    });
+  }, [
+
+    table.page,
+    table.rowsPerPage,
+    table.order,
+    table.orderBy,
+    filters.status,
+    filters.search
+
+  ]);
+
   const [clinicPayload, setClinicPayload] = useState<any>([]);
+
+  useEffect(() => {
+    //
+    if (isClinic === 1) {
+      const clinicItem = tableData?.map((item: any) => Number(item?.clinic));
+      setClinicPayload(clinicItem);
+    }
+  }, [tableData]);
+  useEffect(() => {
+    if (!openView.value && viewId) {
+      setViewId(null)
+    }
+  }, [openView.value])
+
+  const dataFiltered = applyFilter({
+    inputData: tableData,
+    comparator: getComparator(table.order, table.orderBy),
+    filters,
+    dateError,
+  });
 
   const denseHeight = table.dense ? 56 : 76;
 
+  const canReset =
+    !!filters.name ||
+    !!filters.hospital.length ||
+    filters.status !== -1 ||
+    (!!filters.startDate && !!filters.endDate) ||
+    !!filters.startDate ||
+    !!filters.endDate;
 
-  const notFound = !queryResults?.loading && !tableData?.length;
+  const notFound = !getOrdersResult?.loading && !tableData?.length;
 
   const getAppointmentLength = (status: string | number) =>
     tableData?.filter((item: any) => item?.status === status).length;
@@ -169,16 +249,49 @@ export default function StoreListView() {
   const getPercentByStatus = (status: string) =>
     (getAppointmentLength(status) / tableData.length) * 100;
 
-
-
-
   const TABS = [
     { value: -1, label: 'All', color: 'default', count: totalRecords },
-    { value: 1, label: 'Active', color: 'success', count: summary?.active },
-    { value: 2, label: 'Inactive', color: 'error', count:summary?.inactive },
-  ] as const
+    {
+      value: 4,
+      label: 'Done',
+      color: 'success',
+      count: summary?.done,
+    },
+    {
+      value: 3,
+      label: 'Cancelled',
+      color: 'error',
+      count: summary?.cancelled,
+    },
+    // { value: 3, label: 'Done', color: 'success', count: getAppointmentLength(3) },
+    // {
+    //   value: 2,
+    //   label: 'Cancelled',
+    //   color: 'error',
+    //   count: getAppointmentLength(2),
+    // },
+  ] as const;
 
- 
+  const [editRow, setEditRow] = useState(null)
+
+
+
+  const handleEditRow = (row: any) => {
+    opencreate.onTrue()
+    setEditRow(row)
+
+  }
+
+  const handleFilters = useCallback(
+    (name: string, value: IAppointmentTableFilterValue) => {
+      table.onResetPage();
+      setFilters((prevState: any) => ({
+        ...prevState,
+        [name]: value,
+      }));
+    },
+    [table]
+  );
 
   const handleViewRow = useCallback(
     (data: any) => {
@@ -188,58 +301,56 @@ export default function StoreListView() {
     [openView]
   );
 
-  const handleManageRow = useCallback(
-    (id: number) => {
-      router.push(paths.merchant.manage(id));
-
+  const handleFilterStatus = useCallback(
+    (event: React.SyntheticEvent, newValue: string) => {
+      handleFilters('status', newValue);
     },
-    [openView]
+    [handleFilters]
   );
 
+  //////////////////////////////////////////////////////
+  // client side approach
+  const updateRow = (d: any) => {
+    const { mutation_create_hmo_claims } = d;
+    const targetData = {
+      ...(typeof viewId === 'object' ? viewId : {}),
+      id: mutation_create_hmo_claims?.id,
+      hmo_claims: mutation_create_hmo_claims?.hmo_claims_data,
+    };
+    setTableData((prev: any) => {
+      return prev.map((i: any) => {
+        if (Number(i?.id) === Number(targetData?.id)) {
+          return targetData;
+        }
+        return i;
+      });
+    });
+  };
+  // client side approach
+  //////////////////////////////////////////////////////
 
- 
-  // const updateRow = (d: any) => {
-  //   const { mutation_create_hmo_claims } = d;
-  //   const targetData = {
-  //     ...(typeof viewId === 'object' ? viewId : {}),
-  //     id: mutation_create_hmo_claims?.id,
-  //     hmo_claims: mutation_create_hmo_claims?.hmo_claims_data,
-  //   };
-  //   setTableData((prev: any) => {
-  //     return prev.map((i: any) => {
-  //       if (Number(i?.id) === Number(targetData?.id)) {
-  //         return targetData;
-  //       }
-  //       return i;
-  //     });
-  //   });
-  // };
-
-
+  const handleResetFilters = useCallback(() => {
+    setFilters(defaultFilters);
+  }, []);
 
   const handleViewPatient = useCallback(
     (id: any) => {
+      // const refID = id?.patientInfo?.userInfo?.uuid;
       const refID = id?.patientInfo?.userInfo[0]?.uuid;
-
+      // console.log('uuid', id);
+      // router.push(paths.dashboard.patient.view('e99f09a7-dd88-49d5-b1c8-1daf80c2d7b1'));
       router.push(paths.dashboard.patient.view(refID));
     },
     [router]
   );
 
-  const [deleteId, setDeleteId] = useState(null)
+  const handleDeleteRow = (id: string) => {
+    // DeleteMerchantFunc(id)
+    deletedMerchantMedFunc({
+      id
+    })
+  }
 
-  const handleDeleteRow = useCallback(async (id: any) => {
-   
-    setDeleteId(id)
-    confirmApprove.onTrue()
-  }, [])
-
-  const [updateId, setUpdateId] = useState(null)
-
-  const handleUpdateStatus = useCallback((id:any)=>{
-    setUpdateId(id)
-    confirmUpdate.onTrue()
-  },[])
 
 
 
@@ -254,21 +365,19 @@ export default function StoreListView() {
             mb: { xs: 3, md: 5 },
           }}
         >
-          <Typography variant="h5">Store</Typography>
+          <Typography variant="h5">History</Typography>
 
-          <Button
-            // component={RouterLink}
-            // href={paths.dashboard.appointment.find}
-            onClick={() => {
-              // console.log("huh?")
-              confirmOrder.onTrue()
-            }}
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-           
-          >
-            Create New Store
-          </Button>
+          {/*           
+            <Button
+              onClick={opencreate.onTrue}
+              // component={RouterLink}
+              // href={paths.dashboard.appointment.find}
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+            >
+              Create New Medecine
+            </Button> */}
+
         </Stack>
 
         {upMd && (
@@ -289,28 +398,25 @@ export default function StoreListView() {
                   percent={100}
                   icon="solar:bill-list-bold-duotone"
                   color={theme.palette.text.primary}
-                  label="orders"
                 />
 
                 <AppointmentAnalytic
-                  title="Active"
-                  total={summary?.active}
-                  percent={(summary?.active / totalRecords) * 100}
+                  title="Done"
+                  total={summary?.done}
+                  percent={(summary?.done / totalRecords) * 100}
                   icon="solar:clock-circle-bold-duotone"
-                  color={theme.palette.warning.main}
-                  label="orders"
-
+                  color={theme.palette.success.main}
                 />
+
                 <AppointmentAnalytic
-                  title="Inactive"
-                  total={summary?.inactive}
-                  percent={(summary?.inactive /totalRecords) * 100}
-                  icon="solar:close-circle-bold-duotone"
-                  color={theme.palette.primary.main}
-                  label="orders"
-
+                  title="Cancelled"
+                  total={summary?.cancelled}
+                  percent={(summary?.cancelled / totalRecords) * 100}
+                  icon="solar:play-circle-bold-duotone"
+                  color={theme.palette.error.main}
                 />
-              
+
+
               </Stack>
             </Scrollbar>
           </Card>
@@ -345,15 +451,31 @@ export default function StoreListView() {
               />
             ))}
           </Tabs>
-          
-          <StoreToolbar
+          <MerchantTableToolbar
+            filters={filters}
+            onFilters={handleFilters}
+          //
+          />
+          {/* 
+          <AppointmentTableToolbar
             filters={filters}
             onFilters={handleFilters}
             //
             hospitalOptions={clinicData}
           />
 
-          
+          {canReset && (
+            <AppointmentTableFiltersResult
+              filters={filters}
+              onFilters={handleFilters}
+              hospitalOptions={clinicData}
+              //
+              onResetFilters={handleResetFilters}
+              //
+              results={totalRecords}
+              sx={{ p: 2.5, pt: 0 }}
+            />
+          )} */}
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
@@ -414,21 +536,24 @@ export default function StoreListView() {
                     headLabel={TABLE_HEAD}
                   />
                 )} */}
- 
+
                 <TableBody>
-                  {queryResults?.loading
-                    ? [...Array(rowsPerPage)].map((_, i) => <StoreSkeletonRow key={i} />)
-                    : tableData?.map((row: NexusGenInputs['DoctorTypeInputInterface']) => (
-                      <StoreTableRow
+
+                  {getOrdersResult?.loading
+                    ? [...Array(5)].map((_, i) => <MerchantOrderSkeleton key={i} />)
+                    : tableData?.map((row: any) => (
+                      <HistoryTableRow
                         key={row.id}
                         row={row}
-                        // onSelectRow={() => table.onSelectRow(String(row.id))}
+                        selected={table.selected.includes(String(row.id))}
+                        onSelectRow={() => table.onSelectRow(String(row.id))}
                         onViewRow={() => handleViewRow(row)}
-                        onManageRow={() => handleManageRow(Number(row?.id))}
-                        onDeleteRow={()=>handleDeleteRow(row?.id)}
-                        onUpdateStatusRow={()=>handleUpdateStatus(row?.id)}
+                        onViewPatient={() => handleViewPatient(row)}
+                        onDeleteRow={() => handleDeleteRow(row?.id)}
+                        onEditRow={() => handleEditRow(row)}
                       />
                     ))}
+
 
                   <TableEmptyRows
                     height={denseHeight}
@@ -447,14 +572,19 @@ export default function StoreListView() {
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}
             onRowsPerPageChange={table.onChangeRowsPerPage}
-            //
+
             dense={table.dense}
             onChangeDense={table.onChangeDense}
           />
         </Card>
       </Container>
-      {/* 
-      {viewId && <AppointmentDetailsView
+
+      {/* <MerchantCreateView editRow={editRow} isEdit={editRow && true} onClose={()=>{
+        opencreate.onFalse();
+        setEditRow(null)
+      }} open={opencreate.value}/> */}
+
+      {/* {viewId && <AppointmentDetailsView
         updateRow={updateRow}
         refetch={refetch}
         refetchToday={() => {
@@ -462,27 +592,28 @@ export default function StoreListView() {
         }}
         open={openView.value}
         onClose={openView.onFalse}
-        id={viewId}MedecineCreateFullView
+        id={viewId}
       />} */}
-      <StoreCreateView open={confirmOrder?.value} onClose={confirmOrder.onFalse} />
-      {/* <MedecineCreateFullView open={confirmOrder?.value} onClose={confirmOrder.onFalse}/> */}
 
+
+      <OrderView dataView={viewId} open={openView.value} onClose={openView.onFalse} />
+
+      {/* {viewId && <HistoryView data={viewId} title="Order View" open={openView.value} onClose={openView.onFalse} />} */}
       <ConfirmDialog
         open={confirmApprove.value}
         onClose={confirmApprove.onFalse}
-        title="Delete"
+        title="Approve"
         content={
           <>
-            Are you sure want to delete this item?
+            Are you sure want to approve <strong> {table.selected.length} </strong> items?
           </>
         }
         action={
           <Button
             variant="contained"
-            color="error"
-            onClick={async() => {
-               handleSubmitDelete(deleteId)
-               confirmApprove.onFalse()
+            color="info"
+            onClick={() => {
+              confirmApprove.onFalse();
             }}
           >
             Submit
@@ -491,12 +622,12 @@ export default function StoreListView() {
       />
 
       <ConfirmDialog
-        open={confirmUpdate.value}
-        onClose={confirmUpdate.onFalse}
-        title="Inactive"
+        open={confirmCancel.value}
+        onClose={confirmCancel.onFalse}
+        title="Cancel"
         content={
           <>
-            Are you sure, you want to set this to inactive?
+            Are you sure want to cancel <strong> {table.selected.length} </strong> items?
           </>
         }
         action={
@@ -504,11 +635,8 @@ export default function StoreListView() {
             variant="contained"
             color="error"
             onClick={() => {
-              handleSubmitUpdateStore(updateId)
-
-              confirmUpdate.onFalse();
+              confirmCancel.onFalse();
             }}
-            
           >
             Submit
           </Button>

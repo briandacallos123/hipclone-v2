@@ -5,6 +5,8 @@ import { unserialize, serialize } from 'php-serialize';
 import { medicineType } from './Medicine';
 import { equal } from 'assert';
 import { orderType } from './Orders';
+import { DoctorAppointments } from './DoctorAppointments';
+import { ChatConversations } from './Chat';
 
 export const ChatPreview = objectType({
     name:'ChatPreview',
@@ -324,32 +326,7 @@ export const NotifacationQueryMerchantObj = objectType({
         t.list.field('notifData',{
             type:notifData
         })
-        // t.list.field('unreadOrders',{
-        //     type:NotifcationObjects
-        // });
-        // t.list.field('all',{
-        //     type:NotifcationObjects
-        // });
-        // t.list.field('shortSupply',{
-        //     type:medicineType,
-        //     async resolve(root){
-
-
-        //         const result =  root?.shortSupply?.map(async(item)=>{
-
-        //             const target = await client.merchant_medicine.findFirst({
-        //                 where:{
-        //                     id:Number(item?.medecine_id)
-        //                 }
-        //             });
-        //            return target;
-        //         });
-             
-        //         const fResult = await Promise.all(result);
-        //         console.log(fResult,'FRESULT______________')
-        //         return fResult
-        //     }
-        // })
+      
     }
 })
 
@@ -475,54 +452,6 @@ export const NotificationQueryMerchant = extendType({
             })
             storeByMerchant = storeByMerchant?.map((item)=>Number(item.id))
             const nTypeId = [9, 10]
-
-
-            // const [ all, unreadOrders, shortSupplyUnread, groupedData]:any = await client.$transaction([
-               
-               
-            //     client.notification.findMany({
-            //         where:{
-            //             notification_type_id:{
-            //                 in:nTypeId
-            //             },
-            //             notifiable_user_role:4,
-            //             notifiable_id:Number(session?.user?.id),
-            //             is_deleted:0,
-            //         }
-            //     }),
-            //     client.notification.findMany({
-            //         where:{
-            //             notification_type_id:9,
-            //             notifiable_user_role:4,
-            //             notifiable_id:Number(session?.user?.id),
-            //             is_deleted:0,
-            //             is_read:0,
-            //         }
-            //     }),
-            //     client.notification.findMany({
-            //         where:{
-            //             notification_type_id:10,
-            //             notifiable_id:Number(session?.user?.id),
-            //             is_deleted:0,
-            //             notifiable_user_role:4,
-            //             is_read:0
-            //         }
-            //     }),
-            //     client.notification.groupBy({
-            //         by:['notification_type_id','is_read','user_id'],
-            //         where:{
-            //             notification_type_id:{
-            //                 in:nTypeId
-            //             },
-            //             notifiable_user_role:4,
-            //             notifiable_id:Number(session?.user?.id),
-            //             is_deleted:0,
-            //         },
-            //         _count:{
-            //             id:true,
-            //         }
-            //     }),
-            // ])
 
             const groupedData = await client.notification.groupBy({
                 by:['notification_type_id','is_read','user_id'],
@@ -733,6 +662,7 @@ export const NotificationUpdate = extendType({
     }
 })
 
+
 export const NotificationUpdateMerchantInp = inputObjectType({
     name:"NotificationUpdateMerchantInp",
     definition(t) {
@@ -798,3 +728,239 @@ export const NotificationUpdateMerchant = extendType({
     })
 }
 })
+
+
+const NotifacationQueryFinalObj = objectType({
+    name:"NotifacationQueryFinal",
+    definition(t) {
+       
+        t.list.field('notifDataFinal',{
+            type:notifDataFinal
+        })
+    },
+})
+
+const notifDataFinal = objectType({
+    name:"notifDataFinal",
+    definition(t) {
+        t.list.field('notifIds',{
+            type:'Int',
+            resolve(_root){
+                const ids = _root?.notifData?.map((item)=>parseInt(item?.id))
+                return ids;
+            }
+        })
+        t.nullable.field('length',{
+            type:'Int',
+           async resolve(root){
+                return root?._count?.id
+            }
+        });
+        t.nullable.field('notification_type',{
+            type:'String',
+            async resolve(_root){
+                let type:any;
+                const notif = await client.notification_type.findFirst({
+                    where:{
+                        id:Number(_root?.notification_type_id)
+                    }
+                })
+
+
+                return notif?.title;
+              
+            }
+        });
+        t.nullable.boolean('is_read');
+        t.nullable.list.field('appointments',{
+            type:DoctorAppointments,
+            resolve(root){
+                const apptType = [1,3,4,5,6,7,8];
+                if(!apptType.includes(root?.notification_type_id)) return null;
+                
+                const data = root.notifData.map((item)=>item?.appointments);
+     
+                return data
+            }
+        });
+        t.nullable.list.field('chat',{
+            type:ChatConversations,
+            resolve(_root){
+                const chat = [6, 7];
+                if(!chat?.includes(_root?.notification_type_id)) return null;
+                const data = _root.notifData.map((item)=>item?.conversations);
+     
+                return data
+            }
+        });
+        t.nullable.field('post_feed',{
+            type:'Int',
+            resolve(root){
+                const apptType = [2];
+
+                if(!apptType.includes(root?.notification_type_id)) return null;
+                
+                
+                return 1
+            }
+        })
+        t.nullable.field('user',{
+            type:'String',
+            async resolve(root){
+                let myUser:any;
+
+                const targetUser = await client.user.findFirst({
+                    where:{
+                        id:Number(root?.user_id)
+                    }
+                });
+
+                
+                if(Number(targetUser?.userType) === 0){
+                    let patient = await client.patient.findFirst({
+                        where:{
+                            EMAIL:targetUser?.email
+                        },
+                        
+                    });
+                    myUser = patient?.LNAME ? `${patient?.FNAME} ${patient?.MNAME} ${patient?.LNAME}`:`${patient?.FNAME} ${patient?.LNAME}`
+                }else if(Number(targetUser?.userType) === 2){
+                    let doctor = await client.employees.findFirst({
+                        where:{
+                            EMP_EMAIL:targetUser?.email
+                        }
+                    })
+
+                    myUser = doctor?.EMP_MNAME ? `${doctor?.EMP_FNAME} ${doctor?.EMP_MNAME} ${doctor?.EMP_LNAME}` : `${doctor?.EMP_FNAME} ${doctor?.EMP_LNAME}`;
+                }
+
+                return myUser
+            }
+        })
+    },
+})
+
+export const NotifacationQueryFinal = extendType({
+    type: 'Query',
+    definition(t) {
+      t.nullable.field('NotifacationQueryFinal', {
+        type: NotifacationQueryFinalObj,
+        args: { data: NotificationPayloads! },
+        async resolve(_, args, _ctx) {
+            const { session } = _ctx;
+            const {user} = session;
+            // notification type, this is fixed in backend, notification_type table.
+           try {
+            const nTypeId = [1,2,3,4,5,6,7,8]
+            
+            const userRole = (()=>{
+                let role;
+
+                if(user?.role === 'patient'){
+                    role = 5
+                }else if(user?.role === 'doctor'){
+                    role = 2
+                }
+                return {
+                    notifiable_user_role:role
+                }
+            })()
+
+            const groupedData = await client.notification.groupBy({
+                by:['notification_type_id','is_read','user_id'],
+                where:{
+                    notification_type_id:{
+                        in:nTypeId
+                    },
+                    ...userRole,
+                    notifiable_id:Number(session?.user?.id),
+                    is_deleted:0,
+                },
+                _count:{
+                    id:true,
+                }
+            })
+
+            const fData = groupedData?.map(async(item)=>{
+                const notifData = await client.notification.findMany({
+                    where:{
+                        notification_type_id:item?.notification_type_id,
+                        is_read:item?.is_read,
+                        user_id:item?.user_id
+                    },
+                    include:{
+                        appointments:true,
+                        conversations:true
+                    },
+                    
+                })
+                
+                return {
+                    ...item,
+                    notifData:[...notifData]
+                }
+            })
+
+            const finalData = await Promise.all(fData)
+           
+            console.log(finalData,'FINALLLLLLLLLLL')
+            
+            return {
+                notifDataFinal:finalData
+            }
+           } catch (error) {
+            console.log(error);
+
+            throw new GraphQLError(error)
+           }
+            
+        }
+    })
+}
+})
+
+
+const NotificationUpdateFinalInp = inputObjectType({
+    name:"NotificationUpdateFinalInp",
+    definition(t) {
+        t.list.int('notifIds')
+    },
+})
+
+const NotificationUpdateFinalObj = objectType({
+    name:"NotificationUpdateFinalObj",
+    definition(t) {
+        t.string('message')
+    },
+})
+
+export const NotificationRead = extendType({
+    type: 'Mutation',
+    definition(t) {
+      t.nullable.field('NotificationUpdateFinal', {
+        type: NotificationUpdateFinalObj,
+        args: { data: NotificationUpdateFinalInp! },
+        async resolve(_, args, _ctx) {
+
+            try {
+                await client.notification.updateMany({
+                    where:{
+                        id:{
+                            in:args?.data?.notifIds
+                        }
+                    },
+                    data:{
+                        is_read:1
+                    }
+                })
+                return {
+                    message:"Updated successfully"
+                }
+            } catch (error) {
+                console.log(error);
+                throw new GraphQLError(error)
+            }
+        }
+    })
+}
+});
