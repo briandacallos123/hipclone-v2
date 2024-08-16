@@ -74,7 +74,8 @@ type Props = {
   tableData1: any;
   totalData: any;
   Ids: any;
-  notesRecordResult:any
+  notesRecordResult:any;
+  clinicData:any;
 };
 export default function NoteListView({
   refIds,
@@ -88,7 +89,8 @@ export default function NoteListView({
   tableData1,
   totalData,
   Ids,
-  notesRecordResult
+  notesRecordResult,
+  clinicData
 }: Props) {
   const upMd = useResponsive('up', 'md');
   const table = useTable({ defaultOrder: 'desc', defaultOrderBy: 'date' });
@@ -121,6 +123,7 @@ export default function NoteListView({
     filters?.hospital,
     filters.name,
     filters?.startDate,
+    filters,
     id,
     isEMR,
     order,
@@ -150,7 +153,7 @@ export default function NoteListView({
   });
 
   useEffect(() => {
-   if(!refIds) return;
+  //  if(!refIds) return;
     const data = getItem('defaultFilters');
     if (data?.clinic) {
       filters.hospital = [Number(data?.clinic?.id)]
@@ -163,7 +166,7 @@ export default function NoteListView({
 
   const canReset =
     !!filters.name ||
-    !!filters.hospital.length ||
+    !!filters.hospital ||
     (!!filters.startDate && !!filters.endDate) ||
     !!filters.startDate ||
     !!filters.endDate;
@@ -184,9 +187,10 @@ export default function NoteListView({
     [table]
   );
 
-  const handleResetFilters = useCallback(() => {
+  const handleResetFilters = () => {
+    console.log('test')
     setFilters(defaultFilters);
-  }, []);
+  };
 
 
   const [getDataUser, { data: userData, loading: patLoad }]: any = useLazyQuery(
@@ -201,13 +205,13 @@ export default function NoteListView({
   const notFoundPatient = !notesRecordResult?.loading && !tableData1?.length;
  
 
-  const [clinicData, setclinicData] = useState<any>([]);
+  // const [clinicData, setclinicData] = useState<any>([]);
 
   useEffect(() => {
-    if (user?.role === 'doctor' && drClinicData) {
-      const { doctorClinics } = drClinicData;
-      setclinicData(doctorClinics);
-    }
+    // if (user?.role === 'doctor' && drClinicData) {
+    //   const { doctorClinics } = drClinicData;
+    //   setclinicData(doctorClinics);
+    // }
   }, [drClinicData, user?.role]);
 
   useEffect(() => {
@@ -232,11 +236,11 @@ export default function NoteListView({
     },
   });
   useEffect(() => {
-    if (user?.role === 'patient' && userClinicData) {
-      const { AllClinicUser } = userClinicData;
-      setclinicData(AllClinicUser);
-      setIsClinic(isClinic + 1);
-    }
+    // if (user?.role === 'patient' && userClinicData) {
+    //   const { AllClinicUser } = userClinicData;
+    //   setclinicData(AllClinicUser);
+    //   setIsClinic(isClinic + 1);
+    // }
   }, [user?.role, userClinicData]);
 
   // console.log(clinicData,'HAHAAAAAAAAAAAAAAAAAAAAA_____________________________AWITTTTTTTTTTTTTT');

@@ -71,6 +71,10 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = gql`
         totalRecords
         pending
       }
+      clinic{
+        id
+        clinic_name
+      }
 
       patientAppointment {
         date

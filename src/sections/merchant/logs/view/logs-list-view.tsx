@@ -51,7 +51,7 @@ import {
   TableSelectedAction,
   TablePaginationCustom,
 } from 'src/components/table';
-import { QueryAllOrdersForMerchantHistory } from '@/libs/gqls/Orders';
+import { QueryAllMerchantLogs, QueryAllOrdersForMerchantHistory } from '@/libs/gqls/Orders';
 
 //
 import { useLazyQuery, useQuery } from '@apollo/client';
@@ -96,14 +96,12 @@ import OrderView from '../../orders/view/merchant-view';
 // ];
 
 const TABLE_HEAD = [
-  { id: 'id', label: 'Order ID', },
-  { id: 'Medicine Name', align: 'center', label: 'Generic Name' },
-  { id: 'Patient', label: 'Patient', align: 'center' },
-  { id: 'Status', label: 'Payment Status', align: 'center' },
-  { id: 'Type', label: 'Delivery Type', align: 'center' },
-  { id: 'Status_Id', label: 'Status', align: 'center' },
-
-  { id: 'Action', label: "action" },
+  { id: 'id', label: 'ID', },
+  { id: 'table', label: 'Table', align: 'center' },
+  { id: 'tableId', label: 'Table ID', align: 'center' },
+  { id: 'action', label: 'Action Content', align: 'left' },
+  { id: 'date', label: 'Date', align: 'center' },
+  // { id: '', label: "Action", align:'center'},
 ];
 
 
@@ -120,7 +118,7 @@ const defaultFilters = {
 // ----------------------------------------------------------------------
 
 
-export default function LogsListView() {
+export default function HistoryListView() {
   const upMd = useResponsive('up', 'md');
   const { setTriggerRef, triggerRef }: any = useSearch();
   const theme = useTheme();
@@ -137,7 +135,7 @@ export default function LogsListView() {
   const confirmDone = useBoolean();
 
   const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
-
+  const { page, rowsPerPage, order, orderBy } = table;
 
   const openView = useBoolean();
 
@@ -152,7 +150,13 @@ export default function LogsListView() {
   const [done, setDone] = useState(0);
   const [cancelled, setCancelled] = useState(0);
 
-  const [summary, setSummary] = useState(null)
+  const [summary, setSummary] = useState({
+    totalRecords:0,
+    orderTotal:0,
+    medicineTotal:0,
+    storeTotal:0,
+
+  })
 
 
   const router = useRouter();
@@ -164,38 +168,40 @@ export default function LogsListView() {
 
   const dateError = isDateError(filters.startDate, filters.endDate);
 
-  const [getAllOrders, getOrdersResult] = useLazyQuery(QueryAllOrdersForMerchantHistory, {
+  const [getAllMerchantLogs, getMerchantLogsResult] = useLazyQuery(QueryAllMerchantLogs, {
     context: {
-      requestTrackerId: 'orders[QueryAllOrderUser]',
+      requestTrackerId: 'logs[QueryAllMerchantLogs]',
     },
     notifyOnNetworkStatusChange: true,
   });
 
 
   useEffect(() => {
-    getAllOrders({
+    getAllMerchantLogs({
       variables: {
         data: {
           skip: table.page * table.rowsPerPage,
           take: table.rowsPerPage,
-          is_deliver: null,
           status: filters.status,
-          search: filters.search
+          search: filters.search,
+          orderBy,
+          orderDir:order
         },
       },
     }).then(async (result: any) => {
       const { data } = result;
       if (data) {
-        const { QueryAllOrdersForMerchantHistory } = data;
-        //  const { allAppointments } = data;
-        //  setTableData(allAppointments?.appointments_data);
-        setTableData(QueryAllOrdersForMerchantHistory?.orderType);
-        setTotalRecords(QueryAllOrdersForMerchantHistory?.totalRecords);
-        setSummary(QueryAllOrdersForMerchantHistory.summary)
-        //  setPending(allAppointments?.summary?.pending);
-        //  setApproved(allAppointments?.summary?.approved);
-        //  setDone(allAppointments?.summary?.done);
-        //  setCancelled(allAppointments?.summary?.cancelled);
+        const { QueryAllMerchantLogs } = data;
+
+        if(QueryAllMerchantLogs){
+          setTableData(QueryAllMerchantLogs?.merchantLogs);
+          setSummary({
+            totalRecords:QueryAllMerchantLogs?.summary?.totalRecords,
+            orderTotal:QueryAllMerchantLogs?.summary?.orderTotal,
+            medicineTotal:QueryAllMerchantLogs?.summary?.medicineTotal,
+            storeTotal:QueryAllMerchantLogs?.summary?.storeTotal,
+          });
+        }
       }
     });
   }, [
@@ -205,8 +211,9 @@ export default function LogsListView() {
     table.order,
     table.orderBy,
     filters.status,
-    filters.search
-
+    filters.search,
+    orderBy,
+    order
   ]);
 
   const [clinicPayload, setClinicPayload] = useState<any>([]);
@@ -241,7 +248,7 @@ export default function LogsListView() {
     !!filters.startDate ||
     !!filters.endDate;
 
-  const notFound = !getOrdersResult?.loading && !tableData?.length;
+  const notFound = !getMerchantLogsResult?.loading && !tableData?.length;
 
   const getAppointmentLength = (status: string | number) =>
     tableData?.filter((item: any) => item?.status === status).length;
@@ -250,26 +257,26 @@ export default function LogsListView() {
     (getAppointmentLength(status) / tableData.length) * 100;
 
   const TABS = [
-    { value: -1, label: 'All', color: 'default', count: totalRecords },
+    { value: -1, label: 'All', color: 'default', count: summary?.totalRecords },
     {
-      value: 4,
-      label: 'Done',
+      value: 1,
+      label: 'Order',
       color: 'success',
-      count: summary?.done,
+      count: summary?.orderTotal,
+    },
+    {
+      value: 2,
+      label: 'Medecine',
+      color: 'info',
+      count: summary?.medicineTotal,
     },
     {
       value: 3,
-      label: 'Cancelled',
-      color: 'error',
-      count: summary?.cancelled,
+      label: 'Store',
+      color: 'warning',
+      count: summary?.storeTotal,
     },
-    // { value: 3, label: 'Done', color: 'success', count: getAppointmentLength(3) },
-    // {
-    //   value: 2,
-    //   label: 'Cancelled',
-    //   color: 'error',
-    //   count: getAppointmentLength(2),
-    // },
+  
   ] as const;
 
   const [editRow, setEditRow] = useState(null)
@@ -296,7 +303,7 @@ export default function LogsListView() {
   const handleViewRow = useCallback(
     (data: any) => {
       setViewId(data);
-      openView.onTrue();
+      // openView.onTrue();
     },
     [openView]
   );
@@ -353,6 +360,7 @@ export default function LogsListView() {
 
 
 
+  console.log(tableData,'TABLE DATAAAAAAAAAAAAAAAAAAAAAA')
 
   return (
     <>
@@ -365,18 +373,7 @@ export default function LogsListView() {
             mb: { xs: 3, md: 5 },
           }}
         >
-          <Typography variant="h5">History</Typography>
-
-          {/*           
-            <Button
-              onClick={opencreate.onTrue}
-              // component={RouterLink}
-              // href={paths.dashboard.appointment.find}
-              variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
-            >
-              Create New Medecine
-            </Button> */}
+          <Typography variant="h5">Action Logs</Typography>
 
         </Stack>
 
@@ -394,26 +391,40 @@ export default function LogsListView() {
               >
                 <AppointmentAnalytic
                   title="Total"
-                  total={totalRecords}
+                  total={summary?.totalRecords}
                   percent={100}
                   icon="solar:bill-list-bold-duotone"
                   color={theme.palette.text.primary}
+                  label="Logs"
                 />
 
                 <AppointmentAnalytic
-                  title="Done"
-                  total={summary?.done}
-                  percent={(summary?.done / totalRecords) * 100}
+                  title="Order"
+                  total={summary?.orderTotal}
+                  percent={(summary?.orderTotal / summary?.totalRecords) * 100}
                   icon="solar:clock-circle-bold-duotone"
                   color={theme.palette.success.main}
+                  label="Order Logs"
+
                 />
 
                 <AppointmentAnalytic
-                  title="Cancelled"
-                  total={summary?.cancelled}
-                  percent={(summary?.cancelled / totalRecords) * 100}
+                  title="Medecine"
+                  total={summary?.medicineTotal}
+                  percent={(summary?.medicineTotal / summary?.totalRecords) * 100}
                   icon="solar:play-circle-bold-duotone"
-                  color={theme.palette.error.main}
+                  color={theme.palette.info.main}
+                  label="Medecine Logs"
+
+                />
+                 <AppointmentAnalytic
+                  title="Store"
+                  total={summary?.storeTotal}
+                  percent={(summary?.storeTotal / summary?.totalRecords) * 100}
+                  icon="solar:play-circle-bold-duotone"
+                  color={theme.palette.warning.main}
+                  label="Store Logs"
+
                 />
 
 
@@ -456,26 +467,7 @@ export default function LogsListView() {
             onFilters={handleFilters}
           //
           />
-          {/* 
-          <AppointmentTableToolbar
-            filters={filters}
-            onFilters={handleFilters}
-            //
-            hospitalOptions={clinicData}
-          />
-
-          {canReset && (
-            <AppointmentTableFiltersResult
-              filters={filters}
-              onFilters={handleFilters}
-              hospitalOptions={clinicData}
-              //
-              onResetFilters={handleResetFilters}
-              //
-              results={totalRecords}
-              sx={{ p: 2.5, pt: 0 }}
-            />
-          )} */}
+         
 
           <TableContainer sx={{ position: 'relative', overflow: 'unset' }}>
             <TableSelectedAction
@@ -539,7 +531,7 @@ export default function LogsListView() {
 
                 <TableBody>
 
-                  {getOrdersResult?.loading
+                  {getMerchantLogsResult?.loading
                     ? [...Array(5)].map((_, i) => <MerchantOrderSkeleton key={i} />)
                     : tableData?.map((row: any) => (
                       <HistoryTableRow
@@ -557,7 +549,7 @@ export default function LogsListView() {
 
                   <TableEmptyRows
                     height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, totalRecords)}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, summary?.totalRecords)}
                   />
 
                   <TableNoData notFound={notFound} />
@@ -567,7 +559,7 @@ export default function LogsListView() {
           </TableContainer>
 
           <TablePaginationCustom
-            count={totalRecords}
+            count={summary?.totalRecords}
             page={table.page}
             rowsPerPage={table.rowsPerPage}
             onPageChange={table.onChangePage}

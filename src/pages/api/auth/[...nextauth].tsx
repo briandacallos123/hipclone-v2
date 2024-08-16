@@ -253,6 +253,7 @@ export const authOptions: AuthOptions = {
               session.user.occupation = userInfo?.OCCUPATION;
               session.user.displayName = `${userInfo?.FNAME} ${userInfo?.LNAME}`;
               session.user.lastName = userInfo?.LNAME;
+              session.user.birthDate = userInfo?.BDAY;
               session.user.firstName = userInfo?.FNAME;
               session.user.middleName = userInfo?.MNAME;
               session.user.contact = userInfo?.CONTACT_NO;

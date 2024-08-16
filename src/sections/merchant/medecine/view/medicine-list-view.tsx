@@ -88,7 +88,7 @@ const TABLE_HEAD = [
   { id: 'price', label: 'Price', align: 'center' },
 
   // { id: 'status', label: 'Status', align: 'center' },
-  { id: 'action', label: 'Action', align: 'center' },
+  { id: '', label: 'Action', align: 'center' },
   // { id: '' },
 ];
 
@@ -100,6 +100,8 @@ const defaultFilters = {
   hospital: [],
   startDate: null,
   endDate: null,
+  orderBy:null,
+  orderDir:null
 };
 
 // ----------------------------------------------------------------------
@@ -142,7 +144,8 @@ export default function MerchantMedicineView() {
           take: rowsPerPage,
           search: filters.name,
           supply:filters.status,
-          
+          orderBy:orderBy ,
+          orderDir:order
         }
       }
     }).then((res: any) => {
@@ -156,7 +159,7 @@ export default function MerchantMedicineView() {
         })
       }
     })
-  }, [table.page, table.rowsPerPage, filters.sort, filters.name, filters.status, getMedecinesResult.data ])
+  }, [table.page, orderBy, order, table.rowsPerPage, filters.sort, filters.name, filters.status, getMedecinesResult.data ])
 
 
 
@@ -493,7 +496,7 @@ export default function MerchantMedicineView() {
                     order={table.order}
                     orderBy={table.orderBy}
                     headLabel={TABLE_HEAD}
-                    // rowCount={tableData?.length}
+                    rowCount={tableData?.length}
                     // numSelected={table.selected.length}
                     onSort={table.onSort}
                   // onSelectAllRows={(checked) =>

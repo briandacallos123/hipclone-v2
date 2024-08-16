@@ -229,7 +229,7 @@ export default function PrescriptionDetails({link, /*currentItem*/ currentItem, 
               <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
                 {currentItem?.DATE && fDateTime(date)}
               </Typography>
-              <Stack>
+              {user?.role === 'patient' && <Stack>
                  <Stack direction="row" alignItems="center">
                   <img src={qr} width="50%" height="50%"/>
                   <Tooltip sx={{mt:1}} title="Download">
@@ -242,7 +242,7 @@ export default function PrescriptionDetails({link, /*currentItem*/ currentItem, 
                   <Typography variant="body2">Code: {currentItem?.presCode}</Typography>
                   <Typography variant="body2">Unable to scan? <Typography onClick={navigateLink}  variant="body2" sx={{textDecoration:'underline', color:'primary.main', cursor:'pointer'}}>click here to preview</Typography></Typography>
                 </Box>
-              </Stack>
+              </Stack>}
               {/* {generateQR(``)}https://hip.apgitsolutions.com/dashboard/patient/qrcode/${currentItem?.ID} */}
             </div>
             {/* <div>

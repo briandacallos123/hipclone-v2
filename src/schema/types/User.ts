@@ -158,6 +158,21 @@ export const mutationRegisterUser = extendType({
           },
           create: data
         }).then(async(rr: any) => {
+          let lastPatient = await client.patient.findFirst({
+            where:{
+              IDNO:{
+                not:null
+              }
+            },
+            orderBy:{
+              S_ID:'desc'
+            },
+            select:{
+              IDNO:true
+            }
+          })
+
+
           return await client.patient.create({
             data:{
               EMAIL:args.data!.email,
@@ -168,7 +183,8 @@ export const mutationRegisterUser = extendType({
               HOME_ADD:args?.data!.address,
               CLINIC:1,
               LONGITUDE:args.data!.longitude,
-              LATITUDE:args.data!.latitude
+              LATITUDE:args.data!.latitude,
+              IDNO:Number(lastPatient?.IDNO + 1)
             }
           }).then(()=>{
             return rr;

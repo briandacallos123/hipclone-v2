@@ -18,6 +18,7 @@ type Props = StackProps & {
   //
   onResetFilters: VoidFunction;
   //
+  hospitalOptions:any;
   results: number;
 };
 
@@ -27,6 +28,7 @@ export default function PrescriptionTableFiltersResult({
   //
   onResetFilters,
   //
+  hospitalOptions,
   results,
   ...other
 }: Props) {
@@ -54,14 +56,18 @@ export default function PrescriptionTableFiltersResult({
       <Stack flexGrow={1} spacing={1} direction="row" flexWrap="wrap" alignItems="center">
         {!!filters.hospital.length && (
           <Block label="Hospital:">
-            {filters.hospital.map((item) => (
+             {filters.hospital.map((item : any) => {
+            const info : any = hospitalOptions.find((v:any)=> v?.id === item)
+            return (
               <Chip
-                key={item}
-                label={item}
+                key={info?.id}
+                label={info?.clinic_name}
                 size="small"
-                onDelete={() => handleRemoveHospital(item)}
+                onDelete={() => handleRemoveHospital(info?.id)}
               />
-            ))}
+            )
+             
+          })}
           </Block>
         )}
 

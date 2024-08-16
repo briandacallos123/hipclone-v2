@@ -22,7 +22,7 @@ import TableContainer from '@mui/material/TableContainer';
 import Drawer from '@mui/material/Drawer';
 import IconButton from '@mui/material/IconButton';
 // utils
-import { fDate } from 'src/utils/format-time';
+import { fDate, fDateTime } from 'src/utils/format-time';
 // hooks
 import { useResponsive } from 'src/hooks/use-responsive';
 // components
@@ -169,7 +169,7 @@ export default function VitalFullscreen({ title, open, onClose, chart, list }: P
                 )
                 .map((row) => (
                   <TableRow hover>
-                    <TableCell>{fDate(row.date)}</TableCell>
+                    <TableCell>{fDateTime(row.date)}</TableCell>
 
                     <TableCell sx={{ typography: 'subtitle2' }}>{row.value}</TableCell>
                   </TableRow>

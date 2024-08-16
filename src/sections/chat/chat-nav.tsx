@@ -66,6 +66,9 @@ export default function ChatNav({
 
   const [searchResults, setSearchResults] = useState<IChatParticipant[]>([]);
 
+
+
+
   useEffect(() => {
     if (!mdUp) {
       onCloseDesktop();
@@ -98,7 +101,7 @@ export default function ChatNav({
 
       if (value) {
         const results = contacts.filter((contact) => contact.name.toLowerCase().includes(value));
-
+       
         setSearchResults(results);
       } else {
         setSearchResults([]);
@@ -152,7 +155,7 @@ export default function ChatNav({
       <Iconify width={16} icon="solar:users-group-rounded-bold" />
     </IconButton>
   );
-      console.log('conversations',conversations)
+     
   const renderList = (
     <>
       {(loading ? [...Array(12)] : conversations.allIds).map((conversationId, index) =>

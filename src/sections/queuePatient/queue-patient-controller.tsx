@@ -5,7 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { QueryQueuePatient, QueueGetClinicOfPatient } from 'src/libs/gqls/queue';
 import { notFound, useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
-import { useParams } from 'src/routes/hook';
+import { useParams } from 'src/routes/hook';  
 
 const QueueController = () => {
   const [data, setData] = useState([]);
@@ -21,7 +21,8 @@ const QueueController = () => {
   const [targetItem, setTargetItem] = useState(null)
   const [notApprovedVal, setNotApprovedVal] = useState(null)
   const [notAppNotToday, setNotApprNotToday] = useState(null)
-  const [apptPaid, setApptPaid] = useState(null)
+  const [apptPaid, setApptPaid] = useState(null);
+  const [inValidVoucher, setInvalidVoucher] = useState(false);
   const navigate = useRouter();
 
   const { data: queryData, error, refetch }: any = useQuery(QueryQueuePatient, {
@@ -32,6 +33,14 @@ const QueueController = () => {
     }
   });
 
+  const [queryQueue, queryQueueResult] = useLazyQuery(QueryQueuePatient, {
+    context: {
+      requestTrackerId: 'queryQueueFinal[QueryQueueFinalRes]',
+    },
+    notifyOnNetworkStatusChange: true,
+    fetchPolicy: 'no-cache',
+  });
+
   const { data: otherClinic, loading:clinicLoading}: any = useQuery(QueueGetClinicOfPatient, {
     variables: {
       data: {
@@ -40,6 +49,93 @@ const QueueController = () => {
       }
     }
   });
+
+  useEffect(()=>{
+    queryQueue({
+      variables:{
+        data:{
+          voucherCode: id
+        }
+      }
+    }).then((result)=>{
+      const { data : queryData } = result;
+      if (queryData?.QueuePatient) {
+       
+        if(queryData?.QueuePatient){
+          const target = queryData?.QueuePatient?.appointments_data?.find((item:any)=>item?.voucherId=== id)
+          setTargetItem(target)
+        }
+  
+        if (queryData?.QueuePatient && queryData?.QueuePatient?.position !== -1) {
+  
+          const qData = queryData?.QueuePatient?.appointments_data;
+          const pos = queryData?.QueuePatient?.position
+          let pos2: any;
+          let newQData: any = [];
+          let remainingP: any;
+  
+          if (pos !== 0 && pos !== 1) {
+            pos2 = pos - 2;
+  
+            newQData.push(qData[0]);
+            newQData.push(qData[pos]);
+            remainingP = qData?.length - 2;
+          }
+          if(inValidVoucher){
+            setInvalidVoucher(false)
+          }
+  
+          if(queryData?.QueuePatient?.notAppNotToday){
+            setNotApprNotToday(queryData?.QueuePatient?.notAppNotToday)
+          }
+          if(queryData?.QueuePatient?.is_paid){
+            setApptPaid(queryData?.QueuePatient?.is_paid)
+          }
+  
+          if(queryData?.QueuePatient?.notApproved){
+            setNotApprovedVal(queryData?.QueuePatient?.notApproved)
+          }
+  
+          if(queryData?.QueuePatient?.is_not_today){
+  
+            console.log(queryData?.QueuePatient?.is_not_today,'HAYSSS')
+            setNotToday(queryData?.QueuePatient?.appointments_data[0])
+           
+          }
+          if(queryData?.QueuePatient?.is_done){
+            setIsDoneAppt(true)
+          }
+  
+        
+          if ((pos === 0 || pos === 1) && qData?.length > 2) {
+  
+            newQData = [...qData.slice(0, 2)]
+            remainingP = qData?.length - 2;
+  
+          }
+  
+          // alert(qData?.length)
+          if (qData?.length <= 2) {
+            newQData = qData;
+  
+          }
+  
+          console.log(pos2, 'POSITION')
+          setData(newQData)
+          setPosition(pos)
+          setRemainingP(remainingP)
+          setNewPosition(pos2 + 1)
+        } else {
+          navigate.push(paths.page500)
+          localStorage.setItem('invalidVoucher', "true")
+          // notFound()
+        }
+        setLoading(false)
+      }else{
+        setInvalidVoucher(true)
+      }
+    })
+  },[])
 
   useEffect(()=>{
     if(queryData){
@@ -63,79 +159,79 @@ const QueueController = () => {
 
   
 
-  useEffect(() => {
-    if (queryData) {
-      const { data } = queryData;
+  // useEffect(() => {
+  //   if (queryData) {
+  //     const { data } = queryData;
 
-      if(queryData?.QueuePatient){
-        const target = queryData?.QueuePatient?.appointments_data?.find((item:any)=>item?.voucherId=== id)
-        setTargetItem(target)
-      }
+  //     if(queryData?.QueuePatient){
+  //       const target = queryData?.QueuePatient?.appointments_data?.find((item:any)=>item?.voucherId=== id)
+  //       setTargetItem(target)
+  //     }
 
-      if (queryData?.QueuePatient && queryData?.QueuePatient?.position !== -1) {
+  //     if (queryData?.QueuePatient && queryData?.QueuePatient?.position !== -1) {
 
-        const qData = queryData?.QueuePatient?.appointments_data;
-        const pos = queryData?.QueuePatient?.position
-        let pos2: any;
-        let newQData: any = [];
-        let remainingP: any;
+  //       const qData = queryData?.QueuePatient?.appointments_data;
+  //       const pos = queryData?.QueuePatient?.position
+  //       let pos2: any;
+  //       let newQData: any = [];
+  //       let remainingP: any;
 
-        if (pos !== 0 && pos !== 1) {
-          pos2 = pos - 2;
+  //       if (pos !== 0 && pos !== 1) {
+  //         pos2 = pos - 2;
 
-          newQData.push(qData[0]);
-          newQData.push(qData[pos]);
-          remainingP = qData?.length - 2;
-        }
+  //         newQData.push(qData[0]);
+  //         newQData.push(qData[pos]);
+  //         remainingP = qData?.length - 2;
+  //       }
 
-        if(queryData?.QueuePatient?.notAppNotToday){
-          setNotApprNotToday(queryData?.QueuePatient?.notAppNotToday)
-        }
-        if(queryData?.QueuePatient?.is_paid){
-          setApptPaid(queryData?.QueuePatient?.is_paid)
-        }
+  //       if(queryData?.QueuePatient?.notAppNotToday){
+  //         setNotApprNotToday(queryData?.QueuePatient?.notAppNotToday)
+  //       }
+  //       if(queryData?.QueuePatient?.is_paid){
+  //         setApptPaid(queryData?.QueuePatient?.is_paid)
+  //       }
 
-        if(queryData?.QueuePatient?.notApproved){
-          setNotApprovedVal(queryData?.QueuePatient?.notApproved)
-        }
+  //       if(queryData?.QueuePatient?.notApproved){
+  //         setNotApprovedVal(queryData?.QueuePatient?.notApproved)
+  //       }
 
-        if(queryData?.QueuePatient?.is_not_today){
+  //       if(queryData?.QueuePatient?.is_not_today){
 
-          console.log(queryData?.QueuePatient?.is_not_today,'HAYSSS')
-          setNotToday(queryData?.QueuePatient?.appointments_data[0])
+  //         console.log(queryData?.QueuePatient?.is_not_today,'HAYSSS')
+  //         setNotToday(queryData?.QueuePatient?.appointments_data[0])
          
-        }
-        if(queryData?.QueuePatient?.is_done){
-          setIsDoneAppt(true)
-        }
+  //       }
+  //       if(queryData?.QueuePatient?.is_done){
+  //         setIsDoneAppt(true)
+  //       }
 
       
-        if ((pos === 0 || pos === 1) && qData?.length > 2) {
+  //       if ((pos === 0 || pos === 1) && qData?.length > 2) {
 
-          newQData = [...qData.slice(0, 2)]
-          remainingP = qData?.length - 2;
+  //         newQData = [...qData.slice(0, 2)]
+  //         remainingP = qData?.length - 2;
 
-        }
+  //       }
 
-        // alert(qData?.length)
-        if (qData?.length <= 2) {
-          newQData = qData;
+  //       // alert(qData?.length)
+  //       if (qData?.length <= 2) {
+  //         newQData = qData;
 
-        }
+  //       }
 
-        console.log(pos2, 'POSITION')
-        setData(newQData)
-        setPosition(pos)
-        setRemainingP(remainingP)
-        setNewPosition(pos2 + 1)
-      } else {
-        navigate.push(paths.page500)
-        localStorage.setItem('invalidVoucher', "true")
-        notFound()
-      }
-      setLoading(false)
-    }
-  }, [queryData])
+  //       console.log(pos2, 'POSITION')
+  //       setData(newQData)
+  //       setPosition(pos)
+  //       setRemainingP(remainingP)
+  //       setNewPosition(pos2 + 1)
+  //     } else {
+  //       navigate.push(paths.page500)
+  //       localStorage.setItem('invalidVoucher', "true")
+  //       notFound()
+  //     }
+  //     setLoading(false)
+  //   }
+  // }, [queryData])
 
   const [getData, dataResults] = useLazyQuery(QueryQueuePatient, {
     context: {
@@ -221,7 +317,7 @@ const QueueController = () => {
   }, [])
 
 
-  return { QueryQueue,isDoneAppt, apptPaid, notAppNotToday, targetItem, notApprovedVal, data,clinicData, clinicLoading, dataResults, refetch, loading, position, remainingP, newPosition, notToday }
+  return { QueryQueue, inValidVoucher, isDoneAppt, queryQueueResult, apptPaid, notAppNotToday, targetItem, notApprovedVal, data,clinicData, clinicLoading, dataResults, refetch, loading, position, remainingP, newPosition, notToday }
 }
 
 export default QueueController

@@ -325,11 +325,12 @@ export const CreateHMO = extendType({
             addeddId.push(i);
           }
         });
-        // console.log(addeddId, 'addeddId@@');
 
-        const serializedIds = serialize(args?.data?.id);
+        const argsId = args?.data?.id?.map((i) => String(i));
+
+        const serializedIds = serialize(argsId);
         try {
-          const result = await client.employees.update({
+           await client.employees.update({
             where: {
               EMP_ID: session?.user?.id,
             },

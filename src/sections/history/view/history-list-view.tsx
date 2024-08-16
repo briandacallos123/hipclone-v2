@@ -60,7 +60,7 @@ import { useSessionStorage } from '@/hooks/use-sessionStorage';
 const TABLE_HEAD = [
   // { id: 'doctor', label: 'Doctor' },
   { id: 'hospital', label: 'Hospital/Clinic' },
-  { id: 'scheduleDate', label: 'Schedule' },
+  { id: 'date', label: 'Schedule' },
   { id: 'type', label: 'Type', align: 'center' },
   { id: 'status', label: 'Status', align: 'center' },
   // { id: 'paymentStatus', label: 'Payment Status', align: 'center' },
@@ -91,21 +91,21 @@ export default function AppointmentHistoryListView() {
   }, [pathname]);
   const theme = useTheme();
   const [filters, setFilters] = useState(defaultFilters);
-  const table = useTable({ defaultOrderBy: 'date' });
+  const table = useTable({ defaultOrderBy: 'date', defaultOrder:'desc' });
   const { page, rowsPerPage, order, orderBy } = table;
 
   const openView = useBoolean();
 
   const [viewId, setViewId] = useState<string>(null);
 
-  const [getData, { data, loading }]: any = useLazyQuery(GET_ALL_PATIENT_APPOINTMENTS, {
+  const [getData, getDataResult]: any = useLazyQuery(GET_ALL_PATIENT_APPOINTMENTS, {
     context: {
       requestTrackerId: 'getAppointmentsHistory[AptHistory]',
     },
     notifyOnNetworkStatusChange: true,
   });
 
-  const [getPatUserData, { data: patData, loading: patload }]: any = useLazyQuery(
+  const [getPatUserData, getPatUserResult]: any = useLazyQuery(
     GET_ALL_PATIENT_APPOINTMENTS_USER,
     {
       context: {
@@ -180,6 +180,7 @@ export default function AppointmentHistoryListView() {
           setTableData(GET_ALL_PATIENT_APPOINTMENTS?.patientAppointment);
           setSummary(GET_ALL_PATIENT_APPOINTMENTS?.summary);
           setIsLoading(false);
+          setTotal(GET_ALL_PATIENT_APPOINTMENTS?.summary?.totalRecords)
           // setTotalRecords(allAppointmentsbyUuid?.total_records);
           // setTotal(allAppointmentsbyUuid?.summary?.total);
           // setPending(allAppointmentsbyUuid?.summary?.pending);
@@ -206,7 +207,6 @@ export default function AppointmentHistoryListView() {
 
 
   useEffect(() => {
-    if(!id) return;
     const data = getItem('defaultFilters');
     if (data?.clinic) {
       filters.hospital = [Number(data?.clinic?.id)]
@@ -251,6 +251,11 @@ export default function AppointmentHistoryListView() {
           setTableData(GET_ALL_PATIENT_APPOINTMENTS_USER?.patientAppointment);
           setSummary(GET_ALL_PATIENT_APPOINTMENTS_USER?.summary);
           setIsClinic(isClinic + 1);
+          setTotal(GET_ALL_PATIENT_APPOINTMENTS_USER?.summary?.totalRecords)
+          setclinicData(GET_ALL_PATIENT_APPOINTMENTS_USER?.clinic)
+          // setTotal(GET_ALL_PATIENT_APPOINTMENTS_USER)
+          
+          // setTotalRecords(allAppointmentsbyUuid?.total_records)
         }
       });
     }
@@ -266,6 +271,7 @@ export default function AppointmentHistoryListView() {
     filters?.status,
     user?.role,
   ]);
+
 
   useEffect(() => {
     if ((drClinicData && user?.role === 'doctor') || user?.role === 'secretary') {
@@ -283,25 +289,25 @@ export default function AppointmentHistoryListView() {
 
   // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
   const [clinicPayload, setClinicPayload] = useState<any>([]);
-  const {
-    data: userClinicData,
-    error: userClinicError,
-    loading: userClinicLoad,
-    refetch: userClinicFetch,
-  }: any = useQuery(GET_CLINIC_USER, {
-    variables: {
-      data: {
-        clinicIds: clinicPayload,
-      },
-    },
-  });
+  // const {
+  //   data: userClinicData,
+  //   error: userClinicError,
+  //   loading: userClinicLoad,
+  //   refetch: userClinicFetch,
+  // }: any = useQuery(GET_CLINIC_USER, {
+  //   variables: {
+  //     data: {
+  //       clinicIds: clinicPayload,
+  //     },
+  //   },
+  // });
   // console.log('@@', clinicPayload);
-  useEffect(() => {
-    if (user?.role === 'patient' && userClinicData) {
-      const { AllClinicUser } = userClinicData;
-      setclinicData(AllClinicUser);
-    }
-  }, [user?.role, userClinicData]);
+  // useEffect(() => {
+  //   if (user?.role === 'patient' && userClinicData) {
+  //     const { AllClinicUser } = userClinicData;
+  //     setclinicData(AllClinicUser);
+  //   }
+  // }, [user?.role, userClinicData]);
 
   useEffect(() => {
     if (isClinic === 1) {
@@ -330,7 +336,8 @@ export default function AppointmentHistoryListView() {
     !!filters.startDate ||
     !!filters.endDate;
 
-  const notFound = !isLoading && !tableData.length;
+  // const notFound = (!getPatUserResult.loading && !getDataResult.loading) && !tableData.length;
+  const notFound = !(user?.role === 'patient' ? getPatUserResult.loading: getDataResult.loading) && !tableData.length;
 
   // const getAppointmentLength = (status: any) =>
   //   tableData1.filter((item: any) => item.status === 1).length;
@@ -497,11 +504,11 @@ export default function AppointmentHistoryListView() {
                     );
                   })} */}
 
-                {isLoading &&
+                {(getPatUserResult.loading || getDataResult.loading) &&
                   [...Array(rowsPerPage)].map((_, i) => (
                     <AppointmentHistoryTableRowSkeleton key={i} />
                   ))}
-                {!isLoading &&
+                {!(getPatUserResult.loading || getDataResult.loading) &&
                   tableData?.map((row: any) => (
                     <AppointmentHistoryTableRow
                       key={row.id}

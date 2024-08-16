@@ -72,6 +72,24 @@ export default function MerchantOrderSkeleton() {
 
         </div>
       </TableCell>
+      <TableCell sx={{ px: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+         <Skeleton variant="circular" height={40} sx={{ mr: 2, minWidth: 40 }} />
+
+        </div>
+      </TableCell>
+      <TableCell sx={{ px: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+         <Skeleton variant="circular" height={40} sx={{ mr: 2, minWidth: 40 }} />
+
+        </div>
+      </TableCell>
+      <TableCell sx={{ px: 1 }}>
+        <div style={{ display: 'flex', justifyContent: 'center' }}>
+         <Skeleton variant="circular" height={40} sx={{ mr: 2, minWidth: 40 }} />
+
+        </div>
+      </TableCell>
     </TableRow>
   );
 }

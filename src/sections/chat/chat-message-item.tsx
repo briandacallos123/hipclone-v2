@@ -36,6 +36,9 @@ export default function ChatMessageItem({ message, participants, onOpenLightbox 
 
   const { body, createdAt, lastActivity, attachments, id } = message;
 
+
+  console.log(body, " : ",attachments,'PISTIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
+
   const renderInfo = (
     <Typography
       noWrap
@@ -76,7 +79,7 @@ export default function ChatMessageItem({ message, participants, onOpenLightbox 
     >
       {hasImage ? (
         <>
-          <Stack
+          {body && <Stack
             sx={{
               p: 1.5,
               mb:1,
@@ -94,7 +97,7 @@ export default function ChatMessageItem({ message, participants, onOpenLightbox 
             }}
           >  
           {body}
-          </Stack>
+          </Stack>}
 
           <Stack
             direction="column"
@@ -127,7 +130,7 @@ export default function ChatMessageItem({ message, participants, onOpenLightbox 
 
       ) : (
         <>
-          {body}
+          {body && body}
           <div style={{ position: 'absolute', bottom: 0, right: 5 }}>
             <Iconify icon="ri:check-double-line" width={13} />
 
@@ -170,9 +173,11 @@ export default function ChatMessageItem({ message, participants, onOpenLightbox 
     </Stack>
   );
 
+  // console.log(avatarUrl,'AVATAR NUNG SENDER')
+
   return (
     <Stack direction="row" justifyContent={me ? 'flex-end' : 'unset'} sx={{ mb: 5 }}>
-      {!me && <Avatar alt={firstName} src={avatarUrl} sx={{ width: 32, height: 32, mr: 2 }} />}
+      {!me && <Avatar alt={firstName} src={`/${avatarUrl?.split('/').splice(1).join("/")}`} sx={{ width: 32, height: 32, mr: 2 }} />}
 
       <Stack alignItems="flex-end">
         {renderInfo}

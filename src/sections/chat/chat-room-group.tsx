@@ -61,6 +61,8 @@ export default function ChatRoomGroup({ participants }: Props) {
     </ListItemButton>
   );
 
+  console.log(participants,'BAKIT GANUN??????????????????')
+
   const renderContent = (
     <Scrollbar sx={{ height: 56 * 4 }}>
       {participants.map((participant) => (
@@ -69,7 +71,7 @@ export default function ChatRoomGroup({ participants }: Props) {
             variant={participant.status}
             anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
           >
-            <Avatar alt={participant.name} src={participant.avatarUrl} />
+            <Avatar alt={participant.name} src={`/${participant.avatarUrl?.split('/').splice(1).join('/')}`} />
           </Badge>
 
           {/* <ListItemText

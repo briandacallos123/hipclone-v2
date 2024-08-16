@@ -58,30 +58,7 @@ export default function NotificationItemMerchant({ notification, onReadView, onV
               sx={{ width: 24, height: 24 }}
             />
       </Stack>
-      {/* {(notification.avatarUrl && !notification?.group_child?.length && !notification?.many_appt && !notification?.many_chat)  ? (
-        <Avatar src={notification.avatarUrl} sx={{ bgcolor: 'background.neutral' }} />
-      ) : (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            bgcolor: 'background.neutral',
-          }}
-        >
-
-        <Box
-              component="img"
-              src={`/assets/${
-                (notification?.notification_type === 'order' && 'order.png') ||
-                (notification?.notification_type === 'supply' && 'outofsupply.png')
-               }`}
-              sx={{ width: 24, height: 24 }}
-            />
-      </Stack>
-      )} */}
+      
     </ListItemAvatar>
   );
 

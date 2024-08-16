@@ -366,7 +366,7 @@ const customizedFunction = async (args: any, myData: any, session: any, patientD
 };
 
 // doctor patient -------------------------------------------------------------
-
+// ito yung sa patient > view
 export const QueryNotesVitalsPatient = extendType({
   type: 'Query',
   definition(t) {
@@ -412,6 +412,8 @@ export const QueryNotesVitalsPatient = extendType({
             patientData,
             vitalsData
           );
+
+          console.log(data,'PAGTINGINNNNNNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!')
           return {
             vitals_data: data,
           };
@@ -432,16 +434,21 @@ const customFuncVitalPatient = async (
   let vitals_data: any;
 
   const checkUser = (() => {
-    if (session?.user?.role === 'secretary')
+    if (session?.user?.role === 'secretary'){
+      console.log("secretary______________")
       return {
         doctorID: session?.user?.permissions?.doctorID,
       };
+    }
     return {
       doctorID: session?.user?.id,
     };
   })();
 
+  console.log(checkUser,'CHECK USERRRRRRRRRR')
+
   if (patientData) {
+    console.log("BATTLEEEEEEEE");
     const isLinked = vitalsData.emrPatientID !== null;
     if (isLinked) {
       console.log(vitalsData, 'lnked');
@@ -477,6 +484,8 @@ const customFuncVitalPatient = async (
       vitals_data = vitalData;
     } else {
       console.log('non link');
+      console.log(patientData,'WLANG UTAKKK!!!!!!!');
+
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
           take: 10,
@@ -491,7 +500,7 @@ const customFuncVitalPatient = async (
             isDeleted: '0',
 
             // doctorID: session?.user?.id,
-            ...checkUser,
+            // ...checkUser,
             patientID: Number(patientData?.patientInfo?.S_ID),
             // patientID: Number(patientData?.id),
           },
@@ -769,6 +778,8 @@ export const notesUserVitalInputType = inputObjectType({
     t.nullable.string('uuid');
   },
 });
+
+// para kay patient lang to
 
 export const QueryNotesVitalsUser = extendType({
   type: 'Query',

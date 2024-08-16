@@ -19,6 +19,9 @@ export const GeneralTabInput = inputObjectType({
     t.nullable.string('suffix');
     t.nullable.string('address');
     t.nullable.string('contact');
+    t.nullable.string('contact');
+    t.nullable.dateTime('birthDate');
+
   },
 });
 
@@ -68,6 +71,13 @@ function assignEmployees(data) {
     EMP_ADDRESS: address,
     CONTACT_NO: contact,
   };
+}
+function extractDateFromISOString(isoString) {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
 }
 
 export const GeneralTabMutation = extendType({
@@ -187,9 +197,13 @@ export const GeneralTabMutation = extendType({
                 return result;
               });
           } else if (targetTable === 'patient') {
-            console.log("DITO________________________________")
-            const { fname, mname, gender, nationality, lname, suffix, address, contact }: any =
+          
+
+            const { fname, mname, gender, nationality, lname, suffix, address, contact,birthDate }: any =
               args?.data;
+
+         
+            const bday = extractDateFromISOString(birthDate);
 
             const updatedData = {
               FNAME: fname,
@@ -200,6 +214,7 @@ export const GeneralTabMutation = extendType({
               SUFFIX: suffix,
               HOME_ADD: address,
               CONTACT_NO: contact,
+              BDAY:bday
             };
 
             const patientId = await client.user.findFirst({

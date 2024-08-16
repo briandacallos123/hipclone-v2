@@ -133,8 +133,8 @@ export default function EmrLinkForm({
   const onSubmit = useCallback(
     async (data: any) => {
       try {
-        deletePatientInList(values.account);
-        optUpdate(currentItem, values.account);
+        // deletePatientInList(values.account);
+        // optUpdate(currentItem, values.account);
         const snackbarKey = enqueueSnackbar('Linking Data...', {
           variant: 'info',
           key: 'savingGeneral',
@@ -155,8 +155,9 @@ export default function EmrLinkForm({
     [currentItem, enqueueSnackbar, reset, onClose, values]
   );
 
+  console.log(values.account,'VALUESSSSSSSSSSS')
   useEffect(() => {
-    if (values.account !== '') {
+    if (values?.account) {
       const { fname, mname, lname } = currentItem;
 
       calculateSimilarity(

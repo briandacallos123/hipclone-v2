@@ -78,7 +78,7 @@ export default function AccountGeneral() {
       suffix: user?.suffix || '',
       gender: user?.sex,
       defaultESig: null,
-      birthDate: user?.birthDate || new Date(),
+      birthDate: new Date(user?.birthDate)|| new Date(),
       nationality: user?.nationality || '',
       address: user?.address || '',
       avatarUrl: user?.photoURL || null,
@@ -132,8 +132,8 @@ export default function AccountGeneral() {
   const [snackKey, setSnackKey]: any = useState(null);
   const [snackKey2, setSnackKey2]: any = useState(null);
   const handleSubmitValue = useCallback(
-    async (model: NexusGenInputs['GeneralTabInput']) => {
-      const data: NexusGenInputs['GeneralTabInput'] = {
+    async (model:any) => {
+      const data: any = {
         // email: model.email,
         fname: model.fname,
         mname: model.mname,
@@ -143,6 +143,7 @@ export default function AccountGeneral() {
         suffix: model.suffix,
         address: model.address,
         contact: model.contact,
+        birthDate:model.birthDate
       };
       uploadData({
         variables: {
@@ -455,7 +456,7 @@ export default function AccountGeneral() {
                   
                 </RHFSelect>
 
-                <Controller
+                {user?.role === 'patient' && <Controller
                   name="birthDate"
                   control={control}
                   render={({ field, fieldState: { error } }: CustomRenderInterface) => (
@@ -474,7 +475,7 @@ export default function AccountGeneral() {
                       }}
                     />
                   )}
-                />
+                />}
 
                 {user?.role !== 'secretary' && (
                   <RHFTextField name="nationality" label="Nationality" />

@@ -162,7 +162,9 @@ export const QueryDoctorPatientContact = extendType({
                     if (subs) {
                         subUserTemp.push({
                             id: {
-                                in: subs.map((v: any) => Number(v?.userInfo?.id))
+                                in: subs.map((v: any) => Number(v?.userInfo?.id)).filter((item:any)=>!isNaN(item))
+                                // in: subs.map((v: any) => Number(v?.userInfo?.id))
+
                             }
                         })
                     }
@@ -186,6 +188,7 @@ export const QueryDoctorPatientContact = extendType({
                     const resp: any = userInfo;
                     return resp;
                 } catch (error) {
+                    console.log(error,'ERRORRRRRRRRRRRRR')
                     throw new GraphQLError(error);
                 }
 
@@ -221,6 +224,16 @@ export const MessageType = objectType({
         t.dateTime('lastActivity');
         t.string('contentType');
         t.dateTime('createdAt');
+        t.nullable.list.field('read_ids',{
+            type:'Int',
+            resolve(root){
+                const symptoms: any = root?.read_ids;
+                let data: any = [];
+                data = unserialize(symptoms);
+                const myData= data ? data.map((v: any) => Number(v?.id)) : [];
+                return myData
+            }
+        })
     }
 });
 export const ChatConversations = objectType({
@@ -301,10 +314,21 @@ export const QueryConversation = extendType({
 
                     let result: any = await data || [];
                     result.participants = data?.participants.map(async (p: any) => {
+
+                        const participant = await client.display_picture.findFirst({
+                            where:{
+                                userID:Number(p?.userId)
+                            },
+                            orderBy:{
+                                uploaded:'desc'
+                            }
+                        })
+
                         let dataStruct: any = {
                             id: '',
                             address: '',
-                            avatarUrl: 'https://api-dev-minimal-v5.vercel.app/assets/images/avatar/avatar_2.jpg',
+                            avatarUrl:participant?.filename,
+                            // avatarUrl: 'https://api-dev-minimal-v5.vercel.app/assets/images/avatar/avatar_2.jpg',
                             email: '',
                             name: '',
                             lastActivity: new Date(),
@@ -422,12 +446,25 @@ export const QueryAllConversations = extendType({
                         }
                     }
                 }).then((data) => {
-                    const newResult: any = data.map( (v: any) => {
-                        v.participants = v.participants.map( (p: any) => {
+                    const newResult: any = data.map((v: any) => {
+                       
+
+
+                        v.participants = v.participants.map(async(p: any) => {
+                            const participant = await client.display_picture.findFirst({
+                                where:{
+                                    userID:Number(p?.userId)
+                                },
+                                orderBy:{
+                                    uploaded:'desc'
+                                }
+                            })
+
                             let dataStruct: any = {
                                 id: '',
                                 address: '',
-                                avatarUrl: 'https://api-dev-minimal-v5.vercel.app/assets/images/avatar/avatar_2.jpg',
+                                avatarUrl:participant?.filename,
+                                // avatarUrl: 'https://api-dev-minimal-v5.vercel.app/assets/images/avatar/avatar_2.jpg',
                                 email: '',
                                 name: '',
                                 lastActivity: new Date(),
@@ -514,6 +551,7 @@ export const QueryAllConversations = extendType({
         });
     },
 });
+
 export const ParticipantInputType = inputObjectType({
     name: 'ParticipantInputType',
     definition(t) {
@@ -569,6 +607,7 @@ export const ReplySubscription = subscriptionField('replyMessage', {
     }
 }); */
 
+
 export const CreateConversation = extendType({
     type: 'Mutation',
     definition(t) {
@@ -576,369 +615,699 @@ export const CreateConversation = extendType({
             type: ChatConversations,
             args: { data: CreateUpdateConversationType! },
             async resolve(_parent, args, ctx) {
-                const createData: any = args.data
-                const { session } = ctx;
-                const user: any = session?.user;
-                const sFile = await createData.attachments;
-                const upload = useUpload(sFile, 'public/uploads/conversation/attachments/');
-                /*  id	name	size	type	path	preview	createdAt	modifiedAt	messageId	 */
+                try {
+                    const createData: any = args.data;
+                    const { session } = ctx;
+                    const user: any = session?.user;
+                    const sFile = await createData.attachments;
+                    const upload = useUpload(sFile, 'public/uploads/conversation/attachments/');
 
-
-                let allParticipants = await client.participant.findMany({
-                    where: {
-                        conversationId: String(args?.data?.id)
-                    }
-                });
-
-                let targetPar = allParticipants?.filter((item: any) => {
-                    if (Number(item.userId) !== Number(user?.id)) {
-                        return item.userId
-                    }
-                })
-
-                const allIds = targetPar?.map((item: any) => item.userId)
-
-                let userOffline: any = await client.user.findMany({
-                    where: {
-                        id: {
-                            in: allIds
-                        },
-                        isOnline: 1
-                    }
-                })
-
-                userOffline = userOffline.map((item: any) => `forOnly_${item.id}`)
-
-                // console.log(createData,'_________DATA____________')
-                // console.log(createData?.messages,'________MESSAGES____________')
-
-                if (userOffline?.length) {
-                    beamsClient.publishToInterests(userOffline, {
-                        web: {
-                            notification: {
-                                title: "New Message Arrived",
-                                body: createData?.messages[0]?.body
-                            },
-                        },
-                    });
-
-                }
-
-
-
-
-
-
-
-                let attachmentsData: any = [];
-                if (upload) {
-                    upload.map((v: any) => {
-                        attachmentsData.push({
-                            name: v?.fileName,
-                            size: v?.fileSize,
-                            type: v?.fileType,
-                            path: 'public/uploads/conversation/attachments/',
-                            preview: `/uploads/conversation/attachments/${v?.fileName}`
-                        })
-                    })
-                }
-                // let pIds:any = [];
-
-
-
-
-
-                const conversationExists = await client.conversation.findMany({
-                    include: {
-                        participants: true
-                    }
-                });
-
-
-                const tmp = createData?.participants.filter((v: any) => Number(v?.userId) !== Number(user?.id));
-                const uniqueUserIds = new Set();
-                const participants = tmp.filter((participant: any) => {
-                    const userId = participant.userId;
-                    if (!uniqueUserIds.has(userId)) {
-                        uniqueUserIds.add(userId);
-                        return true;
-                    }
-                    return false;
-                });
-                const conversationType = Number(participants.length) > 1 ? "GROUP" : "ONE_TO_ONE";
-
-                let filterConversation: any = args?.data
-                if (!filterConversation?.id) {
-                    filterConversation = conversationExists.find((c) =>
-                        participants.every((participant: any) =>
-                            c.participants.some((p) => Number(p?.userId) === Number(participant.userId))
-                        ) && String(c.type) === String(conversationType)
-                    );
-                }
-
-                const con = await client.conversation.upsert({
-                    where: {
-                        id: filterConversation?.id ?? ''
-                    },
-                    create: {
-                        type: conversationType,
-                        unreadCount: 0,
-                        participants: {
-                            create: [
-                                ...createData?.participants
-                            ]
-                        },
-                        messages: {
-                            create: [
-                                ...createData?.messages.map((v: any) => {
-                                    if (upload.length) {
-                                        return {
-                                            ...v,
-                                            contentType: 'image'
-                                        }
-
-                                    }
-
-                                    return {
-                                        ...v,
-                                    }
-                                })
-                            ],
-                        },
-                    },
-                    update: {
-                        unreadCount: 0,
-                        //TODO UPSERT BUG
-                        /* participants:{
-                            upsert:{
-                                where:{
-                                    id: '',
-                                    userId : {
-                                        in:replyData?.participants.map((v:any) => v?.userId )
-                                    },
-                                    conversationId:  String(replyData?.id),
-                                },
-                                create:{
-                                     userId: replyData?.messages[0]?.senderId
-                                },
-                                update:{
-                                    userId: replyData?.messages[0]?.senderId
-                                }                     
-                            }   
-                        }, */
-                        messages: {
-                            create: [
-                                ...createData?.messages.map((v: any) => {
-                                    if (upload.length) {
-                                        return {
-                                            ...v,
-                                            contentType: 'image'
-                                        }
-
-                                    }
-
-                                    return {
-                                        ...v,
-                                    }
-                                })
-                            ]
-                        }
-
-                    }
-                }).then(async (data: any) => {
-
-                    let res = await client.participant.findMany({
+                    let allParticipants = await client.participant.findMany({
                         where: {
                             conversationId: String(args?.data?.id)
                         }
-                    })
+                    });
 
-                    res = res.filter((item: any) => Number(item?.userId) !== Number(user?.id));
-
-                    let notifContent = await client.notification_content.create({
-                        data: {
-                            content: 'send a chat message'
+                    let targetPar = allParticipants?.filter((item: any) => {
+                        if (Number(item.userId) !== Number(user?.id)) {
+                            return item.userId;
                         }
-                    })
+                    });
 
+                    const allIds = targetPar?.map((item: any) => item.userId);
 
-                    // if(res?.length > 1){
+                    let attachmentsData: any = [];
+                    if (upload) {
+                        upload.map((v: any) => {
+                            attachmentsData.push({
+                                name: v?.fileName,
+                                size: v?.fileSize,
+                                type: v?.fileType,
+                                path: 'public/uploads/conversation/attachments/',
+                                preview: `/uploads/conversation/attachments/${v?.fileName}`
+                            });
+                        });
+                    }
 
-                    // }else{
-
-                    // }
-
-                    const getMessageID = await client.message.findFirst({
-                        orderBy: {
-                            lastActivity: 'desc'
-                        },
-                        select: {
-                            id: true
+                    const conversationExists = await client.conversation.findMany({
+                        include: {
+                            participants: true
                         }
-                    })
+                    });
 
-                    const datadata = [
-                        { id: Number(user?.id) }
-                    ]
+                    const tmp = createData?.participants.filter((v: any) => Number(v?.userId) !== Number(user?.id));
 
-                    await client.message.update({
+                    const uniqueUserIds = new Set();
+                    const participants = tmp.filter((participant: any) => {
+                        const userId = participant.userId;
+                        if (!uniqueUserIds.has(userId)) {
+                            uniqueUserIds.add(userId);
+                            return true;
+                        }
+                        return false;
+                    });
+
+                    const conversationType = Number(participants.length) > 1 ? "GROUP" : "ONE_TO_ONE";
+
+                    let filterConversation: any = args?.data;
+                    if (!filterConversation?.id) {
+                        filterConversation = conversationExists.find((c) => {
+                            const participantIds = c.participants.map(p => Number(p.userId));
+                            const newParticipantIds = participants.map(p => Number(p.userId));
+                            return participantIds.length === newParticipantIds.length &&
+                                participantIds.every((id, index) => id === newParticipantIds[index]) &&
+                                String(c.type) === String(conversationType);
+                        });
+                    }
+
+                    const con = await client.conversation.upsert({
                         where: {
-                            id: getMessageID?.id
+                            id: filterConversation?.id ?? ''
                         },
-                        data: {
-                            read_ids: serialize(datadata)
-                        }
-                    })
-
-
-                    let notifParent: any = res.map(async (item: any) => {
-                        let notif = await client.notification.create({
-                            data: {
-                                user_id: Number(session?.user?.id),
-                                notifiable_id: Number(item?.userId),
-                                notification_type_id: 6,
-                                notification_content_id: Number(notifContent?.id),
-                                chat_id: data?.id,
-                                conversation_id: getMessageID?.id
-                            }
-                        })
-                        return notif;
-                    })
-
-                    await Promise.all(notifParent)
-
-
-
-
-                    if (upload.length) {
-
-
-                        await client.attachment.createMany({
-                            data: attachmentsData.map((v: any) => {
-                                return {
-                                    ...v,
-                                    messageId: getMessageID?.id,
-
-                                }
-                            })
-                        })
-                    }
-
-                    return data;
-                }).catch((err: any) => {
-                    console.log(err)
-                })
-
-                let result: any = [];
-                result = await client.conversation.findFirst({
-                    where: {
-                        id: String(con!.id)
-                    },
-                    include: {
-                        participants: {
-                            include: {
-                                contactInfo: {
-                                    include: {
-                                        doctorInfo: true,
-                                        patientInfo: true,
-                                        subAccountInfo: true
-                                    }
-                                }
-                            }
-                        },
-                        messages: {
-                            include: {
-                                attachments: true
+                        create: {
+                            type: conversationType,
+                            unreadCount: 0,
+                            participants: {
+                                create: [
+                                    ...createData?.participants
+                                ]
                             },
+                            messages: {
+                                create: [
+                                    ...createData?.messages.map((v: any) => {
+                                        if (upload.length) {
+                                            return {
+                                                ...v,
+                                                contentType: 'image'
+                                            };
+                                        }
+
+                                        return {
+                                            ...v,
+                                        };
+                                    })
+                                ],
+                            },
+                        },
+                        update: {
+                            unreadCount: 0,
+                            messages: {
+                                create: [
+                                    ...createData?.messages.map((v: any) => {
+                                        if (upload.length) {
+                                            return {
+                                                ...v,
+                                                contentType: 'image'
+                                            };
+                                        }
+
+                                        return {
+                                            ...v,
+                                        };
+                                    })
+                                ]
+                            }
+
+                        }
+                    }).then(async (data: any) => {
+                        let res = await client.participant.findMany({
+                            where: {
+                                conversationId: String(args?.data?.id)
+                            }
+                        });
+
+                        res = res.filter((item: any) => Number(item?.userId) !== Number(user?.id));
+
+                        let notifContent = await client.notification_content.create({
+                            data: {
+                                content: 'send a chat message'
+                            }
+                        });
+
+                        const getMessageID = await client.message.findFirst({
                             orderBy: {
-                                createdAt: 'asc'
+                                lastActivity: 'desc'
+                            },
+                            select: {
+                                id: true
+                            }
+                        });
+
+                        if (upload.length) {
+                            await client.attachment.createMany({
+                                data: attachmentsData.map((v: any) => {
+                                    return {
+                                        ...v,
+                                        messageId: getMessageID?.id,
+                                    };
+                                })
+                            });
+                        }
+
+                        const datadata = [
+                            { id: Number(user?.id) }
+                        ];
+
+                        await client.message.update({
+                            where: {
+                                id: getMessageID?.id
+                            },
+                            data: {
+                                read_ids: serialize(datadata)
+                            }
+                        });
+
+                        let notifParent: any = res.map(async (item: any) => {
+                            let notif = await client.notification.create({
+                                data: {
+                                    user_id: Number(session?.user?.id),
+                                    notifiable_id: Number(item?.userId),
+                                    notification_type_id: 6,
+                                    notification_content_id: Number(notifContent?.id),
+                                    chat_id: data?.id,
+                                    conversation_id: getMessageID?.id
+                                }
+                            });
+                            return notif;
+                        });
+
+                        await Promise.all(notifParent);
+
+                        return data;
+                    }).catch((err: any) => {
+                        console.log(err);
+                    });
+
+                    let result: any = [];
+                    result = await client.conversation.findFirst({
+                        where: {
+                            id: String(con!.id)
+                        },
+                        include: {
+                            participants: {
+                                include: {
+                                    contactInfo: {
+                                        include: {
+                                            doctorInfo: true,
+                                            patientInfo: true,
+                                            subAccountInfo: true
+                                        }
+                                    }
+                                }
+                            },
+                            messages: {
+                                include: {
+                                    attachments: true
+                                },
+                                orderBy: {
+                                    createdAt: 'asc'
+                                }
                             }
                         }
-                    }
-                }).then(async (data: any) => {
-
-                    let result: any = await data || [];
-                    result.participants = data?.participants.map(async (p: any) => {
-                        let dataStruct: any = {
-                            id: '',
-                            address: '',
-                            avatarUrl: 'https://api-dev-minimal-v5.vercel.app/assets/images/avatar/avatar_2.jpg',
-                            email: '',
-                            name: '',
-                            lastActivity: new Date(),
-                            phoneNumber: '',
-                            role: '',
-                            status: String(p?.contactInfo?.userStatus).toLocaleLowerCase(),
-                        };
-                        switch (Number(p?.contactInfo?.userType)) {
-                            case 0: {
-                                dataStruct = {
-                                    ...dataStruct,
-                                    ...{
-                                        id: p?.contactInfo?.id,
-                                        name: `${p?.contactInfo?.patientInfo?.FNAME} ${p?.contactInfo?.patientInfo?.LNAME}`,
-                                        address: p?.contactInfo?.patientInfo?.HOME_ADD ?? 'N/A',
-                                        email: p?.contactInfo?.email,
-                                        phoneNumber: p?.contactInfo?.patientInfo?.CONTACT_NO,
-                                        role: 'patient',
-                                    }
+                    }).then(async (data: any) => {
+                        let result: any = await data || [];
+                        result.participants = data?.participants.map(async (p: any) => {
+                            const participant = await client.display_picture.findFirst({
+                                where: {
+                                    userID: Number(p?.userId)
+                                },
+                                orderBy: {
+                                    uploaded: 'desc'
                                 }
+                            });
 
-                            } break;
-                            case 1: {
-                                dataStruct = {
-                                    ...dataStruct,
-                                    ...{
-                                        id: p?.contactInfo?.id,
-                                        address: 'N/A',
-                                        name: `${p?.contactInfo?.subAccountInfo[0]?.fname} ${p?.contactInfo?.subAccountInfo[0]?.lname}`,
-                                        email: p?.contactInfo?.email,
-                                        phoneNumber: p?.contactInfo?.subAccountInfo[0]?.mobile_no,
-                                        role: 'secretary',
-                                    }
-                                }
+                            let dataStruct: any = {
+                                id: '',
+                                address: '',
+                                avatarUrl: participant?.filename,
+                                email: '',
+                                name: '',
+                                lastActivity: new Date(),
+                                phoneNumber: '',
+                                role: '',
+                                status: String(p?.contactInfo?.userStatus).toLocaleLowerCase(),
+                            };
 
-                            } break;
-                            case 2: {
-                                dataStruct = {
-                                    ...dataStruct,
-                                    ...{
-                                        id: p?.contactInfo?.id,
-                                        name: `${p?.contactInfo?.doctorInfo[0]?.EMP_FNAME} ${p?.contactInfo?.doctorInfo[0]?.EMP_LNAME}`,
-                                        address: p?.contactInfo?.doctorInfo[0]?.EMP_ADDRESS ?? 'N/A',
-                                        email: p?.contactInfo?.email,
-                                        phoneNumber: p?.contactInfo?.doctorInfo[0]?.CONTACT_NO,
-                                        role: 'doctor',
-                                    }
-                                }
+                            switch (Number(p?.contactInfo?.userType)) {
+                                case 0: {
+                                    dataStruct = {
+                                        ...dataStruct,
+                                        ...{
+                                            id: p?.contactInfo?.id,
+                                            name: `${p?.contactInfo?.patientInfo?.FNAME} ${p?.contactInfo?.patientInfo?.LNAME}`,
+                                            address: p?.contactInfo?.patientInfo?.HOME_ADD ?? 'N/A',
+                                            email: p?.contactInfo?.email,
+                                            phoneNumber: p?.contactInfo?.patientInfo?.CONTACT_NO,
+                                            role: 'patient',
+                                        }
+                                    };
+                                } break;
+                                case 1: {
+                                    dataStruct = {
+                                        ...dataStruct,
+                                        ...{
+                                            id: p?.contactInfo?.id,
+                                            address: 'N/A',
+                                            name: `${p?.contactInfo?.subAccountInfo[0]?.fname} ${p?.contactInfo?.subAccountInfo[0]?.lname}`,
+                                            email: p?.contactInfo?.email,
+                                            phoneNumber: p?.contactInfo?.subAccountInfo[0]?.mobile_no,
+                                            role: 'secretary',
+                                        }
+                                    };
+                                } break;
+                                case 2: {
+                                    dataStruct = {
+                                        ...dataStruct,
+                                        ...{
+                                            id: p?.contactInfo?.id,
+                                            name: `${p?.contactInfo?.doctorInfo[0]?.EMP_FNAME} ${p?.contactInfo?.doctorInfo[0]?.EMP_LNAME}`,
+                                            address: p?.contactInfo?.doctorInfo[0]?.EMP_ADDRESS ?? 'N/A',
+                                            email: p?.contactInfo?.email,
+                                            phoneNumber: p?.contactInfo?.doctorInfo[0]?.CONTACT_NO,
+                                            role: 'doctor',
+                                        }
+                                    };
+                                } break;
+                            }
 
-                            } break;
+                            p = {
+                                ...p,
+                                ...dataStruct
+                            };
 
-                        }
-                        /*  if( Number(dataStruct.id) === 1){
-                           delete dataStruct.id
-                           delete dataStruct.lastActivity
-                           delete dataStruct.phoneNumber
-                           delete dataStruct.status
-                         } */
-                        p = {
-                            ...p,
-                            ...dataStruct
-                        }
+                            return p;
+                        });
 
-                        return p;
-
-                    })
+                        return result;
+                    });
 
                     return result;
-                })
-                /*  console.log(result.id)
-                 await pubsub.publish(`createReplyMessage_${result?.id}`, result);  */
-                return result;
-
+                } catch (error) {
+                    console.log(error, 'ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRR');
+                    throw new GraphQLError(error);
+                }
             },
         });
     },
 });
+
+// export const CreateConversation = extendType({
+//     type: 'Mutation',
+//     definition(t) {
+//         t.nullable.field('createReplyConversation', {
+//             type: ChatConversations,
+//             args: { data: CreateUpdateConversationType! },
+//             async resolve(_parent, args, ctx) {
+//                 try {
+//                     const createData: any = args.data
+//                 const { session } = ctx;
+//                 const user: any = session?.user;
+//                 const sFile = await createData.attachments;
+//                 const upload = useUpload(sFile, 'public/uploads/conversation/attachments/');
+//                 /*  id	name	size	type	path	preview	createdAt	modifiedAt	messageId	 */
+
+
+//                 let allParticipants = await client.participant.findMany({
+//                     where: {
+//                         conversationId: String(args?.data?.id)
+//                     }
+//                 });
+
+//                 let targetPar = allParticipants?.filter((item: any) => {
+//                     if (Number(item.userId) !== Number(user?.id)) {
+//                         return item.userId
+//                     }
+//                 })
+
+//                 const allIds = targetPar?.map((item: any) => item.userId)
+
+//                 // let userOffline: any = await client.user.findMany({
+//                 //     where: {
+//                 //         id: {
+//                 //             in: allIds
+//                 //         },
+//                 //         isOnline: 1
+//                 //     }
+//                 // })
+
+//                 // userOffline = userOffline.map((item: any) => `forOnly_${item.id}`)
+
+//                 // console.log(createData,'_________DATA____________')
+//                 // console.log(createData?.messages,'________MESSAGES____________')
+
+//                 // if (userOffline?.length) {
+//                 //     beamsClient.publishToInterests(userOffline, {
+//                 //         web: {
+//                 //             notification: {
+//                 //                 title: "New Message Arrived",
+//                 //                 body: createData?.messages[0]?.body
+//                 //             },
+//                 //         },
+//                 //     });
+
+//                 // }
+
+
+
+
+//                 let attachmentsData: any = [];
+//                 if (upload) {
+//                     upload.map((v: any) => {
+//                         attachmentsData.push({
+//                             name: v?.fileName,
+//                             size: v?.fileSize,
+//                             type: v?.fileType,
+//                             path: 'public/uploads/conversation/attachments/',
+//                             preview: `/uploads/conversation/attachments/${v?.fileName}`
+//                         })
+//                     })
+//                 }
+//                 // let pIds:any = [];
+
+              
+
+
+
+//                 const conversationExists = await client.conversation.findMany({
+//                     include: {
+//                         participants: true
+//                     }
+//                 });
+
+//                 console.log(conversationExists,'conversationExists?')
+
+
+//                 const tmp = createData?.participants.filter((v: any) => Number(v?.userId) !== Number(user?.id));
+                
+//                 console.log(tmp,'TMPTMPTMP______________')
+                
+                
+//                 const uniqueUserIds = new Set();
+//                 const participants = tmp.filter((participant: any) => {
+//                     const userId = participant.userId;
+//                     if (!uniqueUserIds.has(userId)) {
+//                         uniqueUserIds.add(userId);
+//                         return true;
+//                     }
+//                     return false;
+//                 });
+
+//                 console.log(uniqueUserIds,'TMPTMPTMP______________')
+//                 console.log(participants,'participants______________')
+
+//                 const conversationType = Number(participants.length) > 1 ? "GROUP" : "ONE_TO_ONE";
+
+//                 let filterConversation: any = args?.data
+//                 if (!filterConversation?.id) {
+//                     filterConversation = conversationExists.find((c) =>
+//                         participants.every((participant: any) =>
+//                             c.participants.some((p) => Number(p?.userId) === Number(participant.userId))
+//                         ) && String(c.type) === String(conversationType)
+//                     );
+//                 }
+//                 console.log(filterConversation,'filterConversation______________')
+//                 console.log(filterConversation?.id,'filterConversation WITH IDDDDDDDDD______________')
+
+//                 const con = await client.conversation.upsert({
+//                     where: {
+//                         id: filterConversation?.id ?? ''
+//                     },
+//                     create: {
+//                         type: conversationType,
+//                         unreadCount: 0,
+//                         participants: {
+//                             create: [
+//                                 ...createData?.participants
+//                             ]
+//                         },
+//                         messages: {
+//                             create: [
+//                                 ...createData?.messages.map((v: any) => {
+//                                     if (upload.length) {
+//                                         return {
+//                                             ...v,
+//                                             contentType: 'image'
+//                                         }
+
+//                                     }
+
+//                                     return {
+//                                         ...v,
+//                                     }
+//                                 })
+//                             ],
+//                         },
+//                     },
+//                     update: {
+//                         unreadCount: 0,
+//                         //TODO UPSERT BUG
+//                         /* participants:{
+//                             upsert:{
+//                                 where:{
+//                                     id: '',
+//                                     userId : {
+//                                         in:replyData?.participants.map((v:any) => v?.userId )
+//                                     },
+//                                     conversationId:  String(replyData?.id),
+//                                 },
+//                                 create:{
+//                                      userId: replyData?.messages[0]?.senderId
+//                                 },
+//                                 update:{
+//                                     userId: replyData?.messages[0]?.senderId
+//                                 }                     
+//                             }   
+//                         }, */
+//                         messages: {
+//                             create: [
+//                                 ...createData?.messages.map((v: any) => {
+//                                     if (upload.length) {
+//                                         return {
+//                                             ...v,
+//                                             contentType: 'image'
+//                                         }
+
+//                                     }
+
+//                                     return {
+//                                         ...v,
+//                                     }
+//                                 })
+//                             ]
+//                         }
+
+//                     }
+//                 }).then(async (data: any) => {
+
+//                     let res = await client.participant.findMany({
+//                         where: {
+//                             conversationId: String(args?.data?.id)
+//                         }
+//                     })
+
+//                     res = res.filter((item: any) => Number(item?.userId) !== Number(user?.id));
+
+//                     let notifContent = await client.notification_content.create({
+//                         data: {
+//                             content: 'send a chat message'
+//                         }
+//                     })
+
+
+//                     // if(res?.length > 1){
+
+//                     // }else{
+
+//                     // }
+
+//                     const getMessageID = await client.message.findFirst({
+//                         orderBy: {
+//                             lastActivity: 'desc'
+//                         },
+//                         select: {
+//                             id: true
+//                         }
+//                     })
+
+               
+
+//                     if (upload.length) {
+//                         await client.attachment.createMany({
+//                             data: attachmentsData.map((v: any) => {
+//                                 return {
+//                                     ...v,
+//                                     messageId: getMessageID?.id,
+
+//                                 }
+//                             })
+//                         })
+//                     }
+
+//                     const datadata = [
+//                         { id: Number(user?.id) }
+//                     ]
+
+//                     await client.message.update({
+//                         where: {
+//                             id: getMessageID?.id
+//                         },
+//                         data: {
+//                             read_ids: serialize(datadata)
+//                         }
+//                     })
+
+
+//                     let notifParent: any = res.map(async (item: any) => {
+//                         let notif = await client.notification.create({
+//                             data: {
+//                                 user_id: Number(session?.user?.id),
+//                                 notifiable_id: Number(item?.userId),
+//                                 notification_type_id: 6,
+//                                 notification_content_id: Number(notifContent?.id),
+//                                 chat_id: data?.id,
+//                                 conversation_id: getMessageID?.id
+//                             }
+//                         })
+//                         return notif;
+//                     })
+
+//                     await Promise.all(notifParent)
+
+
+
+
+                  
+
+//                     return data;
+//                 }).catch((err: any) => {
+//                     console.log(err)
+//                 })
+
+//                 let result: any = [];
+//                 result = await client.conversation.findFirst({
+//                     where: {
+//                         id: String(con!.id)
+//                     },
+//                     include: {
+//                         participants: {
+//                             include: {
+//                                 contactInfo: {
+//                                     include: {
+//                                         doctorInfo: true,
+//                                         patientInfo: true,
+//                                         subAccountInfo: true
+//                                     }
+//                                 }
+//                             }
+//                         },
+//                         messages: {
+//                             include: {
+//                                 attachments: true
+//                             },
+//                             orderBy: {
+//                                 createdAt: 'asc'
+//                             }
+//                         }
+//                     }
+//                 }).then(async (data: any) => {
+
+//                     let result: any = await data || [];
+//                     result.participants = data?.participants.map(async (p: any) => {
+
+//                         const participant = await client.display_picture.findFirst({
+//                             where:{
+//                                 userID:Number(p?.userId)
+//                             },
+//                             orderBy:{
+//                                 uploaded:'desc'
+//                             }
+//                         })
+
+//                         let dataStruct: any = {
+//                             id: '',
+//                             address: '',
+//                             avatarUrl:participant?.filename,
+//                             // avatarUrl: 'https://api-dev-minimal-v5.vercel.app/assets/images/avatar/avatar_2.jpg',
+//                             email: '',
+//                             name: '',
+//                             lastActivity: new Date(),
+//                             phoneNumber: '',
+//                             role: '',
+//                             status: String(p?.contactInfo?.userStatus).toLocaleLowerCase(),
+//                         };
+//                         switch (Number(p?.contactInfo?.userType)) {
+//                             case 0: {
+//                                 dataStruct = {
+//                                     ...dataStruct,
+//                                     ...{
+//                                         id: p?.contactInfo?.id,
+//                                         name: `${p?.contactInfo?.patientInfo?.FNAME} ${p?.contactInfo?.patientInfo?.LNAME}`,
+//                                         address: p?.contactInfo?.patientInfo?.HOME_ADD ?? 'N/A',
+//                                         email: p?.contactInfo?.email,
+//                                         phoneNumber: p?.contactInfo?.patientInfo?.CONTACT_NO,
+//                                         role: 'patient',
+//                                     }
+//                                 }
+
+//                             } break;
+//                             case 1: {
+//                                 dataStruct = {
+//                                     ...dataStruct,
+//                                     ...{
+//                                         id: p?.contactInfo?.id,
+//                                         address: 'N/A',
+//                                         name: `${p?.contactInfo?.subAccountInfo[0]?.fname} ${p?.contactInfo?.subAccountInfo[0]?.lname}`,
+//                                         email: p?.contactInfo?.email,
+//                                         phoneNumber: p?.contactInfo?.subAccountInfo[0]?.mobile_no,
+//                                         role: 'secretary',
+//                                     }
+//                                 }
+
+//                             } break;
+//                             case 2: {
+//                                 dataStruct = {
+//                                     ...dataStruct,
+//                                     ...{
+//                                         id: p?.contactInfo?.id,
+//                                         name: `${p?.contactInfo?.doctorInfo[0]?.EMP_FNAME} ${p?.contactInfo?.doctorInfo[0]?.EMP_LNAME}`,
+//                                         address: p?.contactInfo?.doctorInfo[0]?.EMP_ADDRESS ?? 'N/A',
+//                                         email: p?.contactInfo?.email,
+//                                         phoneNumber: p?.contactInfo?.doctorInfo[0]?.CONTACT_NO,
+//                                         role: 'doctor',
+//                                     }
+//                                 }
+
+//                             } break;
+
+//                         }
+//                         /*  if( Number(dataStruct.id) === 1){
+//                            delete dataStruct.id
+//                            delete dataStruct.lastActivity
+//                            delete dataStruct.phoneNumber
+//                            delete dataStruct.status
+//                          } */
+//                         p = {
+//                             ...p,
+//                             ...dataStruct
+//                         }
+
+//                         return p;
+
+//                     })
+
+//                     return result;
+//                 })
+//                 /*  console.log(result.id)
+//                  await pubsub.publish(`createReplyMessage_${result?.id}`, result);  */
+//                 return result;
+//                 } catch (error) {
+//                     console.log(error,'ERRORRRRRRRRRRRRRRRRRRRRRRRRRRRRRR');
+//                     throw new GraphQLError(error)
+//                 }
+
+//             },
+//         });
+//     },
+// });
 
 

@@ -79,22 +79,57 @@ export default function PrescriptionTableToolbar({
         }}
       >
         <InputLabel>Hospital</InputLabel>
-
         <Select
           multiple
           value={filters.hospital}
           onChange={handleFilterHospital}
           input={<OutlinedInput label="Hospital" />}
-          renderValue={(selected) => selected.map((value) => value).join(', ')}
+          renderValue={(selected) =>
+            hospitalOptions
+              ?.filter((v: any) => selected.find((s: any) => s === v?.id))
+              .map((m: any) => m?.clinic_name)
+              .join(', ')
+          }
           sx={{ textTransform: 'capitalize' }}
         >
-          {hospitalOptions.map((option) => (
-            <MenuItem key={option} value={option}>
-              <Checkbox disableRipple size="small" checked={filters.hospital.includes(option)} />
-              {option}
+          {hospitalOptions?.map((option: any) => (
+            <MenuItem key={option?.id} value={option?.id}>
+              <Checkbox
+                disableRipple
+                size="small"
+                checked={
+                  !!filters.hospital.filter((v: any) => Number(v) === Number(option?.id)).length
+                }
+              />
+              {option?.clinic_name}
             </MenuItem>
           ))}
+         
         </Select>
+        {/* <Select
+          multiple
+          value={filters.hospital}
+          onChange={handleFilterHospital}
+          input={<OutlinedInput label="Hospital" />}
+          renderValue={(selected) =>
+            hospitalOptions
+              .filter((v: any) => selected.find((s: any) => s === v?.id))
+              .map((m: any) => m?.clinic_name)
+              .join(', ')
+          }
+          sx={{ textTransform: 'capitalize' }}
+        >
+          {hospitalOptions?.map((option: any) => (
+            <MenuItem key={option?.id} value={option?.id}>
+              <Checkbox
+                disableRipple
+                size="small"
+                checked={!!filters.hospital.filter((v: any) => v === option?.id).length}
+              />
+              {option?.clinic_name}
+            </MenuItem>
+          ))}
+        </Select> */}
       </FormControl>
 
       <DatePicker
@@ -140,7 +175,7 @@ export default function PrescriptionTableToolbar({
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="Search number..."
+            placeholder="Search prescription no, clinic name, or doctor name..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

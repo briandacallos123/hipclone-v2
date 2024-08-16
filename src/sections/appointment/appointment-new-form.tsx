@@ -513,9 +513,11 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
   //   console.log('nope');
   // }
 
+
   useEffect(() => {
     if (renderTime) {
       const timeData = resultTime?.filter((item: any) => !item?.includes('-'));
+      console.log(timeData,'END TIMEEEEEEEEEEEEEEE')
 
       setTimeOptions(
         [...Array(timeData.length)].map((item, index) => ({

@@ -55,13 +55,12 @@ const reducer = (state: any, action: any) => {
             const currentSteps = state.activeStep - 1;
             return { ...state, activeStep: currentSteps }
         case "Add":
-            const { brand_name,merchant_store, itemQty, medecine_id, generic_name,dose, id, form, type, description, price, attachment_info, quantity, qty } = action.payload;
+            const {stock, brand_name,merchant_store, itemQty, medecine_id, generic_name,dose, id, form, type, description, price, attachment_info, quantity, qty } = action.payload;
 
        
             const isExists = state.cart.find((item: any) => Number(item.id) === Number(id));
 
             if (isExists) {
-                console.log("exist_____________________________")
                 // If the item already exists in the cart, update its quantity and calculate the new total
                 const updatedCart = state.cart.map((item: any) => {
                     if (Number(item.id) === Number(id)) {
@@ -91,7 +90,8 @@ const reducer = (state: any, action: any) => {
                     image: attachment_info?.file_path,
                     brand_name,
                     attachment_info,
-                    medecine_id
+                    medecine_id,
+                    stock
                 };
 
                 const newCart = [...state.cart, newItem];

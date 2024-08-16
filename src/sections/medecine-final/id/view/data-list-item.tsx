@@ -1,6 +1,6 @@
 import Iconify from '@/components/iconify';
 import { fCurrency } from '@/utils/format-number';
-import { Box, Button, Card, CardActionArea, CardContent, CardMedia, Grid, Stack, Typography } from '@mui/material';
+import { Box, Button, Card, CardActionArea, CardContent, CardMedia, Grid, Stack, Tooltip, Typography } from '@mui/material';
 import React, { useCallback, useEffect, useState } from 'react'
 // import { useCheckoutContext } from '@/context/checkout/Checkout';
 import { useRouter } from 'next/navigation';
@@ -102,6 +102,8 @@ const DataListItem = ({ item, listView }: DataListItemProps) => {
         router.push(`/dashboard/medecine/${storeId}/${id}`)
     }
 
+    const isGood = stock > qtyValue
+
     return (
 
         <Card sx={{ maxWidth: listView ? '100%' : 800 }}>
@@ -182,11 +184,13 @@ const DataListItem = ({ item, listView }: DataListItemProps) => {
                                         }
                                     }} onClick={handleMinus} icon="line-md:minus" />
                                     {qtyValue}
+                                   <Tooltip title={!isGood && 'You\'ve reached the last stock'}>
                                     <Iconify sx={{
-                                        '&:hover':{
-                                            cursor:"pointer"
-                                        }
-                                    }} onClick={handleIncrement} icon="iconamoon:sign-plus-bold" />
+                                            '&:hover':{
+                                                cursor: isGood ? 'pointer':'not-allowed'
+                                            }
+                                        }} onClick={handleIncrement} icon="iconamoon:sign-plus-bold" />
+                                   </Tooltip>
                                 </Stack>
                                 <Button onClick={handleAdd} variant="contained">Add Order</Button>
                             </Stack>

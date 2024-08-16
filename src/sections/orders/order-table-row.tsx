@@ -86,7 +86,7 @@ export default function OrderTableRow({
     //             row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]
     //           }
     //           sx={{ mr: 2 }}
-    //         >
+    //         >  
     //           {row?.patientInfo?.FNAME.charAt(0).toUpperCase()}
     //         </Avatar>
     //       ) : (
@@ -159,7 +159,7 @@ export default function OrderTableRow({
 
           <Stack>
             <ListItemText
-              primary={row?.brand_name}
+              primary={row?.generic_name}
               // secondary={row?.voucherId}
               primaryTypographyProps={{ typography: 'subtitle2' }}
               secondaryTypographyProps={{
@@ -252,6 +252,30 @@ export default function OrderTableRow({
         </Label>
       </TableCell>
       {/* <TableCell/></TableCell> */}
+      <TableCell align='center'>
+
+        <Label variant="soft" color={
+          row?.delivery_status?.id === 10 && 'warning' ||
+          row?.delivery_status?.id === 7 && 'success' ||
+          row?.delivery_status?.id === 6 && 'success' ||
+          row?.delivery_status?.id === 8  && 'error' ||
+          row?.delivery_status?.id === 9 && 'warning' || 
+          row?.delivery_status?.id === 5 && 'primary' ||
+          row?.delivery_status?.id === 11 && 'error' ||
+          row?.delivery_status?.id === 12 && 'info' ||
+          'default'
+
+
+        }>
+             {row?.delivery_status?.name}
+        </Label>
+      </TableCell>
+
+      <TableCell align='center'>
+        <Typography>
+           {row?.created_at}
+        </Typography>
+      </TableCell>
 
       <TableCell align="center">
         <Tooltip title="View Details" placement="top" arrow>

@@ -37,7 +37,8 @@ const ICONS = {
   orders:icon('fluent-mdl2:activate-orders'),
   store:icon('material-symbols:store'),
   medecine:icon('game-icons:miracle-medecine'),
-  history:icon('uil:history')
+  history:icon('uil:history'),
+  logs:icon('icon-park-outline:upload-logs')
 };
 
 // ----------------------------------------------------------------------
@@ -74,8 +75,9 @@ export function useNavData() {
           { title: t('Dashboard'), path: paths.merchant.dashboard, icon: ICONS.dashboard },
           { title: t('Supplies'), path: paths.merchant.medicine, icon: ICONS.medecine},
           { title: t('Orders'), path: paths.merchant.orders, icon: ICONS.orders },
+          { title: t('Order History'), path: paths.merchant.history, icon: ICONS.history },
           { title: t('Store'), path: paths.merchant.store, icon: ICONS.store },
-          { title: t('History'), path: paths.merchant.history, icon: ICONS.history },
+          { title: t('Logs'), path: paths.merchant.logs, icon: ICONS.logs },
         
         ],
       },

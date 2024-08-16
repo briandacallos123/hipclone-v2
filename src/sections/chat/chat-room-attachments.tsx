@@ -88,26 +88,37 @@ export default function ChatRoomAttachments({ attachments }: Props) {
               // onDownload={()=>{
               //   alert("123")
               // }}
-              onDownload={async() =>{
-                
-                const response = await axios.get(`https://hip.apgitsolutions.com/api/checkFile?filename=${attachment?.name}`);
-                const {data} = response;
-
-                if(data?.status === "Found"){
-                  const fileURL = returnAttachment(attachment?.preview);
-
-                  console.log(fileURL,' FILE________________________')
-
+              onDownload={async() => {
+                try {
+                  // const response = await axios.get(`/api/checkFile?filename=${attachment?.name}`);
+                  // const { data } = response;
+              
+                  // const fileURL = await returnAttachment(attachment?.preview);
+              
+                  // console.log(fileURL, 'HAHAHAAAAAAAAAA');
+              
                   const link = document.createElement('a');
-                  
-
-                  link.href = fileURL // Replace 'image-link.jpg' with your actual image URL
+              
+                  // Fetch the image as a blob
+                  const imageResponse = await fetch(`https://hip.apgitsolutions.com/${attachment?.preview}`);
+                  const blob = await imageResponse.blob();
+              
+                  // Create a URL for the blob
+                  const blobURL = URL.createObjectURL(blob);
+              
+                  link.href = blobURL; // Use the blob URL for the download
                   link.download = attachment?.name; // Set the file name for download
+
+
                   document.body.appendChild(link);
                   link.click();
-                  document.body.removeChild(link) ;
+                  document.body.removeChild(link);
+              
+                  URL.revokeObjectURL(blobURL);
+              
+                } catch (error) {
+                  console.error('Error downloading the image:', error);
                 }
-               
               }}
               sx={{ width: 28, height: 28 }}
             />

@@ -29,7 +29,7 @@ export default function useChat(props?: any) {
   const { contacts, recipients, conversations, currentConversationId, conversationsStatus } =
     useSelector((state) => state.chat);
 
-    console.log(conversations,'ANNGGG@@@@@')
+
 
   const searchParams = useSearchParams();
   const conversationParam = searchParams.get('id');
@@ -82,6 +82,7 @@ export default function useChat(props?: any) {
   
   const onSendMessage = useCallback(
     (body: string, attachment? : File) => {
+      console.log(body, attachment,'TANGINA MO BOYYYYYYYYYYY!!!!!!!!!!!!!!')
     /*   try {
         if (currentConversationId) {
           dispatch(sendMessage(currentConversationId, body));
@@ -114,6 +115,8 @@ export default function useChat(props?: any) {
           }
         }
       }).then((result: any) => {
+  
+
         props?.handleMessageView(true,result?.data?.createReplyConversation?.participants,result?.data?.createReplyConversation?.messages,conversationParam);
         props?.setcurrentConve(result?.data?.createReplyConversation);
         props?.rChat();

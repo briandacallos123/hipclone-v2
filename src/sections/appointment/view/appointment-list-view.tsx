@@ -193,6 +193,7 @@ export default function AppointmentListView() {
       setDone(allAppointments?.summary?.done);
       setCancelled(allAppointments?.summary?.cancelled);
       setIsLoading(false)
+      setclinicData(allAppointments?.clinicList)
     }
   }, [drData]);
 
@@ -223,20 +224,12 @@ export default function AppointmentListView() {
     }
   }, [triggerRef]);
 
-  useEffect(() => {
-    // drClinicFetch().then((result: any) => {
-    //   const { data } = result;
-    //   if (data) {
-    //     const { doctorClinics } = data;
-    //     setclinicData(doctorClinics);
-    //   }
-    // });
-    // return () => drClinicFetch();
-    if (user?.role === 'doctor' && drClinicData) {
-      const { doctorClinics } = drClinicData;
-      setclinicData(doctorClinics);
-    }
-  }, [drClinicData, user?.role]);
+  // useEffect(() => {
+  //   if (user?.role === 'doctor' && drClinicData) {
+  //     const { doctorClinics } = drClinicData;
+  //     setclinicData(doctorClinics);
+  //   }
+  // }, [drClinicData, user?.role]);
 
   // =========
   // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
@@ -254,12 +247,12 @@ export default function AppointmentListView() {
     },
   });
  
-  useEffect(() => {
-    if (user?.role === 'patient' && userClinicData) {
-      const { AllClinicUser } = userClinicData;
-      setclinicData(AllClinicUser);
-    }
-  }, [user?.role, userClinicData]);
+  // useEffect(() => {
+  //   if (user?.role === 'patient' && userClinicData) {
+  //     const { AllClinicUser } = userClinicData;
+  //     setclinicData(AllClinicUser);
+  //   }
+  // }, [user?.role, userClinicData]);
 
   useEffect(() => {
     //

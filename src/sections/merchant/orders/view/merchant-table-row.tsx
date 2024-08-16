@@ -239,13 +239,14 @@ export default function MerchantOrdersTableRow({
             secondary={
               <>
                 <Typography variant="caption">{row?.generic_name}</Typography>
-                <Typography color={
+                {/* <Typography color={
                   row?.status_id === 4 && 'success.main' ||
                   row?.status_id === 1 && 'warning.main' ||
                   row?.status_id === 2 && 'primary.main' ||
                   row?.status_id === 3 && 'error.main'
 
-                } variant="caption">
+                } variant="caption"> */}
+                <Typography>
                 {row?.status_id === 4 && "Done" ||
                     row?.status_id === 1 && "Pending" ||
                     row?.status_id === 2 && "Approved" ||
@@ -270,15 +271,12 @@ export default function MerchantOrdersTableRow({
 
   return (
     <TableRow hover selected={selected}>
-      <TableCell sx={{
-        display: 'flex',
-        alignItems: 'center'
-      }}>
-        <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
+      <TableCell >
+        {/* <Avatar alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }}>
           {`#`}
-        </Avatar>
+        </Avatar> */}
         <ListItemText
-          primary={`${row?.id}`}
+          primary={`#${row?.id}`}
           primaryTypographyProps={{ typography: 'subtitle2' }}
           sx={{
             cursor: 'pointer',
@@ -297,7 +295,7 @@ export default function MerchantOrdersTableRow({
 
       </TableCell>
 
-      <TableCell align="center" sx={{
+      <TableCell align="left" sx={{
         display: 'flex',
         alignItems: "center",
         justifyContent: "center",
@@ -315,8 +313,11 @@ export default function MerchantOrdersTableRow({
         </Label>
       </TableCell>
       <TableCell align='center'>
-        <Typography>
+        <Label variant="soft" color={row?.is_deliver ? "success":"warning"}>
           {row?.is_deliver ? 'Delivery' : 'Pick Up'}
+        </Label>
+        <Typography>
+        
         </Typography>
       </TableCell>
 
@@ -325,17 +326,41 @@ export default function MerchantOrdersTableRow({
           row?.status_id === 4 && 'success' ||
           row?.status_id === 1 && 'warning' ||
           row?.status_id === 2 && 'primary' ||
-          row?.status_id === 3 && 'error'
+          row?.status_id === 3 && 'error' || 'default'
 
         }>
           {row?.status_id === 4 && "Done" ||
             row?.status_id === 1 && "Pending" ||
             row?.status_id === 2 && "Approved" ||
-
-            row?.status_id === 3 && "Cancelled"
+            row?.status_id === 3 && "Cancelled" 
 
           }
         </Label>
+      </TableCell>
+
+      <TableCell align='center'>
+
+        <Label variant="soft" color={
+          row?.delivery_status?.id === 10 && 'warning' ||
+          row?.delivery_status?.id === 7 && 'success' ||
+          row?.delivery_status?.id === 6 && 'success' ||
+          row?.delivery_status?.id === 8  && 'error' ||
+          row?.delivery_status?.id === 9 && 'warning' || 
+          row?.delivery_status?.id === 5 && 'primary' ||
+          row?.delivery_status?.id === 11 && 'error' ||
+          row?.delivery_status?.id === 12 && 'info' ||
+          'default'
+
+
+        }>
+             {row?.delivery_status?.name}
+        </Label>
+      </TableCell>
+
+      <TableCell align='center'>
+        <Typography>
+           {row?.created_at}
+        </Typography>
       </TableCell>
 
       <TableCell align="center">
@@ -377,7 +402,7 @@ export default function MerchantOrdersTableRow({
           </MenuItem>}
 
 
-          {row?.status_id !== 4 && <MenuItem
+          {row?.status_id !== 4 && row?.status_id !== 3 && <MenuItem
             onClick={() => {
               cancelConfirm.onTrue()
               popover.onClose();
@@ -388,7 +413,7 @@ export default function MerchantOrdersTableRow({
             <Iconify icon="material-symbols-light:cancel" />
             Cancel
           </MenuItem>}
-          {row?.status_id !== 4 && <MenuItem
+          {row?.status_id !== 4 && row?.status_id !== 3 && <MenuItem
             onClick={() => {
               doneConfirm.onTrue()
               popover.onClose();
@@ -398,6 +423,17 @@ export default function MerchantOrdersTableRow({
           >
             <Iconify icon="eva:done-all-fill" />
             Done
+          </MenuItem>}
+
+          {row?.status_id !== 4 && row?.status_id !== 3  && row?.status_id !== 1 && <MenuItem
+            onClick={() => {
+              onEditRow()
+
+            }}
+            sx={{ color: 'success.main' }}
+          >
+            <Iconify icon="mdi:pencil" />
+            Update Status 
           </MenuItem>}
 
           <MenuItem

@@ -16,6 +16,8 @@ import { UploadProps } from './types';
 // ----------------------------------------------------------------------
 
 export default function MultiFilePreview({ thumbnail, files, onRemove, sx }: UploadProps) {
+
+  console.log(files,'FILESSSSSSSSSSSSSSSSSSS____________________')
   return (
     <AnimatePresence initial={false}>
       {files?.map((file) => {

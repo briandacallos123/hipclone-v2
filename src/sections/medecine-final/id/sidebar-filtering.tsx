@@ -67,7 +67,7 @@ export default function SidebarFitering({
     const handelSort = useCallback(
         (event: SelectChangeEvent<string[]>) => {
             let val: any = event.target.value
-
+            console.log(val,'VALUEEEEEEEEEEEEEE____________________________')
             onFilters(
                 'sort',
                 val

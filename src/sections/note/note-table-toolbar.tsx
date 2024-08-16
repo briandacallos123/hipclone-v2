@@ -97,8 +97,8 @@ export default function NoteTableToolbar({
           input={<OutlinedInput label="Hospital" />}
           renderValue={(selected) =>
             hospitalOptions
-              .filter((v: any) => selected.find((s: any) => s === v?.id))
-              .map((m: any) => m?.clinic_name)
+              ?.filter((v: any) => selected.find((s: any) => s === v?.id))
+              ?.map((m: any) => m?.clinic_name)
               .join(', ')
           }
           sx={{ textTransform: 'capitalize' }}

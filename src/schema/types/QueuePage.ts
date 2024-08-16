@@ -3,7 +3,7 @@ import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { GraphQLError } from 'graphql/error/GraphQLError';
 import { DoctorAppointments } from './DoctorAppointments';
-import {Clinics} from './ClinicSched'
+import { Clinics } from './ClinicSched'
 import { DoctorTransactionObject } from './DoctorAppointments';
 
 const CountType = objectType({
@@ -53,87 +53,87 @@ export const QueueReadCountPage = extendType({
 
         const currentDateBackward = new Date();
         currentDateBackward.setHours(23, 59, 59, 59);
-        
+
         try {
-          
-        const [queueAll, queueDone, queueCancelled]: any = await client.$transaction([
-          client.appointments.findMany({
-            where: {
-              doctorID: session?.user?.id,
-              NOT: [{ time_slot: null }, { patientInfo: null }],
 
-              status: 1,
-              clinicInfo: {
-                uuid,
-                isDeleted: 0,
+          const [queueAll, queueDone, queueCancelled]: any = await client.$transaction([
+            client.appointments.findMany({
+              where: {
+                doctorID: session?.user?.id,
+                NOT: [{ time_slot: null }, { patientInfo: null }],
 
-                NOT: [{ clinic_name: null }, { clinic_name: '' }],
-              },
-              date: {
-                gte: formattedDateAsDate,
-                lte:currentDateBackward
-              },
-            },
-            include: {
-              patientInfo: true,
-              clinicInfo: true,
-              doctorInfo: true,
-            },
-          }),
-          client.appointments.findMany({
-            where: {
-              ...checkUser,
-              NOT: [{ time_slot: null }, { patientInfo: null }],
-              // type: 1,
-              status: 3,
-              clinicInfo: {
-                uuid,
-                isDeleted: 0,
+                status: 1,
+                clinicInfo: {
+                  uuid,
+                  isDeleted: 0,
 
-                NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                  NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                },
+                date: {
+                  gte: formattedDateAsDate,
+                  lte: currentDateBackward
+                },
               },
-              date: {
-                gte: formattedDateAsDate,
-                lte:currentDateBackward
+              include: {
+                patientInfo: true,
+                clinicInfo: true,
+                doctorInfo: true,
               },
-            },
-            include: {
-              patientInfo: true,
-              clinicInfo: true,
-              doctorInfo: true,
-            },
-          }),
-          client.appointments.findMany({
-            where: {
-              ...checkUser,
-              NOT: [{ time_slot: null }, { patientInfo: null }],
-              // type: 1,
-              status: 2,
-              clinicInfo: {
-                uuid,
-                isDeleted: 0,
+            }),
+            client.appointments.findMany({
+              where: {
+                ...checkUser,
+                NOT: [{ time_slot: null }, { patientInfo: null }],
+                // type: 1,
+                status: 3,
+                clinicInfo: {
+                  uuid,
+                  isDeleted: 0,
 
-                NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                  NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                },
+                date: {
+                  gte: formattedDateAsDate,
+                  lte: currentDateBackward
+                },
               },
-              date: {
-                gte: formattedDateAsDate,
-                lte:currentDateBackward
+              include: {
+                patientInfo: true,
+                clinicInfo: true,
+                doctorInfo: true,
               },
-            },
-            include: {
-              patientInfo: true,
-              clinicInfo: true,
-              doctorInfo: true,
-            },
-          }),
-        ]);
+            }),
+            client.appointments.findMany({
+              where: {
+                ...checkUser,
+                NOT: [{ time_slot: null }, { patientInfo: null }],
+                // type: 1,
+                status: 2,
+                clinicInfo: {
+                  uuid,
+                  isDeleted: 0,
 
-    
-        return {
-          queueCount: queueAll?.length,
-          queueDone: queueDone?.length,
-          queueCancelled: queueCancelled?.length,
-        };
+                  NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                },
+                date: {
+                  gte: formattedDateAsDate,
+                  lte: currentDateBackward
+                },
+              },
+              include: {
+                patientInfo: true,
+                clinicInfo: true,
+                doctorInfo: true,
+              },
+            }),
+          ]);
+
+
+          return {
+            queueCount: queueAll?.length,
+            queueDone: queueDone?.length,
+            queueCancelled: queueCancelled?.length,
+          };
         } catch (error) {
           throw new GraphQLError(error)
         }
@@ -143,29 +143,92 @@ export const QueueReadCountPage = extendType({
 });
 
 export const queue_data = objectType({
-  name:"queue_data",
+  name: "queue_data",
   definition(t) {
-    t.nullable.list.field('appointments_data',{
-      type:DoctorAppointments
+    t.nullable.list.field('appointments_data', {
+      type: DoctorAppointments
     }),
-    t.boolean('is_paid')
+      t.boolean('is_paid')
     t.int('position');
-    t.boolean('is_not_today')
-    t.boolean('is_done')
-    t.int('notApproved')
-    t.nullable.field('notAppNotToday',{
+    t.nullable.field('hasSessionNotStarted',{
       type:DoctorAppointments
+    });
+    t.boolean('is_not_today')
+    t.boolean('notStarted')
+    t.boolean('is_done')
+    t.boolean('is_ongoing');
+    t.boolean('done_session');
+
+    t.int('notApproved')
+    t.nullable.field('notAppNotToday', {
+      type: DoctorAppointments
     });
   },
 })
 
 export const QueuePatientInp = inputObjectType({
-  name:"QueuePatientInp",
-  definition(t){
+  name: "QueuePatientInp",
+  definition(t) {
     t.nullable.string("voucherCode")
     // t.nullable.string('uuid')
   }
 })
+const dateIntervalChecker = (item: any, patient:any) => {
+  let newData: any = [];
+  let patientSession:any;
+  let hasTodaySchedule:any;
+  let notStarted:any;
+  let doneSession:any;
+  let isOngoing:any;
+
+
+
+  item?.forEach((data: any) => {
+    // Check if time_slot and e_time are strings, if not, convert them to ISO strings
+    const timeSlotUTC = typeof data?.time_slot === 'string' ? data?.time_slot : data?.time_slot.toISOString();
+    const endTimeUTC = typeof data?.e_time === 'string' ? data?.e_time : data?.e_time.toISOString();
+
+    // Get the current date and time
+    const currentDateTime = new Date();
+
+    // Get today's date as a string in the format YYYY-MM-DD
+    const todayDateStr = currentDateTime.toISOString().split('T')[0];
+
+    // Extract time components from the time slot and end time
+    const timeSlotTime = new Date(timeSlotUTC).toISOString().split('T')[1];
+    const endTime = new Date(endTimeUTC).toISOString().split('T')[1];
+
+    // Create Date objects for the start and end times on the current day
+    const startDateTimeUTC = new Date(`${todayDateStr}T${timeSlotTime}`);
+    const endDateTimeUTC = new Date(`${todayDateStr}T${endTime}`);
+
+    const phDate = new Date(currentDateTime.getTime() + (8 * 60 * 60 * 1000));
+
+
+    // Check if the current date and time is within the interval
+    const isWithinInterval = phDate >= startDateTimeUTC && phDate <= endDateTimeUTC;
+
+    if (isWithinInterval && data?.patientID === Number(patient?.S_ID)) {
+      isOngoing = true;
+      newData.push(data);
+    }
+    if(data?.patientID === Number(patient?.S_ID) && phDate <= startDateTimeUTC){
+      notStarted = true;
+    }
+    if(data?.patientID === Number(patient?.S_ID) && phDate > endDateTimeUTC){
+      doneSession = true;
+    }
+  });
+
+  newData?.forEach((item:any)=>{
+    if(item?.patientID === patient?.S_ID){
+      patientSession = true;
+    }
+  })
+  return {newData, patientSession, notStarted, doneSession, isOngoing}
+}
+
+
 
 export const QueuePatient = extendType({
   type: 'Query',
@@ -175,146 +238,77 @@ export const QueuePatient = extendType({
       args: { data: QueuePatientInp! },
       async resolve(_root, args, ctx) {
 
-       try{
-        const { voucherCode}:any = args?.data
-        const { session } = ctx;
+        try {
+          const { voucherCode }: any = args?.data
+          const { session } = ctx;
 
-        const currentDate = new Date();
-        const formattedDate = currentDate.toISOString().slice(0, 10);
-        const formattedDateAsDate = new Date(formattedDate);
+          const currentDate = new Date();
+          const formattedDate = currentDate.toISOString().slice(0, 10);
+          const formattedDateAsDate = new Date(formattedDate);
 
-        const currentDateBackward = new Date();
-        currentDateBackward.setHours(23, 59, 59, 59);
+          const currentDateBackward = new Date();
+          currentDateBackward.setHours(23, 59, 59, 59);
 
-        const appt = await client.appointments.findFirst({
-          where:{
-            voucherId:voucherCode
-          }
-        })
-
-
-        const patient = await client.patient.findFirst({
-          where:{
-            S_ID:Number(appt?.patientID)
-          }
-        })
-        
-      
+          const appt = await client.appointments.findFirst({
+            where: {
+              voucherId: voucherCode
+            }
+          })
 
 
-        // get clinic based on id of clinic on appt
-        const clinicInfo = await client.clinic.findFirst({
-          where:{
-            id:Number(appt?.clinic)
-          }
-        })
+          const patient = await client.patient.findFirst({
+            where: {
+              S_ID: Number(appt?.patientID)
+            }
+          })
 
-        const notApprovedNotToday = await  client.appointments.findFirst({
-          where:{
-            isDeleted:0,
-            status:{
-              not:1
-            },
-            voucherId:voucherCode,
-            clinicInfo: {
-              uuid:clinicInfo?.uuid,
+
+
+
+          // get clinic based on id of clinic on appt
+          const clinicInfo = await client.clinic.findFirst({
+            where: {
+              id: Number(appt?.clinic)
+            }
+          })
+
+          const notApprovedNotToday = await client.appointments.findFirst({
+            where: {
               isDeleted: 0,
-              NOT: [{ clinic_name: null }, { clinic_name: '' }],
-            },
-            // pag walang laman yung notApproved, means ang data ay not approved and not today.
-
-            // date: {
-            //   gte: formattedDateAsDate,
-            //   lte: currentDateBackward,
-            // },
-            
-          },
-          include:{
-            patientInfo:true,
-            clinicInfo:true
-          }
-          
-        })
-
-
-        const notApproved = await  client.appointments.findFirst({
-          where:{
-            isDeleted:0,
-            status:{
-              not:1
-            },
-            voucherId:voucherCode,
-            clinicInfo: {
-              uuid:clinicInfo?.uuid,
-              isDeleted: 0,
-              NOT: [{ clinic_name: null }, { clinic_name: '' }],
-            },
-            date: {
-              gte: formattedDateAsDate,
-              lte: currentDateBackward,
-            },
-            
-          },
-          select:{
-            status:true
-          }
-        })
-
-
-
-        const isDoneAppt = await  client.appointments.findMany({
-          where:{
-            isDeleted:0,
-            status:1,
-            voucherId:voucherCode,
-            clinicInfo: {
-              uuid:clinicInfo?.uuid,
-              isDeleted: 0,
-              NOT: [{ clinic_name: null }, { clinic_name: '' }],
-            },
-            date: {
-              lt: formattedDateAsDate,
-            },
-            
-          },
-          include: {
-            clinicInfo: true,
-          }
-        })
-
-
-        // ito yung checker kung yung voucher ni patient ay valid at naka schedule today.
-      //  kapag walang laman, means hindi naka schedule ngayon.
-        const isToday = await  client.appointments.findMany({
-          where:{
-            isDeleted:0,
-            status:1,
-            voucherId:voucherCode,
-            clinicInfo: {
-              uuid:clinicInfo?.uuid,
-              isDeleted: 0,
-              NOT: [{ clinic_name: null }, { clinic_name: '' }],
-            },
-            date: {
-              gte: formattedDateAsDate,
-              lte: currentDateBackward,
-            },
-            
-          },
-          include: {
-            clinicInfo: true,
-          }
-        })
-
-        
-
-        const [result, resultFirst]: any = await client.$transaction([
-          client.appointments.findMany({
-            where:{
-              isDeleted:0,
-              status:1,
+              status: {
+                not: 1
+              },
+              voucherId: voucherCode,
               clinicInfo: {
-                uuid:clinicInfo?.uuid,
+                uuid: clinicInfo?.uuid,
+                isDeleted: 0,
+                NOT: [{ clinic_name: null }, { clinic_name: '' }],
+              },
+              // pag walang laman yung notApproved, means ang data ay not approved and not today.
+
+              // date: {
+              //   gte: formattedDateAsDate,
+              //   lte: currentDateBackward,
+              // },
+
+            },
+            include: {
+              patientInfo: true,
+              clinicInfo: true
+            }
+
+          })
+
+
+          const notApproved = await client.appointments.findFirst({
+            where: {
+              isDeleted: 0,
+              status: {
+                not: 1
+              },
+              voucherId: voucherCode,
+              clinicInfo: {
+                uuid: clinicInfo?.uuid,
                 isDeleted: 0,
                 NOT: [{ clinic_name: null }, { clinic_name: '' }],
               },
@@ -322,85 +316,169 @@ export const QueuePatient = extendType({
                 gte: formattedDateAsDate,
                 lte: currentDateBackward,
               },
-              
+
+            },
+            select: {
+              status: true
+            }
+          })
+
+
+
+          const isDoneAppt = await client.appointments.findMany({
+            where: {
+              isDeleted: 0,
+              status: 1,
+              voucherId: voucherCode,
+              clinicInfo: {
+                uuid: clinicInfo?.uuid,
+                isDeleted: 0,
+                NOT: [{ clinic_name: null }, { clinic_name: '' }],
+              },
+              date: {
+                lt: formattedDateAsDate,
+              },
+
             },
             include: {
               clinicInfo: true,
             }
-          }),
-          client.appointments.findMany({
-            where:{
-              isDeleted:0,
-              status:1,
+          })
+
+
+          // ito yung checker kung yung voucher ni patient ay valid at naka schedule today.
+          //  kapag walang laman, means hindi naka schedule ngayon.
+          const isToday = await client.appointments.findMany({
+            where: {
+              isDeleted: 0,
+              status: 1,
+              voucherId: voucherCode,
               clinicInfo: {
-                uuid:clinicInfo?.uuid,
+                uuid: clinicInfo?.uuid,
                 isDeleted: 0,
                 NOT: [{ clinic_name: null }, { clinic_name: '' }],
               },
               date: {
                 gte: formattedDateAsDate,
-                // lte: currentDateBackward,
+                lte: currentDateBackward,
               },
-              
+
             },
             include: {
               clinicInfo: true,
             }
           })
-        ])
-
-       
 
 
-        const position = result.map(async(it:any)=>{
-          return await client.patient.findFirst({
-            where:{
-              S_ID:Number(it?.patientID)
-            }
-          })
-        })
 
-        const teka = await Promise.all(position);
+          const [result, resultFirst]: any = await client.$transaction([
+            client.appointments.findMany({
+              where: {
+                isDeleted: 0,
+                status: 1,
+                clinicInfo: {
+                  uuid: clinicInfo?.uuid,
+                  isDeleted: 0,
+                  NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                },
+                date: {
+                  gte: formattedDateAsDate,
+                  lte: currentDateBackward,
+                },
 
-        const patientPos = teka.findIndex((item:any)=>item.EMAIL === patient?.EMAIL)
-        
-  
-        const haveSchedButNotToday = () => {
-          if(isToday?.length === 0 && resultFirst?.length !== 0){
-            return true
-          }else{
-            return false
-          }
-        }
-
-
-        return {
-          appointments_data: resultFirst?.length ? resultFirst : result,
-          position:patientPos !== -1 ? patientPos : (resultFirst && 1),
-          is_not_today:haveSchedButNotToday(),
-          is_done:isDoneAppt?.length !== 0,
-          is_paid:Number(appt?.payment_status) === 1,
-          notApproved:(()=>{
-            if(Number(notApproved?.status) === 0){
-              return 4
-            }else{
-              return notApproved?.status
-            }
-          })(),
-          notAppNotToday:(()=>{
-            if(Number(notApprovedNotToday?.status) === 0){
-              return {
-                ...notApprovedNotToday,
-                status:4
+              },
+              include: {
+                clinicInfo: true,
+              },
+              orderBy: {
+                appr_date: 'asc'
               }
-            }else{
-              return notApprovedNotToday
-            }
+            }),
+            client.appointments.findMany({
+              where: {
+                isDeleted: 0,
+                status: 1,
+                clinicInfo: {
+                  uuid: clinicInfo?.uuid,
+                  isDeleted: 0,
+                  NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                },
+                date: {
+                  gte: formattedDateAsDate,
+                },
+
+              },
+              include: {
+                clinicInfo: true,
+              },
+              orderBy: {
+                appr_date: 'asc'
+              }
+            })
+          ])
+
+
+
+
+
+          const position = (resultFirst?.length ? resultFirst : result).map(async (it: any) => {
+            return await client.patient.findFirst({
+              where: {
+                S_ID: Number(it?.patientID)
+              }
+            })
           })
+
+          const teka = await Promise.all(position);
+
+          const patientPos = teka.findIndex((item: any) => item.EMAIL === patient?.EMAIL)
+
+
+
+
+          const haveSchedButNotToday = () => {
+            if (isToday?.length === 0 && resultFirst?.length !== 0) {
+              return true
+            } else {
+              return false
+            }
+          }
+          // console.log(result,'resultresultresultresultresultresult')
+
+        
+
+          const {newData,isOngoing, patientSession, notStarted, doneSession} = resultFirst?.length ? dateIntervalChecker(resultFirst, patient) : dateIntervalChecker(result, patient)
+
+          return {
+            appointments_data: newData,
+            position: patientSession && 1,
+            is_not_today: haveSchedButNotToday(),
+            is_done: isDoneAppt?.length !== 0,
+            is_paid: (Number(appt?.payment_status) === 1 || (appt?.hmo !== null && appt?.hmo !== 's:0:"";')),
+            notStarted,
+            done_session:doneSession,
+            is_ongoing:isOngoing,
+            notApproved: (() => {
+              if (Number(notApproved?.status) === 0) {
+                return 4
+              } else {
+                return notApproved?.status
+              }
+            })(),
+            notAppNotToday: (() => {
+              if (Number(notApprovedNotToday?.status) === 0) {
+                return {
+                  ...notApprovedNotToday,
+                  status: 4
+                }
+              } else {
+                return notApprovedNotToday
+              }
+            })
+          }
+        } catch (err) {
+          console.log(err, '__ERORR')
         }
-       }catch(err){
-        console.log(err,'__ERORR')
-       }
 
       }
     })
@@ -409,7 +487,7 @@ export const QueuePatient = extendType({
 
 
 export const QueueClinicInp = inputObjectType({
-  name:"QueueClinicInp",
+  name: "QueueClinicInp",
   definition(t) {
     t.nonNull.int('take');
     t.nonNull.int('skip');
@@ -426,23 +504,23 @@ export const QueueGetClinicOfPatient = extendType({
 
         const { session } = ctx;
 
-        const {  take, skip}:any = args?.data
-        
+        const { take, skip }: any = args?.data
 
-          const currentDate = new Date();
-          const formattedDate = currentDate.toISOString().slice(0, 10);
-          const formattedDateAsDate = new Date(formattedDate);
-  
-          const currentDateBackward = new Date();
-          currentDateBackward.setHours(23, 59, 59, 59);
-      
-        const result = await  client.appointments.findMany({
+
+        const currentDate = new Date();
+        const formattedDate = currentDate.toISOString().slice(0, 10);
+        const formattedDateAsDate = new Date(formattedDate);
+
+        const currentDateBackward = new Date();
+        currentDateBackward.setHours(23, 59, 59, 59);
+
+        const result = await client.appointments.findMany({
           take,
           skip,
-          where:{
-            isDeleted:0,
-            status:1,
-            patientID:Number(session?.user?.s_id),
+          where: {
+            isDeleted: 0,
+            status: 1,
+            patientID: Number(session?.user?.s_id),
             clinicInfo: {
               isDeleted: 0,
               NOT: [{ clinic_name: null }, { clinic_name: '' }],
@@ -451,7 +529,7 @@ export const QueueGetClinicOfPatient = extendType({
               gte: formattedDateAsDate,
               // lte: currentDateBackward,
             },
-            
+
           },
           include: {
             clinicInfo: true,
@@ -459,10 +537,10 @@ export const QueueGetClinicOfPatient = extendType({
         })
 
         return {
-          appointments_data:result
+          appointments_data: result
         }
 
-       
+
       }
     })
   }

@@ -36,6 +36,7 @@ export default function PatientNoteListView({ slug, uuid }: Props) {
     totalData,
     Ids,
     isLoadingPatient,
+    clinicData
   } = useNotesHooks(payloads);
   const openCreate = useBoolean();
   // console.log(tableData1, 'table data1');
@@ -49,6 +50,7 @@ export default function PatientNoteListView({ slug, uuid }: Props) {
         data={medData}
         loading={medLoad}
         refetch={refetch}
+        clinicData={clinicData}
         tableData1={tableData1}
         totalData={totalData}
         isLoading={isLoadingPatient}

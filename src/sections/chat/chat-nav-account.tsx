@@ -15,12 +15,12 @@ import { useMockedUser } from 'src/hooks/use-mocked-user';
 // components
 import Iconify from 'src/components/iconify';
 import CustomPopover, { usePopover } from 'src/components/custom-popover';
-
+import { useAuthContext } from '@/auth/hooks';
 // ----------------------------------------------------------------------
 
 export default function ChatNavAccount() {
-  const { user } = useMockedUser();
-
+  // const { user } = useMockedUser();
+  const {user} = useAuthContext();
   const popover = usePopover();
 
   const [status, setStatus] = useState<'online' | 'alway' | 'busy' | 'offline'>('online');
@@ -28,6 +28,8 @@ export default function ChatNavAccount() {
   const handleChangeStatus = useCallback((event: SelectChangeEvent) => {
     setStatus(event.target.value as 'online' | 'alway' | 'busy' | 'offline');
   }, []);
+
+  console.log(user,'USERSSSSSSSSSSSSSSSSSSSSSSSSS')
 
   return (
     <>

@@ -407,13 +407,7 @@ export default function StoreListView() {
                   // }
                   />
                 )}
-                {/* {user?.role === 'patient' && (
-                  <TableHeadCustom
-                    order={table.order}
-                    orderBy={table.orderBy}
-                    headLabel={TABLE_HEAD}
-                  />
-                )} */}
+              
  
                 <TableBody>
                   {queryResults?.loading
@@ -422,7 +416,6 @@ export default function StoreListView() {
                       <StoreTableRow
                         key={row.id}
                         row={row}
-                        // onSelectRow={() => table.onSelectRow(String(row.id))}
                         onViewRow={() => handleViewRow(row)}
                         onManageRow={() => handleManageRow(Number(row?.id))}
                         onDeleteRow={()=>handleDeleteRow(row?.id)}

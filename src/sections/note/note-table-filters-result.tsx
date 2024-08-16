@@ -57,7 +57,7 @@ export default function NoteTableFiltersResult({
         {!!filters.hospital.length && (
           <Block label="Hospital:">
             {filters.hospital.map((item: any) => {
-              const info: any = hospitalOptions.find((v: any) => v?.id === item);
+              const info: any = hospitalOptions?.find((v: any) => v?.id === item);
               return (
                 <Chip
                   key={info?.id}
@@ -70,7 +70,7 @@ export default function NoteTableFiltersResult({
           </Block>
         )}
 
-        {filters.startDate && filters.endDate && (
+        {filters?.startDate && filters?.endDate && (
           <Block label="Date:">
             <Chip size="small" label={shortLabel} onDelete={handleRemoveDate} />
           </Block>

@@ -70,6 +70,7 @@ import OrderTableRow from '../order-table-row';
 import OrderTableSkeleton from '../order-table-skeleton';
 import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
 import HistoryView from '@/sections/history/view/history-view';
+import OrderView from '@/sections/merchant/orders/view/merchant-view';
 
 // ----------------------------------------------------------------------
 
@@ -79,7 +80,10 @@ const TABLE_HEAD = [
   { id: 'delivery', label: 'Delivery Type', align: 'center' },
   { id: 'payment', label: 'Payment Status', align: 'center' },
   { id: 'status', label: 'Status', align: 'center' },
-  { id: 'action', label: 'Action', align: 'center' },
+  { id: 'delivery', label: 'Delivery Status', align: 'center' },
+  { id: 'date', label: 'Date', align: 'center' },
+  {  label: 'Action', align: 'center' },
+
   // { id: '' },
 ];
 
@@ -155,7 +159,9 @@ export default function OrderListView() {
             data: {
                 skip:page * rowsPerPage,
                 take:rowsPerPage,
-                status:filters.status
+                status:filters.status,
+                orderBy,
+                orderDir: order,
             },
           },
        }
@@ -170,7 +176,7 @@ export default function OrderListView() {
         }
         setIsLoading(false)
     })
-  },[filters.status, rowsPerPage, page])
+  },[filters.status, rowsPerPage, page, orderBy, order])
  
 
   // =========
@@ -543,8 +549,10 @@ export default function OrderListView() {
         onClose={openView.onFalse}
         id={viewId}
       />} */}
+
+      <OrderView dataView={viewId} open={openView.value} onClose={openView.onFalse} />
       
-      {viewId && <HistoryView data={viewId} title="Order View" open={openView.value} onClose={openView.onFalse}/>}
+      {/* {viewId && <HistoryView data={viewId} title="Order View" open={openView.value} onClose={openView.onFalse}/>} */}
       <ConfirmDialog
         open={confirmApprove.value}
         onClose={confirmApprove.onFalse}

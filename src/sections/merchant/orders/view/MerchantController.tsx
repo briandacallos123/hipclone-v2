@@ -107,7 +107,9 @@ const MerchantController = () => {
                     take: table.rowsPerPage,
                     status: filters.status,
                     is_deliver:null,
-                    search:filters.search
+                    search:filters.search,
+                    orderBy:table.orderBy,
+                    orderDir:table.order
                 }
             }
         }).then((res: any) => {
@@ -121,7 +123,7 @@ const MerchantController = () => {
 
             }
         })
-    }, [table.page, table.rowsPerPage, getOrdersResult?.data, filters.status, filters.search])
+    }, [table.page,table.orderBy, table.order, table.rowsPerPage, getOrdersResult?.data, filters.status, filters.search])
 
     // create merchant medecine
     const [createMerchantFuncMed] = useMutation(CreateMerchantMedecine, {
@@ -187,11 +189,13 @@ const MerchantController = () => {
     // merchant / mark as done the order
     
     const doneMerchantOrderFunc = useCallback((model: any) => {
+      
         doneMerchantFuncOrder({
             variables: {
                 data: {
                     order_id:Number(model?.order_id),
-                    status:Number(model?.status)
+                    status:Number(model?.status),
+                    patientEmail:model?.patientEmail
                 }
             }
         }).then((res) => {

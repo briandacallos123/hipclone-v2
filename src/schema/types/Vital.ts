@@ -67,41 +67,10 @@ export const QueryAllVitalData = extendType({
             args: { data: QueryAllVitalDataInp },
             async resolve(_root, args, ctx) {
 
-
                 try {
                     const { session } = ctx;
                     const { user } = session;
                     let result: any;
-
-
-                    // const patientCon = await (() => {
-                    //     if (user?.role === 'patient') {
-                    //         return user?.s_id
-                    //     }
-
-                    //     else {
-                    //         let patientId:any;
-                    //         (async()=>{
-                    //             let id = await client.user.findFirst({
-                    //                 where:{
-                    //                     uuid:args?.data?.uuid
-                    //                 }
-                    //             });
-                    //             let patient = await client.patient.findUnique({
-                    //                 where:{
-                    //                     EMAIL:id?.email
-                    //                 }
-                    //             })
-
-                    //             console.log(patient,'PATIENT NI DOC')
-
-                    //             patientId = patient?.S_ID;
-                    //         })()
-
-                    //         return patientId
-                    //     }
-                    // })()
-
 
                     await new Promise((resolve, reject) => {
                         if (user?.role === 'patient') {
@@ -142,6 +111,9 @@ export const QueryAllVitalData = extendType({
                             },
                             include: {
                                 vital_category: true
+                            },
+                            orderBy:{
+                                createdAt:'desc'
                             }
                         })
                     })

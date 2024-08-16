@@ -411,7 +411,7 @@ const notifData = objectType({
                         },
                         
                     });
-                    myUser = patient?.LNAME ? `${patient?.FNAME} ${patient?.MNAME} ${patient?.LNAME}`:`${patient?.FNAME} ${patient?.LNAME}`
+                    myUser = patient?.MNAME ? `${patient?.FNAME} ${patient?.MNAME} ${patient?.LNAME}`:`${patient?.FNAME} ${patient?.LNAME}`
                 }
 
                 return myUser
@@ -743,6 +743,31 @@ const NotifacationQueryFinalObj = objectType({
 const notifDataFinal = objectType({
     name:"notifDataFinal",
     definition(t) {
+        t.nullable.field('date',{
+            type:"DateTime",
+            resolve(_root){
+                let customDate;
+
+                const date = _root?.notifData?.filter((item)=>!item.is_read);
+
+                if(date){
+                    if(date?.length > 1){
+                        date.sort((a:any, b:any) => new Date(a.created_at) - new Date(b.created_at));
+                        customDate = date[0]?.created_at;
+                    }else{
+                        customDate = date[0]?.created_at;
+                    }
+                }else{
+                    if(date?.length > 1){
+                        date.sort((a:any, b:any) => new Date(a.created_at) - new Date(b.created_at));
+                        customDate = date[0]?.created_at;
+                    }else{
+                        customDate = date[0]?.created_at;
+                    }
+                }
+                return customDate
+            }
+        })
         t.list.field('notifIds',{
             type:'Int',
             resolve(_root){
@@ -803,28 +828,53 @@ const notifDataFinal = objectType({
                 
                 return 1
             }
-        })
+        });
+        t.nullable.list.field('orders',{
+            type:orderType,
+            resolve(root){
+                const orderType = [11,12,13,14,15,16,17];
+                
+
+                if(!orderType.includes(root?.notification_type_id)) return null;
+                const data = root.notifData.map((item)=>item?.orders);
+     
+                return data
+                
+            }
+        });
         t.nullable.field('user',{
             type:'String',
             async resolve(root){
                 let myUser:any;
+
+                const userId = root?.notifData[0]
+
+                const userType = (()=>{
+                    let type;
+                    if(root?.notifData?.find((item)=>item.user_id_user_role === 4)){
+                        type = 'merchant'
+                    }else if(root?.notifData?.find((item)=>item.user_id_user_role === 2)){
+                        type = 'doctor'
+                    }else if(root?.notifData?.find((item)=>item.user_id_user_role === 5)){
+                        type = 'patient'
+                    }
+                    return type;
+                })()
 
                 const targetUser = await client.user.findFirst({
                     where:{
                         id:Number(root?.user_id)
                     }
                 });
-
                 
-                if(Number(targetUser?.userType) === 0){
-                    let patient = await client.patient.findFirst({
+                if(userType === 'merchant'){
+                    let merchant = await client.merchant_user.findFirst({
                         where:{
-                            EMAIL:targetUser?.email
+                            id:Number(userId?.user_id)
                         },
-                        
                     });
-                    myUser = patient?.LNAME ? `${patient?.FNAME} ${patient?.MNAME} ${patient?.LNAME}`:`${patient?.FNAME} ${patient?.LNAME}`
-                }else if(Number(targetUser?.userType) === 2){
+                    myUser = merchant?.middle_name ? `${merchant?.first_name} ${merchant?.middle_name} ${merchant?.last_name}`:`${merchant?.first_name} ${merchant?.last_name}`
+                }else if(userType === 'doctor'){
                     let doctor = await client.employees.findFirst({
                         where:{
                             EMP_EMAIL:targetUser?.email
@@ -832,7 +882,17 @@ const notifDataFinal = objectType({
                     })
 
                     myUser = doctor?.EMP_MNAME ? `${doctor?.EMP_FNAME} ${doctor?.EMP_MNAME} ${doctor?.EMP_LNAME}` : `${doctor?.EMP_FNAME} ${doctor?.EMP_LNAME}`;
+                }else{
+                    let patient = await client.patient.findFirst({
+                        where:{
+                            EMAIL:targetUser?.email
+                        },
+                        
+                    });
+                    myUser = patient?.MNAME ? `${patient?.FNAME} ${patient?.MNAME} ${patient?.LNAME}`:`${patient?.FNAME} ${patient?.LNAME}`
                 }
+
+                
 
                 return myUser
             }
@@ -851,20 +911,24 @@ export const NotifacationQueryFinal = extendType({
             const {user} = session;
             // notification type, this is fixed in backend, notification_type table.
            try {
-            const nTypeId = [1,2,3,4,5,6,7,8]
+            const nTypeId = [1,2,3,4,5,6,7,8,11,12,13,14,15,16,17]
             
             const userRole = (()=>{
-                let role;
+                let notifiable_user_role;
 
                 if(user?.role === 'patient'){
-                    role = 5
+                    notifiable_user_role = {
+                        notifiable_user_role: 5
+                    }
                 }else if(user?.role === 'doctor'){
-                    role = 2
+                    notifiable_user_role = {
+                        notifiable_user_role:2
+                    }
                 }
-                return {
-                    notifiable_user_role:role
-                }
+                return notifiable_user_role
             })()
+
+         
 
             const groupedData = await client.notification.groupBy({
                 by:['notification_type_id','is_read','user_id'],
@@ -890,7 +954,8 @@ export const NotifacationQueryFinal = extendType({
                     },
                     include:{
                         appointments:true,
-                        conversations:true
+                        conversations:true, 
+                        orders:true
                     },
                     
                 })
@@ -902,9 +967,8 @@ export const NotifacationQueryFinal = extendType({
             })
 
             const finalData = await Promise.all(fData)
+
            
-            console.log(finalData,'FINALLLLLLLLLLL')
-            
             return {
                 notifDataFinal:finalData
             }

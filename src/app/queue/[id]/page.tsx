@@ -1,6 +1,6 @@
 "use client"
 
-import { Box, Container, Grid, List, ListItem, ListItemText, Skeleton, Stack, Table, TableBody, TableContainer } from '@mui/material'
+import { Box, Button, Container, Grid, List, ListItem, ListItemText, Skeleton, Stack, Table, TableBody, TableContainer, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
 import QueueController from '@/sections/queuePatient/queue-patient-controller'
 import QueueCover from '@/sections/queue/queue-cover'
@@ -13,29 +13,34 @@ import { useAuthContext } from '@/auth/hooks'
 import QueueCarousel from '@/sections/queue/queue-carousel'
 import { LogoFull } from '@/components/logo'
 import { styled } from '@mui/material/styles';
+import { TableNoData } from '@/components/table'
+import NotFound from '@/app/merchant/not-found'
 // import BG from '/assets/background/queue-bg.jpg'
+import { useRouter } from 'next/navigation';
+import { paths } from '@/routes/paths'
 
 const StyledComponent = styled('div')({
   background: `url('/assets/background/queue-bg.jpg')`,
   backgroundSize: 'cover',
   backgroundPosition: 'center',
-  backgroundRepeat:'no-repeat',
+  backgroundRepeat: 'no-repeat',
   minHeight: '100vh', // Adjust the height as needed 
   width: '100vw',
   display: 'flex',
   justifyContent: 'center',
-  overflow:'hidden',
-  p:{
-    xs:10,
-    lg:5
+  overflow: 'hidden',
+  p: {
+    xs: 10,
+    lg: 5
   }
 });
 
 const page = () => {
-  const { data, notToday, targetItem, clinicData, notApprovedVal, isDoneAppt, clinicLoading, QueryQueue, dataResults, loading, position, remainingP, newPosition, refetch, notAppNotToday,apptPaid } = QueueController()
+  const { data, queryQueueResult, notToday, inValidVoucher, targetItem, clinicData, notApprovedVal, isDoneAppt, clinicLoading, QueryQueue, dataResults, loading, position, remainingP, newPosition, refetch, notAppNotToday, apptPaid } = QueueController()
   const { id } = useParams();
   // const { socket } = useAuthContext()
-
+  const { user } = useAuthContext()
+  const navigate = useRouter();
 
   // useEffect(() => {
   //   if (socket?.connected) {
@@ -52,11 +57,12 @@ const page = () => {
   //     socket?.off('queueFetch')
   //   }
   // }, [socket?.connected, data])
+  const notFound = !queryQueueResult.loading && inValidVoucher
 
   const RenderLoadingContent = () => {
     return (
       <Box sx={{
-        width: { xs: '100%', sm: '100%', md: 400 },
+        width: { xs: '100%', sm: '100%', md: '100%' },
         height: 400,
         border: '10px solid white',
         borderRadius: '10px',
@@ -93,28 +99,37 @@ const page = () => {
     )
   }
 
+  const handleNavigate= () => {
+    if(user){
+      navigate.push(`${paths.dashboard.root}/appointment`);
+    }else{
+      navigate.push(`${paths.home}`);
+
+    }
+}
+
 
   return (
     <StyledComponent>
       <Box sx={{
         height: {
-          xs:'100vh',
-          lg:'auto'
+          xs: '100vh',
+          lg: 'auto'
         },
-        width:{
-          xs:400,
-          md:1000
+        width: {
+          xs: 400,
+          md: 1000
         },
-        p:{
-          xs:2
+        p: {
+          xs: 2
         },
         borderRadius: '20px',
-        mt:{
-          xs:7,
+        mt: {
+          xs: 7,
         },
-        overflow:{
-          xs:'scroll',
-          md:"hidden"
+        overflow: {
+          xs: 'scroll',
+          md: "hidden"
         },
       }} >
 
@@ -122,24 +137,50 @@ const page = () => {
           <LogoFull disabledLink />
         </Box>
 
+
         <QueueCover
           name={data?.[0]?.clinicInfo?.clinic_name}
           address={`${data?.[0]?.clinicInfo?.location}, ${data?.[0]?.clinicInfo?.Province} `}
-          isLoading={loading}
+          isLoading={queryQueueResult.loading}
+          notFound={notFound}
         />
         <Box sx={{
           borderRadius: '20px',
+
         }}>
-          <Stack gap={3} >
-        
-            <Queue apptPaid={apptPaid} notAppNotToday={notAppNotToday} notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
-            {clinicData?.length !== 0 && !isDoneAppt && <QueueCarousel loading={clinicLoading} data={clinicData} />}
-          </Stack>
+          {queryQueueResult.loading ? <RenderLoadingContent /> :
+            !inValidVoucher ? <Stack gap={3} >
+              <Queue apptPaid={apptPaid} notAppNotToday={notAppNotToday} notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
+              {clinicData?.length !== 0 && !isDoneAppt && <QueueCarousel loading={clinicLoading} data={clinicData} />}
+            </Stack> :
+              <Box sx={{
+                width:'100%',
+                p:2,
+                display:'flex',
+                justifyContent:'center',
+                backgroundColor:'white',
+                flexDirection:'column',
+                alignItems:'center',
+                minHeight:{
+                  lg:500
+                },
+                gap:2
+              }}>
+                <Typography sx={{
+                  fontSize:'2rem'
+                }}>
+                  Invalid voucher code!
+                </Typography>
+                <Button onClick={handleNavigate} size="large" variant="contained">
+                        Go to Home
+                    </Button>
+              </Box>
+          }
         </Box>
 
       </Box>
     </StyledComponent>
-  
+
   )
 }
 

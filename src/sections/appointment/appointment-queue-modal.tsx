@@ -20,7 +20,6 @@ const AppointmentQueueModal = ({ open, onClose, data }: AppointmentQueueModalPro
 
     const generateQR = async (text: any) => {
         try {
-            console.log(text,'TEXTTTTTTTTTTTTTTTTTTTTTTTT')
             const res = await QRCode.toDataURL(text)
             // return <img width="50%" height="50%" src={res}/>
             setQrImage(res)
@@ -48,18 +47,17 @@ const AppointmentQueueModal = ({ open, onClose, data }: AppointmentQueueModalPro
       }
 
       const downloadQr = () => {
-        const link = document.createElement('a');
-        link.href = qr;
+        const links = document.createElement('a');
+        links.href = qrImage;
     
-        link.download = 'Qrcode.png';
-    
-        console.log(link,'LINK@@@@@@@')
-    
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+        links.download = 'Qrcode.png';
+        document.body.appendChild(links);
+        links.click();
+        document.body.removeChild(links);
       }
     
+
+
 
     return (
         <Box>

@@ -14,6 +14,7 @@ export const medicineType = objectType({
         t.string('brand_name');
         t.string('dose');
         t.int('stock');
+        t.int('quantity_sold');
         t.int('show_price')
         t.string('form');
         t.string('description')
@@ -110,7 +111,7 @@ export const QueryAllMerchantMedicine = extendType({
                     }
                 }
                 const sortOptions = sortBestSelling()
-                console.log(sortOptions, 'SORTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+                
                 // end of sort options
                 try {
 
@@ -278,18 +279,104 @@ export const QueryAllMedecineByStore = extendType({
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
 
+                const { take, skip, type, startPrice, sort, endPrice, userType, store_id, search }: any = args?.data;
+
+                const sortBestSelling = () => {
+                    if (sort === 'Best Selling') {
+                        return {
+                            orderBy: {
+                                quantity_sold: 'desc'
+                            }
+                        }
+                    } else if (sort === 'Latest Products') {
+                        return {
+                            orderBy: {
+                                created_at: "desc"
+                            }
+                        }
+                    } else if (sort === 'Name Descending') {
+                        return {
+                            orderBy: {
+                                generic_name: "desc"
+                            }
+                        }
+                    } else if (sort === 'Name Ascending') {
+                        return {
+                            orderBy: {
+                                generic_name: "asc"
+                            }
+                        }
+                    }
+                }
+                const sortOptions = sortBestSelling()
+                console.log(sortOptions,'SORT OPTIONS_______________________')
+
+                const storeId = (() => {
+                    let store_id: any;
+
+                    if (store_id) {
+                        store_id = Number(store_id);
+
+                    }
+                    return store_id
+                })()
+
+                
+                const priceCondition = () => {
+                    if (startPrice && endPrice) {
+                        return {
+                            price: {
+                                gte: startPrice,
+                                lte: endPrice
+                            }
+                        }
+                    } else if (startPrice) {
+                        return {
+                            price: {
+                                gte: startPrice
+                            }
+                        }
+                    } else if (endPrice) {
+                        return {
+                            price: {
+                                lte: endPrice
+                            }
+                        }
+                    }
+                }
+
+                const typeCondition = () => {
+                    if (type) {
+                        return {
+                            type
+                        }
+                    }
+                }
+
+                const priceCon = priceCondition()
+                const typeCon = typeCondition()
 
                 try {
                     const result = await client.merchant_medicine.findMany({
+                        take,
+                        skip,
                         where: {
+                            ...storeId,
+                            ...typeCon,
+                            ...priceCon,
+                          
                             is_deleted: 0,
                             store_id: Number(args?.data?.store_id),
                             stock: {
                                 not: {
                                     equals: 0
                                 }
-                            }
-                        }
+                            },
+                            generic_name: {
+                                contains: search
+                            },
+                        },
+                        ...sortOptions,
                     })
                     const res = result?.map(async (item: any) => {
                         const r = await client.medecine_attachment.findFirst({
@@ -609,6 +696,9 @@ const QueryAllMedecineForMerchantInp = inputObjectType({
         t.nullable.int('skip');
         t.nullable.string('search');
         t.nullable.int('supply')
+        t.nullable.string('orderBy');
+        t.nullable.string('orderDir');
+
         // t.nullable.string('type');
         // t.nullable.int('startPrice');
         // t.nullable.int('endPrice');
@@ -645,7 +735,7 @@ export const QueryAllMedecineForMerchant = extendType({
             args: { data: QueryAllMedecineForMerchantInp },
             async resolve(_root, args, ctx) {
                 const { session } = ctx;
-                const { take, skip, search, supply }: any = args?.data;
+                const { take, skip, search, supply, orderBy, orderDir }: any = args?.data;
 
                 let allStoreByMerchant:any = await client.merchant_store.findMany({
                     where:{
@@ -666,6 +756,63 @@ export const QueryAllMedecineForMerchant = extendType({
                     }
                     return stock;
                 })();
+
+                let order;
+                switch(orderBy){
+                    case "name":
+                        {
+                            order = [
+                                {
+                                    generic_name:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "store":
+                        {
+                            order = [
+                                {
+                                    merchant_store:{
+                                        name:orderDir
+                                    }
+                                }
+                            ]
+                        }
+                        break;
+                    case "stock":
+                        {
+                            order = [
+                                {
+                                    stock:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "price":
+                        {
+                            order = [
+                                {
+                                    price:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    default :
+                        {
+                            order = [
+                                {
+                                    id:orderDir
+                                }
+                            ]
+                        }
+
+                }
+
+               let orderConditions = {
+                    orderBy: order,
+                  };
+                
+          
 
                 const isSearch = (()=>{
                     let searchVal:any;
@@ -703,6 +850,7 @@ export const QueryAllMedecineForMerchant = extendType({
                         include: {
                             merchant_store: true
                         },
+                        ...orderConditions
                     }),
                     client.merchant_medicine.findMany({
                         where:{
@@ -790,9 +938,25 @@ export const UpdateMerchantStock = extendType({
                             stock
                         }
                     })
+
+                    let content = await client.merchant_records_content.create({
+                        data:{
+                            title:"stock updated"
+                        }
+                    })
+                    await client.merchant_records.create({
+                        data:{
+                            content_id:Number(content?.id),
+                            created_by:Number(session?.user?.id),
+                            medecine_id:Number(id)
+                        }
+                    })
+
                     return {
                         message:"Updated successfully"
                     }
+
+
                } catch (error) {
                     console.log(error);
                     throw new GraphQLError(error)

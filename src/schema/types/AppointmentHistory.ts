@@ -2,6 +2,7 @@ import { extendType, inputObjectType, list, objectType } from 'nexus';
 import client from '../../../prisma/prismaClient';
 import { unserialize } from 'php-serialize';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import { Clinics } from './ClinicSched';
 // import { unserialize } from 'php-serialize';
 
 const PatientAppointments = objectType({
@@ -138,6 +139,9 @@ const PatientAppointmentResponse = objectType({
     t.field('summary', {
       type: SummaryObj,
     });
+    t.list.nullable.field('clinic',{
+      type:Clinics
+    })
   },
 });
 const SummaryObj = objectType({
@@ -217,11 +221,26 @@ const filters = (args: any) => {
         },
         {
           date: {
-            lte: args?.data!.endDate, // "lte" stands for "less than or equal to"
+            lte: args?.data!.endDate,
           },
         },
       ],
     };
+  }
+
+  if (args?.data!.startDate && !args?.data!.endDate) {
+    whereDate = {
+      date: {
+        gte: args?.data!.startDate,
+      },
+    };
+  }
+  if (!args?.data!.startDate && args?.data!.endDate) {
+    whereDate = {
+      date: {
+        lte: args?.data!.endDate,
+      },
+    }
   }
 
   multicondition = {
@@ -274,16 +293,34 @@ export const GET_ALL_PATIENT_APPOINTMENTS = extendType({
           };
         })();
 
+        const currentDateBackward = new Date();
+        currentDateBackward.setHours(23, 59, 59, 59);
+
         const setCurrentDay = (() => {
           if (!startDate && !endDate) return {};
           if (!startDate && endDate)
             return {
               date: {
-                lte: formattedEndDateAsDate,
+                lte: currentDateBackward,
               },
             };
-          return {};
+          if (startDate && !endDate) {
+            return {
+              date: {
+                gte: formattedEndDateAsDate,
+              }
+            }
+          }
+          if (startDate && endDate) {
+            return {
+              date: {
+                gte: formattedEndDateAsDate,
+                lte: currentDateBackward,
+              }
+            }
+          }
         })();
+        console.log(setCurrentDay, 'HUHHHHHHHHHHHHHHHHHHHHH_____________________________________BAHO MO BOSS')
 
         let patientId: any;
 
@@ -325,17 +362,6 @@ export const GET_ALL_PATIENT_APPOINTMENTS = extendType({
           };
         })();
 
-        // console.log(renderCondition, 'yaaayya@@');
-        // console.log(emr_records, 'emr_records@@');
-
-        // const patientInfo:any = await client.user.findFirst({
-        //   where:{
-        //     uuid:String(args?.data!.uuid),
-        //   },
-        //   include:{
-        //     patientInfo:true
-        //   }
-        // })
 
         const checkUser = (() => {
           if (session?.user?.role === 'secretary')
@@ -359,7 +385,6 @@ export const GET_ALL_PATIENT_APPOINTMENTS = extendType({
                 isDeleted: 0,
                 ...status,
                 ...whereconditions,
-                ...setCurrentDay,
               },
               // ...orderConditions,
               include: {
@@ -390,109 +415,109 @@ export const GET_ALL_PATIENT_APPOINTMENTS = extendType({
                 isDeleted: 0,
                 ...status,
                 ...whereconditions,
-                ...setCurrentDay,
+                // ...setCurrentDay,
               },
             }),
 
             // Pending
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    ...renderCondition,
-                    status: 0,
-                    isDeleted: 0,
-                    ...whereconditions,
-                    ...setCurrentDay,
-                  },
-                })
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  ...renderCondition,
+                  status: 0,
+                  isDeleted: 0,
+                  ...whereconditions,
+                  ...setCurrentDay,
+                },
+              })
               : client.appointments.count({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    ...renderCondition,
-                    status: 0,
-                    isDeleted: 0,
-                    ...whereconditions,
-                    ...setCurrentDay,
-                  },
-                }),
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  ...renderCondition,
+                  status: 0,
+                  isDeleted: 0,
+                  ...whereconditions,
+                  ...setCurrentDay,
+                },
+              }),
 
             // approve
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    ...renderCondition,
-                    status: 1,
-                    isDeleted: 0,
-                    ...whereconditions,
-                    ...setCurrentDay,
-                  },
-                })
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  ...renderCondition,
+                  status: 1,
+                  isDeleted: 0,
+                  ...whereconditions,
+                  ...setCurrentDay,
+                },
+              })
               : client.appointments.count({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    ...renderCondition,
-                    status: 1,
-                    isDeleted: 0,
-                    ...whereconditions,
-                    ...setCurrentDay,
-                  },
-                }),
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  ...renderCondition,
+                  status: 1,
+                  isDeleted: 0,
+                  ...whereconditions,
+                  ...setCurrentDay,
+                },
+              }),
 
             // cancelled
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    ...renderCondition,
-                    status: 2,
-                    isDeleted: 0,
-                    ...whereconditions,
-                    ...setCurrentDay,
-                  },
-                })
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  ...renderCondition,
+                  status: 2,
+                  isDeleted: 0,
+                  ...whereconditions,
+                  ...setCurrentDay,
+                },
+              })
               : client.appointments.count({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    ...renderCondition,
-                    status: 2,
-                    isDeleted: 0,
-                    ...whereconditions,
-                    ...setCurrentDay,
-                  },
-                }),
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  ...renderCondition,
+                  status: 2,
+                  isDeleted: 0,
+                  ...whereconditions,
+                  ...setCurrentDay,
+                },
+              }),
 
             // done
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    ...renderCondition,
-                    status: 3,
-                    isDeleted: 0,
-                    ...whereconditions,
-                    ...setCurrentDay,
-                  },
-                })
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  ...renderCondition,
+                  status: 3,
+                  isDeleted: 0,
+                  ...whereconditions,
+                  ...setCurrentDay,
+                },
+              })
               : client.appointments.count({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    ...renderCondition,
-                    status: 3,
-                    isDeleted: 0,
-                    ...whereconditions,
-                    ...setCurrentDay,
-                  },
-                }),
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  ...renderCondition,
+                  status: 3,
+                  isDeleted: 0,
+                  ...whereconditions,
+                  ...setCurrentDay,
+                },
+              }),
 
             // all
             client.appointments.count({
@@ -555,6 +580,7 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
 
         const { session } = ctx;
 
+
         await cancelServerQueryRequest(
           client,
           session?.user?.id,
@@ -570,10 +596,63 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
           };
         })();
 
-        // console.log(whereconditions, 'wer@@');
-        // console.log(args?.data, 'payload@@');
+        let order: any;
+        switch (args?.data!.orderBy) {
+          case 'hospital':
+            {
+              order = [
+                {
+                  clinicInfo: {
+                    clinic_name: args?.data!.orderDir,
+                  },
+                },
+              ];
+            }
+            break;
+          case 'type':
+            {
+              order = [
+                {
+                  type: args?.data!.orderDir,
+                },
+              ];
+            }
+            break;
+          case 'date':
+            {
+              order = [
+                {
+                  date: args?.data!.orderDir,
+                },
+              ];
+            }
+            break;
+          case 'status':
+            {
+              order = [
+                {
+                  status: args?.data!.orderDir,
+                },
+              ];
+            }
+            break;
+          default: {
+            order = [
+              {
+                id: 'desc',
+              },
+            ];
+          }
+        }
+        let orderConditions: any;
 
-        const [result, totalRecords, pending, approved, cancelled, done, all]: any =
+        orderConditions = {
+          orderBy: order,
+        };
+
+    
+
+        const [result, totalRecords, pending, approved, cancelled, done, all, clinic]: any =
           await client.$transaction([
             client.appointments.findMany({
               skip,
@@ -583,8 +662,13 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
                 isDeleted: 0,
                 ...status,
                 ...whereconditions,
+                NOT: [{ time_slot: null }, { patientInfo: null }],
+                clinicInfo: {
+                  isDeleted: 0,
+                  NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                },
               },
-              // ...orderConditions,
+              ...orderConditions,
               include: {
                 patientInfo: true,
                 doctorInfo: true,
@@ -598,15 +682,17 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
                   },
                 },
               },
-              orderBy: {
-                id: 'desc',
-              },
             }),
 
             // totalRecords
             client.appointments.count({
               where: {
                 patientID: session?.user?.s_id,
+                NOT: [{ time_slot: null }, { patientInfo: null }],
+                clinicInfo: {
+                  isDeleted: 0,
+                  NOT: [{ clinic_name: null }, { clinic_name: '' }],
+                },
                 isDeleted: 0,
                 ...status,
                 ...whereconditions,
@@ -616,78 +702,78 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
             // Pending
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    patientID: session?.user?.s_id,
-                    status: 0,
-                    isDeleted: 0,
-                    ...whereconditions,
-                  },
-                })
+                where: {
+                  patientID: session?.user?.s_id,
+                  status: 0,
+                  isDeleted: 0,
+                  ...whereconditions,
+                },
+              })
               : client.appointments.count({
-                  where: {
-                    patientID: session?.user?.s_id,
-                    status: 0,
-                    isDeleted: 0,
-                    ...whereconditions,
-                  },
-                }),
+                where: {
+                  patientID: session?.user?.s_id,
+                  status: 0,
+                  isDeleted: 0,
+                  ...whereconditions,
+                },
+              }),
 
             // approve
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    patientID: session?.user?.s_id,
-                    status: 1,
-                    isDeleted: 0,
-                    ...whereconditions,
-                  },
-                })
+                where: {
+                  patientID: session?.user?.s_id,
+                  status: 1,
+                  isDeleted: 0,
+                  ...whereconditions,
+                },
+              })
               : client.appointments.count({
-                  where: {
-                    patientID: session?.user?.s_id,
-                    status: 1,
-                    isDeleted: 0,
-                    ...whereconditions,
-                  },
-                }),
+                where: {
+                  patientID: session?.user?.s_id,
+                  status: 1,
+                  isDeleted: 0,
+                  ...whereconditions,
+                },
+              }),
 
             // cancelled
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    patientID: session?.user?.s_id,
-                    status: 2,
-                    isDeleted: 0,
-                    ...whereconditions,
-                  },
-                })
+                where: {
+                  patientID: session?.user?.s_id,
+                  status: 2,
+                  isDeleted: 0,
+                  ...whereconditions,
+                },
+              })
               : client.appointments.count({
-                  where: {
-                    patientID: session?.user?.s_id,
-                    status: 2,
-                    isDeleted: 0,
-                    ...whereconditions,
-                  },
-                }),
+                where: {
+                  patientID: session?.user?.s_id,
+                  status: 2,
+                  isDeleted: 0,
+                  ...whereconditions,
+                },
+              }),
 
             // done
             whereconditions
               ? client.appointments.count({
-                  where: {
-                    patientID: session?.user?.s_id,
-                    status: 3,
-                    isDeleted: 0,
-                    ...whereconditions,
-                  },
-                })
+                where: {
+                  patientID: session?.user?.s_id,
+                  status: 3,
+                  isDeleted: 0,
+                  ...whereconditions,
+                },
+              })
               : client.appointments.count({
-                  where: {
-                    patientID: session?.user?.s_id,
-                    status: 3,
-                    isDeleted: 0,
-                    ...whereconditions,
-                  },
-                }),
+                where: {
+                  patientID: session?.user?.s_id,
+                  status: 3,
+                  isDeleted: 0,
+                  ...whereconditions,
+                },
+              }),
 
             // all
             client.appointments.count({
@@ -697,6 +783,22 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
                 ...whereconditions,
               },
             }),
+            client.appointments.findMany({
+              where: {
+                patientID: session?.user?.s_id,
+                isDeleted: 0,
+                ...status,
+              },
+              distinct: ['clinic'],
+              include:{
+                clinicInfo:true
+              },
+              orderBy:{
+                clinicInfo:{
+                  clinic_name:'asc'
+                }
+              }
+            })
           ]);
 
         const summaryObj = {
@@ -713,6 +815,7 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
         return {
           patientAppointment: result,
           summary: summaryObj,
+          clinic:clinic?.map((item)=>item?.clinicInfo)
         };
       },
     });

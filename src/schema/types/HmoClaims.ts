@@ -1206,6 +1206,12 @@ export const mutation_create_hmo_claims = extendType({
             };
             return res;
           }
+
+          let doctorIDS = await client.employees.findFirst({
+            where:{
+              EMP_ID:Number(doctorID)
+            }
+          })
           //VALIDATING HMO
           //////////////////////////////////////////////////////////
           const create_hmo_claims = await client.hmo_claims.create({
@@ -1215,7 +1221,7 @@ export const mutation_create_hmo_claims = extendType({
               claim_status,
               member_name,
               member_id,
-              doctor,
+              doctor: doctor!=='null' ? doctor: doctorIDS?.EMPID,
               doctorID,
               diagnosis,
               treatment,

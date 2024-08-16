@@ -91,6 +91,7 @@ export default function ChatNavItem({
     }
   }, [])
 
+
   const renderGroup = (
     <Badge
       variant={hasOnlineInGroup ? 'online' : 'invisible'}
@@ -98,7 +99,7 @@ export default function ChatNavItem({
     >
       <AvatarGroup variant="compact" sx={{ width: 48, height: 48 }}>
         {hpart.slice(0, 2).map((participant: any) => (
-          <Avatar key={participant.id} alt={participant.name} src={participant.avatarUrl} />
+          <Avatar key={participant.id} alt={participant.name} src={`/${participant.avatarUrl?.split('/').splice(1).join("/")}`} />
         ))}
       </AvatarGroup>
     </Badge>
@@ -106,7 +107,7 @@ export default function ChatNavItem({
 
   const renderSingle = (
     <Badge key={hpart[0]?.status} variant={hpart[0]?.status} anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}>
-      <Avatar alt={hpart[0]?.name} src={hpart[0]?.avatarUrl} sx={{ width: 48, height: 48 }} />
+      <Avatar alt={hpart[0]?.name}  src={`/${hpart[0]?.avatarUrl?.split('/').splice(1).join("/")}`} sx={{ width: 48, height: 48 }} />
     </Badge>
   );
   const tmp = formatDistanceToNowStrict(new Date(lastActivity), {

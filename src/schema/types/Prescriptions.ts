@@ -3,6 +3,7 @@
 import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import { FieldClinics } from './DoctorClinics';
 
 const client = new PrismaClient();
 
@@ -44,6 +45,9 @@ const Prescription_List = objectType({
       type: prescriptions,
     });
     t.int('totalRecords');
+    t.nullable.list.field('clinicList', {
+      type: FieldClinics,
+    })
   },
 });
 const Prescription_Child_Type = objectType({
@@ -496,16 +500,16 @@ const PrescriptionLinked = async (
     };
   })();
 
-  const setCurrentDay = (() => {
-    if (!startDate && !endDate) return {};
-    if (!startDate && endDate)
-      return {
-        DATE: {
-          lte: currentEndDate,
-        },
-      };
-    return {};
-  })();
+  // const setCurrentDay = (() => {
+  //   if (!startDate && !endDate) return {};
+  //   if (!startDate && endDate)
+  //     return {
+  //       DATE: {
+  //         lte: currentEndDate,
+  //       },
+  //     };
+  //   return {};
+  // })();
 
   if (isEmrData && Number(args?.data!.isEmr === 1)) {
     if (isEmrData?.link === 1) {
@@ -515,7 +519,7 @@ const PrescriptionLinked = async (
           skip,
           ...orderConditions,
           where: {
-            // ...whereconditions,
+            ...whereconditions,
             ...filter,
             // doctorID: Number(session?.user?.id),
             ...checkUser,
@@ -528,7 +532,7 @@ const PrescriptionLinked = async (
                 patientID: Number(isEmrData?.patientID),
               },
             ],
-            ...setCurrentDay,
+            // ...setCurrentDay,
           },
           include: {
             doctorInfo: {
@@ -546,7 +550,7 @@ const PrescriptionLinked = async (
             // doctorID: Number(session?.user?.id),
             ...checkUser,
             ...whereconditions,
-            ...setCurrentDay,
+            // ...setCurrentDay,
             isDeleted: 0,
 
             OR: [
@@ -574,7 +578,7 @@ const PrescriptionLinked = async (
             isDeleted: 0,
 
             ...whereconditions,
-            ...setCurrentDay,
+            // ...setCurrentDay,
             // doctorID: Number(session?.user?.id),
             ...checkUser,
             emrPatientID: Number(isEmrData?.id),
@@ -596,7 +600,7 @@ const PrescriptionLinked = async (
             isDeleted: 0,
 
             ...whereconditions,
-            ...setCurrentDay,
+            // ...setCurrentDay,
             // doctorID: Number(session?.user?.id),
             ...checkUser,
             emrPatientID: Number(isEmrData?.id),
@@ -639,7 +643,7 @@ const PrescriptionLinked = async (
           ...orderConditions,
           where: {
             ...whereconditions,
-            ...setCurrentDay,
+            // ...setCurrentDay,
             // doctorID: Number(session?.user?.id),
             ...checkUser,
             isDeleted: 0,
@@ -676,7 +680,7 @@ const PrescriptionLinked = async (
             // doctorID: Number(session?.user?.id),
             ...checkUser,
             isDeleted: 0,
-            ...setCurrentDay,
+            // ...setCurrentDay,
             OR: [
               {
                 emrPatientID: Number(find_emr?.id),
@@ -704,7 +708,7 @@ const PrescriptionLinked = async (
             isDeleted: 0,
 
             ...whereconditions,
-            ...setCurrentDay,
+            // ...setCurrentDay,
             // doctorID: session?.user?.id,
             ...checkUser,
 
@@ -726,7 +730,7 @@ const PrescriptionLinked = async (
             isDeleted: 0,
 
             ...whereconditions,
-            ...setCurrentDay,
+            // ...setCurrentDay,
             // doctorID: session?.user?.id,
             ...checkUser,
 
@@ -760,6 +764,7 @@ export const QueryAllPrescription = extendType({
         const { take, skip, orderBy, orderDir, uuid }: typeof data = data;
 
         const whereconditions = filters(args);
+        console.log(whereconditions, 'WHEREEEEEEEEEEEEEEEEEEEEEE????')
         let order: any;
         switch (args?.data!.orderBy) {
           case 'date':
@@ -796,31 +801,30 @@ export const QueryAllPrescription = extendType({
         const startDate: any = args?.data!.startDate;
         const endDate: any = args?.data!.endDate;
 
-        if (startDate && endDate) {
-          // Both start and end dates provided
-          filter.AND = [
-            {
-              DATE: {
-                gte: startDate,
-              },
-            },
-            {
-              DATE: {
-                lte: endDate,
-              },
-            },
-          ];
-        } else if (startDate !== null) {
-          // Only start date provided
-          filter.DATE = {
-            gte: startDate,
-          };
-        } else if (endDate !== null) {
-          // Only end date provided
-          filter.DATE = {
-            lte: endDate,
-          };
-        }
+        // if (startDate && endDate) {
+        //   filter.AND = [
+        //     {
+        //       DATE: {
+        //         gte: startDate,
+        //       },
+        //     },
+        //     {
+        //       DATE: {
+        //         lte: endDate,
+        //       },
+        //     },
+        //   ];
+        // } else if (startDate !== null) {
+        //   // Only start date provided
+        //   filter.DATE = {
+        //     gte: startDate,
+        //   };
+        // } else if (endDate !== null) {
+        //   // Only end date provided
+        //   filter.DATE = {
+        //     lte: endDate,
+        //   };
+        // }
 
         // const currentDate = new Date(args?.data!.startDate);
         // const currentEndDate = new Date(args?.data!.endDate);
@@ -944,7 +948,7 @@ export const AllPrescriptionInputUser = inputObjectType({
     t.nullable.string('startDate');
     t.nullable.string('endDate');
     t.list.field('clinicID', { type: 'Int' });
-    t.nullable.int('searchKeyword');
+    t.nullable.string('searchKeyword');
   },
 });
 
@@ -956,7 +960,7 @@ export const QueryAllPrescriptionUser = extendType({
       args: { data: AllPrescriptionInputUser! },
       async resolve(_root, args, _ctx) {
         const data: any | typeof args.data = args.data;
-        const { take, skip, orderBy, orderDir, uuid, startDate, endDate }: typeof data = data;
+        const { take, skip, orderBy, orderDir, uuid, startDate, endDate, searchKeyword }: typeof data = data;
         const currentEndDate = new Date(endDate);
         const whereconditions = filters(args);
 
@@ -1000,20 +1004,45 @@ export const QueryAllPrescriptionUser = extendType({
           'QueryAllPrescriptionUser'
         );
 
-        const setCurrentDay = (() => {
-          if (!startDate && !endDate) return {};
-          if (!startDate && endDate)
-            return {
-              DATE: {
-                lte: currentEndDate,
-              },
-            };
-          return {};
-        })();
+
         // throw new Error('Error!');
         //   take, skip, orderConditions, whereconditions; session
+        // const isSearch = (() => {
+        //   let searchVal: any;
+        //   const containsNumber = /\d/.test(searchKeyword);
+
+
+        //   if (!containsNumber) {
+        //     searchVal = {
+        //       OR: [
+        //         {
+        //           clinicInfo: {
+        //             clinic_name: {
+        //               contains: searchKeyword
+        //             }
+        //           }
+        //         },
+        //         {
+        //           doctorInfo: {
+        //             EMP_FULLNAME: {
+        //               contains: searchKeyword
+        //             }
+        //           }
+        //         },
+        //       ]
+        //     }
+        //   }
+
+
+        //   return searchVal;
+        // })()
+
+        // const nameSearch = searchKeyword && isSearch
+
+        console.log(whereconditions, 'SEARCHHHHHHHHHHHHHHHHHHHHH')
+
         try {
-          const [prescriptionsData, _count]: any = await client.$transaction([
+          const [prescriptionsData, _count, clinic]: any = await client.$transaction([
             client.prescriptions.findMany({
               take,
               skip,
@@ -1023,7 +1052,7 @@ export const QueryAllPrescriptionUser = extendType({
                 patientID: session?.user?.s_id,
                 NOT: [{ clinicInfo: null }],
                 isDeleted: 0,
-                ...setCurrentDay,
+                // ...nameSearch
               },
               include: {
                 doctorInfo: {
@@ -1042,9 +1071,24 @@ export const QueryAllPrescriptionUser = extendType({
                 ...whereconditions,
                 NOT: [{ clinicInfo: null }],
                 isDeleted: 0,
-                ...setCurrentDay,
               },
             }),
+            client.prescriptions.findMany({
+              where: {
+                patientID: session?.user?.s_id,
+                NOT: [{ clinicInfo: null }],
+                isDeleted: 0,
+              },
+              distinct: ['CLINIC'],
+              include: {
+                clinicInfo: true
+              },
+              orderBy:{
+                clinicInfo:{
+                  clinic_name:'asc'
+                }
+              }
+            })
           ]);
 
           // console.log('_count', _count);
@@ -1054,6 +1098,7 @@ export const QueryAllPrescriptionUser = extendType({
           const response: any = {
             Prescription_data: result,
             totalRecords: Number(_countData),
+            clinicList: clinic?.map((item) => item?.clinicInfo)
           };
 
           return response;
@@ -1078,31 +1123,66 @@ const filters = (args: any) => {
   let whereDate: any = {};
 
   if (args?.data!.searchKeyword) {
-    // console.log(args?.data!.searchKeyword, 'YAYY@');
-    whereConSearch = {
-      ID: Number(args?.data!.searchKeyword),
+    const containsNumber = /\d/.test(args?.data!.searchKeyword);
+
+
+    if (!containsNumber) {
+      whereConSearch = {
+        OR: [
+          {
+            clinicInfo: {
+              clinic_name: {
+                contains: args?.data!.searchKeyword
+              }
+            }
+          },
+          {
+            doctorInfo: {
+              EMP_FULLNAME: {
+                contains: args?.data!.searchKeyword
+              }
+            }
+          },
+        ]
+      }
+    }else{
+      whereConSearch = {
+        ID: Number(args?.data!.searchKeyword),
+      };
+    }
+
+  }
+
+  if (args?.data!.startDate && args?.data!.endDate) {
+    whereDate = {
+      AND: [
+        {
+          DATE: {
+            gte: args?.data!.startDate,
+          },
+        },
+        {
+          DATE: {
+            lte: args?.data!.endDate, // "lte" stands for "less than or equal to"
+          },
+        },
+      ],
     };
   }
 
-  if (args?.data!.startDate || args?.data!.endDate) {
+  if (args?.data!.startDate && !args?.data!.endDate) {
     whereDate = {
       DATE: {
         gte: args?.data!.startDate,
+      },
+    };
+  }
+  if (!args?.data!.startDate && args?.data!.endDate) {
+    whereDate = {
+      DATE: {
         lte: args?.data!.endDate,
       },
-      // AND: [
-      //   {
-      //     DATE: {
-      //       gte: args?.data!.startDate,
-      //     },
-      //   },
-      //   {
-      //     DATE: {
-      //       lte: args?.data!.endDate, // "lte" stands for "less than or equal to"
-      //     },
-      //   },
-      // ],
-    };
+    }
   }
   const clinicIDs: any = args?.data!.clinicID;
   if (clinicIDs?.length) {
@@ -1228,20 +1308,20 @@ export const MutationPrescription = extendType({
           delete prescriptionInput.patientID;
           delete prescriptionInput.isEmr;
 
-          
-          let isExists = true;
-          let VoucherCode:any;
 
-          while(isExists){
-            VoucherCode= Math.random().toString(36).substring(2, 8).toUpperCase()
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
 
             const result = await client.prescriptions.findFirst({
-              where:{
-                presCode:VoucherCode
+              where: {
+                presCode: VoucherCode
               }
             })
 
-            if(!result){
+            if (!result) {
               isExists = false;
             }
           }
@@ -1252,7 +1332,7 @@ export const MutationPrescription = extendType({
               emrPatientID: isEmr === 2 ? emrId : null,
               patientID: patientId ? patientId?.patientInfo?.S_ID : patientEmrId?.patientID,
               PATIENT: String(patientId?.patientInfo?.IDNO),
-              presCode:VoucherCode
+              presCode: VoucherCode
             },
           });
 

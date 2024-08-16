@@ -364,6 +364,10 @@ export const GET_RECORD_BY_PATIENT = gql`
 export const GET_RECORD_PATIENT = gql`
   query GET_RECORD_PATIENT($data: AllRecordInputType!) {
     allRecordsbyPatientNew(data: $data) {
+      clinic{
+        clinic_name
+        id
+      }
       Records_data {
         R_ID
         isEMR

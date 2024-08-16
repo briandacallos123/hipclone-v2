@@ -107,6 +107,10 @@ export const labreport_patient_data = gql`
        
       }
       total_records
+      clinic{
+        id
+        clinic_name
+      }
       
     }
     

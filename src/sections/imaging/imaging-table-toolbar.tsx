@@ -89,14 +89,11 @@ export default function ImagingTableToolbar({
           onChange={handleFilterHospital}
           input={<OutlinedInput label="Hospital" />}
           renderValue={(selected) =>
-            hospitalOptions
-              .filter((v: any) => selected.find((s: any) => s === v?.id))
-              .map((m: any) => m?.clinic_name)
-              .join(', ')
+            hospitalOptions?.filter((v: any) => selected.find((s: any) => s === v?.id))?.map((m: any) => m?.clinic_name)?.join(', ')
           }
           sx={{ textTransform: 'capitalize' }}
         >
-          {hospitalOptions.map((option: any) => (
+          {hospitalOptions?.map((option: any) => (
             <MenuItem key={option?.id} value={option?.id}>
               <Checkbox
                 disableRipple

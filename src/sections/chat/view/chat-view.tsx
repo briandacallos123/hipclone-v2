@@ -156,9 +156,13 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
   const [currentMessage, setcurrentMessage] = useState<any>([]);
   const [currentConve, setcurrentConve] = useState<any>(null);
 
+
   const handleMessageView = (b: any, participants: any, messages: any, curId: any) => {
     setisMessageView(Boolean(b));
     setcurrentId(curId);
+    console.log("tinawag na una")
+    console.log(participants,"tinawag na una")
+
     setcurrentParticipants(participants);
     setcurrentMessage(messages);
   };
@@ -173,6 +177,7 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
 
   const handleSingleConversation = () => {
     (async () => {
+      console.log("Nag run dito bossing")
       handleMessageView(false, [], [], null);
       setcurrentConve(null);
       // setIsLoading(true)
@@ -184,9 +189,12 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
       }).then(async (result) => {
         const { data } = result;
        if(!id){
+
         await refetch();
         await rChat();
        }
+
+
         if (data?.conversation.id) {
           handleMessageView(
             true,
@@ -195,6 +203,7 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
             conversationParam || id
           );
           setcurrentConve(data?.conversation);
+          console.log(data?.conversation?.participants,'PARA SANTO?')
           // setIsLoading(false)
         } else {
           router.push(baseUrl);
@@ -534,14 +543,14 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
                   { renderMessages}
             
 
-                  {/* {isMessageView && (
+                  {isMessageView && (
                     <ChatRoom
                       conversation={currentConve}
                       participants={
                         currentParticipants.filter((r: any) => Number(r.id) !== Number(user?.id)) || []
                       }
                     />
-                  )} */}
+                  )}
                 </Stack>
               </Stack>
             </Stack>

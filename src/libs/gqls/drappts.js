@@ -146,6 +146,10 @@ export const DR_APPTS = gql`
         payment_status
         status
       }
+      clinicList{
+        clinic_name
+        id
+      }
       total_records
       summary {
         total

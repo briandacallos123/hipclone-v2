@@ -31,10 +31,7 @@ export default function ChatMessageInput({
   isNotif
 }: Props) {
 
-  console.log(recipients,'AWITTTTT_______________')
-  console.log(onSendCompose,'AWITTTTT_______________')
-  console.log(onSendMessage,'AWITTTTT_______________')
-  console.log(currentConversationId,'AWITTTTT_______________')
+
 
   const router = useRouter();
 
@@ -88,7 +85,7 @@ export default function ChatMessageInput({
         to_group: converId,
         shortname: user?.firstName,
       };
-      console.log(converId);
+      // console.log(converId);
       if (converId) socket.emit('typing', data);
 
       setMessage(event.target.value);
@@ -99,7 +96,9 @@ export default function ChatMessageInput({
   const handleSend = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key === 'Enter') {
-        if (message) {
+        if (message || uploads) {
+
+          // console.log(message, uploads,'UPLADSSSSSSSSSSSSSS?????????????')
           if (currentConversationId) {
             try {
               onSendMessage(message, uploads);
@@ -129,7 +128,7 @@ export default function ChatMessageInput({
         setMessage('');
       }
     },
-    [currentConversationId, message, onSendCompose, onSendMessage]
+    [currentConversationId, message, onSendCompose, onSendMessage, uploads]
   );
 
   // Dummy func for storing upload values
@@ -142,6 +141,8 @@ export default function ChatMessageInput({
           preview: URL.createObjectURL(file),
         })
       );
+
+      console.log(newFiles,'NEWFILESSSSSSSSSSSSSSS')
 
       setUploads([...files, ...newFiles]);
     },

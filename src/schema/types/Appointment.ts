@@ -278,37 +278,37 @@ export const GET_ALL_APPOINTMENTS = extendType({
             // male
             whereconditions
               ? client.appointments.findMany({
-                  where: {
-                    doctorID: session?.user?.id,
-                    status: 0,
-                    isDeleted: 0,
-                    patientInfo: {
-                      SEX: 1,
-                    },
-                    ...whereconditions,
+                where: {
+                  doctorID: session?.user?.id,
+                  status: 0,
+                  isDeleted: 0,
+                  patientInfo: {
+                    SEX: 1,
                   },
-                  include: {
-                    patientInfo: true,
-                    doctorInfo: true,
-                    clinicInfo: true,
-                  },
-                })
+                  ...whereconditions,
+                },
+                include: {
+                  patientInfo: true,
+                  doctorInfo: true,
+                  clinicInfo: true,
+                },
+              })
               : client.appointments.findMany({
-                  where: {
-                    doctorID: session?.user?.id,
-                    status: 0,
-                    isDeleted: 0,
-                    patientInfo: {
-                      SEX: 1,
-                    },
-                    ...whereconditions,
+                where: {
+                  doctorID: session?.user?.id,
+                  status: 0,
+                  isDeleted: 0,
+                  patientInfo: {
+                    SEX: 1,
                   },
-                  include: {
-                    patientInfo: true,
-                    doctorInfo: true,
-                    clinicInfo: true,
-                  },
-                }),
+                  ...whereconditions,
+                },
+                include: {
+                  patientInfo: true,
+                  doctorInfo: true,
+                  clinicInfo: true,
+                },
+              }),
 
             // female
             client.appointments.findMany({
@@ -645,7 +645,7 @@ export const UpdateAppointment = extendType({
       type: UpdateApp,
       args: { data: AppointmentUpdate! },
       async resolve(_root, args, ctx) {
-        const { id, type, status, payment_status,remarks }: any = args.data;
+        const { id, type, status, payment_status, remarks }: any = args.data;
         const { session } = ctx;
 
         let message: any = {};
@@ -658,93 +658,95 @@ export const UpdateAppointment = extendType({
           }
           if (session.user.role === 'doctor') {
 
-            
+
             const appt_findfirst = await client.appointments.findFirst({
               where: {
-                id:id,
+                id: id,
               },
             });
 
             const patient_findfirst = await client.patient.findFirst({
               where: {
-                S_ID:Number(appt_findfirst?.patientID),
+                S_ID: Number(appt_findfirst?.patientID),
               },
             });
 
             const doctor_findfirst = await client.employees.findFirst({
               where: {
-                EMP_ID:Number(appt_findfirst?.doctorID),
+                EMP_ID: Number(appt_findfirst?.doctorID),
               },
             });
 
             const user = await client.user.findFirst({
-              where:{
-                email:patient_findfirst?.EMAIL
+              where: {
+                email: patient_findfirst?.EMAIL
               }
             })
 
-            let notifType:any;
-            let notifMessage:any;
+            let notifType: any;
+            let notifMessage: any;
 
-            switch(args?.data?.status){
+            switch (args?.data?.status) {
               case 1:
                 notifType = 3;
                 notifMessage = 'approved your appointment'
                 break;
               case 2:
                 notifType = 5;
-                notifMessage = 'cancelled your appointment' 
+                notifMessage = 'cancelled your appointment'
                 break;
               case 3:
                 notifType = 4;
-                notifMessage = 'marked your appointment as done' 
+                notifMessage = 'marked your appointment as done'
                 break;
               default:
                 notifType = 1;
-                notifMessage = 'marked your appointment as pending' 
+                notifMessage = 'marked your appointment as pending'
             }
 
-              // push notification
-              
-            
+            // push notification
 
-              // if(user?.isOnline === 1){
-              //   beamsClient.publishToInterests([`forOnly_${user?.id}`],{
-              //       web: {
-              //         notification: {
-              //           title:"New Appointment Update",
-              //           body:`${session.user?.displayName} ${notifMessage}`
-              //         },
-              //       },
-              //   });
-            
-              // }
+
+
+            // if(user?.isOnline === 1){
+            //   beamsClient.publishToInterests([`forOnly_${user?.id}`],{
+            //       web: {
+            //         notification: {
+            //           title:"New Appointment Update",
+            //           body:`${session.user?.displayName} ${notifMessage}`
+            //         },
+            //       },
+            //   });
+
+            // }
 
 
             const notifContent = await client.notification_content.create({
-              data:{
-                content:notifMessage
-              }
-            })
-         
-            await client.notification.create({
-              data:{
-                user_id:Number(session?.user?.id),
-                notifiable_id:Number(user?.id),
-                notification_type_id:notifType,
-                notification_content_id:Number(notifContent?.id),
-                appt_id:Number(id)
+              data: {
+                content: notifMessage
               }
             })
 
-           
+            await client.notification.create({
+              data: {
+                user_id: Number(session?.user?.id),
+                notifiable_id: Number(user?.id),
+                notification_type_id: notifType,
+                notification_content_id: Number(notifContent?.id),
+                appt_id: Number(id),
+                user_id_user_role: 2,
+                notifiable_user_role: 5
+              }
+            })
+
+
 
             // console.log(args.data?.status === 1,'args.data?.status === 1')
 
             if (args.data?.status === 1 || args.data?.status === 2) {
 
               const Date_today_currentDate = new Date();
-              const formattedDated = Date_today_currentDate.toISOString(); 
+              const formattedDated = Date_today_currentDate.toISOString();
 
 
               const Date_today_currentDateOnly = new Date();
@@ -767,28 +769,28 @@ export const UpdateAppointment = extendType({
 
               // Format the date
               const formattedDate_appt = `${month_appt} ${day_appt}, ${year_appt}, ${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-  
+
               const smsDescription = args.data?.status === 1
-              ? `Appointment with ${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME} On ${formattedDate_appt} Confirmed. Login to your HIP Account prior to appointment for payment instructions.`
-              : args.data?.status === 2
-              ? `Appointment with ${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME} is cancelled. Please call doctor's clinic for information.`
-              : null;
+                ? `Appointment with ${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME} On ${formattedDate_appt} Confirmed. Login to your HIP Account prior to appointment for payment instructions.`
+                : args.data?.status === 2
+                  ? `Appointment with ${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME} is cancelled. Please call doctor's clinic for information.`
+                  : null;
 
               const smslogs_create = await client.smslogs.create({
                 data: {
-                  patientID:Number(patient_findfirst?.S_ID),
-                  doctorID:Number(session.user?.id) || null,
-                  user_id:null,
-                  doctor_name:`${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME}`,
-                  doctor_contact:String(patient_findfirst?.CONTACT_NO),
-                  description:smsDescription,
-                  dateCreated:formattedDated,
-                  dateExecuted:formattedDateOnly,
-                  appointment_id:String(appt_findfirst?.id),
+                  patientID: Number(patient_findfirst?.S_ID),
+                  doctorID: Number(session.user?.id) || null,
+                  user_id: null,
+                  doctor_name: `${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME}`,
+                  doctor_contact: String(patient_findfirst?.CONTACT_NO),
+                  description: smsDescription,
+                  dateCreated: formattedDated,
+                  dateExecuted: formattedDateOnly,
+                  appointment_id: String(appt_findfirst?.id),
                 },
               });
 
-             /*  console.log(smslogs_create,'smslogs_create') */
+              /*  console.log(smslogs_create,'smslogs_create') */
             }
 
             const response = await client.appointments.update({
@@ -801,6 +803,7 @@ export const UpdateAppointment = extendType({
                 status,
                 remarks,
                 payment_status,
+                appr_date:new Date()
               },
             });
 
@@ -813,36 +816,38 @@ export const UpdateAppointment = extendType({
             // })
 
             // console.log(response,'RESPONSE TOOO')
-            
+
             return {
               message: 'Successfully Updated',
             };
           }
           // if(session.user.role === 'secretary' && session.user.permissions?.){
-          if(session.user.role === 'secretary'){
+          if (session.user.role === 'secretary') {
 
-            const subPermissions : any  = await client.sub_account_doctor.findFirst({where:{
-              secretaryID: session.user?.subAccId
-            }});
-           
-              if(Number(subPermissions?.appt_approve) !== 1){
-                 throw new GraphQLError('Unauthorized')
-              }    
-           
-           
-              if(Number(subPermissions?.appt_cancel) !== 1){
-                  throw new GraphQLError("Unauthorized");
-              }    
-          
-           
-              if(Number(subPermissions?.appt_done) !== 1){
-                  throw new GraphQLError("Unauthorized");
-              } 
+            const subPermissions: any = await client.sub_account_doctor.findFirst({
+              where: {
+                secretaryID: session.user?.subAccId
+              }
+            });
+
+            if (Number(subPermissions?.appt_approve) !== 1) {
+              throw new GraphQLError('Unauthorized')
+            }
+
+
+            if (Number(subPermissions?.appt_cancel) !== 1) {
+              throw new GraphQLError("Unauthorized");
+            }
+
+
+            if (Number(subPermissions?.appt_done) !== 1) {
+              throw new GraphQLError("Unauthorized");
+            }
 
 
             const appt_findfirst = await client.appointments.findFirst({
               where: {
-                id:id,
+                id: id,
               },
             });
 
@@ -859,30 +864,30 @@ export const UpdateAppointment = extendType({
               },
             });
 
-           
-          
+
+
             const patient_findfirst = await client.patient.findFirst({
               where: {
-                S_ID:Number(appt_findfirst?.patientID),
+                S_ID: Number(appt_findfirst?.patientID),
               },
             });
 
             const doctor_findfirst = await client.employees.findFirst({
               where: {
-                EMP_ID:Number(appt_findfirst?.doctorID),
+                EMP_ID: Number(appt_findfirst?.doctorID),
               },
             });
 
-            const secretary_findfirst:any = await client.sub_account.findFirst({
+            const secretary_findfirst: any = await client.sub_account.findFirst({
               where: {
-                id:session.user?.subAccId,
+                id: session.user?.subAccId,
               },
-              include:{
-                subAccountDoctorInfo:{
-                  include:{
-                    doctorInfo:{
-                      where:{
-                        EMP_ID:Number(appt_findfirst?.doctorID),
+              include: {
+                subAccountDoctorInfo: {
+                  include: {
+                    doctorInfo: {
+                      where: {
+                        EMP_ID: Number(appt_findfirst?.doctorID),
                       }
                     }
                   }
@@ -897,7 +902,7 @@ export const UpdateAppointment = extendType({
             if (args.data?.status === 1 || args.data?.status === 2) {
 
               const Date_today_currentDate = new Date();
-              const formattedDated = Date_today_currentDate.toISOString(); 
+              const formattedDated = Date_today_currentDate.toISOString();
 
 
               const Date_today_currentDateOnly = new Date();
@@ -920,52 +925,52 @@ export const UpdateAppointment = extendType({
 
               // Format the date
               const formattedDate_appt = `${month_appt} ${day_appt}, ${year_appt}, ${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${ampm}`;
-              
+
               const smsDescription = args.data?.status === 1
-              ? `Appointment with ${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME} On ${formattedDate_appt} Confirmed. Login to your HIP Account prior to appointment for payment instructions.`
-              : args.data?.status === 2
-              ? `Appointment with ${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME} is cancelled. Please call doctor's clinic for information.`
-              : null;
+                ? `Appointment with ${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME} On ${formattedDate_appt} Confirmed. Login to your HIP Account prior to appointment for payment instructions.`
+                : args.data?.status === 2
+                  ? `Appointment with ${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME} is cancelled. Please call doctor's clinic for information.`
+                  : null;
 
               const smslogs_create = await client.smslogs.create({
                 data: {
-                  patientID:Number(patient_findfirst?.S_ID),
-                  doctorID:Number(session.user?.permissions?.doctorID) || null,
-                  user_id:null,
+                  patientID: Number(patient_findfirst?.S_ID),
+                  doctorID: Number(session.user?.permissions?.doctorID) || null,
+                  user_id: null,
                   // doctor_name:`${secretary_findfirst?.subAccountDoctorInfo?.doctorInfo?.EMP_FNAME} ${secretary_findfirst?.subAccountDoctorInfo?.doctorInfo?.EMP_MNAME} ${secretary_findfirst?.subAccountDoctorInfo?.doctorInfo?.EMP_LNAME}`,
-                  doctor_name:`${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME}`,
-                  doctor_contact:String(patient_findfirst?.CONTACT_NO),
+                  doctor_name: `${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME}`,
+                  doctor_contact: String(patient_findfirst?.CONTACT_NO),
                   // description:`Appointment with ${secretary_findfirst?.subAccountDoctorInfo?.doctorInfo?.EMP_FNAME} ${secretary_findfirst?.subAccountDoctorInfo?.doctorInfo?.EMP_MNAME} ${secretary_findfirst?.subAccountDoctorInfo?.doctorInfo?.EMP_LNAME} On ${formattedDate_appt} Confirmed. Login to your HIP Account prior to appointment for payment instructions.`,
-                  description:smsDescription,
-                  dateCreated:formattedDated,
-                  dateExecuted:formattedDateOnly,
-                  appointment_id:String(appt_findfirst?.id),
+                  description: smsDescription,
+                  dateCreated: formattedDated,
+                  dateExecuted: formattedDateOnly,
+                  appointment_id: String(appt_findfirst?.id),
                 },
               });
 
-             /*  console.log(smslogs_create,'smslogs_create') */
+              /*  console.log(smslogs_create,'smslogs_create') */
             }
 
 
             let statusText;
-            let logType; 
+            let logType;
 
             switch (status) {
               case 0:
                 statusText = "Pending";
-                logType = "1"; 
+                logType = "1";
                 break;
               case 1:
                 statusText = "Approved";
-                logType = "1"; 
+                logType = "1";
                 break;
               case 2:
                 statusText = "Cancelled";
-                logType = "1"; 
+                logType = "1";
                 break;
               case 3:
                 statusText = "Done";
-                logType = "1"; 
+                logType = "1";
                 break;
               default:
                 statusText = "Unknown";
@@ -973,17 +978,17 @@ export const UpdateAppointment = extendType({
                 break;
             }
 
-               
-           
 
-            if(status !== appt_findfirst?.status){
-              
+
+
+            if (status !== appt_findfirst?.status) {
+
               const currentDate = new Date();
               const monthNames = [
                 'January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'
               ];
-  
+
               const day = currentDate.getDate();
               const month = monthNames[currentDate.getMonth()];
               const year = currentDate.getFullYear();
@@ -991,12 +996,12 @@ export const UpdateAppointment = extendType({
               const minutes = currentDate.getMinutes();
               const ampm = hours >= 12 ? 'pm' : 'am';
               const formattedDate = `${month} ${day}, ${year}, ${hours % 12 || 12}:${minutes} ${ampm}`;
-  
+
               // console.log(formattedDate);
-  
-  
+
+
               const Date_today_currentDate = new Date();
-              const formattedDated = Date_today_currentDate.toISOString(); 
+              const formattedDated = Date_today_currentDate.toISOString();
 
 
               const originalDateString = String(appt_findfirst?.add_date);
@@ -1011,22 +1016,22 @@ export const UpdateAppointment = extendType({
 
               // Format the date
               const formattedDate_appt = `${month_appt} ${day_appt}, ${year_appt}, ${hours_appt % 12 || 12}:${minutes_appt.toString().padStart(2, '0')} ${ampm_appt}`;
-  
+
               const secretary_create = await client.log_action.create({
                 data: {
-                  secretaryID:session.user?.subAccId,
-                  patientID:Number(patient_findfirst?.S_ID),
-                  idno:Number(secretary_findfirst?.idno) || null,
+                  secretaryID: session.user?.subAccId,
+                  patientID: Number(patient_findfirst?.S_ID),
+                  idno: Number(secretary_findfirst?.idno) || null,
                   request: `${formattedDate_appt} - ${statusText}`,
-                  patient:String(patient_findfirst?.IDNO),
-                  log_type:String(logType),
-                  date:formattedDated,
-                  type:0,
+                  patient: String(patient_findfirst?.IDNO),
+                  log_type: String(logType),
+                  date: formattedDated,
+                  type: 0,
                 },
               });
             }
 
-            
+
 
 
             let payment_statusText;
@@ -1034,36 +1039,36 @@ export const UpdateAppointment = extendType({
             switch (payment_status) {
               case 0:
                 payment_statusText = "Unpaid";
-                logType = "3"; 
+                logType = "3";
                 break;
               case 1:
                 payment_statusText = "Paid";
-                logType = "3"; 
+                logType = "3";
                 break;
               default:
                 statusText = "Unknown"; // or any other default text
                 break;
             }
-            
+
             // if(payment_statusText === 'Paid' || payment_statusText === 'Unpaid'){
-              if(Number(subPermissions?.appt_pay) !== 1){
-                  throw new GraphQLError("Unauthorized");
-              }    
+            if (Number(subPermissions?.appt_pay) !== 1) {
+              throw new GraphQLError("Unauthorized");
+            }
             // }
 
-            if(payment_status !== appt_findfirst?.payment_status){
+            if (payment_status !== appt_findfirst?.payment_status) {
               const secretary_findfirst = await client.sub_account.findFirst({
                 where: {
-                  id:session.user?.subAccId,
+                  id: session.user?.subAccId,
                 },
               });
-  
+
               const currentDate = new Date();
               const monthNames = [
                 'January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'
               ];
-  
+
               const day = currentDate.getDate();
               const month = monthNames[currentDate.getMonth()];
               const year = currentDate.getFullYear();
@@ -1071,23 +1076,23 @@ export const UpdateAppointment = extendType({
               const minutes = currentDate.getMinutes();
               const ampm = hours >= 12 ? 'pm' : 'am';
               const formattedDate = `${month} ${day}, ${year}, ${hours % 12 || 12}:${minutes} ${ampm}`;
-  
+
               /* console.log(formattedDate); */
-  
-  
+
+
               const Date_today_currentDate = new Date();
-              const formattedDated = Date_today_currentDate.toISOString(); 
-  
+              const formattedDated = Date_today_currentDate.toISOString();
+
               const secretary_create = await client.log_action.create({
                 data: {
-                  secretaryID:session.user?.subAccId,
-                  patientID:Number(patient_findfirst?.S_ID),
-                  idno:Number(secretary_findfirst?.idno) || null,
+                  secretaryID: session.user?.subAccId,
+                  patientID: Number(patient_findfirst?.S_ID),
+                  idno: Number(secretary_findfirst?.idno) || null,
                   request: `${patient_findfirst?.FNAME} ${patient_findfirst?.LNAME} - ${formattedDate} - ${payment_statusText}`,
-                  patient:String(patient_findfirst?.IDNO),
-                  log_type:String(logType),
-                  date:formattedDated,
-                  type:0,
+                  patient: String(patient_findfirst?.IDNO),
+                  log_type: String(logType),
+                  date: formattedDated,
+                  type: 0,
                 },
               });
             }
@@ -1098,11 +1103,11 @@ export const UpdateAppointment = extendType({
             switch (type) {
               case 1:
                 typeText = "Telemedicine";
-                logType = "2"; 
+                logType = "2";
                 break;
               case 2:
                 typeText = "Face to face";
-                logType = "2"; 
+                logType = "2";
                 break;
               default:
                 statusText = "Unknown"; // or any other default text
@@ -1110,24 +1115,24 @@ export const UpdateAppointment = extendType({
             }
 
             // if(typeText === 'Telemedicine' || typeText === 'Face to face'){
-              if(Number(subPermissions?.appt_type) !== 1){
-                  throw new GraphQLError("Unauthorized");
-              }    
+            if (Number(subPermissions?.appt_type) !== 1) {
+              throw new GraphQLError("Unauthorized");
+            }
             // }
 
-            if(type !== appt_findfirst?.type){
+            if (type !== appt_findfirst?.type) {
               const secretary_findfirst = await client.sub_account.findFirst({
                 where: {
-                  id:session.user?.subAccId,
+                  id: session.user?.subAccId,
                 },
               });
-  
+
               const currentDate = new Date();
               const monthNames = [
                 'January', 'February', 'March', 'April', 'May', 'June',
                 'July', 'August', 'September', 'October', 'November', 'December'
               ];
-  
+
               const day = currentDate.getDate();
               const month = monthNames[currentDate.getMonth()];
               const year = currentDate.getFullYear();
@@ -1135,34 +1140,34 @@ export const UpdateAppointment = extendType({
               const minutes = currentDate.getMinutes();
               const ampm = hours >= 12 ? 'pm' : 'am';
               const formattedDate = `${month} ${day}, ${year}, ${hours % 12 || 12}:${minutes} ${ampm}`;
-  
-             /*  console.log(formattedDate); */
-  
-  
+
+              /*  console.log(formattedDate); */
+
+
               const Date_today_currentDate = new Date();
-              const formattedDated = Date_today_currentDate.toISOString(); 
-  
+              const formattedDated = Date_today_currentDate.toISOString();
+
               const secretary_create = await client.log_action.create({
                 data: {
-                  secretaryID:session.user?.subAccId,
-                  patientID:Number(patient_findfirst?.S_ID),
-                  idno:Number(secretary_findfirst?.idno) || null,
+                  secretaryID: session.user?.subAccId,
+                  patientID: Number(patient_findfirst?.S_ID),
+                  idno: Number(secretary_findfirst?.idno) || null,
                   request: `${patient_findfirst?.FNAME} ${patient_findfirst?.LNAME} - ${formattedDate} - ${typeText}`,
-                  patient:String(patient_findfirst?.IDNO),
-                  log_type:String(logType),
-                  date:formattedDated,
-                  type:0,
+                  patient: String(patient_findfirst?.IDNO),
+                  log_type: String(logType),
+                  date: formattedDated,
+                  type: 0,
                 },
               });
             }
           }
 
-          
 
-          
+
+
         } catch (error) {
-          console.log(error,'@@@@@@@@@@error')
-            throw new GraphQLError(error)
+          console.log(error, '@@@@@@@@@@error')
+          throw new GraphQLError(error)
         }
         return message;
       },

@@ -88,6 +88,7 @@ model appointments {
   scheduledId             Int?
   room                    String?                   @db.VarChar(255)
   date                    DateTime?                 @db.Date
+  appr_date               DateTime?                 @db.DateTime(0)
   time_slot               DateTime?                 @db.Time(0)
   s_time                  DateTime?                 @db.Time(0)
   e_time                  DateTime?                 @db.Time(0)
@@ -587,12 +588,10 @@ model hmo_claims {
   doctorInfo      employees?    @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "hmo_claims_ibfk_1")
   appointmentInfo appointments? @relation(fields: [appt_id], references: [id], onDelete: Cascade, map: "hmo_claims_ibfk_2")
   hmoInfo         hmo?          @relation("hmoInfo", fields: [hmo], references: [id], onDelete: Cascade, map: "hmo_claims_ibfk_3")
-  patientHmoInfo  patient_hmo   @relation(fields: [member_id], references: [member_id], onDelete: Cascade, map: "hmo_claims_ibfk_4")
 
   @@index([doctorID], map: "hmo_claims_ibfk_1")
   @@index([appt_id], map: "hmo_claims_ibfk_2")
   @@index([hmo], map: "hmo_claims_ibfk_3")
-  @@index([member_id], map: "hmo_claims_ibfk_4")
 }
 
 model icd10 {
@@ -1225,19 +1224,19 @@ model patient {
 }
 
 model patient_hmo {
-  id         Int          @id @default(autoincrement())
-  patientID  Int?
-  idno       String       @db.VarChar(250)
-  hmo        Int?
-  member_id  String?      @unique @db.VarChar(250)
-  isDeleted  Int          @default(0)
-  hmo_claims hmo_claims[]
-  patient    patient?     @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "patient_hmo_ibfk_1")
-  hmoInfo    hmo?         @relation("patientHmoInfo", fields: [hmo], references: [id], onDelete: Cascade, map: "patient_hmo_ibfk_2")
+  id        Int      @id @default(autoincrement())
+  patientID Int?
+  appt_id   Int      @default(0)
+  idno      String   @db.VarChar(250)
+  hmo       Int?
+  member_id String?  @db.VarChar(250)
+  isDeleted Int      @default(0)
+  patient   patient? @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "patient_hmo_ibfk_1")
+  hmoInfo   hmo?     @relation("patientHmoInfo", fields: [hmo], references: [id], onDelete: Cascade, map: "patient_hmo_ibfk_2")
 
-  @@index([member_id], map: "member_id")
   @@index([patientID], map: "patient_hmo_ibfk_1")
   @@index([hmo], map: "patient_hmo_ibfk_2")
+  @@index([appt_id], map: "appt_id")
 }
 
 model patient_registrations {
@@ -1644,6 +1643,7 @@ model Conversation {
 model notification {
   id                                    BigInt               @id @default(autoincrement())
   user_id                               Int
+  user_id_user_role                     Int?
   notifiable_id                         Int
   notifiable_user_role                  Int?
   notification_type_id                  Int
@@ -1678,6 +1678,7 @@ model notification {
   @@index([order_id], map: "order_id")
   @@index([medecine_id], map: "medecine_id")
   @@index([chat_id], map: "chat_id")
+  @@index([user_id_user_role], map: "user_id_user_role")
 }
 
 model notification_content {
@@ -1834,6 +1835,7 @@ model merchant_medicine {
   attachment_id       Int
   merchant_store      merchant_store      @relation(fields: [store_id], references: [id], onUpdate: Restrict, map: "merchant_medicine_ibfk_1")
   medecine_attachment medecine_attachment @relation(fields: [attachment_id], references: [id], onUpdate: Restrict, map: "merchant_medicine_ibfk_2")
+  merchant_records    merchant_records[]
   notification        notification[]
   orders              orders[]
 
@@ -1842,39 +1844,44 @@ model merchant_medicine {
 }
 
 model orders {
-  id                   Int                   @id @default(autoincrement())
-  generic_name         String?               @db.VarChar(255)
-  brand_name           String?               @db.VarChar(255)
-  dose                 String?               @db.VarChar(255)
-  form                 String?               @db.VarChar(255)
-  quantity             Int
-  patient_id           Int
-  store_id             Int?
-  medecine_id          Int
-  payment              String?               @db.VarChar(255)
-  address              String                @db.VarChar(255)
-  contact              String                @db.VarChar(255)
-  COD                  Int?                  @default(0)
-  online_payment       Int?
-  price                Float
-  value                Float?                @db.Float
-  is_paid              Int                   @default(0)
-  is_deliver           Int                   @default(0)
-  status_id            Int
-  is_deleted           Int                   @default(0)
-  created_at           DateTime?             @default(now()) @db.DateTime(0)
-  notification         notification[]
-  patient              patient               @relation(fields: [patient_id], references: [S_ID], onUpdate: Restrict, map: "orders_ibfk_2")
-  status               status                @relation(fields: [status_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_3")
-  merchant_medicine    merchant_medicine     @relation(fields: [medecine_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_4")
-  merchant_store       merchant_store?       @relation(fields: [store_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_5")
-  online_order_payment online_order_payment? @relation(fields: [online_payment], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_6")
+  id                                    Int                      @id @default(autoincrement())
+  generic_name                          String?                  @db.VarChar(255)
+  brand_name                            String?                  @db.VarChar(255)
+  dose                                  String?                  @db.VarChar(255)
+  form                                  String?                  @db.VarChar(255)
+  quantity                              Int
+  patient_id                            Int
+  store_id                              Int?
+  medecine_id                           Int
+  payment                               String?                  @db.VarChar(255)
+  address                               String                   @db.VarChar(255)
+  contact                               String                   @db.VarChar(255)
+  COD                                   Int?                     @default(0)
+  online_payment                        Int?
+  price                                 Float
+  value                                 Float?                   @db.Float
+  is_paid                               Int                      @default(0)
+  is_deliver                            Int                      @default(0)
+  status_id                             Int
+  delivery_status                       Int?
+  is_deleted                            Int                      @default(0)
+  created_at                            DateTime?                @default(now()) @db.DateTime(0)
+  merchant_records                      merchant_records[]
+  notification                          notification[]
+  order_delivery_history                order_delivery_history[]
+  patient                               patient                  @relation(fields: [patient_id], references: [S_ID], onUpdate: Restrict, map: "orders_ibfk_2")
+  status                                status                   @relation(fields: [status_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_3")
+  merchant_medicine                     merchant_medicine        @relation(fields: [medecine_id], references: [id], onUpdate: Restrict, map: "orders_ibfk_4")
+  merchant_store                        merchant_store?          @relation(fields: [store_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_5")
+  online_order_payment                  online_order_payment?    @relation(fields: [online_payment], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_6")
+  status_orders_delivery_statusTostatus status?                  @relation("orders_delivery_statusTostatus", fields: [delivery_status], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "orders_ibfk_7")
 
   @@index([patient_id], map: "patient_id")
   @@index([status_id], map: "status_id")
   @@index([store_id], map: "orders_ibfk_5")
   @@index([medecine_id], map: "medecine_id")
   @@index([online_payment], map: "online_payment")
+  @@index([delivery_status], map: "delivery_status")
 }
 
 model merchant_store {
@@ -1898,6 +1905,7 @@ model merchant_store {
   is_active         Int?                @default(1)
   is_deleted        Int
   merchant_medicine merchant_medicine[]
+  merchant_records  merchant_records[]
   attachment_store  attachment_store?   @relation(fields: [attachment_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_store_ibfk_1")
   merchant_user     merchant_user[]
   orders            orders[]
@@ -1907,9 +1915,11 @@ model merchant_store {
 }
 
 model status {
-  id     Int      @id @default(autoincrement())
-  name   String   @db.VarChar(255)
-  orders orders[]
+  id                                    Int                      @id @default(autoincrement())
+  name                                  String                   @db.VarChar(255)
+  order_delivery_history                order_delivery_history[]
+  orders                                orders[]
+  orders_orders_delivery_statusTostatus orders[]                 @relation("orders_delivery_statusTostatus")
 }
 
 model medecine_attachment {
@@ -1987,6 +1997,48 @@ model online_order_payment_attachment {
   file_url   String   @db.VarChar(255)
   file_type  String   @db.VarChar(255)
   created_at DateTime @default(now()) @db.Date
+}
+
+model merchant_records {
+  id                       Int                       @id @default(autoincrement())
+  order_id                 Int?
+  store_id                 Int?
+  content_id               Int?
+  created_by               Int?
+  medecine_id              Int?
+  is_deleted               Int                       @default(0)
+  created_at               DateTime                  @default(now()) @db.DateTime(0)
+  merchant_records_content merchant_records_content? @relation(fields: [content_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_records_ibfk_1")
+  merchant_medicine        merchant_medicine?        @relation(fields: [medecine_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_records_ibfk_2")
+  orders                   orders?                   @relation(fields: [order_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_records_ibfk_3")
+  merchant_store           merchant_store?           @relation(fields: [store_id], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "merchant_records_ibfk_4")
+
+  @@index([content_id], map: "content_id")
+  @@index([created_by], map: "created_by")
+  @@index([medecine_id], map: "medecine_id")
+  @@index([order_id], map: "order_id")
+  @@index([store_id], map: "store_id")
+}
+
+model merchant_records_content {
+  id               Int                @id @default(autoincrement())
+  title            String             @db.VarChar(255)
+  created_at       DateTime           @default(now()) @db.DateTime(0)
+  is_deleted       Int                @default(0)
+  merchant_records merchant_records[]
+}
+
+model order_delivery_history {
+  id         Int      @id @default(autoincrement())
+  order_id   Int
+  status_id  Int
+  created_at DateTime @default(now()) @db.DateTime(0)
+  is_deleted Int      @default(0)
+  status     status   @relation(fields: [status_id], references: [id], onUpdate: Restrict, map: "order_delivery_history_ibfk_1")
+  orders     orders   @relation(fields: [order_id], references: [id], onUpdate: Restrict, map: "order_delivery_history_ibfk_2")
+
+  @@index([status_id], map: "status_id")
+  @@index([order_id], map: "order_id")
 }
 
 enum UserStatuses {

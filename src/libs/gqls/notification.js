@@ -99,12 +99,22 @@ export const notification_query_final = gql`
         notifDataFinal{
           is_read
           length
+          date
           notification_type
           user
           notifIds
           post_feed
           chat{
             id
+          }
+          orders {
+            attachment {
+              id
+            }
+            brand_name
+            created_at
+            dose
+            generic_name
           }
           appointments {
             Others

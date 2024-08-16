@@ -207,18 +207,11 @@ export default function NotificationsPopover({queryResults, notificationData, is
   },[])
  const handleViewRow = useCallback((d:any)=>{
     
-  // if(d?.chat_id){
-  //   if(d?.many_chat || (d?.group_child?.length && d?.chat_id) || d?.siblings !== 0){
-  //     navigate.push(paths.dashboard.chat);
- 
-  //   }
-  //  else{
-  //   setChatView({
-  //     open:true,
-  //     id:d?.chat_id
-  //   })
-  //  }
-  // }
+
+  let isOrderRelated = d?.notification_type === 'done order' || d?.notification_type === 'cancelled order' ||
+  d?.notification_type === 'approved order' || d?.notification_type === 'Your order was delivered!' || 
+  d?.notification_type === 'Sorry your order was delivery unsuccessfully!' || d?.notification_type === 'Your order is on its way!' || d?.notification_type === 'Your order is waiting for pick up!'
+
   if(d?.notification_type === 'sent a message' || d?.notification_type === 'reply a message'){
     if(d?.length > 1){
       navigate.push(paths.dashboard.chat);
@@ -230,7 +223,10 @@ export default function NotificationsPopover({queryResults, notificationData, is
     }
   }else if(d?.notification_type === 'post feed'){
     navigate.push(paths.dashboard.feeds)
+  }else if(isOrderRelated){
+    navigate.push(paths.dashboard.orders.root)
   }
+
   else{
 
       // if(d?.many_appt?.length || (d?.group_child?.length && !d?.chat_id) || d?.siblings !== 0){

@@ -14,6 +14,8 @@ export * from './labreport_emr_patient';
 export * from './SubAccounts';
 export * from './PatientAppointment';
 export * from './Vital';
+export * from './Logs';
+
 
 export * from './Hmo';
 export * from './ClinicSched';

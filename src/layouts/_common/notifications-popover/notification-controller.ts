@@ -55,20 +55,42 @@ export default function NotificationController({isRun}:{isRun:boolean}) {
       }).then(async (result:any) => {
           const { data } = result;
           
-          const { notifDataFinal } = data?.NotifacationQueryFinal
+          const { notifDataFinal } = data?.NotifacationQueryFinal || {};
 
+          // Initialize counters
           let unread = 0;
           let totalData = 0;
-    
-          notifDataFinal?.forEach((item)=>{
-            if(!item?.is_read){
-              unread += item?.length
-            } 
-            totalData += item?.length;
-          })
+          
+          // Iterate over the notifications
+          notifDataFinal?.forEach((item) => {
+            if (!item?.is_read) {
+              unread += 1; // Assuming each item is an object, increment by 1
+            }
+            totalData += 1; // Increment by 1 for each notification
+          });
+          
+          // Sort notifications by read status and date
+          notifDataFinal.sort((a, b) => {
+            if (a.is_read === b.is_read) {
+              // If both items have the same is_read status, sort by date
+              return new Date(a.date) - new Date(b.date);
+            } else {
+              // Otherwise, sort by is_read status (is_read (false) items first)
+              return a.is_read - b.is_read;
+            }
+          });
+          
+          console.log('Unread notifications:', unread);
+          console.log('Total notifications:', totalData);
+          console.log('Sorted notifications:', notifDataFinal);
+          
 
-          // console.log(notifDataFinal,'############################################################')
-    
+          // console.log(notifDataFinal,'//////////////////////////////////////@@@@@@@@@@@@@@@@@@@@@@@?????????????////////////////////////')
+
+
+       
+         
+          // notifDataFinal.sort((a:any, b:any) => new Date(a.date) - new Date(b.date));
           if (data) {
             setAllData(notifDataFinal);
             setSummarize({all:totalData, unread})

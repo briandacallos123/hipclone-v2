@@ -59,9 +59,15 @@ export default function NotificationItemFinal({ notification, onReadView, onView
             (notification?.notification_type === 'sent a message' && 'ic_chat') ||
             (notification?.notification_type === 'sent payment' && 'ic_payment') ||
             (notification?.notification_type === 'reply a message' && 'ic_chat') ||
-            (notification?.notification_type === 'post feed' && 'ic_post')
-            // reply a message
-            // post feed
+            (notification?.notification_type === 'post feed' && 'ic_post') ||
+            (notification?.notification_type === 'approved order' && 'order') ||
+            (notification?.notification_type === 'cancelled order' && 'order') ||
+            (notification?.notification_type === 'done order' && 'order') ||
+            (notification?.notification_type === 'Your order is waiting for pick up!' && 'order') ||
+            (notification?.notification_type === 'Your order is waiting for pick up!' && 'order') ||
+            (notification?.notification_type === 'Your order is on its way!' && 'order') ||
+            (notification?.notification_type === 'Sorry your order was delivery unsuccessfully!' && 'order') ||
+            (notification?.notification_type === 'Your order was delivered!' && 'order')
             }.svg`}
           sx={{ width: 24, height: 24 }}
         />
@@ -125,8 +131,36 @@ export default function NotificationItemFinal({ notification, onReadView, onView
     //done appt && length === 1
     (notification?.notification_type === 'done appointment' && notification?.length === 1 && `<p>${notification?.user}</strong> marked your appointment as done!</p>`) ||
     //done appt && length === 1
-    (notification?.notification_type === 'done appointment' && notification?.length > 1 && `<p>${notification?.user}</strong> marked your ${notification?.length} appointments as done!</p>`)
-  //   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length > 1 && `<p>You have <strong>${notification?.length}</strong> new orders from <strong>${notification?.user}</strong></p>`) ||
+    (notification?.notification_type === 'done appointment' && notification?.length > 1 && `<p>${notification?.user}</strong> marked your ${notification?.length} appointments as done!</p>`) ||
+     //done appt && length === 1
+    (notification?.notification_type === 'approved order' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your order as <strong>approved</strong>!</p>`) ||
+    //done appt && length > 1
+    (notification?.notification_type === 'approved order' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your ${notification?.length} order as <strong>approved</strong>!</p>`) || 
+       //done appt && length > 1
+    (notification?.notification_type === 'cancelled order' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your order as <strong>cancelled</strong>!</p>`) ||
+    (notification?.notification_type === 'cancelled order' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your ${notification?.length} order as <strong>cancelled</strong>!</p>`) ||
+
+    (notification?.notification_type === 'done order' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your order as <strong>done</strong>!</p>`) ||
+
+    (notification?.notification_type === 'done order' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your ${notification?.length} order as <strong>done</strong>!</p>`) ||
+    // order, 
+    (notification?.notification_type === 'Your order is waiting for pick up!' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> ${notification?.notification_type}</p>`) ||
+    // order, length > 1
+    (notification?.notification_type === 'Your order is waiting for pick up!' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> Your ${notification?.length} order is waiting for pick up!</p>`) ||
+    // order, length > 1
+    (notification?.notification_type === 'Your order is on its way!' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> ${notification?.notification_type}</p>`) ||
+    // order, length > 1
+    (notification?.notification_type === 'Your order is on its way!' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> Your ${notification?.length} are on its way!</p>`)  ||
+ // order, length > 1
+ (notification?.notification_type === 'Sorry your order was delivery unsuccessfully!' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> Sorry your order wasn't delivered successfully! </p>`) ||
+// order, length > 1
+(notification?.notification_type === 'Sorry your order was delivery unsuccessfully!' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> Sorry your ${notification?.length} orders was delivered unsuccessfully! </p>`) ||
+// order, length > 1
+(notification?.notification_type === 'Your order was delivered!' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> ${notification?.notification_type} </p>`) ||
+(notification?.notification_type === 'Your order was delivered!' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> Your ${notification?.length} order was delivered! </p>`) 
+
+
+    //   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length > 1 && `<p>You have <strong>${notification?.length}</strong> new orders from <strong>${notification?.user}</strong></p>`) ||
   //  // order && not read && length is equals 1
   //   (notification?.notification_type === 'order' && !notification?.is_read && notification?.length === 1  && `<p>You have new order from <strong>${notification?.user}</strong></p>`) ||
   //   // order & already read && length is > 1
@@ -286,6 +320,18 @@ export default function NotificationItemFinal({ notification, onReadView, onView
       </Button>}
 
       {notification?.notification_type === 'post feed' && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
+      </Button>}
+      {(notification?.notification_type === 'approved order' ||notification?.notification_type === 'cancelled order' ||notification?.notification_type === 'done order' ) && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
+      </Button>}
+
+
+      {(notification?.notification_type === 'Your order was delivered!' ||notification?.notification_type === 'Sorry your order was delivery unsuccessfully!' ||notification?.notification_type === 'Your order is on its way!' || notification?.notification_type === 'Your order is waiting for pick up!' )  && <Button onClick={() => {
         onViewRow()
       }} size="small" color="info" variant="outlined">
         View

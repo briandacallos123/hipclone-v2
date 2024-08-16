@@ -44,7 +44,7 @@ export default function useNotesHooks(payloads: any) {
   const [tableData1, setTableData1] = useState<any>([]);
   const [totalData, setTotalData] = useState(0);
   const [isLoading, setLoading] = useState(true);
-
+  const [clinicData, setClinicData] = useState([]);
   const [tableDataEMR, setTableDataEMR] = useState<any>([]);
   const [totalDataEMR, setTotalDataEMR] = useState(0);
   // console.log(payloads, '!!!!!!!!!!##########');
@@ -81,6 +81,7 @@ export default function useNotesHooks(payloads: any) {
       setIds(allRecordsbyPatientNew?.RecordIds);
       setTotalData(allRecordsbyPatientNew?.total_records);
       setIsLoadingPatient(false);
+      setClinicData(allRecordsbyPatientNew?.clinic)
     }
   }, [data, user?.role]);
   // -------------------
@@ -217,6 +218,7 @@ export default function useNotesHooks(payloads: any) {
   // console.log('table1', tableData1);
 
   return {
+    clinicData,
     isLoading,
     data,
     loading,

@@ -41,6 +41,7 @@ export const QueryQueuePatient = gql`
         QueuePatient(data:$data){
             appointments_data{
               voucherId
+              appr_date
                 clinicInfo {
                   clinic_name
                   Province
@@ -80,6 +81,9 @@ export const QueryQueuePatient = gql`
             position
             is_not_today
             notApproved
+            notStarted
+            done_session
+            is_ongoing
             is_paid
             is_done
             notAppNotToday{

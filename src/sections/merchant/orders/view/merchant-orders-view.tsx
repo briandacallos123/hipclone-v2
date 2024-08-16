@@ -76,6 +76,9 @@ import AppointmentAnalytic from '@/sections/appointment/appointment-analytic';
 import OrderView from './merchant-view';
 import AppointmentTableToolbar from '@/sections/appointment/appointment-table-toolbar';
 import MerchantTableToolbar from './merchant-table-toolbar';
+import { Dialog, DialogActions, DialogContent, DialogTitle } from '@mui/material';
+import { RHFSelect } from '@/components/hook-form';
+import MerchantDeliveryHistoryCreate from './merchant-create-view-2';
 // import { UseMerchantContext } from '@/context/workforce/merchant/MerchantContext';
 // import MerchantCreateView from './merchant-create-view';
 // import { UseMerchantMedContext } from '@/context/merchant/Merchant';
@@ -85,15 +88,18 @@ import MerchantTableToolbar from './merchant-table-toolbar';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
-  { id: 'id', label: 'Order ID',  },
+  { id: 'id', label: 'ID', },
   { id: 'Medicine Name', label: 'Generic Name' },
   { id: 'Patient', label: 'Patient', align: 'center' },
   { id: 'Status', label: 'Payment Status', align: 'center' },
   { id: 'Type', label: 'Delivery Type', align: 'center' },
   { id: 'Status_Id', label: 'Status', align: 'center' },
-
+  { id: 'Type', label: 'Delivery Status', align: 'center' },
+  { id: 'date', label: 'Date', align: 'center' },
   { id: 'Action', label: "action" },
 ];
+
+
 
 
 
@@ -173,10 +179,11 @@ export default function MerchantOrdersView() {
 
   const [editRow, setEditRow] = useState(null)
 
+  // const confirmEdit = useBoolean();
 
 
   const handleEditRow = (row: any) => {
-    opencreate.onTrue()
+    confirmEdit.onTrue()
     setEditRow(row)
 
   }
@@ -184,37 +191,30 @@ export default function MerchantOrdersView() {
   const handleApproved = (id) => {
     doneMerchantOrderFunc({
       status: 2,
-      order_id: id
-    })
-  }
-  
-  const handleCancelled = (id) => {
-    doneMerchantOrderFunc({
-      status: 3,
-      order_id: id
+      order_id: id?.id,
+      patientEmail:id?.patient?.EMAIL
     })
   }
 
-  
+  const handleCancelled = (id) => {
+    doneMerchantOrderFunc({
+      status: 3,
+      order_id: id?.id,
+      patientEmail:id?.patient?.EMAIL
+    })
+  }
+
+
 
   const handleDone = (id) => {
     doneMerchantOrderFunc({
       status: 4,
-      order_id: id
+      order_id: id?.id,
+      patientEmail:id?.patient?.EMAIL
     })
-    // console.log(id,'IDDDDDDDDDDDDDD________________')
   }
 
-  // const handleFilters = useCallback(
-  //   (name: string, value: IAppointmentTableFilterValue) => {
-  //     table.onResetPage();
-  //     setFilters((prevState: any) => ({
-  //       ...prevState,
-  //       [name]: value,
-  //     }));
-  //   },
-  //   [table]
-  // );
+
 
   const handleViewRow = useCallback(
     (data: any) => {
@@ -224,10 +224,6 @@ export default function MerchantOrdersView() {
     [openView]
   );
 
-
-  // const handleResetFilters = useCallback(() => {
-  //   setFilters(defaultFilters);
-  // }, []);
 
   const handleViewPatient = useCallback(
     (id: any) => {
@@ -271,7 +267,7 @@ export default function MerchantOrdersView() {
       color: 'error',
       count: state?.summary?.cancelled,
     },
-   
+
     // {
     //   value: 0,
     //   label: 'Pick up',
@@ -404,7 +400,7 @@ export default function MerchantOrdersView() {
           <MerchantTableToolbar
             filters={filters}
             onFilters={handleFilters}
-            //
+          //
           />
           {/* 
           
@@ -496,9 +492,9 @@ export default function MerchantOrdersView() {
                         onViewPatient={() => handleViewPatient(row)}
                         onDeleteRow={() => handleDeleteRow(row?.id)}
                         onEditRow={() => handleEditRow(row)}
-                        onDone={() => handleDone(row?.id)}
-                        onApproved={()=>handleApproved(row?.id)}
-                        onCancelled={()=>handleCancelled(row?.id)}
+                        onDone={() => handleDone(row)}
+                        onApproved={() => handleApproved(row)}
+                        onCancelled={() => handleCancelled(row)}
                       />
                     ))}
 
@@ -547,7 +543,7 @@ export default function MerchantOrdersView() {
         setEditRow(null)
       }} open={opencreate.value}/> */}
 
-      <OrderView dataView={viewId} open={openView.value} onClose={openView.onFalse}/>
+      <OrderView dataView={viewId} open={openView.value} onClose={openView.onFalse} />
 
       {/* {viewId && <AppointmentDetailsView
         updateRow={updateRow}
@@ -559,6 +555,10 @@ export default function MerchantOrdersView() {
         onClose={openView.onFalse}
         id={viewId}
       />} */}
+      <MerchantDeliveryHistoryCreate refetch={()=>{
+        getOrdersResult.refetch()
+      }} onClose={confirmEdit.onFalse} open={confirmEdit.value} editRow={editRow}/>
+      {/* <SimpleDialog open={confirmEdit.value} onClose={confirmEdit.onFalse} /> */}
 
       <ConfirmDialog
         open={confirmDelete.value}
@@ -626,6 +626,37 @@ export default function MerchantOrdersView() {
         }
       />
     </>
+  );
+}
+
+
+function SimpleDialog(props: any) {
+  const { onClose, selectedValue, open } = props;
+
+  const handleClose = () => {
+    onClose(selectedValue);
+  };
+
+  const handleListItemClick = (value: string) => {
+    onClose(value);
+  };
+
+  return (
+    <Dialog fullWidth maxWidth="xs" open={open} onClose={onClose} >
+      <DialogTitle sx={{ pb: 2 }}>Delivery Status</DialogTitle>
+
+      <DialogContent sx={{ typography: 'body2' }}>
+        
+      </DialogContent>
+
+      <DialogActions>
+        {/* {action} */}
+
+        <Button variant="outlined" color="inherit" onClick={onClose}>
+          Submit
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 }
 

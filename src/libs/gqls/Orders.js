@@ -13,6 +13,18 @@ export const QueryAllMedicineOrders = gql`
         approved
       }
       orderType {
+        delivery_history {
+          created_at
+          id
+          status_id {
+            id
+            name
+          }
+        }
+        delivery_status{
+          id
+          name
+        }
         attachment{
           file_path
           id
@@ -48,10 +60,60 @@ export const QueryAllMedicineOrders = gql`
         is_deliver
         brand_name
         quantity
+        created_at
       }
     } 
   }
 `;
+
+export const QueryAllMerchantLogs = gql`
+  query QueryAllMerchantLogs($data:merchantLogsInp!){
+    QueryAllMerchantLogs(data:$data){
+      summary {
+        totalRecords
+        medicineTotal
+        storeTotal
+        orderTotal
+      }
+      merchantLogs {
+        id
+        content {
+          created_at
+          id
+          title
+        }
+        createdBy {
+          contact
+          email
+          first_name
+        }
+        created_at
+        medecine {
+          generic_name
+          form
+          manufacturer
+          price
+          stock
+          id
+        }
+        store {
+          address
+          description
+          distance
+          end_time
+          id
+          rating
+        }
+        order {
+          brand_name
+          created_at
+          dose
+          id
+        }
+      }
+    }
+  }
+`
 
 
 export const QueryAllOrdersForMerchantHistory = gql`
@@ -65,24 +127,36 @@ export const QueryAllOrdersForMerchantHistory = gql`
         cancelled
       }
       orderType {
+        delivery_history {
+          created_at
+          id
+          status_id {
+            id
+            name
+          }
+        }
+        delivery_status{
+          id
+          name
+        }
+        attachment{
+          file_path
+          id
+          filename
+        }
+        value
         dose
+        payment
         price
-        form
+        online_reference
         status_id
+        form
         generic_name
         store{
           name
         }
-        value
         id
-        payment
-        online_reference
         is_paid
-        attachment {
-          file_path
-          filename
-          id
-        }
         patient {
           CONTACT_NO
           EMAIL
@@ -94,20 +168,13 @@ export const QueryAllOrdersForMerchantHistory = gql`
           SEX
           STATUS
           S_ID
-          Attachment
           isDeleted
-        }
-        store {
-          name
-          attachment_store {
-            filename
-            id
-            file_url
-          }
+          Attachment
         }
         is_deliver
         brand_name
         quantity
+        created_at
       }
     } 
   }
@@ -117,35 +184,54 @@ export const QueryAllPatientOrders = gql`
   query QueryAllPatientOrders($data: orderInputType!) {
     QueryAllPatientOrders(data: $data) {
       orderType {
-        brand_name
-        dose
-        form
-        status_id
-        generic_name
-        id
-        is_deliver
-        is_paid
-        quantity
-        store {
-          name
-          attachment_store {
-            filename
+        delivery_history {
+          created_at
+          id
+          status_id {
             id
-            file_url
+            name
           }
         }
+        delivery_status{
+          id
+          name
+        }
+        attachment{
+          file_path
+          id
+          filename
+        }
+        value
+        dose
+        payment
+        price
+        online_reference
+        status_id
+        form
+        generic_name
+        store{
+          name
+        }
+        id
+        is_paid
         patient {
           CONTACT_NO
           EMAIL
           FNAME
           HOME_ADD
+          IDNO
           LNAME
+          MNAME
+          SEX
+          STATUS
+          S_ID
+          isDeleted
+          Attachment
         }
-        attachment {
-          file_path
-          filename
-          id
-        }
+        is_deliver
+        brand_name
+        quantity
+        created_at
       }
       summary {
         pickup
@@ -166,6 +252,7 @@ export const QueryAllMedecineByStore = gql`
       MedicineType {
         id
         generic_name
+        quantity_sold
         brand_name
         dose
         type
@@ -226,6 +313,16 @@ export const QueryAllMedicineOrdersPatient = gql`
         is_deliver
         is_paid
         id
+      
+      }
+  }
+`;
+
+export const UpdateOrderDeliveryHistory = gql`
+  mutation UpdateOrderDeliveryHistory($data: UpdateOrderDeliveryHistoryInp!) {
+    UpdateOrderDeliveryHistory(data: $data) {
+    
+     message
       
       }
   }

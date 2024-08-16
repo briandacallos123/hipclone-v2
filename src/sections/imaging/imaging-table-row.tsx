@@ -464,6 +464,8 @@ export default function ImagingTableRow({ patientData, row }: any) {
         <TableCell>{row.labName}</TableCell>
 
         <TableCell>{row.resultDate}</TableCell>
+        <TableCell>{row.dateCreated}</TableCell>
+
 
         <TableCell sx={{ color: 'primary.main', textTransform: 'capitalize'}}>
           

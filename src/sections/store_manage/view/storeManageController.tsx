@@ -20,6 +20,18 @@ type Props = {
   
 };
 
+const defaultFilters = {
+  name: '',
+  status: -1,
+  type: '',
+  startDate: null,
+  endDate: null,
+  startingPrice: null,
+  endPrice: null,
+  sort:""
+};
+
+
 const StoreManageController = (
   props: Props = {
     skip: 0,
@@ -35,17 +47,21 @@ const StoreManageController = (
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const params = useParams();
   const [loading, setLoading] = useState(false)
-
+  const [filters, setFilters]: any = useState(defaultFilters);
   const [updateFunc, createResults] = useMutation(UpdateStore);
   const [deleteFunc, deleteResults] = useMutation(DeleteMerchantMedicine);
-
-
+  
   const [queryFunc, queryResults] = useLazyQuery<any>(QueryAllMedecineByStore, {
     variables: {
       data: {
         skip: props.skip,
         take: props.take,
-        store_id:Number(params?.id)
+        store_id:Number(params?.id),
+        
+        search: filters.name,
+        startPrice: Number(filters.startingPrice),
+        endPrice: Number(filters.endPrice),
+        sort:filters.sort
       }
     },
     context: {
@@ -54,6 +70,18 @@ const StoreManageController = (
     notifyOnNetworkStatusChange: true,
 
   });
+  const handleFilters = useCallback(
+    (name: string, value: any) => {
+        setFilters((prevState: any) => {
+
+            return {
+                ...prevState,
+                [name]: value,
+            }
+        });
+    },
+    []
+);
 
   useEffect(() => {
     queryFunc().then(async (result) => {
@@ -151,7 +179,7 @@ const StoreManageController = (
   //   [createFunc]
   // );
 
-  return {  tableData,queryResults, handleSubmitUpdate, handleSubmitDelete}
+  return { filters, tableData,queryResults, handleSubmitUpdate, handleSubmitDelete, handleFilters}
 }
 
 export default StoreManageController

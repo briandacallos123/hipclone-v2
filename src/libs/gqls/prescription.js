@@ -183,6 +183,10 @@ export const PrescriptionsUser = gql`
         isFavorite
       }
       totalRecords
+      clinicList{
+        clinic_name
+        id
+      }
     }
   }
 `;

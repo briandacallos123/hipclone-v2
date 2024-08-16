@@ -54,7 +54,8 @@ const TABLE_HEAD = [
   // { id: 'doctor', label: 'Doctor' },
   { id: 'hospital', label: 'Hospital/Clinic' },
   { id: 'labName', label: 'Laboratory Name' },
-  { id: 'date', label: 'Result Date' },
+  { id: 'resultDate', label: 'Result Date' },
+  { id: 'date', label: 'Date' },
   { id: 'type', label: 'Type' },
   { id: 'action', label: 'Action' },
 ];
@@ -138,6 +139,7 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
   const [isLoading, setIsLoading] = useState<any>(true);
   const { page, rowsPerPage, order, orderBy } = table;
   const { getItem } = useSessionStorage();
+  // const [clinic, setClinic] = useState([]);
   // console.log(tableData1, 'HAAALAAAAAAAAAAAAAAAAA@@@');
 
   const [filters, setFilters] = useState(defaultFilters);
@@ -188,7 +190,8 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
 
   // const pathname = usePathname();
   const isEMR = pathname.includes('my-emr');
-
+  
+  
   ////////////////////////////////////////////////////////////////////////////
   const {
     data,
@@ -204,19 +207,23 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
     notifyOnNetworkStatusChange: true,
     variables: {
       data: {
-        uuid: data_slug || Number(id),
+        uuid: data_slug || id,
         take: rowsPerPage,
         skip: page * rowsPerPage,
         orderBy,
         userType: user?.role,
         orderDir: order,
         searchKeyword: filters?.name,
-        clinicIds: filters?.clinic.map((v: any) => Number(v)),
+        clinicIds: filters?.clinic?.map((v: any) => Number(v)),
         startDate: YMD(filters?.startDate) || null,
         endDate: YMD(filters?.endDate) || null,
+        // doctorID:Number(user?.id)
       },
     },
   });
+
+  const [clinicData, setclinicData] = useState<any>([]);
+
 
   useEffect(() => {
     if (data) {
@@ -225,6 +232,7 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
         setTableData1(labreport_patient_data?.labreport_patient);
         setTotal(labreport_patient_data?.total_records);
         setIsClinic(isClinic + 1);
+        setclinicData(labreport_patient_data?.clinic)
       } else {
         const { emr_labreport_patient_data } = data;
         setTableData1(emr_labreport_patient_data?.e_labreport_patient);
@@ -233,14 +241,13 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
       }
       setIsLoading(false)
     }
-  }, [data, filters.clinic]);
+  }, [data, filters.clinic, orderBy, order]);
 
   
 
   ////////////////////////////////////////////////////////////////////////////
 
   //////////////////////////////////////////////////////////////////////////
-  const [clinicData, setclinicData] = useState<any>([]);
   const {
     data: drClinicData,
     error: drClinicError,
@@ -272,12 +279,12 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
 
 
 
-  useEffect(() => {
-    if (user?.role === 'patient' && userClinicData) {
-      const { AllClinicUser } = userClinicData;
-      setclinicData(AllClinicUser);
-    }
-  }, [user?.role, userClinicData]);
+  // useEffect(() => {
+  //   if (user?.role === 'patient' && userClinicData) {
+  //     const { AllClinicUser } = userClinicData;
+  //     setclinicData(AllClinicUser);
+  //   }
+  // }, [user?.role, userClinicData]);
 
   useEffect(() => {
     if (isClinic === 1) {
@@ -344,13 +351,13 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
                 order={table.order}
                 orderBy={table.orderBy}
                 headLabel={TABLE_HEAD}
-                // onSort={table.onSort}
+                onSort={table.onSort}
               />
             )}
 
             <TableBody>
               {isLoading
-                ? [...Array(rowsPerPage)].map((_, i) => <ProfileImagingTableRowSkeleton key={i} />)
+                ? [...Array(rowsPerPage)]?.map((_, i) => <ProfileImagingTableRowSkeleton key={i} />)
                 : tableData1?.map((row: any) => (
                     <ProfileImagingTableRow patientData={patientInfo} key={row.id} row={row} />
                   ))}

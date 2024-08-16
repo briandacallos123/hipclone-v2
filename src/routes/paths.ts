@@ -59,6 +59,8 @@ export const paths: any = {
       login: `${ROOTS.MERCHANT}/dashboard/user/login`,
     },
     history:`${ROOTS.MERCHANT}/dashboard/history`,
+    logs:`${ROOTS.MERCHANT}/dashboard/logs`,
+
   },
   // DASHBOARD
   dashboard: {

@@ -7,6 +7,7 @@ import { extendType, inputObjectType, objectType } from 'nexus';
 import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
+import { Clinics } from './ClinicSched';
 
 //
 export const labreport = objectType({
@@ -348,6 +349,21 @@ const filters = (args: any) => {
     };
   }
 
+  if (args?.data!.startDate && !args?.data!.endDate) {
+    whereDate = {
+      dateCreated: {
+        gte: args?.data!.startDate,
+      },
+    };
+  }
+  if (!args?.data!.startDate && args?.data!.endDate) {
+    whereDate = {
+      dateCreated: {
+        lte: args?.data!.endDate,
+      },
+    }
+  }
+
   const clinicIDs: any = args?.data?.clinicIds;
   if (clinicIDs?.length) {
     whereConClinic = {
@@ -391,9 +407,9 @@ export const labreport_p = objectType({
       type: labreport,
     });
     t.int('total_records');
-    // t.field('summary_total', {
-    //     type: Summary_Total_Arrays,
-    // });
+    t.nullable.list.field('clinic', {
+        type: Clinics
+    });
   },
 });
 /// ////////////////////////////////////////////////
@@ -416,42 +432,48 @@ export const labreport_patient_data = extendType({
         // return result
         // ORDER BY
 
-        console.log("DITO NGAAAAAAAAAAAAA")
         let order: any;
-        switch (args?.data?.orderBy) {
+        switch (orderBy) {
           case 'hospital':
             {
-              order = [
-                {
-                  clinicInfo: {
-                    clinic_name: args?.data?.orderDir,
-                  },
+              order = {
+                clinicInfo: {
+                  clinic_name: orderDir,
                 },
-              ];
+              }
             }
             break;
           case 'labName':
             {
-              order = [{ labName: args?.data?.orderDir }];
+              order = { labName: orderDir }
             }
             break;
           case 'date':
             {
-              order = [{ resultDate: args?.data?.orderDir }];
+              order = { dateCreated: orderDir }
+            }
+            break;
+          case 'resultDate':
+            {
+              order = { resultDate: orderDir }
             }
             break;
           case 'type':
             {
-              order = [{ type: args?.data?.orderDir }];
+              order = { type: orderDir}
             }
             break;
           default:
-            order = {};
+            order = {
+              id:'desc'
+            };
         }
 
         const orderConditions = {
           orderBy: order,
         };
+
+        console.log(orderConditions,'TANGINA MO@')
 
         // ORDER BY
 
@@ -464,16 +486,7 @@ export const labreport_patient_data = extendType({
           'labreport_patient_data'
         );
 
-        const setCurrentDay = (() => {
-          if (!startDate && !endDate) return {};
-          if (!startDate && endDate)
-            return {
-              dateCreated: {
-                lte: formattedEndDateAsDate,
-              },
-            };
-          return {};
-        })();
+      
 
         try {
           const patientInfo: any = await client.user.findFirst({
@@ -482,11 +495,6 @@ export const labreport_patient_data = extendType({
             },
             include: {
               patientInfo: true,
-              // patientInfo:{
-              //   include:{
-              //     emr_patient:true
-              //   }
-              // },
             },
           });
           const emrPatientId = await client.emr_patient.findFirst({
@@ -494,17 +502,13 @@ export const labreport_patient_data = extendType({
               patientID: Number(patientInfo?.patientInfo?.S_ID),
             },
           });
-          //  console.log(emrPatientId,'ÁYYAYAYA@')
-          //  console.log(patientInfo,'ÁYYAYAYA@@@@')
-          //  if(Number(emrPatientId?.link) === 1){
+          
           if (emrPatientId && Number(emrPatientId?.link) === 1) {
+            console.log("dito sa unahan")
             const [labreport, _count, count]: any = await client.$transaction([
-              /// /////////////////////////////////////////////
-              // const search_uuid = uuid;
               client.labreport.findMany({
                 take,
                 skip,
-
                 where: {
                   isDeleted: 0,
                   OR: [
@@ -517,9 +521,7 @@ export const labreport_patient_data = extendType({
                       ...whereconditions,
                     },
                   ],
-                  ...setCurrentDay,
                 },
-
                 include: {
                   labreport_attachments: true,
                   doctorInfo: true,
@@ -548,9 +550,6 @@ export const labreport_patient_data = extendType({
                   },
                 },
                 ...orderConditions,
-                orderBy: {
-                  id: 'desc',
-                },
               }),
               client.labreport.groupBy({
                 by: ['id'],
@@ -569,7 +568,7 @@ export const labreport_patient_data = extendType({
                       ...whereconditions,
                     },
                   ],
-                  ...setCurrentDay,
+                  // ...setCurrentDay,
                 },
                 _count: {
                   id: true,
@@ -588,7 +587,7 @@ export const labreport_patient_data = extendType({
                       ...whereconditions,
                     },
                   ],
-                  ...setCurrentDay,
+                  // ...setCurrentDay,
                 },
                 _count: {
                   id: true,
@@ -617,6 +616,8 @@ export const labreport_patient_data = extendType({
           }
           // patient user
           else if (userType === 'patient') {
+            console.log("dito sa pangalawan")
+
             // console.log(session?.user,'USERRRRRRRRRRRRRRRR')
             const idConditions = (()=>{
               let condition = [];
@@ -637,22 +638,15 @@ export const labreport_patient_data = extendType({
 
             // console.log(idConditions,'??????')
 
-            const [labreport, _count, count]: any = await client.$transaction([
+            const [labreport, _count, count, clinic]: any = await client.$transaction([
               /// /////////////////////////////////////////////
               client.labreport.findMany({
                 take,
                 skip,
                 where: {
                   OR: idConditions,
-                  ...setCurrentDay,
-                  ...whereconditions,
-                  // patientID: session?.user?.id,
-
                   isDeleted: 0,
-                  // NOT: {
-                  //   doctorInfo: null,
-                  // },
-                  // patientID: Number(patientInfo?.patientInfo.S_ID),
+                  ...whereconditions,
                 },
                 include: {
                   labreport_attachments: true,
@@ -682,9 +676,6 @@ export const labreport_patient_data = extendType({
                   },
                 },
                 ...orderConditions,
-                orderBy: {
-                  id: 'desc',
-                },
               }),
               client.labreport.groupBy({
                 by: ['id'],
@@ -698,7 +689,7 @@ export const labreport_patient_data = extendType({
                   // },
                   // patientID: Number(patientInfo?.patientInfo.S_ID),
                   AND: [{ isDeleted: 0 }],
-                  ...setCurrentDay,
+                  // ...setCurrentDay,
                 },
                 _count: {
                   id: true,
@@ -707,18 +698,32 @@ export const labreport_patient_data = extendType({
               client.labreport.aggregate({
                 where: {
                   OR: idConditions,
+                  ...whereconditions,
                   // NOT: {
                   //   doctorInfo: null,
                   // },
                   // patientID: Number(patientInfo?.patientInfo.S_ID),
                   AND: [{ isDeleted: 0 }],
-                  ...setCurrentDay,
+                  // ...setCurrentDay,
                 },
                 _count: {
                   id: true,
                 },
               }),
+
+              client.labreport.findMany({
+                where:{
+                  OR: idConditions,
+                  AND: [{ isDeleted: 0 }],
+                },
+                include:{
+                  clinicInfo:true
+                },
+                distinct:['clinic']
+              })
             ]);
+
+            console.log(clinic,'CLINIC SA DULOOOOOOOOOOOOOOOOOOOOOOO___________')
 
            
 
@@ -728,12 +733,14 @@ export const labreport_patient_data = extendType({
             const response: any = {
               labreport_patient: _result,
               total_records: Number(_total?._count?.id),
-              // summary_total: total_summary
+              clinic:clinic?.map((item)=>item?.clinicInfo)
             };
             // console.log(response,'RESPONSE SA pangalawa__')
 
             return response;
           } else {
+            console.log("dito sa pangalawan")
+
             // eslint-disable-next-line @typescript-eslint/no-shadow
             const [labreport, _count, count]: any = await client.$transaction([
               /// /////////////////////////////////////////////
@@ -744,7 +751,7 @@ export const labreport_patient_data = extendType({
                   ...whereconditions,
                   isDeleted: 0,
                   patientID: Number(patientInfo?.patientInfo.S_ID),
-                  ...setCurrentDay,
+                  // ...setCurrentDay,
                 },
                 include: {
                   labreport_attachments: true,
@@ -774,9 +781,7 @@ export const labreport_patient_data = extendType({
                   },
                 },
                 ...orderConditions,
-                orderBy: {
-                  id: 'desc',
-                },
+              
               }),
               client.labreport.groupBy({
                 by: ['id'],
@@ -786,7 +791,7 @@ export const labreport_patient_data = extendType({
                 where: {
                   patientID: Number(patientInfo?.patientInfo.S_ID),
                   AND: [{ isDeleted: 0 }, { ...whereconditions }],
-                  ...setCurrentDay,
+                  // ...setCurrentDay,
                 },
                 _count: {
                   id: true,
@@ -796,7 +801,7 @@ export const labreport_patient_data = extendType({
                 where: {
                   patientID: Number(patientInfo?.patientInfo.S_ID),
                   AND: [{ isDeleted: 0 }, { ...whereconditions }],
-                  ...setCurrentDay,
+                  // ...setCurrentDay,
                 },
                 _count: {
                   id: true,

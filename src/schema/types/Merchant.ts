@@ -363,6 +363,8 @@ export const QueryMerchantDashboard = extendType({
               })
               storeByMerchant = storeByMerchant?.map((item)=>Number(item.id));
          
+
+              
               const [orders]:any = await client.$transaction([
                 client.orders.findMany({
                     where:{
@@ -370,7 +372,9 @@ export const QueryMerchantDashboard = extendType({
                             in:storeByMerchant
                         },
                         is_deleted:0,
-                        status_id:1
+                        status_id:{
+                            notIn:[3, 11, 8]
+                        }
                     }
                 }),
               ]);
@@ -378,9 +382,12 @@ export const QueryMerchantDashboard = extendType({
               let sales:any = 0;
 
               orders?.forEach((item)=>{
-                const {price, quantity} = item;
-                sales += (price * quantity);
+                sales += Number(item?.value);
               });
+
+              console.log(sales,'salessalessalessales')
+              console.log(orders,'ordersordersordersordersordersordersordersorders')
+
 
               return {
                 ordersCount:orders.length,

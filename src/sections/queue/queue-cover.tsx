@@ -16,6 +16,7 @@ import { Skeleton } from '@mui/material';
 export default function QueueCover({ name, address, avatarUrl, coverUrl, isLoading }: any) {
   const theme = useTheme();
 
+  
 
   return (
     <Card sx={{ height: { xs: 140, md: 180 } }}>

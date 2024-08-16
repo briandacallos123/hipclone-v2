@@ -55,7 +55,9 @@ export default function HmoEditForm({ currentItem,clientside, tempData,onClose,r
   // console.log(currentItem,"woooow")
 
   const NewHmoSchema = Yup.object().shape({});
-  const patient_fullname = `${currentItem?.patientInfo?.FNAME} ${currentItem?.patientInfo?.MNAME} ${currentItem?.patientInfo?.LNAME}`;
+
+  // `${currentItem?.patientInfo?.FNAME} ${currentItem?.patientInfo?.MNAME} ${currentItem?.patientInfo?.LNAME}`
+  const patient_fullname = currentItem?.patientInfo?.MNAME ? `${currentItem?.patientInfo?.FNAME} ${currentItem?.patientInfo?.MNAME} ${currentItem?.patientInfo?.LNAME}`:`${currentItem?.patientInfo?.FNAME} ${currentItem?.patientInfo?.LNAME}`;
 
   const [openSwitch, setOpenSwitch] = useState(false);
 
@@ -227,6 +229,7 @@ function HmoPatientCover({ name, date, time, avatarUrl }: HmoPatientCoverProps) 
 
         <ListItemText
           sx={{
+            textTransform:'capitalize',
             textAlign: { xs: 'center', md: 'unset' },
           }}
           primary={name}

@@ -214,7 +214,7 @@ export default function EmrNewEditForm({ currentItem, onClose, refetch }: Props)
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <RHFTextField type="number" name="contact_no" label="Phone Number (optional)" />
+              <RHFTextField type="text" name="contact_no" label="Phone Number (optional)" />
               <RHFTextField type="email" name="email" label="Email (optional)" />
             </Box>
           </Stack>

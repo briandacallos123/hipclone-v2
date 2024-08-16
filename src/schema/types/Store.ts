@@ -597,6 +597,8 @@ export const DeleteStore = extendType({
             type: CreateNewStoreObj,
             args: { data: DeleteStoreInp!, file: 'Upload' },
             async resolve(_root, args, ctx) {
+                const { session } = ctx;
+                const { user } = session;
 
                 try {
                     await client.merchant_store.update({
@@ -605,6 +607,19 @@ export const DeleteStore = extendType({
                         },
                         data: {
                             is_deleted: 1
+                        }
+                    })
+
+                    const content = await client.merchant_records_content.create({
+                        data:{
+                            title:"you deleted this store",
+                        }
+                    })
+                    await client.merchant_records.create({
+                        data:{
+                            content_id:Number(content?.id),
+                            store_id:Number(args?.data?.id),
+                            created_by:Number(user?.id)
                         }
                     })
 
@@ -627,6 +642,8 @@ export const UpdateStatusStore = extendType({
             type: CreateNewStoreObj,
             args: { data: DeleteStoreInp! },
             async resolve(_root, args, ctx) {
+                const { session } = ctx;
+                const { user } = session;
 
                 try {
                     const targetStore = await client.merchant_store.findUnique({
@@ -656,6 +673,20 @@ export const UpdateStatusStore = extendType({
                         },
                         data: {
                             ...negatedValues
+                        }
+                    })
+
+
+                    const content = await client.merchant_records_content.create({
+                        data:{
+                            title:targetStore?.is_active ? "you updated this store to inactive":"you updated this store to active"
+                        }
+                    })
+                    await client.merchant_records.create({
+                        data:{
+                            content_id:Number(content?.id),
+                            store_id:Number(args?.data?.id),
+                            created_by:Number(user?.id)
                         }
                     })
 

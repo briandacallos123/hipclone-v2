@@ -446,7 +446,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
               //
               onResetFilters={handleResetFilters}
               //
-              results={dataFiltered?.length}
+              results={summary}
               sx={{ p: 2.5, pt: 0 }}
             />
           )}

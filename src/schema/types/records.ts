@@ -3,6 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { objectType, inputObjectType, extendType } from 'nexus';
 import { GraphQLError } from 'graphql/error';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import { FieldClinics } from './DoctorClinics';
 
 const client = new PrismaClient();
 
@@ -413,6 +414,9 @@ export const RecordMedNoteTransactionObject = objectType({
       type: RecordObjectFields,
     });
     t.nullable.int('total_records');
+    t.nullable.list.field('clinic',{
+      type:FieldClinics
+    })
   },
 });
 export const AllRecordInputType = inputObjectType({
@@ -783,7 +787,7 @@ export const QueryAllRecord = extendType({
                   },
                 },
               },
-              ...orderConditions,
+              ...orderConditions
             }),
             // for record by ids
             client.records.findFirst({
@@ -1162,6 +1166,8 @@ export const QueryAllRecord = extendType({
               },
             }),
           ]);
+
+          console.log(records_data,'records_datarecords_datarecords_data')
           const AtotalRecords: any = total_records.length || 0;
           const AallCount: any = all_count.length || 0;
           const AmaleCount: any = maleCount.length || 0;
@@ -1361,7 +1367,7 @@ export const QueryOneRecordProfile = extendType({
               patientInfo: true,
             },
           });
-          // console.log(patientInfo, 'PATIENT INFO@@#@@@');
+          console.log(patientInfo, 'PATIENT INFO@@#@@@');
 
           const emrPatientId = await client.emr_patient.findFirst({
             where: {
@@ -1379,6 +1385,7 @@ export const QueryOneRecordProfile = extendType({
               doctorID: session?.user?.id,
             };
           })();
+          console.log(checkUser, 'checkUser checkUsercheckUsercheckUsercheckUser@@#@@@');
 
           if (emrPatientId && Number(emrPatientId?.link) === 1) {
             const [recordByID]: any = await client.$transaction([
@@ -1637,7 +1644,7 @@ export const QueryOneRecordProfile = extendType({
             ]);
 
             const _resultOne: any = recordByID;
-
+            console.log(_resultOne, "HAYOPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
             const response: any = {
               Records_ByIDs: _resultOne,
             };
@@ -2387,16 +2394,7 @@ export const QueryRecordBypatientNew = extendType({
 
             break;
 
-          // case 'type':
-          //   order = [
-          //     {
-          //       patientInfo: {
-          //         SEX: args?.data!.orderDir,
-          //       },
-          //     },
-          //   ];
-
-          //   break;
+        
 
           default:
             order = {};
@@ -2416,34 +2414,8 @@ export const QueryRecordBypatientNew = extendType({
           '`allRecordsbyPatientNew`'
         );
 
-        // checkIfEMR return Object
-        // const checkIfEMR = (() => {
-        //   if (args?.data!.uuid !== 'undefined') {
-        //     console.log('NASA PATIENT KA1');
-        //     // return {
-        //     //   patientInfo: {
-        //     //     userInfo: {
-        //     //       uuid: String(args?.data!.uuid),
-        //     //     },
-        //     //   },
-        //     // };
-        //     return 2;
-        //   }
-        //   return 1;
-        // })();
-
         try {
-          // const myResult: any = checkIfEMR;
-          // let myData: any;
-
-          // if (myResult === 1) {
-          //   myData = await client.emr_patient.findFirst({
-          //     where: {
-          //       id: Number(args?.data!.emrID),
-          //     },
-          //   });
-          // }
-          // console.log('here data: ', myData);
+       
 
           const patientData = await client.user.findFirst({
             where: {
@@ -2465,9 +2437,24 @@ export const QueryRecordBypatientNew = extendType({
             },
           });
 
+          const recordDataClinics:any = await client.records.findMany({
+            where: {
+              patientID: Number(patientData?.patientInfo?.S_ID),
+            },
+            include: {
+              patientInfo: true,
+              clinicInfo:true
+            },
+            distinct:['CLINIC'],
+            orderBy:{
+              clinicInfo:{
+                clinic_name:'asc'
+              }
+            }
+          });
 
 
-          // console.log('ang dta? ', patientData);
+
           // console.log('record dta? ', recordData);
 
           // args session wherecondition orderconditon
@@ -2481,11 +2468,13 @@ export const QueryRecordBypatientNew = extendType({
             orderConditions,
             patientData
           );
-          console.log(data,'DATAAAAAAAAAAAA_________________________')
+          // console.log(recordDataClinics,'DATAAAAAAAAAAAA_________________________')
 
           return {
             Records_data: data,
             total_records: Number(count.length),
+            clinic:recordDataClinics.map((item) => item?.clinicInfo)
+        
           };
         } catch (error) {
           return new GraphQLError(error);

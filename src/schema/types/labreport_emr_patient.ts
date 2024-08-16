@@ -596,6 +596,8 @@ export const emr_labreport_patient_data = extendType({
           'emr_labreport_patient_data'
         );
 
+        console.log("DITO BOSSSS!!!!!!!!!")
+
         try {
           const record: any = await client.emr_patient.findFirst({
             where: {

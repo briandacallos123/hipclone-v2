@@ -99,6 +99,7 @@ export default function PrescriptionListView() {
   const [tableData, setTableData] = useState<any>([]);
   const [tableData1, setTableData1] = useState<any>([]);
   const [totalData, SetTotalData] = useState(0);
+  const [clinic, setClinic] = useState([]);
 
   const [filters, setFilters] = useState(defaultFilters);
 
@@ -116,7 +117,9 @@ export default function PrescriptionListView() {
   const denseHeight = table.dense ? 56 : 76;
 
   const canReset =
-    !!filters.name || !!filters.hospital.length || (!!filters.startDate && !!filters.endDate);
+    !!filters.name || !!filters.hospital.length || !!filters.startDate || !!filters.endDate || (!!filters.startDate && !!filters.endDate);
+
+
 
   const handleFilters = useCallback(
     (name: string, value: IPrescriptionTableFilterValue) => {
@@ -143,9 +146,9 @@ export default function PrescriptionListView() {
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const [getPrecsciption, { data, loading }]: any = useLazyQuery(PrescriptionsUser, {
+  const [getPrecsciption, getPrecsciptionResult]: any = useLazyQuery(PrescriptionsUser, {
     context: {
-      requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
+      requestTrackerId: 'prescriptionss[QueryAllPrescriptionUserr]',
     },
     notifyOnNetworkStatusChange: true,
   });
@@ -154,12 +157,14 @@ export default function PrescriptionListView() {
     getPrecsciption({
       variables: {
         data: {
-          // status: Number(filters?.status),
           skip: page * rowsPerPage,
           take: rowsPerPage,
           orderBy,
           orderDir: order,
-          searchKeyword: Number(filters?.name) || null,
+          searchKeyword: filters?.name || null,
+          clinicID: filters?.hospital.length
+              ? filters?.hospital.map((v: any) => Number(v))
+              : null,
           // clinicIds: filters?.hospital.length ? filters?.hospital.map((v: any) => Number(v)) : null,
           startDate: filters?.startDate,
           endDate: filters?.endDate,
@@ -171,14 +176,13 @@ export default function PrescriptionListView() {
       if (data) {
         const { QueryAllPrescriptionUser } = data;
         setTableData(QueryAllPrescriptionUser?.Prescription_data);
-
         SetTotalData(QueryAllPrescriptionUser?.totalRecords);
+        setClinic(QueryAllPrescriptionUser?.clinicList)
       }
-      setIsLoading(false);
     });
   }, [
     filters.endDate,
-    filters.hospital,
+    filters?.hospital,
     filters?.name,
     filters.startDate,
     getPrecsciption,
@@ -188,7 +192,9 @@ export default function PrescriptionListView() {
     rowsPerPage,
   ]);
 
-  const notFound = !tableData.length && !isLoading;
+  console.log(filters,'TRY MOTO_________________')
+
+  const notFound = !tableData.length && !getPrecsciptionResult.loading;
 
   return (
     <>
@@ -207,7 +213,7 @@ export default function PrescriptionListView() {
             filters={filters}
             onFilters={handleFilters}
             //
-            hospitalOptions={HOSPITAL_OPTIONS.map((option) => option)}
+            hospitalOptions={clinic}
           />
 
           {canReset && (
@@ -215,6 +221,7 @@ export default function PrescriptionListView() {
               filters={filters}
               onFilters={handleFilters}
               //
+              hospitalOptions={clinic}
               onResetFilters={handleResetFilters}
               //
               results={totalData}
@@ -235,9 +242,9 @@ export default function PrescriptionListView() {
                 )}
 
                 <TableBody>
-                  {isLoading &&
+                  {getPrecsciptionResult.loading &&
                     [...Array(rowsPerPage)].map((_, i) => <PrescriptionTableRowSkeleton key={i} />)}
-                  {!isLoading &&
+                  {!getPrecsciptionResult.loading &&
                     tableData?.map((row: any) => (
                       <PrescriptionTableRow
                         key={row.id}

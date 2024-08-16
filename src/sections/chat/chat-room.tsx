@@ -60,8 +60,8 @@ export default function ChatRoom({ participants, conversation }: Props) {
 
   const group = participants.length > 1;
 
-  console.log(participants,'inroom')
   const attachments = uniq(flatten(conversation?.messages.map((messages) => messages.attachments)));
+  console.log(attachments,'inroommmmmmmmmmmmmmmmmm')
 
   const renderContent = (
     <>

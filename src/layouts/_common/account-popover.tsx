@@ -72,8 +72,8 @@ export default function AccountPopover() {
   const router = useRouter();
   const { user, logout, socket } = useAuthContext();
 
-  /* console.log(user?.photoURL); */
 
+  
 
   const { enqueueSnackbar } = useSnackbar();
 

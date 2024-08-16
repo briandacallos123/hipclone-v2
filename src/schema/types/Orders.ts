@@ -47,6 +47,61 @@ export const orderType = objectType({
         t.nullable.field('attachment', {
             type: attachment_info
         })
+        t.nullable.field('delivery_status',{
+            type:delivery_status,
+            async resolve(root){
+               const res =  await client.status.findFirst({
+                    where:{
+                        id:Number(root?.delivery_status)
+                    }
+                })
+
+                return res
+            }
+        });
+        t.nullable.list.field('delivery_history',{
+            type:delivery_history,
+            async resolve(root){
+                const target = await client.order_delivery_history.findMany({
+                    where:{
+                        order_id:Number(root?.id)
+                    },
+                    orderBy:{
+                        created_at:'desc'
+                    }
+                })
+
+                return target;
+            }
+        })
+    },
+})
+
+const delivery_history = objectType({
+    name:"delivery_history",
+    definition(t) {
+        t.int('id');
+        t.dateTime('created_at');
+        t.field('status_id',{
+            type:delivery_status,
+            async resolve(root){
+
+                const r = await client.status.findFirst({
+                    where:{
+                        id:Number(root?.status_id)
+                    }
+                });
+                return r;
+            }
+        })
+    },
+})
+
+const delivery_status = objectType({
+    name:"delivery_status",
+    definition(t) {
+        t.int('id');
+        t.string('name');
     },
 })
 
@@ -83,8 +138,6 @@ export const patientInfos = objectType({
                         email:root?.EMAIL
                     }
                 })
-                console.log(fUser,'USERRRRRRRRRRRR')
-                console.log(root,'rootrootrootroot')
 
 
                 const file = await client.display_picture.findFirst({
@@ -95,7 +148,7 @@ export const patientInfos = objectType({
                         uploaded:'desc'
                     }
                 });
-                console.log(file,'filefilefilefile')
+                // console.log(file,'filefilefilefile')
 
                 return file?.filename
             }
@@ -136,6 +189,9 @@ export const orderInputType = inputObjectType({
         t.nullable.string('search');
         t.nullable.int('is_deliver')
         t.nullable.int('status')
+        t.nullable.string('orderBy');
+        t.nullable.string('orderDir');
+
 
         //   t.nullable.int('status');
     },
@@ -178,15 +234,13 @@ export const QueryAllMedicineOrdersPatient = extendType({
                         }
                     })
 
-                    console.log(patientId, 'email ?')
                     const result = await client.orders.findMany({
                         where: {
                             patient_id: Number(patientId?.S_ID)
                         }
                     })
 
-                    // console.log(result,'RESULT_______________________________________________________')
-
+                  
                     return result;
                 } catch (error) {
                     throw new GraphQLError(error)
@@ -211,7 +265,80 @@ export const QueryAllPatientOrders = extendType({
                 const { session } = ctx;
 
 
-                const { take, skip, status }: any = args?.data;
+                const { take, skip, status,orderBy, orderDir }: any = args?.data;
+
+                let order;
+                switch(orderBy){
+                    case "name":
+                        {
+                            order = [
+                                {
+                                    generic_name:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "store":
+                        {
+                            order = [
+                                {
+                                    store:{
+                                        name:orderDir
+                                    }
+                                }
+                            ]
+                        }
+                        break;
+                    case "delivery":
+                        {
+                            order = [
+                                {
+                                   is_deliver:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "payment":
+                        {
+                            order = [
+                                {
+                                    is_paid:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "delivery":
+                        {
+                            order = [
+                                {
+                                    delivery_status:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                        case "status":
+                            {
+                                order = [
+                                    {
+                                        status_id:orderDir
+                                    }
+                                ]
+                            }
+                            break;
+                    case "date":
+                        {
+                            order = [
+                                {
+                                    created_at:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                }
+
+                let orderConditions = {
+                    orderBy: order,
+                  };
 
                 const tabsOptions = (() => {
                     if (status !== -1) {
@@ -232,8 +359,9 @@ export const QueryAllPatientOrders = extendType({
                         },
                         include: {
                             patient: true,
-
+                            
                         },
+                        ...orderConditions
 
                     }),
                     client.orders.count({
@@ -327,7 +455,7 @@ export const QueryAllMedicineOrders = extendType({
             type: orderResponse,
             args: { data: orderInputType },
             async resolve(_root, args, ctx) {
-                const { take, skip, search, is_deliver, status }: any = args.data;
+                const { take, skip, search, is_deliver, status, orderDir, orderBy }: any = args.data;
 
                 const { session } = ctx;
 
@@ -381,6 +509,88 @@ export const QueryAllMedicineOrders = extendType({
                     return searchVal;
                 })()
 
+                let order;
+                switch(orderBy){
+                    case "name":
+                        {
+                            order = [
+                                {
+                                    generic_name:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "Medicine Name":
+                        {
+                            order = [
+                                {
+                                    generic_name:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "Patient":
+                        {
+                            order = [
+                                {
+                                    patient:{
+                                        FNAME:orderDir
+                                    }
+                                }
+                            ]
+                        }
+                        break;
+                    case "Status":
+                        {
+                            order = [
+                                {
+                                    is_paid:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "Type":
+                        {
+                            order = [
+                                {
+                                    is_deliver:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "Status_Id":
+                        {
+                            order = [
+                                {
+                                    status_id:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    case "date":
+                        {
+                            order = [
+                                {
+                                    created_at:orderDir
+                                }
+                            ]
+                        }
+                        break;
+                    default :
+                        {
+                            order = [
+                                {
+                                    id:orderDir
+                                }
+                            ]
+                        }
+                }
+
+                let orderConditions = {
+                    orderBy: order,
+                  };
+
+                  console.log(orderConditions,'AWITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
 
                 try {
 
@@ -401,9 +611,8 @@ export const QueryAllMedicineOrders = extendType({
                             include: {
                                 patient: true,
                             },
-                            orderBy: {
-                                created_at: 'desc'
-                            }
+                            
+                            ...orderConditions
                         }),
                         client.orders.count({
                             where: {
@@ -518,7 +727,6 @@ export const QueryAllMedicineOrders = extendType({
                         summary: {
                             delivery: deliver,
                             pickup,
-                            // pending, cancelled, done, approved
                             pending,
                             cancelled,
                             done,
@@ -688,6 +896,7 @@ export const CreateOrders = extendType({
                                 payment,
                                 online_payment: onlinePayment ? Number(onlinePayment?.id) : null,
                                 patient_id: Number(patient?.S_ID),
+                                delivery_status:10
                             }
                         })
 
@@ -786,6 +995,10 @@ export const DeleteOrder = extendType({
             type: DeleteOrdersObj,
             args: { data: DeleteOrdersInp },
             async resolve(_root, args, ctx) {
+                const { session } = ctx;
+                const { user } = session;
+
+
 
                 try {
                     await client.orders.update({
@@ -796,6 +1009,21 @@ export const DeleteOrder = extendType({
                             id: args?.data?.id
                         }
                     })
+
+                    const content = await client.merchant_records_content.create({
+                        data:{
+                            title:"you deleted this item"
+                        }
+                    })
+
+                    await client.merchant_records.create({
+                        data:{
+                            content_id:Number(content?.id),
+                            order_id:Number(args?.data?.id),
+                            created_by:Number(user?.id)
+                        }
+                    })
+
 
                     return {
                         message: "Successfully deleted"
@@ -1030,7 +1258,6 @@ export const QueryAllOrdersForMerchantHistory = extendType({
 
                     new_result = await Promise.all(new_result)
 
-                    console.log(new_result, 'NEW RESLTTTTTTTTTTTT________')
                     return {
                         orderType: new_result,
                         totalRecords,
@@ -1053,7 +1280,8 @@ export const UpdateOrderInputs = inputObjectType({
     name: "UpdateOrderInputs",
     definition(t) {
         t.int('status');
-        t.int('order_id')
+        t.int('order_id');
+        t.nullable.string('patientEmail')
     },
 })
 
@@ -1071,8 +1299,48 @@ export const UpdateOrderStatus = extendType({
             type: UpdateOrderObjects,
             args: { data: UpdateOrderInputs },
             async resolve(_root, args, ctx) {
+                const { session } = ctx;
+                const { user } = session;
+                const { status, order_id, patientEmail }: any = args?.data;
 
-                const { status, order_id }: any = args?.data;
+                let record_content;
+                let deliveryStatus;
+                let deliveryHistory;
+                let notifContent;
+                let notifTypeId;
+
+                switch(status){
+                    case 2:
+                        // merchant approved the orders
+                        record_content = "you updated the status to approve";
+                        deliveryStatus = 13;
+                        deliveryHistory = 13;
+                        notifTypeId = 11;
+                        notifContent = "Merchant marked your oder as approved."
+                        break;
+                    case 3:
+                        // merchant cancelled the orders
+                        record_content = "you updated the status to cancelled";
+                        deliveryStatus = 11;
+                        deliveryHistory = 11;
+                        notifTypeId = 12;
+                        notifContent = "Merchant marked your oder as cancelled."
+
+
+                        break; 
+                    case 4:
+                        // merchant done the orders
+                        record_content = "you updated the status to done";
+                        deliveryStatus = 7;
+                        deliveryHistory = 7;
+                        notifTypeId = 13;
+                        notifContent = "Merchant marked your oder as done."
+
+                        break; 
+                }
+
+            
+
 
                 try {
                     await client.orders.update({
@@ -1080,7 +1348,56 @@ export const UpdateOrderStatus = extendType({
                             id: Number(order_id)
                         },
                         data: {
-                            status_id: status
+                            status_id: status,
+                            delivery_status:deliveryStatus
+                        }
+                    })
+
+                    const content = await client.merchant_records_content.create({
+                        data:{
+                            title:record_content,
+                        }
+                    })
+                    await client.merchant_records.create({
+                        data:{
+                            content_id:Number(content?.id),
+                            order_id:Number(order_id),
+                            created_by:Number(user?.id)
+                        }
+                    })
+
+                    await client.order_delivery_history.create({
+                        data:{
+                            order_id:Number(order_id),
+                            status_id:Number(deliveryHistory)
+                        }
+                    })
+
+                    
+                    let nContent = await client.notification_content.create({
+                        data:{
+                            content:notifContent
+                        }
+                    })
+
+                    let patient = await client.user.findFirst({
+                        where:{
+                            email:patientEmail
+                        }
+                    })
+
+                    console.log(patient,'patientpatientpatientpatientpatientpatientpatient')
+
+                    await client.notification.create({
+                        data:{
+                            user_id_user_role:4,
+                            user_id:Number(user?.id),
+                            notifiable_id:Number(patient?.id),
+                            notifiable_user_role:5,
+                            notification_type_id:notifTypeId,
+                            notification_content_id:parseInt(nContent?.id),
+                            order_id:Number(order_id)
+
                         }
                     })
 
@@ -1088,10 +1405,155 @@ export const UpdateOrderStatus = extendType({
                         message: "Successfully updated"
                     }
                 } catch (error) {
+                    console.log(error)
                     throw new GraphQLError(error)
                 }
 
 
+
+            }
+        })
+    }
+})
+
+
+const UpdateOrderDeliveryHistoryInp = inputObjectType({
+    name:"UpdateOrderDeliveryHistoryInp",
+    definition(t) {
+        t.int('order_id');
+        t.int('status_id');
+        t.string('patient_email')
+
+    },
+})
+
+const UpdateOrderDeliveryHistoryObj = objectType({
+    name:"UpdateOrderDeliveryHistoryObj",
+    definition(t) {
+        t.string("message")
+    },
+})
+
+export const UpdateOrderDeliveryHistory = extendType({
+    type: 'Mutation',
+    definition(t) {
+        t.nullable.field('UpdateOrderDeliveryHistory', {
+            type: UpdateOrderObjects,
+            args: { data: UpdateOrderDeliveryHistoryInp },
+            async resolve(_root, args, ctx) {
+                const { session } = ctx;
+                const { user } = session;
+
+                const { status_id, order_id, patient_email }: any = args?.data;
+
+                let content;
+                let contentId;
+                let recordContent;
+
+                switch(status_id){
+                    case 7:
+                        content = "Your order was delivered!";
+                        recordContent = "you updated this order as delivered";
+                        contentId = 14;
+                        break;
+                    case 8:
+                        content = "Sorry your order was delivery unsuccessfully!";
+                        recordContent = "you updated this order as unsuccessfull";
+                        contentId = 15;
+                        break;  
+                    case 6:
+                        content = "Your deliver is on its way!";
+                        recordContent = "you updated this order as on its way!";
+
+                        contentId = 16;
+                        break;
+                    default:
+                        content = "Your order is waiting for pick up!";
+                        recordContent = "you updated this order as waiting for pickup!";
+
+                        contentId = 17;
+
+                }
+
+                let nContent = await client.notification_content.create({
+                    data:{
+                        content:content
+                    }
+                })
+
+                let userData = await client.user.findFirst({
+                    where:{
+                        email:patient_email
+                    }
+                })
+
+                await client.notification.create({
+                    data:{
+                        user_id_user_role:4,
+                        user_id:Number(user?.id),
+                        notifiable_id:Number(userData?.id),
+                        notifiable_user_role:5,
+                        notification_type_id:Number(contentId),
+                        notification_content_id:parseInt(nContent?.id),
+                        order_id:Number(order_id)
+
+                    }
+                })
+               
+
+                const forOrderStatus = (()=>{
+                    let val;
+                    if(status_id === 7){
+                        val = {
+                            status_id:4
+                        }
+                    }
+                    return val;
+                })()
+
+               try {
+                    await client.orders.update({
+                        where:{
+                            id:Number(order_id)
+                        },
+                        data:{
+                            delivery_status:Number(status_id),
+                            ...forOrderStatus
+                        }
+                    })
+
+                    await client.order_delivery_history.create({
+                        data:{
+                            order_id:Number(order_id),
+                            status_id:Number(status_id),
+                        }
+                    })
+
+                    // ehehe
+
+                    let contentRecord = await client.merchant_records_content.create({
+                        data:{
+                            title:recordContent
+                        }
+                    })
+
+                    await client.merchant_records.create({
+                        data:{
+                            order_id:Number(order_id),
+                            content_id:Number(contentRecord?.id),
+                            created_by:Number(user?.id)
+                        }
+                    })
+
+                    return {
+                        message:"Updated successfully"
+                    }
+
+               } catch (error) {
+                    console.log(error);
+                    throw new GraphQLError(error)
+                    
+               }
 
             }
         })

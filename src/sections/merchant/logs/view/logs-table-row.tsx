@@ -26,6 +26,7 @@ import { useSnackbar } from 'src/components/snackbar';
 import CustomPopover, { usePopover } from '@/components/custom-popover';
 import { ConfirmDialog } from '@/components/custom-dialog';
 import { useBoolean } from '@/hooks/use-boolean';
+import { fDateTime } from '@/utils/format-time';
 
 // ----------------------------------------------------------------------
 
@@ -51,7 +52,7 @@ export default function LogsListItem({
 }: Props) {
     /*  const { patient, hospital, schedule, isPaid, type } = row; */
     const upMd = useResponsive('up', 'md');
-
+    console.log(row, 'ROWWWWWWWWWWW')
     const { user } = useAuthContext();
     const theme = useTheme();
     const { enqueueSnackbar } = useSnackbar();
@@ -162,68 +163,85 @@ export default function LogsListItem({
     );
     if (!upMd) {
         return (
-          <TableMobileRow
-            menu={[
-    
-              {
-                label: 'View',
-                icon: 'mdi:eye',
-                func: onViewRow,
-                color: 'success'
-              },
-             
-            ]}
-          >
-            <Box style={{ display: 'flex', alignItems: 'center' }}>
-              <Avatar sx={{ mr: 2 }} alt="store" >
-                {row?.generic_name?.charAt(1).toUpperCase()}
-              </Avatar>
-    
-              <ListItemText
-                primary={`#${row?.id}`}
-                secondary={
-                  <>
-                    <Typography variant="caption">{row?.generic_name}</Typography>
-                    <Typography color={
-                      row?.status_id === 4 && 'success.main' ||
-                      row?.status_id === 1 && 'warning.main' ||
-                      row?.status_id === 2 && 'primary.main' ||
-                      row?.status_id === 3 && 'error.main'
-    
-                    } variant="caption">
-                    {row?.status_id === 4 && "Done" ||
-                        row?.status_id === 1 && "Pending" ||
-                        row?.status_id === 2 && "Approved" ||
-                        row?.status_id === 3 && "Cancelled"
-    
-                      }
-                    </Typography>
-    
-                  </>
-                }
-                primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
-                secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
-              />
-              {renderConfirm}
-              {/* {renderDoneConfirm}
+            <TableMobileRow
+                menu={[
+
+                    {
+                        label: 'View',
+                        icon: 'mdi:eye',
+                        func: onViewRow,
+                        color: 'success'
+                    },
+
+                ]}
+            >
+                <Box style={{ display: 'flex', alignItems: 'center' }}>
+                    <Avatar sx={{ mr: 2 }} alt="store" >
+                        {row?.generic_name?.charAt(1).toUpperCase()}
+                    </Avatar>
+
+                    <ListItemText
+                        primary={`#${row?.id}`}
+                        secondary={
+                            <>
+                                <Typography variant="caption">{row?.generic_name}</Typography>
+                                <Typography color={
+                                    row?.status_id === 4 && 'success.main' ||
+                                    row?.status_id === 1 && 'warning.main' ||
+                                    row?.status_id === 2 && 'primary.main' ||
+                                    row?.status_id === 3 && 'error.main'
+
+                                } variant="caption">
+                                    {row?.status_id === 4 && "Done" ||
+                                        row?.status_id === 1 && "Pending" ||
+                                        row?.status_id === 2 && "Approved" ||
+                                        row?.status_id === 3 && "Cancelled"
+
+                                    }
+                                </Typography>
+
+                            </>
+                        }
+                        primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
+                        secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
+                    />
+                    {renderConfirm}
+                    {/* {renderDoneConfirm}
               {renderApprovedConfirm}
               {renderCancelConfirm} */}
-            </Box>
-          </TableMobileRow>
+                </Box>
+            </TableMobileRow>
         );
-      }
+    }
 
     const handleCopy = async () => {
         await navigator.clipboard.writeText(row?.voucherId)
         enqueueSnackbar('Copied to clipboard');
     }
 
-   
 
-  const FULLNAME = row?.patient?.MNAME ? `${row?.patient?.FNAME} ${row?.patient?.MNAME} ${row?.patient?.LNAME}` : `${row?.patient?.FNAME} ${row?.patient?.LNAME}`;
+
+    const FULLNAME = row?.patient?.MNAME ? `${row?.patient?.FNAME} ${row?.patient?.MNAME} ${row?.patient?.LNAME}` : `${row?.patient?.FNAME} ${row?.patient?.LNAME}`;
 
     const img_path = row?.attachment_info?.file_path && row?.attachment_info?.file_path.split('/').splice(1).join('/')
 
+    const tableTarget = (()=>{
+        let target:any;
+        let targetId:any;
+
+        if(row?.medecine){
+            target = "medecine"
+            targetId = row?.medecine?.id
+        }else if(row?.order){
+            target = "order"
+            targetId = row?.order?.id
+        }else{
+            target = "store"
+            targetId = row?.store?.id
+
+        }
+        return {target, targetId};
+    })()
 
     return (
         <TableRow hover selected={selected}>
@@ -245,70 +263,48 @@ export default function LogsListItem({
 
                 />
             </TableCell>
-            {/* <TableCell >
-            <Label variant="soft" color={'info'}>
-                {row?.generic_name}
-            </Label>
-        </TableCell> */}
-
-            <TableCell align='center'>
-                <Typography>
-                    {row?.generic_name}
-
-                </Typography>
-                {/* <Label variant="soft" color={'success'}>
-               
-            </Label> */}
-            </TableCell>
-            <TableCell align="center" sx={{
-                display: 'flex',
-                alignItems: "center",
-                justifyContent: "center",
-            }}>
-                <Avatar src={`/${row?.patient?.Attachment?.split('/').splice(1).join("/")}`} alt={row?.patientInfo?.FNAME} sx={{ mr: 2 }} />
-                <Typography>
-                    {FULLNAME}
-
-                </Typography>
-
-            </TableCell>
-            <TableCell align='center'>
-        <Label variant="soft" color={'success'}>
-          {row?.is_paid ? "Paid" : "Unpaid"}
-        </Label>
-      </TableCell>
-           <TableCell align='center'>
-        <Typography>
-          {row?.is_deliver ? 'Delivery' : 'Pick Up'}
-        </Typography>
-      </TableCell>
-            <TableCell align='center'>
-                <Typography>
-                    {/* {row?.status_id === 4 && "Done" ||
-                        row?.status_id === 3 && "Cancelled"} */}
-
-                    <Label variant="soft" color={row?.status_id === 4 ? 'success' : 'error'}>
-                        {row?.status_id === 4 && "Done" ||
-                            row?.status_id === 3 && "Cancelled"}
-                    </Label>
-                </Typography>
-
-            </TableCell>
-
             <TableCell align="center">
+                <Label variant="soft" color={
+                    tableTarget?.target === 'store' && 'warning' ||
+                    tableTarget?.target === 'order' && 'success' ||
+                    tableTarget?.target === 'medecine' && 'info' 
+
+                    }>
+                    {tableTarget?.target}
+                </Label>
+            </TableCell>
+            <TableCell align="center">
+                    {tableTarget?.targetId}
+            </TableCell>
+
+            <TableCell>
+               
+                <Typography>
+                   
+                {row?.content?.title?.charAt(0).toUpperCase()}{row?.content?.title?.split("").splice(1).join("")}
+                </Typography>
+
+            </TableCell>
+            <TableCell align='center'>
+                <Typography>
+                    {fDateTime(row?.created_at)}
+                    {/* {format(new Date(row?.created_at), `dd MMM yyyy`)} */}
+
+                </Typography>
+
+            </TableCell>
+
+
+            {/* <TableCell align="center">
                 <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
                     <Iconify icon="eva:more-vertical-fill" />
                 </IconButton>
-                {/* <Tooltip title="actions" placement="top" arrow>
-            <IconButton onClick={() => onViewRow()}>
-              <Iconify icon="solar:clipboard-text-bold" />
-            </IconButton>
-          </Tooltip> */}
-            </TableCell>
+
+            </TableCell> */}
 
             <Stack direction="row" justifyContent="flex-end">
                 <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
-                    <MenuItem
+                    {/* <MenuItem
                         onClick={() => {
                             onViewRow();
                             popover.onClose();
@@ -316,7 +312,7 @@ export default function LogsListItem({
                     >
                         <Iconify icon="solar:clipboard-text-bold" />
                         View
-                    </MenuItem>
+                    </MenuItem> */}
 
                     {/* <MenuItem
                         onClick={() => {

@@ -20,6 +20,7 @@ import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as Yup from 'yup';
 import { fData } from '@/utils/format-number';
+import OrderDetailsHistory from '../order-details-history';
 
 type OrderViewProp = {
     open: boolean;
@@ -38,7 +39,6 @@ const Transition = React.forwardRef(function Transition(
 
 
 const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
-
 
 
     const defaultValues = useMemo(() => ({
@@ -136,6 +136,22 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
         setValue('attachment', null)
     }, [setValue]);
 
+    const data = {
+        timeline:[
+            {
+                title:"Hello",
+                time:"05 Aug 2024 2:58 pm"
+            },
+            {
+                title:"Hello",
+                time:"05 Aug 2024 2:58 pm"
+            },
+            {
+                title:"Hello",
+                time:"05 Aug 2024 2:58 pm"
+            }
+        ]
+    }
 
 
     return (
@@ -170,7 +186,7 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                             my: { xs: 5, lg: 10 }
                         }}>
                             <Grid container gap={2} justifyContent="space-between">
-                                <Grid item lg={8} rowSpacing={2}>
+                                <Grid item xs={12} lg={8} rowSpacing={2}>
 
                                     <Box
                                         rowGap={{ md: 3, xs: 2 }}
@@ -190,7 +206,7 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                                                 sm: 'repeat(2, 1fr)',
                                             }}
                                         >
-                                            <RHFTextField InputProps={{
+                                            <RHFTextField fullWidth InputProps={{
                                                 readOnly: true,
                                             }} name="genericName" label="Generic Name" />
                                             <RHFTextField InputProps={{
@@ -222,7 +238,7 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                                             readOnly: true,
                                         }} name="store" label="Store Name" />
 
-                                        <RHFUpload
+                                        {/* <RHFUpload
 
                                             thumbnail
                                             disabled
@@ -231,7 +247,9 @@ const OrderView = ({ dataView, open, onClose }: OrderViewProp) => {
                                             onDrop={handleDrop}
                                             onRemove={handleRemoveFile}
                                             onRemoveAll={handleRemoveAllFiles}
-                                        />
+                                        /> */}
+                                        <OrderDetailsHistory history={dataView?.delivery_history}/>
+
                                     </Box>
 
 

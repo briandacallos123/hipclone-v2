@@ -23,9 +23,11 @@ export default function ChatRoomSingle({ participant }: Props) {
 
   const { name, avatarUrl, role, address, phoneNumber, email } = participant;
 
+  console.log(avatarUrl,'urllll')
+
   const renderInfo = (
     <Stack alignItems="center" sx={{ py: 5 }}>
-      <Avatar alt={name} src={avatarUrl} sx={{ width: 96, height: 96, mb: 2 }} />
+      <Avatar alt={name} src={`/${avatarUrl?.split('/').splice(1).join('/')}`} sx={{ width: 96, height: 96, mb: 2 }} />
       <Typography variant="subtitle1">{name}</Typography>
       <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5 }}>
         {role}

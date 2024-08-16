@@ -246,6 +246,8 @@ export default function CheckoutPayment({
     });
   }
 
+  console.log(values.payment,'PAYMENT??????????????????')
+
   useEffect(()=>{
     if(values.payment === 'paypal'){
       loadingButtonRef.current.click();
@@ -326,7 +328,7 @@ export default function CheckoutPayment({
                 )
               }
 
-              <LoadingButton
+              {/* <LoadingButton
                 fullWidth
                 size="large"
                 type="submit"
@@ -336,7 +338,7 @@ export default function CheckoutPayment({
                 
               >
                 Complete Order
-              </LoadingButton>
+              </LoadingButton> */}
               <Button
                 size="small"
                 color="inherit"

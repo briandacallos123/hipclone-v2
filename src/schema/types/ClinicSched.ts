@@ -217,7 +217,7 @@ export const QueryClinics = extendType({
               some: {
                 isDeleted: 0,
                 type: {
-                  contains: 's:1:"1";',
+                  contains: 'i:0;i:1;',
                 },
               },
             },
@@ -228,7 +228,7 @@ export const QueryClinics = extendType({
               some: {
                 isDeleted: 0,
                 type: {
-                  contains: 's:1:"2";',
+                  contains: 'i:0;i:2;',
                 },
               },
             },
@@ -251,7 +251,7 @@ export const QueryClinics = extendType({
               take,
               skip,
               where: {
-                doctorID: session?.user?.id,
+                doctorID: Number(session?.user?.id),
                 isDeleted: 0,
 
                 ...fSchedObj,
@@ -273,17 +273,17 @@ export const QueryClinics = extendType({
               where: {
                 isDeleted: 0,
                 NOT: [{ isDeleted: 1 }, { clinic_name: '' }],
-                doctorID: session?.user?.id,
+                doctorID: Number(session?.user?.id),
+             
                 ClinicSchedInfo: {
                   some: {
                     type: {
-                      contains: 's:1:"2";',
+                      contains: 'i:0;i:2;',
                     },
                     isDeleted: 0,
+                    
                   },
                 },
-                ...fSchedObj,
-
                 ...whereconditions,
               },
               include: {
@@ -303,13 +303,13 @@ export const QueryClinics = extendType({
                 ClinicSchedInfo: {
                   some: {
                     type: {
-                      contains: 's:1:"1";',
+                      contains: 'i:0;i:1;',
                     },
                     isDeleted: 0,
                   },
                 },
-                doctorID: session?.user?.id,
-                ...fSchedObj,
+                doctorID: Number(session?.user?.id),
+                // ...fSchedObj,
 
                 ...whereconditions,
               },
@@ -326,11 +326,15 @@ export const QueryClinics = extendType({
 
             client.clinic.findMany({
               where: {
+                doctorID: Number(session?.user?.id),
                 isDeleted: 0,
-                NOT: [{ isDeleted: 1 }, { clinic_name: '' }],
-                doctorID: session?.user?.id,
+
                 ...fSchedObj,
                 ...whereconditions,
+                // isDeleted: 0,
+                // NOT: [{ isDeleted: 1 }, { clinic_name: '' }],
+                // doctorID: session?.user?.id,
+                // ...whereconditions,
               },
               include: {
                 doctorInfo: true,
