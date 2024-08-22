@@ -414,8 +414,6 @@ export const QueryAllConversations = extendType({
                 let result: any = [];
                 const { session } = ctx;
 
-                // console.log(ctx,'@@@@@@@@@@@@@@@@@@@@@@');
-
                 result = await client.conversation.findMany({
                     where: {
                         participants: {
@@ -445,12 +443,9 @@ export const QueryAllConversations = extendType({
                             }
                         }
                     }
-                }).then((data) => {
-                    const newResult: any = data.map((v: any) => {
-                       
-
-
-                        v.participants = v.participants.map(async(p: any) => {
+                }).then(async (data) => {
+                    const newResult: any = await Promise.all(data.map(async (v: any) => {
+                        v.participants = await Promise.all(v.participants.map(async(p: any) => {
                             const participant = await client.display_picture.findFirst({
                                 where:{
                                     userID:Number(p?.userId)
@@ -458,13 +453,12 @@ export const QueryAllConversations = extendType({
                                 orderBy:{
                                     uploaded:'desc'
                                 }
-                            })
+                            });
 
                             let dataStruct: any = {
                                 id: '',
                                 address: '',
                                 avatarUrl:participant?.filename,
-                                // avatarUrl: 'https://api-dev-minimal-v5.vercel.app/assets/images/avatar/avatar_2.jpg',
                                 email: '',
                                 name: '',
                                 lastActivity: new Date(),
@@ -472,6 +466,7 @@ export const QueryAllConversations = extendType({
                                 role: '',
                                 status: String(p?.contactInfo?.userStatus).toLocaleLowerCase(),
                             };
+
                             switch (Number(p?.contactInfo?.userType)) {
                                 case 0: {
                                     dataStruct = {
@@ -485,7 +480,6 @@ export const QueryAllConversations = extendType({
                                             role: 'patient',
                                         }
                                     }
-
                                 } break;
                                 case 1: {
                                     dataStruct = {
@@ -499,7 +493,6 @@ export const QueryAllConversations = extendType({
                                             role: 'secretary',
                                         }
                                     }
-
                                 } break;
                                 case 2: {
                                     dataStruct = {
@@ -513,44 +506,101 @@ export const QueryAllConversations = extendType({
                                             role: 'doctor',
                                         }
                                     }
-
                                 } break;
-
                             }
-                            /*  if( Number(dataStruct.id) === 1){
-                               delete dataStruct.id
-                               delete dataStruct.lastActivity
-                               delete dataStruct.phoneNumber
-                               delete dataStruct.status
-                             } */
+
                             p = {
                                 ...p,
                                 ...dataStruct
-                            }
+                            };
 
                             return p;
 
-                        })
+                        }));
 
                         return v;
-
-                    })
+                    }));
 
                     const sortFunction = (a:any, b:any) => {
-                        const maxOrderA = Math.max(...a.messages?.map((item:any) => item.createdAt));
-                        const maxOrderB = Math.max(...b.messages?.map((item:any) => item.createdAt));
+                        const maxOrderA = Math.max(...a.messages?.map((item:any) => new Date(item.createdAt).getTime()));
+                        const maxOrderB = Math.max(...b.messages?.map((item:any) => new Date(item.createdAt).getTime()));
                         return maxOrderB - maxOrderA;
-                    }                  
+                    };
+
                     const reorder = newResult.sort(sortFunction);
                     return reorder;
-                })
+                });
 
                 return result;
-
             },
         });
     },
 });
+
+// Function to handle sending a message
+export async function sendMessage(senderId: number, receiverId: number, messageContent: string) {
+    // Check if a conversation already exists between the sender and receiver with exactly two participants
+    const existingConversation = await client.conversation.findFirst({
+        where: {
+            AND: [
+                {
+                    participants: {
+                        some: {
+                            userId: senderId,
+                        },
+                    },
+                },
+                {
+                    participants: {
+                        some: {
+                            userId: receiverId,
+                        },
+                    },
+                },
+                {
+                    participants: {
+                        // Ensure the conversation has exactly two participants
+                        every: {
+                            userId: { in: [senderId, receiverId] },
+                        },
+                    },
+                },
+            ],
+        },
+    });
+
+    let conversationId;
+
+    if (existingConversation) {
+        // Conversation exists, append the message to this conversation
+        conversationId = existingConversation.id;
+    } else {
+        // No conversation exists, create a new one
+        const newConversation = await client.conversation.create({
+            data: {
+                participants: {
+                    create: [
+                        { userId: senderId },
+                        { userId: receiverId },
+                    ],
+                },
+            },
+        });
+        conversationId = newConversation.id;
+    }
+
+    // Add the new message to the conversation
+    await client.message.create({
+        data: {
+            conversationId,
+            senderId,
+            content: messageContent,
+        },
+    });
+
+    return conversationId;
+}
+
 
 export const ParticipantInputType = inputObjectType({
     name: 'ParticipantInputType',

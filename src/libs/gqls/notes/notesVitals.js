@@ -145,6 +145,7 @@ export const get_note_vitals_user = gql`
     QueryNotesVitalsUser(data: $data) {
       vitals_data {
         bmi
+        invalidId
         bp
         bp1
         bp2

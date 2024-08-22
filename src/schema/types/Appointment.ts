@@ -704,6 +704,13 @@ export const UpdateAppointment = extendType({
                 notifMessage = 'marked your appointment as pending'
             }
 
+            (()=>{
+              if(args?.data?.payment_status === 1){
+                notifMessage = "marked your appointment as paid";
+                notifType = 18
+              }
+            })()
+
             // push notification
 
 

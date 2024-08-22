@@ -414,8 +414,8 @@ export const RecordMedNoteTransactionObject = objectType({
       type: RecordObjectFields,
     });
     t.nullable.int('total_records');
-    t.nullable.list.field('clinic',{
-      type:FieldClinics
+    t.nullable.list.field('clinic', {
+      type: FieldClinics
     })
   },
 });
@@ -471,25 +471,9 @@ export const QueryAllPatient = extendType({
         // get all emr_patient
         const { session } = ctx;
 
-        // const emr_patient_data: any = await client.emr_patient.findMany({
-        //   where: {
-        //     patientID: {
-        //       not: null,
-        //     },
-        //     doctorID: session?.user?.id,
-        //   },
-
-        //   include: {
-        //     patientRelation: {
-        //       select: {
-        //         S_ID: true,
-        //       },
-        //     },
-        //   },
-        // });
-
+       
         const patientIdsData = await client.records.findMany({
-          take,
+         
           where: {
             doctorID: session?.user?.id,
             NOT: [{ R_TYPE: '3' }],
@@ -502,10 +486,15 @@ export const QueryAllPatient = extendType({
           },
         });
 
+        // console.log(patientIdsData,'patientIdsDatapatientIdsData')
+
         let patientIds: any = [];
         patientIdsData.forEach((i: any) => {
-          patientIds.push(Number(i.patientInfo.S_ID));
+          if(typeof i?.patientInfo?.S_ID === 'number'){
+            patientIds.push(Number(i?.patientInfo?.S_ID));
+          }
         });
+        console.log(patientIds,'Patient ID')
 
         const emr_records = await client.emr_patient.findMany({
           where: {
@@ -527,6 +516,9 @@ export const QueryAllPatient = extendType({
           },
         });
         // list of emrIds
+
+        // console.log(emr_records,'emr_records')
+
         const emrIds: any = [];
         emr_records.forEach((i) => emrIds.push(i.patientRelation?.S_ID));
 
@@ -534,9 +526,12 @@ export const QueryAllPatient = extendType({
 
         patientIds.map((i: any) => {
           if (!emrIds.includes(i)) {
-            realPatientIds.push(i);
+            realPatientIds.push(i)
           }
         });
+
+
+        console.log(realPatientIds,'emr_records')
 
         // console.log('LIST OF PATIENTS: ', realPatientIds);
 
@@ -577,6 +572,7 @@ export const QueryAllPatient = extendType({
           },
         });
 
+        // console.log(result,'RESULTTTTTT')
         return result;
       },
     });
@@ -1047,84 +1043,84 @@ export const QueryAllRecord = extendType({
             }),
             whereconditions
               ? client.records.findMany({
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    patientInfo: {
-                      SEX: 1,
-                    },
-                    NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
-                    isDeleted: 0,
-                    isEMR: 0,
-                    ...whereconditions,
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  patientInfo: {
+                    SEX: 1,
                   },
-                  distinct: ['patientID'],
-                  include: {
-                    clinicInfo: {
-                      include: {
-                        clinicDPInfo: {
-                          orderBy: {
-                            id: 'desc',
-                          },
+                  NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                  isDeleted: 0,
+                  isEMR: 0,
+                  ...whereconditions,
+                },
+                distinct: ['patientID'],
+                include: {
+                  clinicInfo: {
+                    include: {
+                      clinicDPInfo: {
+                        orderBy: {
+                          id: 'desc',
                         },
                       },
                     },
-                    patientInfo: {
-                      include: {
-                        userInfo: {
-                          include: {
-                            display_picture: {
-                              orderBy: {
-                                id: 'desc',
-                              },
+                  },
+                  patientInfo: {
+                    include: {
+                      userInfo: {
+                        include: {
+                          display_picture: {
+                            orderBy: {
+                              id: 'desc',
                             },
                           },
                         },
-                        emr_patient: true,
                       },
+                      emr_patient: true,
                     },
                   },
-                })
+                },
+              })
               : client.records.findMany({
-                  // Use Prisma Client promise here
-                  where: {
-                    // doctorID: session?.user?.id,
-                    ...checkUser,
-                    patientInfo: {
-                      SEX: 1,
-                    },
-                    NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
-                    isDeleted: 0,
-                    isEMR: 0,
-                    ...whereconditions,
+                // Use Prisma Client promise here
+                where: {
+                  // doctorID: session?.user?.id,
+                  ...checkUser,
+                  patientInfo: {
+                    SEX: 1,
                   },
-                  distinct: ['patientID'],
-                  include: {
-                    clinicInfo: {
-                      include: {
-                        clinicDPInfo: {
-                          orderBy: {
-                            id: 'desc',
-                          },
+                  NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                  isDeleted: 0,
+                  isEMR: 0,
+                  ...whereconditions,
+                },
+                distinct: ['patientID'],
+                include: {
+                  clinicInfo: {
+                    include: {
+                      clinicDPInfo: {
+                        orderBy: {
+                          id: 'desc',
                         },
                       },
                     },
-                    patientInfo: {
-                      include: {
-                        userInfo: {
-                          include: {
-                            display_picture: {
-                              orderBy: {
-                                id: 'desc',
-                              },
+                  },
+                  patientInfo: {
+                    include: {
+                      userInfo: {
+                        include: {
+                          display_picture: {
+                            orderBy: {
+                              id: 'desc',
                             },
                           },
                         },
-                        emr_patient: true,
                       },
+                      emr_patient: true,
                     },
                   },
-                }),
+                },
+              }),
 
             client.records.findMany({
               where: {
@@ -1167,7 +1163,7 @@ export const QueryAllRecord = extendType({
             }),
           ]);
 
-          console.log(records_data,'records_datarecords_datarecords_data')
+          console.log(records_data, 'records_datarecords_datarecords_data')
           const AtotalRecords: any = total_records.length || 0;
           const AallCount: any = all_count.length || 0;
           const AmaleCount: any = maleCount.length || 0;
@@ -2394,7 +2390,7 @@ export const QueryRecordBypatientNew = extendType({
 
             break;
 
-        
+
 
           default:
             order = {};
@@ -2415,7 +2411,7 @@ export const QueryRecordBypatientNew = extendType({
         );
 
         try {
-       
+
 
           const patientData = await client.user.findFirst({
             where: {
@@ -2437,23 +2433,24 @@ export const QueryRecordBypatientNew = extendType({
             },
           });
 
-          const recordDataClinics:any = await client.records.findMany({
+          const recordDataClinics: any = await client.records.findMany({
             where: {
               patientID: Number(patientData?.patientInfo?.S_ID),
             },
             include: {
               patientInfo: true,
-              clinicInfo:true
+              clinicInfo: true
             },
-            distinct:['CLINIC'],
-            orderBy:{
-              clinicInfo:{
-                clinic_name:'asc'
+            distinct: ['CLINIC'],
+            orderBy: {
+              clinicInfo: {
+                clinic_name: 'asc'
               }
             }
           });
 
 
+          console.log("boss?")
 
           // console.log('record dta? ', recordData);
 
@@ -2473,8 +2470,8 @@ export const QueryRecordBypatientNew = extendType({
           return {
             Records_data: data,
             total_records: Number(count.length),
-            clinic:recordDataClinics.map((item) => item?.clinicInfo)
-        
+            clinic: recordDataClinics.map((item) => item?.clinicInfo)
+
           };
         } catch (error) {
           return new GraphQLError(error);
@@ -2534,7 +2531,7 @@ const customFuncPatient = async (
   })();
 
 
-  
+
   if (patientData) {
     const isLinked = recordData.emrPatientID !== null;
     if (isLinked) {
@@ -2555,7 +2552,7 @@ const customFuncPatient = async (
               },
             ],
 
-            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }],
+            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }, {R_TYPE: '0'}],
             isDeleted: 0,
 
             ...whereconditions,
@@ -2621,8 +2618,8 @@ const customFuncPatient = async (
       records = medNoteData;
       count = _count;
     } else {
-      console.log(patientData?.patientInfo?.S_ID,'YAYYYYYYYYYYYYYYYYYYYYYYYYYY');
-      
+      console.log(patientData?.patientInfo?.S_ID, 'YAYYYYYYYYYYYYYYYYYYYYYYYYYY');
+
 
       const [medNoteData, _count]: any = await client.$transaction([
         client.records.findMany({
@@ -2632,7 +2629,7 @@ const customFuncPatient = async (
             ...checkUser,
             patientID: Number(patientData?.patientInfo?.S_ID),
 
-            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }],
+            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }, { R_TYPE: '0' }],
             isDeleted: 0,
             ...setCurrentDay,
             ...whereconditions,
@@ -3084,45 +3081,38 @@ export const QueryRecordBypatientUser = extendType({
         let order: any;
         switch (args?.data!.orderBy) {
           case 'date':
-            order = [
-              {
-                R_DATE: {
-                  FNAME: args?.data!.orderDir,
-                },
-              },
-            ];
+            order = {
+              R_DATE: args?.data!.orderDir
+            }
 
             break;
 
           case 'doctor':
-            order = [
-              {
-                doctorInfo: {
-                  EMP_FULLNAME: args?.data!.orderDir,
-                },
+            order = {
+              doctorInfo: {
+                EMP_FULLNAME: args?.data!.orderDir,
               },
-            ];
+            }
 
             break;
 
           case 'hospital':
-            order = [
-              {
-                clinicInfo: {
-                  clinic_name: args?.data!.orderDir,
-                },
+            order = {
+              clinicInfo: {
+                clinic_name: args?.data!.orderDir,
               },
-            ];
+            }
 
             break;
 
-          default:
-            order = {};
+        
         }
 
         orderConditions = {
           orderBy: order,
         };
+
+        console.log(orderConditions,'ORDERRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRRR')
 
         const whereconditions = filtersPatient(args);
 
@@ -3134,8 +3124,9 @@ export const QueryRecordBypatientUser = extendType({
           '`allRecordsbyPatientUser`'
         );
 
+
         try {
-          const [medNoteData, _count]: any = await client.$transaction([
+          const [medNoteData, _count, clinicData]: any = await client.$transaction([
             client.records.findMany({
               skip,
               take,
@@ -3144,7 +3135,7 @@ export const QueryRecordBypatientUser = extendType({
               },
               where: {
                 patientID: Number(session?.user?.s_id),
-                NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '0' },{R_TYPE:'3'}],
                 isDeleted: 0,
                 ...whereconditions,
               },
@@ -3163,7 +3154,8 @@ export const QueryRecordBypatientUser = extendType({
                 doctorInfo: true,
                 notes_text: true,
               },
-              // ...orderConditions,
+              ...orderConditions,
+              
             }),
             client.records.findMany({
               orderBy: {
@@ -3171,10 +3163,10 @@ export const QueryRecordBypatientUser = extendType({
               },
               where: {
                 // where: {
-                  patientID: Number(session?.user?.s_id),
-                  NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
-                  isDeleted: 0,
-                  ...whereconditions,
+                patientID: Number(session?.user?.s_id),
+                NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                isDeleted: 0,
+                ...whereconditions,
                 // },
                 // patientID: Number(session?.user?.s_id),
                 // // patientInfo: {
@@ -3205,7 +3197,26 @@ export const QueryRecordBypatientUser = extendType({
               },
               // ...orderConditions,
             }),
+
+            client.records.findMany({
+              where:{
+                patientID: Number(session?.user?.s_id),
+                NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                isDeleted: 0,
+              },
+              include:{
+                clinicInfo:true
+              },
+              orderBy:{
+                clinicInfo:{
+                  clinic_name:'asc'
+                }
+              },
+              distinct:['CLINIC']
+            })
+
           ]);
+
 
           const _result: any = medNoteData;
           const _total = _count.length;
@@ -3213,6 +3224,7 @@ export const QueryRecordBypatientUser = extendType({
           const response: any = {
             Records_data: _result,
             total_records: Number(_total),
+            clinic:clinicData?.map((item)=>item?.clinicInfo)
           };
           return response;
         } catch (error) {
@@ -3276,6 +3288,18 @@ const filtersPatient = (args: any) => {
       };
     }
   }
+
+  const clinicIDs: any = args?.data?.clinicIds;
+  if (clinicIDs?.length) {
+    whereConClinic = {
+      clinicInfo: {
+        id: {
+          in: clinicIDs,
+        },
+      },
+    };
+  }
+
   if (args?.data!.startDate && args?.data!.endDate) {
     whereDate = {
       R_DATE: {
@@ -3284,6 +3308,23 @@ const filtersPatient = (args: any) => {
       },
     };
   }
+
+  if (args?.data!.startDate && !args?.data!.endDate) {
+    whereDate = {
+      R_DATE: {
+        gte: args?.data!.startDate,
+      },
+    };
+  }
+
+  if (!args?.data!.startDate && args?.data!.endDate) {
+    whereDate = {
+      R_DATE: {
+        lte: args?.data!.endDate,
+      },
+    }
+  }
+
   multicondition = {
     ...multicondition,
     ...{

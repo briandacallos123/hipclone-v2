@@ -7,6 +7,7 @@ import { equal } from 'assert';
 import { orderType } from './Orders';
 import { DoctorAppointments } from './DoctorAppointments';
 import { ChatConversations } from './Chat';
+import { prescriptions } from './Prescriptions';
 
 export const ChatPreview = objectType({
     name:'ChatPreview',
@@ -748,23 +749,39 @@ const notifDataFinal = objectType({
             resolve(_root){
                 let customDate;
 
-                const date = _root?.notifData?.filter((item)=>!item.is_read);
+                // const date = _root?.filter((item)=>!item.is_read);
+                // const dateRead = _root?.filter((item)=>item.is_read);
+                const date = _root?.is_read;
+                const dataNotif = _root?.notifData;
 
-                if(date){
-                    if(date?.length > 1){
-                        date.sort((a:any, b:any) => new Date(a.created_at) - new Date(b.created_at));
-                        customDate = date[0]?.created_at;
+                // const dateRead = !_root?.is_read;
+                const dateNotifRead = _root?.notifData;
+
+                // console.log(date,'DATEEEEEEE')
+                // console.log(dataNotif,'dataNotif')
+
+
+                if(date && dataNotif?.length){
+                    const notifications = dataNotif
+
+                    if(_root?._count?.id > 1){
+                    // if(date?.length > 1){
+                        notifications.sort((a:any, b:any) => new Date(a.created_at) - new Date(b.created_at));
+                        customDate = notifications[0]?.created_at;
                     }else{
-                        customDate = date[0]?.created_at;
+                        customDate = notifications[0]?.created_at;
                     }
                 }else{
-                    if(date?.length > 1){
-                        date.sort((a:any, b:any) => new Date(a.created_at) - new Date(b.created_at));
-                        customDate = date[0]?.created_at;
+                        const notifications = dateNotifRead
+
+                    if(_root?._count?.id > 1){
+                        notifications.sort((a:any, b:any) => new Date(a.created_at) - new Date(b.created_at));
+                        customDate = notifications[0]?.created_at;
                     }else{
-                        customDate = date[0]?.created_at;
+                        customDate = notifications[0]?.created_at;
                     }
                 }
+                console.log(customDate,'CUSTOM DATEEEEEEEEEEEEEEE')
                 return customDate
             }
         })
@@ -808,6 +825,18 @@ const notifDataFinal = objectType({
                 return data
             }
         });
+
+        t.nullable.list.field('prescription',{
+            type:prescriptions,
+            resolve(root){
+                const prescType = [19];
+
+                if(!prescType.includes(root?.notification_type_id)) return null;
+                const data = root.notifData.map((item)=>item?.prescriptions);
+     
+                return data
+            }
+        }),
         t.nullable.list.field('chat',{
             type:ChatConversations,
             resolve(_root){
@@ -911,7 +940,7 @@ export const NotifacationQueryFinal = extendType({
             const {user} = session;
             // notification type, this is fixed in backend, notification_type table.
            try {
-            const nTypeId = [1,2,3,4,5,6,7,8,11,12,13,14,15,16,17]
+            const nTypeId = [1,2,3,4,5,6,7,8,11,12,13,14,15,16,17,18,19];
             
             const userRole = (()=>{
                 let notifiable_user_role;
@@ -945,6 +974,7 @@ export const NotifacationQueryFinal = extendType({
                 }
             })
 
+
             const fData = groupedData?.map(async(item)=>{
                 const notifData = await client.notification.findMany({
                     where:{
@@ -955,7 +985,8 @@ export const NotifacationQueryFinal = extendType({
                     include:{
                         appointments:true,
                         conversations:true, 
-                        orders:true
+                        orders:true,
+                        prescriptions:true
                     },
                     
                 })
@@ -967,6 +998,8 @@ export const NotifacationQueryFinal = extendType({
             })
 
             const finalData = await Promise.all(fData)
+
+            
 
            
             return {

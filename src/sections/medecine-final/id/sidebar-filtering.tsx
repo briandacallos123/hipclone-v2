@@ -81,6 +81,9 @@ export default function SidebarFitering({
         (event: SelectChangeEvent<string[]>) => {
             let val = event.target.value
 
+            if(val == 'e'){
+                return;
+            }
             onFilters(
                 'startingPrice',
                 Number(val) === 0 ? null : val
@@ -92,7 +95,9 @@ export default function SidebarFitering({
     const handleFilterEndPrice = useCallback(
         (event: SelectChangeEvent<string[]>) => {
             let val = event.target.value
+            if(val == 'e') return;
 
+            console.log(val,'VALLLLLLLLLLLLLL')
             onFilters(
                 'endPrice',
                 val
@@ -263,11 +268,13 @@ export default function SidebarFitering({
             <Box sx={{ width: 200 }}>
                 <Stack direction="row" alignItems="center" justifyContent="space-between">
                     <Typography>Price (₱)</Typography>
-                    <Button>Clear</Button>
+                    <Button variant="outlined" onClick>Clear</Button>
                 </Stack>
                 <Stack gap={1} direction="row" alignItems="center">
                     <TextField
+                        type="number"
                         fullWidth
+                        pattern="[0-9]*"
                         value={filters.startingPrice}
                         onChange={handleFilterStartingPrice}
                         placeholder="0"
@@ -286,6 +293,8 @@ export default function SidebarFitering({
                     <Typography> - </Typography>
                     <TextField
                         fullWidth
+                        type="number"
+                        pattern="[0-9]*"
                         value={filters.endPrice}
                         onChange={handleFilterEndPrice}
                         placeholder="10,000"

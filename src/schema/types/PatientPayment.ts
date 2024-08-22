@@ -174,6 +174,26 @@ export const mutation_patient_payment = extendType({
               patient_payment_data: [],
             };
           }
+
+          const notifContent = await client.notification_content.create({
+            data: {
+              content: "sent a payment"
+            }
+          })
+
+          await client.notification.create({
+            data: {
+              user_id: Number(session?.user?.id),
+              notifiable_id: Number(doctorID),
+              notification_type_id: 8,
+              notification_content_id: Number(notifContent?.id),
+              appt_id: Number(appt_id),
+              user_id_user_role: 5,
+              notifiable_user_role: 2
+            }
+          })
+
+
         } catch (error) {
           throw new GraphQLError(error);
         }

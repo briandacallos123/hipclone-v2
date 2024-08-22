@@ -8,8 +8,8 @@ export const EducationMutation = gql`
   }
 `;
 export const GetEducations = gql`
-  query GetEducations {
-    GetEducations {
+  query GetEducations($data:getEducationInp ) {
+    GetEducations(data:$data) {
       message
       data {
         fellowship1 {

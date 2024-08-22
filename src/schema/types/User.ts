@@ -60,6 +60,193 @@ export const QueryUser = extendType({
   },
 });
 
+const UserProfileInpType = inputObjectType({
+  name:"UserProfileInpType",
+  definition(t) {
+      t.nonNull.int('id')
+  },
+})
+
+export const UserProfileView = objectType({
+  name: "UserProfileView",
+  definition(t) {
+    t.nullable.boolean('invalid');
+    t.id("id");
+    t.string("occupation");
+    t.string("displayName");
+    t.string("lastName");
+    t.string("firstName");
+
+    t.string("middleName");
+    t.string("suffix");
+    t.string("nationality");
+    t.string("contact");
+    t.string("address");
+    t.string("PRC");
+    t.string("PTR");
+    t.date("dateOfBirth");
+    t.int("sex");
+    t.string("practicing_since");
+    t.string("s2_number");
+    t.string("validity");
+    t.int("doctorId");
+    t.string("username");
+    t.string("uname");
+    t.string("title");
+    t.string("coverURL");
+    t.string("photoURL");
+    t.nullable.field('esig',{
+      type:esig
+    });
+    t.nullable.field('esigDigital',{
+      type:esig
+    });
+    t.nullable.field('esigFile',{
+      type:esig
+    });
+  },
+});
+
+const esig =  objectType({
+  name:"esig",
+  definition(t) {
+    t.int('doctorID'),
+    t.string('filename'),
+    t.int('id'),
+    t.int('idno'),
+    t.int('type'),
+    t.dateTime('uploaded')
+  },
+})
+
+export const QueryUserProfile = extendType({
+  type: "Query",
+  definition(t) {
+    t.nullable.field("QueryUserProfile", {
+      type: UserProfileView,
+      args: { data: UserProfileInpType! },
+      async resolve(_root, args, ctx) {
+
+        try {
+          const user:any = await client.user.findFirst({
+            where:{
+              id:Number(args?.data?.id)
+            }
+          })
+          let invalidId:any;
+
+          if(user?.userType !== 2){
+            invalidId = true
+          }
+          
+  
+          if(!invalidId){
+            const userInfo = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL:user?.email
+              },
+              include: {
+                SpecializationInfo: true,
+              }
+            })
+  
+            const esigFile = await client.esig_dp.findMany({
+              where: {
+                doctorID: userInfo?.EMP_ID,
+                type: 1,
+              },
+              orderBy: [
+                {
+                  uploaded: 'desc',
+                },
+              ],
+            });
+  
+            const esigDigital = await client.esig_dp.findMany({
+              where: {
+                doctorID: userInfo?.EMP_ID,
+                type: 2,
+              },
+              orderBy: [
+                {
+                  uploaded: 'desc',
+                },
+              ],
+            });
+  
+            
+            const esigMain = await client.esig_dp.findMany({
+              where: {
+                doctorID: userInfo?.EMP_ID,
+                type: Number(userInfo?.signature),
+              },
+              orderBy: [
+                {
+                  uploaded: 'desc',
+                },
+              ],
+            });
+  
+  
+            console.log(esigMain,'walaaaaaaaaa!!!!!!!!!!!!!');
+            const d: any = await client.display_picture.findFirst({
+              where: {
+                userID: Number(user?.id),
+              },
+              orderBy: {
+                uploaded: 'desc',
+              },
+            });
+  
+            console.log(userInfo,'__________________')
+            
+            const photoURL = d
+            ? d?.filename.split('public')[1] // /public/www/ww ->
+            : `https://ui-avatars.com/api/?name=${user.displayName}&size=100&rounded=true&color=fff&background=E12328`;
+          
+            return {
+              occupation: userInfo?.SpecializationInfo?.name,
+              displayName:`${userInfo?.EMP_FNAME} ${userInfo?.EMP_LNAME}`,
+              lastName: userInfo?.EMP_LNAME,
+              firstName: userInfo?.EMP_FNAME,
+              middleName: userInfo?.EMP_MNAME,
+              suffix : userInfo?.EMP_SUFFIX,
+              nationality : userInfo?.EMP_NATIONALITY,
+              contact : userInfo?.CONTACT_NO,
+              address : userInfo?.EMP_ADDRESS,
+              dateOfBirth: userInfo?.EMP_DOB,
+              sex : userInfo?.EMP_SEX,
+              esigFile : esigFile[0],
+              esigDigital : esigDigital[0],
+              esig : esigMain[0],
+              PRC : userInfo?.LIC_NUMBER,
+              PTR : userInfo?.PTR_LIC,
+              practicing_since : userInfo?.PRACTICING_SINCE,
+              s2_number : userInfo?.S2_LIC,
+              validity : userInfo?.VALIDITY,
+              doctorId : userInfo?.EMPID,
+              username : user?.uname,
+              uname : user?.uname,
+              title : userInfo?.EMP_TITLE,
+              photoURL : photoURL,
+              coverURL:  'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg'
+            }
+          }else{
+            return {
+              invalid:true
+            }
+          }
+        } catch (error) {
+
+          console.log(error);
+          throw new GraphQLError(error);
+        }
+
+      } 
+    })
+  }
+})
+
 export const UserProfileCreationInputType = inputObjectType({
   name: "UserProfileCreationInputType",
   definition(t) {

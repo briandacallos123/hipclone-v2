@@ -50,6 +50,7 @@ export default function NoteTableToolbar({
 
   const handleFilterHospital = useCallback(
     (event: SelectChangeEvent<string[]>) => {
+
       onFilters(
         'hospital',
         typeof event.target.value === 'string' ? event.target.value.split(',') : event.target.value

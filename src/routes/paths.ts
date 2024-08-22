@@ -90,7 +90,7 @@ export const paths: any = {
     },
     orders:{
       root: `${ROOTS.DASHBOARD}/orders`,
-  },
+    },
     queuePatient:{
       root: `${ROOTS.DASHBOARD}/queue-patient`
     },

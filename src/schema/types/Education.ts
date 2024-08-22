@@ -145,15 +145,33 @@ function payload(data) {
   };
 }
 
+const getEducationInp = inputObjectType({
+  name:"getEducationInp",
+  definition(t) {
+      t.nullable.int('doctorId');
+  },
+})
+
 export const GetEducations = extendType({
   type: 'Query',
   definition(t) {
     t.nullable.field('GetEducations', {
       type: EducationTypeObj,
-      // args: { data: EducationInput! },
+      args: { data: getEducationInp! },
       async resolve(_, args, _ctx) {
         const { session } = _ctx;
 
+
+        const doctorId = (()=>{
+          let id:any;
+
+          if(args?.data?.doctorId){
+            id = args?.data?.doctorId
+          }else{
+            id = session?.user?.id
+          }
+          return id;
+        })()
         try {
           const result = await client.employees.findFirst({
             select: {
@@ -167,7 +185,7 @@ export const GetEducations = extendType({
               FSHIP_TR1_COMPLETED: true,
             },
             where: {
-              EMP_ID: session?.user?.id,
+              EMP_ID: doctorId,
             },
           });
 

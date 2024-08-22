@@ -150,3 +150,26 @@ export function getDateSpan(dateString: string) {
   })()
 
 }
+
+export function getUTCTime(time){
+  const dateString = time
+
+  // Create a Date object from the string
+  const date = new Date(dateString);
+  
+  // Extract hours, minutes, and seconds
+  let hours = date.getUTCHours();
+  const minutes = date.getUTCMinutes();
+  const seconds = date.getUTCSeconds();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  
+  // Convert to 12-hour format
+  hours = hours % 12;
+  hours = hours ? hours : 12; // the hour '0' should be '12'
+  
+  // Format the time string (HH:MM:SS AM/PM)
+  const formattedTime = `${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')} ${ampm}`;
+  
+  return formattedTime;
+
+}

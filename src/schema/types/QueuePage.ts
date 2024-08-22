@@ -148,12 +148,25 @@ export const queue_data = objectType({
     t.nullable.list.field('appointments_data', {
       type: DoctorAppointments
     }),
+    // t.nullable.list.field('notTodaySchedule', {
+    //   type:DoctorAppointments
+    // })
       t.boolean('is_paid')
     t.int('position');
     t.nullable.field('hasSessionNotStarted',{
       type:DoctorAppointments
     });
+    t.nullable.field('otherApptList',{
+      type:DoctorTransactionObject,
+      resolve(_root){
+
+        return {
+          appointments_data:_root?.otherApptList
+        } 
+      }
+    })
     t.boolean('is_not_today')
+    t.dateTime('startingTime');
     t.boolean('notStarted')
     t.boolean('is_done')
     t.boolean('is_ongoing');
@@ -170,17 +183,20 @@ export const QueuePatientInp = inputObjectType({
   name: "QueuePatientInp",
   definition(t) {
     t.nullable.string("voucherCode")
+    t.nullable.int('take');
+    t.nullable.int('skip');
+
     // t.nullable.string('uuid')
   }
 })
-const dateIntervalChecker = (item: any, patient:any) => {
+const dateIntervalChecker = (item: any, patient:any,notToday:any) => {
   let newData: any = [];
   let patientSession:any;
   let hasTodaySchedule:any;
   let notStarted:any;
   let doneSession:any;
   let isOngoing:any;
-
+  let startingTime:any;
 
 
   item?.forEach((data: any) => {
@@ -208,15 +224,20 @@ const dateIntervalChecker = (item: any, patient:any) => {
     // Check if the current date and time is within the interval
     const isWithinInterval = phDate >= startDateTimeUTC && phDate <= endDateTimeUTC;
 
-    if (isWithinInterval && data?.patientID === Number(patient?.S_ID)) {
+    if (!notToday && isWithinInterval && data?.patientID === Number(patient?.S_ID)) {
       isOngoing = true;
       newData.push(data);
     }
-    if(data?.patientID === Number(patient?.S_ID) && phDate <= startDateTimeUTC){
+    if(!notToday && data?.patientID === Number(patient?.S_ID) && phDate <= startDateTimeUTC){
       notStarted = true;
+      startingTime = data?.time_slot;
     }
-    if(data?.patientID === Number(patient?.S_ID) && phDate > endDateTimeUTC){
+    
+    if(!notToday && data?.patientID === Number(patient?.S_ID) && phDate > endDateTimeUTC){
       doneSession = true;
+    }if(notToday){
+      newData.push(data);
+
     }
   });
 
@@ -225,7 +246,7 @@ const dateIntervalChecker = (item: any, patient:any) => {
       patientSession = true;
     }
   })
-  return {newData, patientSession, notStarted, doneSession, isOngoing}
+  return {newData, patientSession, notStarted, doneSession, isOngoing, startingTime}
 }
 
 
@@ -239,7 +260,7 @@ export const QueuePatient = extendType({
       async resolve(_root, args, ctx) {
 
         try {
-          const { voucherCode }: any = args?.data
+          const { voucherCode, take, skip}: any = args?.data
           const { session } = ctx;
 
           const currentDate = new Date();
@@ -370,6 +391,33 @@ export const QueuePatient = extendType({
           })
 
 
+          const clinicResult = await client.appointments.findMany({
+            take,
+            skip,
+            where: {
+              isDeleted: 0,
+              status: 1,
+              patientID: Number(session?.user?.s_id),
+              NOT:{
+                voucherId:voucherCode
+              },
+              clinicInfo: {
+                isDeleted: 0,
+                NOT: [{ clinic_name: null }, { clinic_name: '' }],
+              },
+              date: {
+                gte: formattedDateAsDate,
+                // lte: currentDateBackward,
+              },
+  
+            },
+            include: {
+              clinicInfo: true,
+            }
+          })
+
+
+          console.log(clinicResult,'AWUTTTTTTTTTTTTTTTTTTTTT')
 
           const [result, resultFirst]: any = await client.$transaction([
             client.appointments.findMany({
@@ -417,10 +465,6 @@ export const QueuePatient = extendType({
             })
           ])
 
-
-
-
-
           const position = (resultFirst?.length ? resultFirst : result).map(async (it: any) => {
             return await client.patient.findFirst({
               where: {
@@ -433,9 +477,6 @@ export const QueuePatient = extendType({
 
           const patientPos = teka.findIndex((item: any) => item.EMAIL === patient?.EMAIL)
 
-
-
-
           const haveSchedButNotToday = () => {
             if (isToday?.length === 0 && resultFirst?.length !== 0) {
               return true
@@ -447,7 +488,7 @@ export const QueuePatient = extendType({
 
         
 
-          const {newData,isOngoing, patientSession, notStarted, doneSession} = resultFirst?.length ? dateIntervalChecker(resultFirst, patient) : dateIntervalChecker(result, patient)
+          const {newData,isOngoing, patientSession, notStarted, doneSession, startingTime} = resultFirst?.length ? dateIntervalChecker(resultFirst, patient, haveSchedButNotToday()) : dateIntervalChecker(result, patient, haveSchedButNotToday())
 
           return {
             appointments_data: newData,
@@ -458,6 +499,8 @@ export const QueuePatient = extendType({
             notStarted,
             done_session:doneSession,
             is_ongoing:isOngoing,
+            startingTime,
+            otherApptList:clinicResult,
             notApproved: (() => {
               if (Number(notApproved?.status) === 0) {
                 return 4
@@ -491,6 +534,7 @@ export const QueueClinicInp = inputObjectType({
   definition(t) {
     t.nonNull.int('take');
     t.nonNull.int('skip');
+    t.nullable.string('apptCode');
   },
 })
 
@@ -504,7 +548,7 @@ export const QueueGetClinicOfPatient = extendType({
 
         const { session } = ctx;
 
-        const { take, skip }: any = args?.data
+        const { take, skip, apptCode }: any = args?.data
 
 
         const currentDate = new Date();
@@ -521,6 +565,9 @@ export const QueueGetClinicOfPatient = extendType({
             isDeleted: 0,
             status: 1,
             patientID: Number(session?.user?.s_id),
+            NOT:{
+              voucherId:apptCode
+            },
             clinicInfo: {
               isDeleted: 0,
               NOT: [{ clinic_name: null }, { clinic_name: '' }],

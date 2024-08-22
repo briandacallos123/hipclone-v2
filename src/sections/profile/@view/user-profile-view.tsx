@@ -77,7 +77,8 @@ export default function UserProfileView() {
     totalData,
     Ids,
     isLoading,
-    notesRecordResult
+    notesRecordResult,
+    clinicData
   } = useNotesHooks(payloads);
 
   const TABS = [
@@ -164,6 +165,7 @@ export default function UserProfileView() {
           data={medData}
           loading={isLoading}
           refetch={refetch}
+          clinicData={clinicData}
           tableData1={tableData1}
           totalData={totalData}
           Ids={Ids}

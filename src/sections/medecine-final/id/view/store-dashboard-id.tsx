@@ -200,6 +200,10 @@ const StoreDashboardId = ({ data, id }: any) => {
         setListView(val)
     }
 
+    const handleReset = () => {
+        
+    }
+
 
     return (
         <Box sx={{

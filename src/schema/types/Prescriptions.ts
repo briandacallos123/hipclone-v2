@@ -1083,9 +1083,9 @@ export const QueryAllPrescriptionUser = extendType({
               include: {
                 clinicInfo: true
               },
-              orderBy:{
-                clinicInfo:{
-                  clinic_name:'asc'
+              orderBy: {
+                clinicInfo: {
+                  clinic_name: 'asc'
                 }
               }
             })
@@ -1145,7 +1145,7 @@ const filters = (args: any) => {
           },
         ]
       }
-    }else{
+    } else {
       whereConSearch = {
         ID: Number(args?.data!.searchKeyword),
       };
@@ -1343,6 +1343,9 @@ export const MutationPrescription = extendType({
                 PR_ID: parent?.ID,
               },
             });
+
+            
+
             return newChild;
           });
 
@@ -1358,6 +1361,24 @@ export const MutationPrescription = extendType({
             },
           });
 
+          let notifContent = await client.notification_content.create({
+            data: {
+              content: 'created new prescription'
+            }
+          })
+
+          await client.notification.create({
+            data: {
+              user_id: Number(session?.user?.id),
+              notifiable_id: Number(patientId?.patientInfo?.S_ID),
+              notification_type_id: 19,
+              notification_content_id: Number(notifContent?.id),
+              presc_id: Number(parent?.ID),
+              user_id_user_role: 2,
+              notifiable_user_role: 5
+            }
+          })
+
           // console.log(doctorEmployee, 'yeyey');
 
           const res = {
@@ -1368,6 +1389,8 @@ export const MutationPrescription = extendType({
             prescriptions_child: prescriptionChildInputs,
             doctorInfo: doctorEmployee,
           };
+
+         
 
           return res;
         } catch (err) {

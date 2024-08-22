@@ -36,7 +36,7 @@ const StyledComponent = styled('div')({
 });
 
 const page = () => {
-  const { data, queryQueueResult, notToday, inValidVoucher, targetItem, clinicData, notApprovedVal, isDoneAppt, clinicLoading, QueryQueue, dataResults, loading, position, remainingP, newPosition, refetch, notAppNotToday, apptPaid } = QueueController()
+  const {notStarted, ongoing, data, queryQueueResult, notToday, inValidVoucher, targetItem, clinicData, notApprovedVal, isDoneAppt, QueryQueue, dataResults, loading, position, remainingP, newPosition, notAppNotToday, apptPaid } = QueueController()
   const { id } = useParams();
   // const { socket } = useAuthContext()
   const { user } = useAuthContext()
@@ -108,6 +108,8 @@ const page = () => {
     }
 }
 
+console.log(clinicData,'AWITTTTTTTTTT SAYOOOOOOOOOOOO')
+
 
   return (
     <StyledComponent>
@@ -150,8 +152,8 @@ const page = () => {
         }}>
           {queryQueueResult.loading ? <RenderLoadingContent /> :
             !inValidVoucher ? <Stack gap={3} >
-              <Queue apptPaid={apptPaid} notAppNotToday={notAppNotToday} notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
-              {clinicData?.length !== 0 && !isDoneAppt && <QueueCarousel loading={clinicLoading} data={clinicData} />}
+              <Queue notStarted={notStarted} ongoing={ongoing} apptPaid={apptPaid} notAppNotToday={notAppNotToday} notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
+              <QueueCarousel loading={queryQueueResult.loading} data={clinicData} />
             </Stack> :
               <Box sx={{
                 width:'100%',

@@ -24,31 +24,40 @@ const QueueController = () => {
   const [apptPaid, setApptPaid] = useState(null);
   const [inValidVoucher, setInvalidVoucher] = useState(false);
   const navigate = useRouter();
+  const [notStarted, setNotStarted] = useState({startingTime:"", notStarted:false});
+  const [ongoing, setOngoing] = useState(false)
 
-  const { data: queryData, error, refetch }: any = useQuery(QueryQueuePatient, {
-    variables: {
-      data: {
-        voucherCode: id
-      }
-    }
+  // const { data: queryDataResult, error, refetch }: any = useQuery(QueryQueuePatient, {
+  //   variables: {
+  //     data: {
+  //       voucherCode: id
+  //     }
+  //   }
+  // });
+
+  const [queryDataItem, queryDataResult] = useLazyQuery(QueryQueuePatient, {
+    context: {
+      requestTrackerId: 'queryQueueFinal[QueryQueueFinalRes]',
+    },
+    notifyOnNetworkStatusChange: true
   });
 
   const [queryQueue, queryQueueResult] = useLazyQuery(QueryQueuePatient, {
     context: {
       requestTrackerId: 'queryQueueFinal[QueryQueueFinalRes]',
     },
-    notifyOnNetworkStatusChange: true,
-    fetchPolicy: 'no-cache',
+    notifyOnNetworkStatusChange: true
   });
 
-  const { data: otherClinic, loading:clinicLoading}: any = useQuery(QueueGetClinicOfPatient, {
-    variables: {
-      data: {
-        skip:0,
-        take:10
-      }
-    }
-  });
+  // const { data: otherClinic, loading:clinicLoading}: any = useQuery(QueueGetClinicOfPatient, {
+  //   variables: {
+  //     data: {
+  //       skip:0,
+  //       take:10,
+  //       apptCode:id
+  //     }
+  //   }
+  // });
 
   useEffect(()=>{
     queryQueue({
@@ -59,8 +68,29 @@ const QueueController = () => {
       }
     }).then((result)=>{
       const { data : queryData } = result;
+      console.log(queryData,'QUERYDATAAAAAAAAA______________________')
       if (queryData?.QueuePatient) {
-       
+
+        if(queryData?.QueuePatient?.otherApptList){
+          setClinicData(queryData?.QueuePatient?.otherApptList?.appointments_data)
+        }
+
+        if(queryData?.QueuePatient && queryData?.QueuePatient?.done_session){
+          setIsDoneAppt(true)
+        }
+
+
+        if(queryData?.QueuePatient && queryData?.QueuePatient?.is_ongoing){
+          setOngoing(true)
+        }
+
+        if(queryData?.QueuePatient && queryData?.QueuePatient?.notStarted){
+          const {startingTime} = queryData?.QueuePatient
+          setNotStarted({
+            startingTime,
+            notStarted:true
+          })
+        }
         if(queryData?.QueuePatient){
           const target = queryData?.QueuePatient?.appointments_data?.find((item:any)=>item?.voucherId=== id)
           setTargetItem(target)
@@ -137,25 +167,22 @@ const QueueController = () => {
     })
   },[])
 
-  useEffect(()=>{
-    if(queryData){
-      if(otherClinic){
-        const {QueueGetClinicOfPatient} = otherClinic
-        const target = data[0]
+  // useEffect(()=>{
 
-        const filteredItems = QueueGetClinicOfPatient?.appointments_data?.filter((item:any)=>{
-          if(Number(target?.clinicInfo?.id) !== Number(item?.clinicInfo?.id)){
-            return item
-          }
-        })
+  //     if(otherClinic){
+  //       const {QueueGetClinicOfPatient} = otherClinic
+  //       const target = data[0]
 
-        console.log(filteredItems,'YAWAAAAAAAAAAAAAAAAAA')
-
-        setClinicData(filteredItems)
+  //       const filteredItems = QueueGetClinicOfPatient?.appointments_data?.filter((item:any)=>{
+  //         if(Number(target?.clinicInfo?.id) !== Number(item?.clinicInfo?.id)){
+  //           return item
+  //         }
+  //       })
+  //       setClinicData(filteredItems)
   
-      }
-    }
-  },[otherClinic, data])
+  //     }
+
+  // },[otherClinic.data, data])
 
   
 
@@ -317,7 +344,7 @@ const QueueController = () => {
   }, [])
 
 
-  return { QueryQueue, inValidVoucher, isDoneAppt, queryQueueResult, apptPaid, notAppNotToday, targetItem, notApprovedVal, data,clinicData, clinicLoading, dataResults, refetch, loading, position, remainingP, newPosition, notToday }
+  return {notStarted, ongoing, QueryQueue, inValidVoucher, isDoneAppt, queryQueueResult, apptPaid, notAppNotToday, targetItem, notApprovedVal, data,clinicData, dataResults, loading, position, remainingP, newPosition, notToday }
 }
 
 export default QueueController

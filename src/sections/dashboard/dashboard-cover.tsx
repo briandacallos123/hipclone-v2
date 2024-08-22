@@ -18,6 +18,10 @@ import { useLazyQuery } from '@apollo/client';
 import { get_note_vitals_user } from '@/libs/gqls/notes/notesVitals';
 import { VitalView } from 'src/sections/vital/view';
 import IMG from '../../../public/assets/background/banner-bg.png';
+import QRCode from 'qrcode'
+import Image from 'next/image';
+import { Tooltip } from '@mui/material';
+
 // ----------------------------------------------------------------------
 
 export default function DashboardCover({
@@ -84,7 +88,38 @@ export default function DashboardCover({
       });
     }
   }, [getDataUser, user?.role, user?.uuid]);
-  console.log('chartData', chartData);
+
+  const [qrImage, setQrImage] = useState(null)
+
+  const generateQR = async (text: any) => {
+    try {
+      const res = await QRCode.toDataURL(text)
+      setQrImage(res)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+  const [links, setLink] = useState<string | null>(null)
+
+  useEffect(() => {
+    (async () => {
+      const link = `https://hip.apgitsolutions.com/doctor/profile/${user?.id}`
+      setLink(link)
+      await generateQR(link)
+    })()
+  }, [])
+
+
+  const downloadQr = () => {
+    const link = document.createElement('a');
+    link.href = links;
+
+    link.download = 'Qrcode.png';
+
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 
   const isDashboard = true;
   return (
@@ -98,6 +133,8 @@ export default function DashboardCover({
           backgroundSize: 'cover',
           height: 1,
           color: 'common.white',
+          display: 'flex',
+          justifyContent: 'space-between'
         }}
       >
         <Stack
@@ -205,12 +242,32 @@ export default function DashboardCover({
 
           {/* <Box sx={{ bgcolor: 'blue' }}>test</Box> */}
 
-          {/* {chartData && (
-            <Box sx={{ mt: 8 , borderRadius: 5}}>
-              <VitalView items={chartData} loading={userloading} isDashboard={isDashboard} />
-            </Box>
-          )} */}
+
         </Stack>
+        {qrImage &&
+          <Box sx={{
+            position:'absolute',
+            right:50,
+            top:40,
+            display:'flex',
+            alignItems:'center',
+            gap:2
+          }}>
+            <Image
+              src={qrImage}
+              width={100}
+              height={100}
+              alt="qr image"
+            />
+            <Stack>
+            <Tooltip sx={{mt:1}} title="Download">
+                    <img style={{
+                      cursor:'pointer'
+                    }} onClick={downloadQr} src='/assets/download-white.svg'/>
+                  </Tooltip>
+            </Stack>
+          </Box>
+        }
       </Box>
     </Card>
   );

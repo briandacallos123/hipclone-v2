@@ -108,7 +108,7 @@ const filterMerchantsByDistance = (patientLocation: any, merchants: any, radius:
             merchant.lng
         );
 
-        if (radius === 100) {
+        if (radius >= 100) {
             myData.push({
                 ...merchant,
                 distance

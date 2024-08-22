@@ -580,6 +580,7 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
 
         const { session } = ctx;
 
+        console.log(args?.data?.clinicIds,'HOSPITALLLLLLLLLLLLLLL')
 
         await cancelServerQueryRequest(
           client,
@@ -595,6 +596,9 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
             status: Number(args?.data!.status),
           };
         })();
+
+        console.log(whereconditions,'HOSPITALLLLLLLLLLLLLLLfilters')
+
 
         let order: any;
         switch (args?.data!.orderBy) {
@@ -661,12 +665,13 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
                 patientID: session?.user?.s_id,
                 isDeleted: 0,
                 ...status,
-                ...whereconditions,
-                NOT: [{ time_slot: null }, { patientInfo: null }],
                 clinicInfo: {
                   isDeleted: 0,
                   NOT: [{ clinic_name: null }, { clinic_name: '' }],
                 },
+                ...whereconditions,
+                NOT: [{ time_slot: null }, { patientInfo: null }],
+               
               },
               ...orderConditions,
               include: {

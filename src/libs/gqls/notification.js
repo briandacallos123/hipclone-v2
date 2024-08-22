@@ -107,6 +107,9 @@ export const notification_query_final = gql`
           chat{
             id
           }
+          prescription{
+            ID
+          }
           orders {
             attachment {
               id

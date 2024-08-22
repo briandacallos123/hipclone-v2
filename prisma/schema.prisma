@@ -1287,6 +1287,7 @@ model prescriptions {
   VISIBILITY          Int?                  @default(0)
   isDeleted           Int?                  @default(0)
   presCode            String?               @db.VarChar(6)
+  notification        notification[]
   patient             patient?              @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "prescriptions_ibfk_1")
   emr_patient         emr_patient?          @relation(fields: [emrPatientID], references: [id], onDelete: Cascade, map: "prescriptions_ibfk_2")
   doctorInfo          employees?            @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "prescriptions_ibfk_3")
@@ -1651,6 +1652,7 @@ model notification {
   appt_id                               Int?
   chat_id                               String?
   order_id                              Int?
+  presc_id                              Int?
   medecine_id                           Int?
   conversation_id                       String?              @db.VarChar(255)
   notif_group_id                        Int?
@@ -1659,6 +1661,7 @@ model notification {
   created_at                            DateTime             @default(now()) @db.DateTime(0)
   is_deleted                            Int                  @default(0)
   notification_content                  notification_content @relation(fields: [notification_content_id], references: [id], onUpdate: Restrict, map: "notification_ibfk_1")
+  prescriptions                         prescriptions?       @relation(fields: [presc_id], references: [ID], onDelete: Restrict, onUpdate: Restrict, map: "notification_ibfk_10")
   notification_type                     notification_type    @relation(fields: [notification_type_id], references: [id], onUpdate: Restrict, map: "notification_ibfk_2")
   user                                  user                 @relation(fields: [user_id], references: [id], onUpdate: Restrict, map: "notification_ibfk_3")
   user_notification_notifiable_idTouser user                 @relation("notification_notifiable_idTouser", fields: [notifiable_id], references: [id], onUpdate: Restrict, map: "notification_ibfk_4")
@@ -1679,6 +1682,7 @@ model notification {
   @@index([medecine_id], map: "medecine_id")
   @@index([chat_id], map: "chat_id")
   @@index([user_id_user_role], map: "user_id_user_role")
+  @@index([presc_id], map: "presc_id")
 }
 
 model notification_content {

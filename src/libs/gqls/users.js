@@ -58,3 +58,59 @@ mutation mutationUpdatePassword($data: UserUpdatePasswordProfileUpsertType!) {
   }
 }
 `;
+
+
+export const QueryUserProfile = gql`
+query QueryUserProfile($data: UserProfileInpType!) {
+  QueryUserProfile(data: $data) {
+    firstName
+    id
+    lastName
+    invalid
+    middleName
+    uname
+    username
+    address
+    contact
+    dateOfBirth
+    displayName
+    nationality
+    occupation
+    sex
+    suffix
+    coverURL
+    doctorId
+    photoURL
+    practicing_since
+    s2_number
+    title
+    validity
+    PTR
+    PRC
+    esig {
+      doctorID
+      filename
+      id
+      idno
+      type
+      uploaded
+    }
+    esigDigital {
+      doctorID
+      filename
+      id
+      idno
+      type
+      uploaded
+    }
+    esigFile {
+      doctorID
+      filename
+      id
+      idno
+      type
+      uploaded
+    }
+  }
+}
+`;

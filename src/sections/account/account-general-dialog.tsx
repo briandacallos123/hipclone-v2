@@ -27,7 +27,7 @@ import { useForm, FieldValues } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useResponsive } from 'src/hooks/use-responsive';
 
-const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent }) => {
+const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data}) => {
   const openPay = useBoolean();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey1, setSnackKey1]: any = useState(null);
@@ -53,16 +53,8 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent }) => {
         return publicPart;
       })() || null,
     signatureD: true,
-    signatureFile:
-      (() => {
-        const url = user?.esigFile?.filename;
-        const parts = url?.split('public');
-        const publicPart = parts ? parts[1] : null;
-
-        console.log(publicPart, '@@@@@@@');
-
-        return publicPart;
-      })() || null,
+    signatureFile:''
+     
   };
 
   const methods = useForm<FieldValues>({
@@ -81,7 +73,12 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent }) => {
   } = methods;
 
   const values = watch();
-  console.log(values, 'values222');
+
+  useEffect(()=>{
+    if(data){
+      setValue('signatureFile', `/${data?.esig?.filename?.split('/').splice(1).join("/")}`);
+    }
+  },[data])
 
   // useEffect(() => {
   //   // Load the image when the component mounts or when signatureDigital changes

@@ -193,7 +193,7 @@ const appt_patient_hmo_details = objectType({
       type: appt_hmo_details,
       async resolve(root, _arg, _ctx) {
 
-        console.log(root,'rootrootrootrootrootrootrootrootrootrootrootrootrootrootrootroot')
+        // console.log(root,'rootrootrootrootrootrootrootrootrootrootrootrootrootrootrootroot')
 
 
 
@@ -2425,6 +2425,14 @@ function addMinutesToTime(timeString, minutesToAdd) {
 
   return utcDate;
 }
+
+
+function addTimeInterval(time, interval) {
+  const newTime = new Date(time);
+  newTime.setMinutes(newTime.getMinutes() + interval);
+  return newTime;
+}
+
 export const BookAppointment = extendType({
   type: 'Mutation',
   definition(t) {
@@ -2460,7 +2468,6 @@ export const BookAppointment = extendType({
               isExists = false;
             }
           }
-          // if has file
 
           await client.records.create({
             data: {
@@ -2480,12 +2487,10 @@ export const BookAppointment = extendType({
               id:'desc'
             }
           })
-          console.log(e_time,'e_time order')
 
-          // const newTime = addMinutesToTime(createData.time_slot, e_time?.time_interval);
-          // const newISODateString  = addMinutesToTime(timeInput, e_time?.time_interval);
-          // console.log(newISODateString,'TIMEEEEEEEEEE')
 
+          const newTime = addTimeInterval(timeInput, e_time?.time_interval);
+          console.log(newTime)
           const timeInputEnd = new Date(createData.end_time);
           timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
 
@@ -2507,7 +2512,7 @@ export const BookAppointment = extendType({
                 hmo: hmoData,
                 member_id: String(createData.member_id),
                 voucherId: VoucherCode,
-                e_time: timeInput,
+                e_time: newTime,
               },
             });
 

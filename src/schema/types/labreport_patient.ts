@@ -715,6 +715,11 @@ export const labreport_patient_data = extendType({
                 where:{
                   OR: idConditions,
                   AND: [{ isDeleted: 0 }],
+                  NOT:{
+                    clinicInfo:{
+                      clinic_name:null
+                    }
+                  }
                 },
                 include:{
                   clinicInfo:true

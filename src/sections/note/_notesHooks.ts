@@ -187,10 +187,10 @@ export default function useNotesHooks(payloads: any) {
         const { data } = result;
         if (data) {
           const { allRecordsbyPatientUser } = data;
-               // setTable(todaysAPR);
         setTableData1(allRecordsbyPatientUser?.Records_data);
         setIds(allRecordsbyPatientUser?.RecordIds);
         setTotalData(allRecordsbyPatientUser?.total_records);
+        setClinicData(allRecordsbyPatientUser?.clinic)
         }
       })
     }

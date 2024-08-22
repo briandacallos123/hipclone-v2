@@ -101,6 +101,7 @@ export default function NoteListView({
   const { getItem } = useSessionStorage();
   const [isClinic, setIsClinic] = useState(0);
 
+  console.log(clinicData,'clinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicData')
   useEffect(() => {
     setPayloads({
       //
@@ -166,7 +167,7 @@ export default function NoteListView({
 
   const canReset =
     !!filters.name ||
-    !!filters.hospital ||
+    !!filters.hospital?.length ||
     (!!filters.startDate && !!filters.endDate) ||
     !!filters.startDate ||
     !!filters.endDate;

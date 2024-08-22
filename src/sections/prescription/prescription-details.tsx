@@ -117,8 +117,6 @@ export default function PrescriptionDetails({link, /*currentItem*/ currentItem, 
 
     link.download = 'Qrcode.png';
 
-    console.log(link,'LINK@@@@@@@')
-
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

@@ -14,6 +14,7 @@ import Iconify from 'src/components/iconify';
 import { ImagingListView } from '@/sections/imaging/view';
 import ProfileImagingCreateView from './imaging-create-view';
 import LoadingButton from '@mui/lab/LoadingButton';
+import { useAuthContext } from '@/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -25,6 +26,7 @@ export default function ProfileImagingListView({ data }: Props) {
   const upMd = useResponsive('up', 'md');
   const [isRefetch, setRefetch] = useState(false);
   const [isLoading, setLoading] = useState(false);
+  const {user} = useAuthContext();
 
   const openCreate = useBoolean();
 
@@ -36,7 +38,7 @@ export default function ProfileImagingListView({ data }: Props) {
         setRefetch={setRefetch}
         action={
           upMd ? (
-            <LoadingButton
+              user?.role !== 'patient' && <LoadingButton
               variant="contained"
               startIcon={<Iconify icon="mingcute:add-line" />}
               onClick={openCreate.onTrue}

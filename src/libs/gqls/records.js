@@ -471,7 +471,14 @@ export const GET_RECORD_BY_PATIENT_USER = gql`
         }
         R_TYPE
       }
-
+      clinic{
+        id
+        clinic_name
+        number
+        location
+        Province
+        doctorID
+      }
       total_records
     }
   }

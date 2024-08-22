@@ -88,7 +88,6 @@ export default function PrescriptionDetailsView({
   const generateQR = async(text:any) => {
     try {
       const res = await QRCode.toDataURL(text)
-      // return <img width="50%" height="50%" src={res}/>
       setQrImage(res)
     } catch (err) {
       console.error(err)

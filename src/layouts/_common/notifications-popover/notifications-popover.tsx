@@ -46,53 +46,29 @@ import NotificationItemFinal from './notification-item-final';
 
 // ----------------------------------------------------------------------
 
-function getAvatar(image:any){
+function getAvatar(image: any) {
   const url = image || '';
   const parts = url.split('public');
   const publicPart = parts[1];
 
-  console.log(publicPart,'???????????')
+  console.log(publicPart, '???????????')
   return publicPart
 }
 
-export default function NotificationsPopover({queryResults, notificationData, isLoading, summarize, handleReadFunc}:any) {
+export default function NotificationsPopover({ queryResults, notificationData, isLoading, summarize, handleReadFunc }: any) {
   const [unreadData, setUnreadData] = useState([]);
- 
+
   const navigate = useRouter();
-  const {user} = useAuthContext()
-  
+  const { user } = useAuthContext()
+
   useEffect(() => {
     if (notificationData) {
       const data = notificationData?.filter((item) => !item.is_read);
       setUnreadData(data)
     }
   }, [notificationData])
-  
-  // const notification_data = notificationData?.map((item:any)=>{
-  //   return{
-  //     userName:item?.user?.name,
-  //     id:item?.id,
-  //     isUnRead:item?.is_read === 1 ? true:false,
-  //     title:item?.notification_content?.content,
-  //     createdAt:item?.created_at,
-  //     avatarUrl:getAvatar(item?.user?.avatarAttachment?.filename),
-  //     type:item?.notification_type_id?.title,
-  //     appt_id: Number(item?.appt_data?.id),
-  //     chat_id:item?.chat_id,
-  //     many_chat:item?.is_many_chat,
-  //     chat_count:item?.chat_length,
-  //     child:item?.children || item?.siblings,
-  //     many_appt:item?.appt_data?.id && item?.children,
-  //     appt_count:item?.appt_count,
-  //     // isPatient:item?.isPatient,
-  //     isPatient:user?.role === "patient",
-  //     is_group_count: item?.group_child?.length && item?.group_child?.length + 1 || 0,
-  //     group_child:item?.group_child || [],
-  //     siblings:item?.siblings?.length && item?.siblings?.length + 1 || 0
-     
-  //   }
-  // })
-  
+
+
   const TABS = [
     {
       value: 'all',
@@ -121,7 +97,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
 
   const [notifications, setNotifications] = useState(_notifications);
 
-  
+
 
   const totalUnRead = summarize?.unread
 
@@ -159,76 +135,81 @@ export default function NotificationsPopover({queryResults, notificationData, is
   const renderTabs = (
     <>
       {totalUnRead >= 0 ? <Tabs value={currentTab} onChange={handleChangeTab}>
-      {TABS.map((tab) => (
-        <Tab
-          key={tab.value}
-          iconPosition="end"
-          value={tab.value}
-          label={tab.label}
-          icon={
-            <Label
-              variant={((tab.value === 'all' || tab.value === currentTab) && 'filled') || 'soft'}
-              color={
-                (tab.value === 'unread' && 'info') ||
-                'default'
-              }
-            >
-              {tab.count}
-            </Label>
-          }
-          sx={{
-            '&:not(:last-of-type)': {
-              mr: 3,
-            },
-          }}
-        />
-      ))}
-    </Tabs>:
-    <Stack direction="row" alignItems="center" spacing={2}>
-        <Skeleton width={80} height={30} />
-        <Skeleton width={80} height={30} />
-    </Stack>
-    }
+        {TABS.map((tab) => (
+          <Tab
+            key={tab.value}
+            iconPosition="end"
+            value={tab.value}
+            label={tab.label}
+            icon={
+              <Label
+                variant={((tab.value === 'all' || tab.value === currentTab) && 'filled') || 'soft'}
+                color={
+                  (tab.value === 'unread' && 'info') ||
+                  'default'
+                }
+              >
+                {tab.count}
+              </Label>
+            }
+            sx={{
+              '&:not(:last-of-type)': {
+                mr: 3,
+              },
+            }}
+          />
+        ))}
+      </Tabs> :
+        <Stack direction="row" alignItems="center" spacing={2}>
+          <Skeleton width={80} height={30} />
+          <Skeleton width={80} height={30} />
+        </Stack>
+      }
     </>
   );
 
   const [viewId, setViewId] = useState(null);
   const [chatView, setChatView] = useState({
-    open:false,
-    id:null
+    open: false,
+    id: null
   })
 
 
-  const handleCloseChat = useCallback(()=>{
+  const handleCloseChat = useCallback(() => {
     setChatView({
-      open:false,
-      id:null
+      open: false,
+      id: null
     })
-  },[])
- const handleViewRow = useCallback((d:any)=>{
+  }, [])
+  const handleViewRow = useCallback((d: any) => {
+
+
+    let isOrderRelated = d?.notification_type === 'done order' || d?.notification_type === 'cancelled order' ||
+      d?.notification_type === 'approved order' || d?.notification_type === 'Your order was delivered!' ||
+      d?.notification_type === 'Sorry your order was delivery unsuccessfully!' || d?.notification_type === 'Your order is on its way!' || d?.notification_type === 'Your order is waiting for pick up!'
+
+    let isApptRelated = d?.notification_type === 'done appointment' || d?.notification_type === 'to approve appointment' || d?.notification_type === 'approved appointment' || d?.notification_type === 'cancelled appointment'
+    
     
 
-  let isOrderRelated = d?.notification_type === 'done order' || d?.notification_type === 'cancelled order' ||
-  d?.notification_type === 'approved order' || d?.notification_type === 'Your order was delivered!' || 
-  d?.notification_type === 'Sorry your order was delivery unsuccessfully!' || d?.notification_type === 'Your order is on its way!' || d?.notification_type === 'Your order is waiting for pick up!'
 
-  if(d?.notification_type === 'sent a message' || d?.notification_type === 'reply a message'){
-    if(d?.length > 1){
-      navigate.push(paths.dashboard.chat);
-    }else{
-      setChatView({
-        open:true,
-        id:d?.chat_id
-      })
+    if (d?.notification_type === 'sent a message' || d?.notification_type === 'reply a message') {
+      if (d?.length > 1) {
+        navigate.push(paths.dashboard.chat);
+      } else {
+        setChatView({
+          open: true,
+          id: d?.chat_id
+        })
+      }
+    } else if (d?.notification_type === 'post feed') {
+      navigate.push(paths.dashboard.feeds)
+    }else if(isApptRelated){
+      navigate.push(paths.dashboard.appointment?.root)
+    } else if (isOrderRelated) {
+      navigate.push(paths.dashboard.orders.root)
     }
-  }else if(d?.notification_type === 'post feed'){
-    navigate.push(paths.dashboard.feeds)
-  }else if(isOrderRelated){
-    navigate.push(paths.dashboard.orders.root)
-  }
-
-  else{
-
+    else {
       // if(d?.many_appt?.length || (d?.group_child?.length && !d?.chat_id) || d?.siblings !== 0){
       //   navigate.push(paths.dashboard.root);
 
@@ -238,7 +219,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
       // }
     }
     handleReadFunc({
-      notifIds:d?.notifIds
+      notifIds: d?.notifIds
     })
 
     // handleReadFunc({
@@ -248,27 +229,27 @@ export default function NotificationsPopover({queryResults, notificationData, is
     //   chat_id:d?.chat_id,
     //   notifIds:d?.child && [...d?.child]
     // })
- },[])
+  }, [])
 
- const handleReadView = (d) => {
-  handleReadFunc({
-    notifIds:d?.notifIds
-  })
-}
+  const handleReadView = (d) => {
+    handleReadFunc({
+      notifIds: d?.notifIds
+    })
+  }
 
 
 
   const renderList = (
     <Scrollbar>
       <List disablePadding>
-       
-      {currentTab === 'all' &&
+
+        {currentTab === 'all' &&
           notificationData.map((notification: any) => (
             <NotificationItemFinal
               onViewRow={() => {
                 handleViewRow(notification)
               }}
-              onReadView={()=>{
+              onReadView={() => {
                 handleReadView(notification)
               }}
               key={notification.id}
@@ -276,7 +257,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
             />
           ))
         }
-       
+
       </List>
     </Scrollbar>
   );
@@ -309,7 +290,7 @@ export default function NotificationsPopover({queryResults, notificationData, is
           backdrop: { invisible: true },
         }}
         PaperProps={{
-          sx: { width: 1, maxWidth: 420, px:2},
+          sx: { width: 1, maxWidth: 420, px: 2 },
         }}
         className="drawer"
       >
@@ -332,10 +313,10 @@ export default function NotificationsPopover({queryResults, notificationData, is
         <Divider />
 
         {viewId && <AppointmentDetailsView
-          updateRow={()=>{
+          updateRow={() => {
             console.log("updatedrow")
           }}
-          refetch={()=>{
+          refetch={() => {
             console.log("refetech")
           }}
           refetchToday={() => {
@@ -345,10 +326,10 @@ export default function NotificationsPopover({queryResults, notificationData, is
           onClose={openView.onFalse}
           id={viewId}
           notif={true}
-      />}
-          <Table>
-            {queryResults.loading && !notificationData?.length &&  [...Array(5)].map((_, i) => <NotificationSkeleton key={i} />)}
-          </Table>
+        />}
+        <Table>
+          {queryResults.loading && !notificationData?.length && [...Array(5)].map((_, i) => <NotificationSkeleton key={i} />)}
+        </Table>
 
         {renderList}
 

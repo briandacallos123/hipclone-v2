@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
 import { TableNoData } from '@/components/table';
 import { useAuthContext } from '@/auth/hooks';
-import { fDate, formatMilitaryTime } from '@/utils/format-time';
+import { convertTimeFormat, fDate, fDateTime, formatMilitaryTime, fTime, getUTCTime } from '@/utils/format-time';
 import { RouterLink } from '@/routes/components';
 
 
@@ -21,10 +21,12 @@ type QueueProps = {
     targetItem?: any
     notApprovedVal?: any;
     notAppNotToday?: any;
-    apptPaid?:any;
+    apptPaid?: any;
+    notStarted?: any;
+    ongoing: any;
 }
 
-const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, targetItem, dataToday, loading, position, remainingP, newPosition }: QueueProps) => {
+const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotToday, isDoneAppt, targetItem, dataToday, loading, position, remainingP, newPosition }: QueueProps) => {
 
 
     const { id } = useParams();
@@ -33,8 +35,8 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
     const { user } = useAuthContext()
 
 
-    const handleNavigate= () => {
-        if(user) navigate.push(`${paths.dashboard.root}/appointment`);
+    const handleNavigate = () => {
+        if (user) navigate.push(`${paths.dashboard.root}/appointment`);
     }
 
 
@@ -163,7 +165,7 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
 
                 </Box>
                 <Box>
-                    <Button  onClick={handleNavigate} size="large" variant="contained">
+                    <Button onClick={handleNavigate} size="large" variant="contained">
                         Go to Home
                     </Button>
                 </Box>
@@ -171,6 +173,47 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
             </Box>
         )
     }, [notApprovedVal])
+
+    // console.log(ongoing, '________________________________________ongoing________________')
+    // console.log(notStarted, '________________________________________notStarted________________')
+
+    const RenderNotYetStarted = useCallback(() => {
+        return (
+            <Box sx={{
+                height: 500,
+                width: '100%',
+                borderRadius: '10px',
+                boxShadow: '5px 5px 30px #d3cec8',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                // bgcolor:'red'
+            }}>
+
+                <Box sx={{
+
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: "center",
+                    justifyContent: "center",
+                    mb: 5
+                }}>
+                    <Typography variant="body1">Your Schedule is not yet started, please wait
+                        until</Typography>
+                    <Typography variant="h6">{`${getUTCTime(notStarted?.startingTime)}`}</Typography>
+
+
+                </Box>
+                <Box>
+                    <Button onClick={handleNavigate} size="large" variant="contained">
+                        Go to Home
+                    </Button>
+                </Box>
+
+            </Box>
+        )
+    }, [notStarted?.notStarted])
 
     const RenderNotToday = useCallback(() => {
         return (
@@ -201,7 +244,7 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
 
                 </Box>
                 <Box>
-                    <Button  onClick={handleNavigate} size="large" variant="contained">
+                    <Button onClick={handleNavigate} size="large" variant="contained">
                         Go to Home
                     </Button>
                 </Box>
@@ -233,12 +276,12 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
                     mb: 5
                 }}>
                     <Typography variant="body1">You're currently unpaid, please pay first your appointment</Typography>
-                   
+
 
 
                 </Box>
                 <Box>
-                    <Button  onClick={handleNavigate} size="large" variant="contained">
+                    <Button onClick={handleNavigate} size="large" variant="contained">
                         Go to Home
                     </Button>
                 </Box>
@@ -290,13 +333,13 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
     if (notApprovedVal) {
         return <RenderNotApproved />
     }
-    
-    if(!apptPaid){
-        return <RenderNotPaid/>
-    }
 
-    
-   
+    if (!apptPaid) {
+        return <RenderNotPaid />
+    }
+    if (notStarted?.notStarted) {
+        return <RenderNotYetStarted />
+    }
 
     if (notAppNotToday) {
         return <RenderNotTodayNotAppr />
@@ -313,7 +356,6 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
         return <RenderNotToday />
     }
 
-   
 
 
     return (
@@ -391,11 +433,11 @@ const Queue = ({apptPaid,  data, notApprovedVal, notAppNotToday, isDoneAppt, tar
                         <Box sx={{ mt: 'auto' }}>
                             <Button
                                 onClick={() => {
-                                   
-                                    if(user){
+
+                                    if (user) {
                                         navigate.push(`${paths.dashboard.root}/appointment`);
-                                    }else{
-                                        navigate.push(paths.home); 
+                                    } else {
+                                        navigate.push(paths.home);
                                     }
                                 }}
                                 fullWidth={true} sx={{
@@ -472,7 +514,7 @@ const Position = ({ pos, v, loading }: {
                 justifyContent: "center"
             }}>
                 <Typography variant="h2" color="primary.dark">
-                    #{pos + 1}
+                    #1
                 </Typography>
                 <Typography variant="body2">
                     On The List
@@ -490,18 +532,21 @@ const Position = ({ pos, v, loading }: {
                 }} width="100%">
                     <Divider />
                 </Box>
-
-                {pos === 1 && <Typography sx={{
+                <Typography sx={{
+                    color: "primary.dark"
+                }} variant="h4">Your turn!</Typography>
+                {/* {pos === 1 && <Typography sx={{
                     color: "primary.dark"
                 }} variant="h4">You're Next!</Typography>}
 
                 {pos === 0 && <Typography sx={{
                     color: "primary.dark"
-                }} variant="h4">Your turn!</Typography>}
+                }} variant="h4">Your turn!</Typography>} */}
 
                 <Box sx={{ p: 2 }}>
-                    {pos !== 0 && <Typography sx={{ textAlign: 'center' }} variant="body2">You're almost there, thank you for waiting.</Typography>}
-                    {pos === 0 && <Typography sx={{ textAlign: 'center' }} variant="body2">It's your turn, please come and see your doctor now.</Typography>}
+                <Typography sx={{ textAlign: 'center' }} variant="body2">It's your turn, please come and see your doctor now.</Typography>
+                    {/* {pos !== 0 && <Typography sx={{ textAlign: 'center' }} variant="body2">You're almost there, thank you for waiting.</Typography>}
+                    {pos === 0 && <Typography sx={{ textAlign: 'center' }} variant="body2">It's your turn, please come and see your doctor now.</Typography>} */}
                 </Box>
             </Stack>
         </Box>
