@@ -188,7 +188,7 @@ export default function NotificationsPopover({ queryResults, notificationData, i
       d?.notification_type === 'approved order' || d?.notification_type === 'Your order was delivered!' ||
       d?.notification_type === 'Sorry your order was delivery unsuccessfully!' || d?.notification_type === 'Your order is on its way!' || d?.notification_type === 'Your order is waiting for pick up!'
 
-    let isApptRelated = d?.notification_type === 'done appointment' || d?.notification_type === 'to approve appointment' || d?.notification_type === 'approved appointment' || d?.notification_type === 'cancelled appointment'
+    let isApptRelated = d?.notification_type === 'done appointment' || d?.notification_type === 'to approve appointment' || d?.notification_type === 'approved appointment' || d?.notification_type === 'cancelled appointment' ||  d?.notification_type === 'Marked as your appointment as paid!'
     
     
 

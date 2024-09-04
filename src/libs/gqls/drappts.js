@@ -378,6 +378,7 @@ export const GET_QUEUES = gql`
           }
         }
         time_slot
+        room_id
         payment_status
         status
         pendingPayment

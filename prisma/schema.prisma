@@ -114,6 +114,7 @@ model appointments {
   email_stat              Int                       @default(0)
   other_payment           String?                   @db.VarChar(255)
   isDeleted               Int?                      @default(0)
+  room_id                 String?                   @default(dbgenerated("(uuid())")) @db.Char(36)
   patientInfo             patient?                  @relation(fields: [patientID], references: [S_ID], onDelete: Cascade, map: "appointments_ibfk_1")
   doctorInfo              employees?                @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "appointments_ibfk_2")
   clinicInfo              clinic?                   @relation("appointments_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "appointments_ibfk_3")
@@ -373,6 +374,7 @@ model employees {
   userType                  Int                         @default(2)
   EMP_EMAIL                 String?                     @db.VarChar(255)
   LIC_NUMBER                String?                     @db.VarChar(255)
+  emp_card                  Int?
   VALIDITY                  String?                     @db.VarChar(100)
   PTR_LIC                   String?                     @db.VarChar(255)
   S2_LIC                    String?                     @db.VarChar(255)
@@ -407,6 +409,7 @@ model employees {
   EMP_ADDRESS               String?                     @db.VarChar(255)
   CONTACT_NO                String?                     @db.VarChar(255)
   EMP_SEX                   String?                     @default("1") @db.VarChar(255)
+  EMP_B_ATTACHMENT          Int?
   EMP_STATUS                String?                     @default("Single") @db.VarChar(255)
   SPECIALIZATION            Int?                        @default(52)
   SUBSPECIALTY              String?                     @db.VarChar(299)
@@ -428,6 +431,7 @@ model employees {
   doctor_payment_dp         doctor_payment_dp[]
   user                      user?                       @relation(fields: [EMP_EMAIL, userType], references: [email, userType], onDelete: Cascade)
   SpecializationInfo        specialization?             @relation(fields: [SPECIALIZATION], references: [id], onDelete: Cascade, map: "employees_ibfk_1")
+  employee_card             employee_card?              @relation(fields: [emp_card], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "employees_ibfk_2")
   emr_patient               emr_patient[]
   esig_dp                   esig_dp[]
   family_history            family_history[]
@@ -458,6 +462,8 @@ model employees {
   @@index([EMPID], map: "idx_employees_EMPID")
   @@index([SPECIALIZATION], map: "idx_employees_SPECIALIZATION")
   @@index([EMP_EMAIL], map: "idx_employees_email")
+  @@index([EMP_B_ATTACHMENT], map: "EMP_B_ATTACHMENT")
+  @@index([emp_card], map: "emp_card")
 }
 
 model emr_patient {
@@ -2043,6 +2049,30 @@ model order_delivery_history {
 
   @@index([status_id], map: "status_id")
   @@index([order_id], map: "order_id")
+}
+
+model employees_business_attachment {
+  id         Int      @id @default(autoincrement())
+  filename   String   @db.VarChar(255)
+  file_path  String   @db.VarChar(255)
+  file_type  String?  @db.VarChar(100)
+  is_deleted Int      @default(0)
+  created_at DateTime @default(now()) @db.DateTime(0)
+
+  @@index([id], map: "id")
+}
+
+model employee_card {
+  id          Int         @id @default(autoincrement())
+  name        String
+  occupation  String      @db.VarChar(255)
+  contact     String      @db.VarChar(15)
+  email       String      @db.VarChar(100)
+  address     String      @db.VarChar(255)
+  socials     String      @db.LongText
+  template_id Int
+  created_at  DateTime    @default(now()) @db.DateTime(0)
+  employees   employees[]
 }
 
 enum UserStatuses {

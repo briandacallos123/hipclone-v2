@@ -10,6 +10,7 @@ import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import bcrypt from 'bcryptjs';
 import { GraphQLError } from 'graphql';
 import { serialize, unserialize } from 'php-serialize';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads';
 
 const client = new PrismaClient();
 
@@ -251,12 +252,18 @@ export const CreatePayment = extendType({
               },
             });
             const sFile = await args?.file;
-            console.log(sFile,'SFILEEEEEEEEEEEEEEE')
          
             // console.log(await args?.file, 'sFilesFilesFilesFilesFilesFilesFile@@@');
 
             if (sFile) {
-              const res: any = useUpload(sFile, 'public/documents/');
+              // const res: any = useUpload(sFile, 'public/documents/');
+
+              const res: any = await useGoogleStorage(
+                sFile,
+                session?.user?.id,
+                'feeds'
+              );
+
               res?.map(async (v: any) => {
                 await client.doctor_payment_dp.create({
                   data: {

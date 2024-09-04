@@ -10,6 +10,7 @@ export default function StyledLightbox() {
   const inputGlobalStyles = (
     <GlobalStyles
       styles={{
+       
         '.yarl__root': {
           '--yarl__thumbnails_thumbnail_padding': 0,
           '--yarl__thumbnails_thumbnail_border': 'transparent',
@@ -27,6 +28,7 @@ export default function StyledLightbox() {
           fontWeight: theme.typography.body2.fontWeight,
           lineHeight: theme.typography.body2.lineHeight,
         },
+       
         // Button
         '.yarl__button': {
           filter: 'unset',
@@ -45,6 +47,15 @@ export default function StyledLightbox() {
         '.yarl__video_container': {
           backgroundColor: theme.palette.common.black,
         },
+          // Image Preview
+          '.yarl__slide': {
+            maxWidth: '90vw',  // Adjust the maximum width of the image container
+            maxHeight: '80vh', // Adjust the maximum height of the image container
+          },
+          '.yarl__slide_img': {
+            width: '100%',     // Make the image take up full width of the container
+            height: 'auto',    // Maintain the aspect ratio of the image
+          },
       }}
     />
   );

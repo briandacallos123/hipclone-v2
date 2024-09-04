@@ -1,7 +1,6 @@
 'use server';
-
-import { Storage } from '@google-cloud/storage';
 import { v4 as uuidv4 } from 'uuid';
+import { Storage } from '@google-cloud/storage';
 import crypto from 'crypto';
 import { GraphQLError } from 'graphql/error/GraphQLError';
 import { join } from 'path';
@@ -27,11 +26,13 @@ const storage = new Storage({
   keyFilename: join(process.cwd(), 'json/adroit-solstice-257307-0068b54143dd.json'),
 });
 
-const bucket = storage.bucket('mediko_connect_files');
+
+const bucket = storage.bucket('storage.apgitsolutions.com');
 
 const fileDefaults = async (fileName: string) => {
   try {
     const [exists] = await bucket.file(fileName).exists();
+    await bucket.makePublic();
     return exists;
   } catch {
     return false;
@@ -59,12 +60,18 @@ const useGoogleStorage = async (sFile: any, userId: any, folderUploadName: any) 
       const uniqueName = file?.name?.includes('defaults')
         ? file?.name
         : `${uuidv4()}_${file?.name}`;
-      const fileName = `${folderUploadName}/${userFolder}/${uniqueName}`;
+      const fileName = `mediko_connect_files/${folderUploadName}/${userFolder}/${uniqueName}`;
       const isDefaults = await fileDefaults(fileName);
+      
+      const blob = bucket.file(fileName);
+      const blobStream = blob.createWriteStream();
+
+    //  blob.name = `mediko_connect_files/${blob.name}`;
+     
 
       if (isDefaults) {
         return new Promise((resolve) => {
-          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${fileName}`;
+          const publicUrl = `https://${bucket.name}/${blob.name}`
           resolve({
             hash: fileHash,
             fileName: fileName,
@@ -76,8 +83,7 @@ const useGoogleStorage = async (sFile: any, userId: any, folderUploadName: any) 
         });
       }
 
-      const blob = bucket.file(fileName);
-      const blobStream = blob.createWriteStream();
+    
 
       return new Promise((resolve, reject) => {
         blobStream.on('error', (err: any) => {
@@ -85,7 +91,9 @@ const useGoogleStorage = async (sFile: any, userId: any, folderUploadName: any) 
         });
 
         blobStream.on('finish', async () => {
-          const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+          await blob.makePublic();
+          const publicUrl = `https://${bucket.name}/${blob.name}`
+       
           resolve({
             hash: fileHash,
             fileName: fileName,

@@ -590,7 +590,7 @@ export const QueryAllMedicineOrders = extendType({
                     orderBy: order,
                   };
 
-                  console.log(orderConditions,'AWITTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTTT')
+                
 
                 try {
 
@@ -609,7 +609,7 @@ export const QueryAllMedicineOrders = extendType({
                                 ...delivery_option
                             },
                             include: {
-                                patient: true,
+                                patient:true
                             },
                             
                             ...orderConditions
@@ -721,6 +721,9 @@ export const QueryAllMedicineOrders = extendType({
 
                     new_result = await Promise.all(new_result)
 
+                    console.log(result,'______________________________')
+                    console.log(new_result,'new_resultnew_resultnew_resultnew_resultnew_resultnew_resultnew_resultnew_resultnew_result')
+
                     return {
                         orderType: new_result,
                         totalRecords,
@@ -735,6 +738,7 @@ export const QueryAllMedicineOrders = extendType({
                     }
                 } catch (error) {
                     console.log(error)
+                    throw new GraphQLError(error)
                 }
 
             }

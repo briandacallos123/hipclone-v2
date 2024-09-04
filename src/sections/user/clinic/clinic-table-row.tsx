@@ -295,7 +295,7 @@ export default function ClinicTableRow({
           {row?.clinicDPInfo?.length && row?.clinicDPInfo[0] ? (
             <Avatar
               alt={row?.patientInfo?.FNAME}
-              src={row?.clinicDPInfo[0].filename.split('public')[1]}
+              src={row?.clinicDPInfo[0]?.filename}
               sx={{ mr: 2 }}
             >
               {row?.clinic_name.charAt(0).toUpperCase()}

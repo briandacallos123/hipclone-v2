@@ -4,6 +4,7 @@ import { GraphQLError } from "graphql/error/GraphQLError";
 import { useUpload } from '../../hooks/use-upload';
 import { unserialize, serialize } from 'php-serialize';
 import beamsClient from './beams'
+import useGoogleStorage from "@/hooks/use-google-storage-uploads";
 
 export const UserContacts = objectType({
     name: 'UserContacts',
@@ -670,7 +671,12 @@ export const CreateConversation = extendType({
                     const { session } = ctx;
                     const user: any = session?.user;
                     const sFile = await createData.attachments;
-                    const upload = useUpload(sFile, 'public/uploads/conversation/attachments/');
+                    const upload: any = await useGoogleStorage(
+                        sFile,
+                        session?.user?.id,
+                        'createReply'
+                      );
+                    // const upload = useUpload(sFile, 'public/uploads/conversation/attachments/');
 
                     let allParticipants = await client.participant.findMany({
                         where: {
@@ -693,8 +699,10 @@ export const CreateConversation = extendType({
                                 name: v?.fileName,
                                 size: v?.fileSize,
                                 type: v?.fileType,
-                                path: 'public/uploads/conversation/attachments/',
-                                preview: `/uploads/conversation/attachments/${v?.fileName}`
+                                path: String(v.path),
+                                preview: String(v.path)
+                                // path: 'public/uploads/conversation/attachments/',
+                                // preview: `/uploads/conversation/attachments/${v?.fileName}`
                             });
                         });
                     }
@@ -705,7 +713,10 @@ export const CreateConversation = extendType({
                         }
                     });
 
+
                     const tmp = createData?.participants.filter((v: any) => Number(v?.userId) !== Number(user?.id));
+                    
+                    console.log(conversationExists,'EXISTSSSSSSSSSSSS@@@@@@@@@@@@@');
 
                     const uniqueUserIds = new Set();
                     const participants = tmp.filter((participant: any) => {

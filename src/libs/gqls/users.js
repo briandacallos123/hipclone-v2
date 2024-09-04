@@ -60,6 +60,16 @@ mutation mutationUpdatePassword($data: UserUpdatePasswordProfileUpsertType!) {
 `;
 
 
+export const mutateBusinessCard = gql`
+mutation mutateBusinessCard($file: Upload) {
+  mutateBusinessCard(file: $file) {
+   message
+  }
+}
+`;
+
+
+
 export const QueryUserProfile = gql`
 query QueryUserProfile($data: UserProfileInpType!) {
   QueryUserProfile(data: $data) {
@@ -75,6 +85,8 @@ query QueryUserProfile($data: UserProfileInpType!) {
     dateOfBirth
     displayName
     nationality
+    occupation
+    email
     occupation
     sex
     suffix
@@ -111,6 +123,38 @@ query QueryUserProfile($data: UserProfileInpType!) {
       type
       uploaded
     }
+    clinicInfo {
+      id
+      clinic_name
+      location
+      schedule
+      number
+      isDeleted
+      ClinicSchedInfo {
+        id
+        days
+        type
+        start_time
+        end_time
+        time_interval
+      }
+      clinicDPInfo{
+        doctorID
+        clinic
+        filename
+        date
+      }
+    }
+  }
+}
+`;
+
+
+
+export const UPDATE_BUSINESSCARD = gql`
+mutation generateCard($data: generateCardInp!) {
+  generateCard(data: $data) {
+    message
   }
 }
 `;

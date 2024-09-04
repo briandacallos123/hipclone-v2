@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import QueueItem from './QueueItem'
 import { Box, Button, Divider, Grid, ListItemText, Skeleton, Stack, Typography } from '@mui/material';
 import { useParams } from 'src/routes/hook';
@@ -8,6 +8,7 @@ import { TableNoData } from '@/components/table';
 import { useAuthContext } from '@/auth/hooks';
 import { convertTimeFormat, fDate, fDateTime, formatMilitaryTime, fTime, getUTCTime } from '@/utils/format-time';
 import { RouterLink } from '@/routes/components';
+import axios from 'axios';
 
 
 type QueueProps = {
@@ -39,6 +40,7 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
         if (user) navigate.push(`${paths.dashboard.root}/appointment`);
     }
 
+    console.log(activePatient,'ACTIVE PATIENTTTTTTTTTTTTTTTTTTTTTTTTTTTT___________')
 
     const RenderDoneAppt = useCallback(() => {
         return (
@@ -355,7 +357,33 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
 
         return <RenderNotToday />
     }
+    const [link, setLink]:any = useState(null);
 
+
+    useEffect(() => {
+        (async () => {
+            const payload:any = {
+                agentName: '',
+                visitorName: `Juanita Delacruz`,
+                datetime: "2024-08-28T11:04:00.000Z",
+                roomId: activePatient?.room_id,
+              };
+              
+            const response = await axios({
+                method: 'options',
+                url: 'https://connect3.hips-md.com/api/index.php',
+                data: {
+                    ...payload
+                },
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+            })
+
+            const { agenturl, visitorurl } = response?.data
+            setLink(visitorurl)
+        })()
+    }, [activePatient])
 
 
     return (
@@ -376,7 +404,7 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
                 display: 'flex',
                 justifyContent: 'center'
             }} item xs={12} sm={12} md={6} >
-                <Position loading={loading} v={id} pos={position} />
+                <Position loading={loading} link={link} v={id} pos={position} />
             </Grid>
 
             {/* items */}
@@ -452,10 +480,11 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
     )
 }
 
-const Position = ({ pos, v, loading }: {
+const Position = ({ pos, v, loading, link}: {
     pos: any;
     v: string;
     loading: any;
+    link:string;
 }) => {
 
     const RenderLoading = () => {
@@ -483,6 +512,9 @@ const Position = ({ pos, v, loading }: {
     if (loading) {
         return <RenderLoading />
     }
+
+
+   
 
 
     return (
@@ -535,16 +567,15 @@ const Position = ({ pos, v, loading }: {
                 <Typography sx={{
                     color: "primary.dark"
                 }} variant="h4">Your turn!</Typography>
-                {/* {pos === 1 && <Typography sx={{
-                    color: "primary.dark"
-                }} variant="h4">You're Next!</Typography>}
 
-                {pos === 0 && <Typography sx={{
-                    color: "primary.dark"
-                }} variant="h4">Your turn!</Typography>} */}
 
-                <Box sx={{ p: 2 }}>
-                <Typography sx={{ textAlign: 'center' }} variant="body2">It's your turn, please come and see your doctor now.</Typography>
+                <Box  sx={{ p: 2 }}>
+                    <Typography sx={{ textAlign: 'center', mb:1 }} variant="body2">It's your turn, please come and see your doctor now.</Typography>
+                    <Button fullWidth variant="outlined" onClick={()=>{
+                        window.open(link,'_blank');
+                    }}>
+                        Join via link
+                    </Button>
                     {/* {pos !== 0 && <Typography sx={{ textAlign: 'center' }} variant="body2">You're almost there, thank you for waiting.</Typography>}
                     {pos === 0 && <Typography sx={{ textAlign: 'center' }} variant="body2">It's your turn, please come and see your doctor now.</Typography>} */}
                 </Box>

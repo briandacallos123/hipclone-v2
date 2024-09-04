@@ -29,8 +29,11 @@ module.exports = {
         port: '',
         pathname: '/api/**',
       },
+     
     ],
-  },
+  domains: ['storage.apgitsolutions.com'],
+
+  }, 
   modularizeImports: {
     '@mui/material': {
       transform: '@mui/material/{{member}}',

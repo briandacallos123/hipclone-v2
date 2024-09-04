@@ -8,6 +8,7 @@ import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
 import { Clinics } from './ClinicSched';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads';
 
 //
 export const labreport = objectType({
@@ -979,7 +980,15 @@ export const mutation_lab_report = extendType({
                 const sFile = await args?.file;
                 // console.log(sFile);
                 if (sFile) {
-                  const uploadResult = await useUpload(sFile, 'public/documents/');
+
+                  
+                  const uploadResult: any = await useGoogleStorage(
+                    sFile,
+                    session?.user?.id,
+                    'feeds'
+                  );
+
+                  // const uploadResult = await useUpload(sFile, 'public/documents/');
                   uploadResult.map(async (v: any) => {
                     await client.labreport_attachments.create({
                       data: {
@@ -990,7 +999,7 @@ export const mutation_lab_report = extendType({
                         doctor,
                         clinic,
                         labreport_id: labReportID,
-                        file_name: String(v.fileName),
+                        file_name: String(v.path),
                         file_url: String(v.path),
                         file_size: String(v.fileSize),
                         file_type: String(v.fileType),
@@ -1054,7 +1063,13 @@ export const mutation_lab_report = extendType({
                 const sFile = await args?.file;
 
                 if (sFile) {
-                  const uploadResult = await useUpload(sFile, 'public/documents/');
+                  const uploadResult: any = await useGoogleStorage(
+                    sFile,
+                    session?.user?.id,
+                    'feeds'
+                  );
+
+                  // const uploadResult = await useUpload(sFile, 'public/documents/');
                   uploadResult.map(async (v: any) => {
                     await client.labreport_attachments.create({
                       data: {
@@ -1065,7 +1080,7 @@ export const mutation_lab_report = extendType({
                         doctor,
                         clinic,
                         labreport_id: labReportID,
-                        file_name: String(v.fileName),
+                        file_name: String(v.path),
                         file_url: String(v.path),
                         file_size: String(v.fileSize),
                         file_type: String(v.fileType),
@@ -1113,7 +1128,12 @@ export const mutation_lab_report = extendType({
               const sFile = await args?.file;
               // console.log(sFile);
               if (sFile) {
-                const uploadResult = await useUpload(sFile, 'public/documents/');
+                const uploadResult: any = await useGoogleStorage(
+                  sFile,
+                  session?.user?.id,
+                  'feeds'
+                );
+                // const uploadResult = await useUpload(sFile, 'public/documents/');
                 uploadResult.map(async (v: any) => {
                   await client.labreport_attachments.create({
                     data: {
@@ -1124,7 +1144,7 @@ export const mutation_lab_report = extendType({
                       doctor,
                       clinic,
                       labreport_id: labReportID,
-                      file_name: String(v.fileName),
+                      file_name: String(v.path),
                       file_url: String(v.path),
                       file_size: String(v.fileSize),
                       file_type: String(v.fileType),
@@ -1159,7 +1179,12 @@ export const mutation_lab_report = extendType({
               const sFile = await args?.file;
               // console.log(sFile);
               if (sFile) {
-                const uploadResult = await useUpload(sFile, 'public/documents/');
+                const uploadResult: any = await useGoogleStorage(
+                  sFile,
+                  session?.user?.id,
+                  'lab report'
+                );
+                // const uploadResult = await useUpload(sFile, 'public/documents/');
                 uploadResult.map(async (v: any) => {
                   await client.labreport_attachments.create({
                     data: {
@@ -1170,7 +1195,7 @@ export const mutation_lab_report = extendType({
                       doctor,
                       clinic,
                       labreport_id: labReportID,
-                      file_name: String(v.fileName),
+                      file_name: String(v.path),
                       file_url: String(v.path),
                       file_size: String(v.fileSize),
                       file_type: String(v.fileType),

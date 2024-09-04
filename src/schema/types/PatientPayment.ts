@@ -7,6 +7,7 @@ import { extendType, inputObjectType, objectType } from 'nexus';
 import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads';
 
 /// ////////////////////////////////////////////////////
 export const appt_payment_attachment_obj = objectType({
@@ -121,24 +122,46 @@ export const mutation_patient_payment = extendType({
                 const currentDate = new Date();
                 const formattedDate = currentDate.toISOString();
 
-                const uploadResult = await useUpload(sFile, 'public/documents/');
-                uploadResult.map(async (v: any) => {
-                  await client.appt_payment_attachment.create({
-                    data: {
-                      patientID,
-                      doctorID,
-                      clinic,
-                      appt_id,
-                      patient,
-                      doctor,
-                      filename: String(v.fileName),
-                      file_url: String(v.path),
-                      file_size: String(v.fileSize),
-                      file_type: String(v.fileType),
-                      date: formattedDate,
-                    },
-                  });
+                const res: any = await useGoogleStorage(
+                  sFile,
+                  session?.user?.id,
+                  'patientPaymentToAppt'
+                );
+
+                await client.appt_payment_attachment.create({
+                  data: {
+                    patientID,
+                    doctorID,
+                    clinic,
+                    appt_id,
+                    patient,
+                    doctor,
+                    filename: String(res.path),
+                    file_url: String(res.path),
+                    file_size: String(res.filesize),
+                    file_type: String(res.filetype),
+                    date: formattedDate,
+                  },
                 });
+
+                // const uploadResult = await useUpload(sFile, 'public/documents/');
+                // uploadResult.map(async (v: any) => {
+                //   await client.appt_payment_attachment.create({
+                //     data: {
+                //       patientID,
+                //       doctorID,
+                //       clinic,
+                //       appt_id,
+                //       patient,
+                //       doctor,
+                //       filename: String(v.fileName),
+                //       file_url: String(v.path),
+                //       file_size: String(v.fileSize),
+                //       file_type: String(v.fileType),
+                //       date: formattedDate,
+                //     },
+                //   });
+                // });
               }
 
               // console.log(session?.user,'HAAAAAAAAAAAA????????????????????')

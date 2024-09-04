@@ -3,6 +3,8 @@ import { extendType, objectType, inputObjectType } from "nexus";
 import client from "../../../prisma/prismaClient";
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import bcrypt from 'bcryptjs';
+import { clinicInfo4FYD } from "./Hmo";
+import useGoogleStorage from "@/hooks/use-google-storage-uploads";
 
 export const User = objectType({
   name: "User",
@@ -61,9 +63,9 @@ export const QueryUser = extendType({
 });
 
 const UserProfileInpType = inputObjectType({
-  name:"UserProfileInpType",
+  name: "UserProfileInpType",
   definition(t) {
-      t.nonNull.int('id')
+    t.nonNull.int('id')
   },
 })
 
@@ -76,7 +78,6 @@ export const UserProfileView = objectType({
     t.string("displayName");
     t.string("lastName");
     t.string("firstName");
-
     t.string("middleName");
     t.string("suffix");
     t.string("nationality");
@@ -95,27 +96,31 @@ export const UserProfileView = objectType({
     t.string("title");
     t.string("coverURL");
     t.string("photoURL");
-    t.nullable.field('esig',{
-      type:esig
+    t.string("email");
+    t.nullable.field('esig', {
+      type: esig
     });
-    t.nullable.field('esigDigital',{
-      type:esig
+    t.nullable.field('esigDigital', {
+      type: esig
     });
-    t.nullable.field('esigFile',{
-      type:esig
+    t.nullable.field('esigFile', {
+      type: esig
+    });
+    t.nullable.list.field('clinicInfo', {
+      type: clinicInfo4FYD,
     });
   },
 });
 
-const esig =  objectType({
-  name:"esig",
+const esig = objectType({
+  name: "esig",
   definition(t) {
     t.int('doctorID'),
-    t.string('filename'),
-    t.int('id'),
-    t.int('idno'),
-    t.int('type'),
-    t.dateTime('uploaded')
+      t.string('filename'),
+      t.int('id'),
+      t.int('idno'),
+      t.int('type'),
+      t.dateTime('uploaded')
   },
 })
 
@@ -128,28 +133,44 @@ export const QueryUserProfile = extendType({
       async resolve(_root, args, ctx) {
 
         try {
-          const user:any = await client.user.findFirst({
-            where:{
-              id:Number(args?.data?.id)
+          const user: any = await client.user.findFirst({
+            where: {
+              id: Number(args?.data?.id)
             }
           })
-          let invalidId:any;
+          let invalidId: any;
 
-          if(user?.userType !== 2){
+          if (user?.userType !== 2) {
             invalidId = true
           }
-          
-  
-          if(!invalidId){
+
+
+          if (!invalidId) {
             const userInfo = await client.employees.findFirst({
-              where:{
-                EMP_EMAIL:user?.email
+              where: {
+                EMP_EMAIL: user?.email
               },
               include: {
+                clinicInfo: {
+                  where: {
+                    isDeleted: 0,
+                  },
+                  include: {
+                    ClinicSchedInfo: true,
+                    clinicDPInfo:{
+                        orderBy: {
+                          id: 'desc',
+                        },
+                    },
+                  },
+                },
+                user: true,
                 SpecializationInfo: true,
               }
             })
-  
+
+            console.log(userInfo,'WEWWWWWWWWWWWWWWWWWWW______________________')
+
             const esigFile = await client.esig_dp.findMany({
               where: {
                 doctorID: userInfo?.EMP_ID,
@@ -161,7 +182,7 @@ export const QueryUserProfile = extendType({
                 },
               ],
             });
-  
+
             const esigDigital = await client.esig_dp.findMany({
               where: {
                 doctorID: userInfo?.EMP_ID,
@@ -173,8 +194,8 @@ export const QueryUserProfile = extendType({
                 },
               ],
             });
-  
-            
+
+
             const esigMain = await client.esig_dp.findMany({
               where: {
                 doctorID: userInfo?.EMP_ID,
@@ -186,9 +207,8 @@ export const QueryUserProfile = extendType({
                 },
               ],
             });
-  
-  
-            console.log(esigMain,'walaaaaaaaaa!!!!!!!!!!!!!');
+
+
             const d: any = await client.display_picture.findFirst({
               where: {
                 userID: Number(user?.id),
@@ -197,43 +217,44 @@ export const QueryUserProfile = extendType({
                 uploaded: 'desc',
               },
             });
-  
-            console.log(userInfo,'__________________')
-            
+
+
             const photoURL = d
-            ? d?.filename.split('public')[1] // /public/www/ww ->
-            : `https://ui-avatars.com/api/?name=${user.displayName}&size=100&rounded=true&color=fff&background=E12328`;
-          
+              ? d?.filename.split('public')[1] // /public/www/ww ->
+              : `https://ui-avatars.com/api/?name=${user.displayName}&size=100&rounded=true&color=fff&background=E12328`;
+
             return {
               occupation: userInfo?.SpecializationInfo?.name,
-              displayName:`${userInfo?.EMP_FNAME} ${userInfo?.EMP_LNAME}`,
+              displayName: `${userInfo?.EMP_FNAME} ${userInfo?.EMP_LNAME}`,
               lastName: userInfo?.EMP_LNAME,
               firstName: userInfo?.EMP_FNAME,
               middleName: userInfo?.EMP_MNAME,
-              suffix : userInfo?.EMP_SUFFIX,
-              nationality : userInfo?.EMP_NATIONALITY,
-              contact : userInfo?.CONTACT_NO,
-              address : userInfo?.EMP_ADDRESS,
+              suffix: userInfo?.EMP_SUFFIX,
+              nationality: userInfo?.EMP_NATIONALITY,
+              contact: userInfo?.CONTACT_NO,
+              address: userInfo?.EMP_ADDRESS,
               dateOfBirth: userInfo?.EMP_DOB,
-              sex : userInfo?.EMP_SEX,
-              esigFile : esigFile[0],
-              esigDigital : esigDigital[0],
-              esig : esigMain[0],
-              PRC : userInfo?.LIC_NUMBER,
-              PTR : userInfo?.PTR_LIC,
-              practicing_since : userInfo?.PRACTICING_SINCE,
-              s2_number : userInfo?.S2_LIC,
-              validity : userInfo?.VALIDITY,
-              doctorId : userInfo?.EMPID,
-              username : user?.uname,
-              uname : user?.uname,
-              title : userInfo?.EMP_TITLE,
-              photoURL : photoURL,
-              coverURL:  'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg'
+              sex: userInfo?.EMP_SEX,
+              esigFile: esigFile[0],
+              esigDigital: esigDigital[0],
+              esig: esigMain[0],
+              PRC: userInfo?.LIC_NUMBER,
+              PTR: userInfo?.PTR_LIC,
+              practicing_since: userInfo?.PRACTICING_SINCE,
+              s2_number: userInfo?.S2_LIC,
+              validity: userInfo?.VALIDITY,
+              doctorId: userInfo?.EMPID,
+              username: user?.uname,
+              uname: user?.uname,
+              title: userInfo?.EMP_TITLE,
+              email: userInfo?.EMP_EMAIL,
+              photoURL: photoURL,
+              clinicInfo:userInfo?.clinicInfo,
+              coverURL: 'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg'
             }
-          }else{
+          } else {
             return {
-              invalid:true
+              invalid: true
             }
           }
         } catch (error) {
@@ -242,7 +263,7 @@ export const QueryUserProfile = extendType({
           throw new GraphQLError(error);
         }
 
-      } 
+      }
     })
   }
 })
@@ -320,8 +341,8 @@ export const mutationRegisterUser = extendType({
           username: args.data!.username,
           password: args.data!.password,
           email: args.data!.email,
-          address:args?.data!.address,
-          mobile_number:args?.data?.phoneNumber
+          address: args?.data!.address,
+          mobile_number: args?.data?.phoneNumber
         };
 
         const userCheck = await client.user.findUnique({
@@ -344,46 +365,46 @@ export const mutationRegisterUser = extendType({
             password: data!.password
           },
           create: data
-        }).then(async(rr: any) => {
+        }).then(async (rr: any) => {
           let lastPatient = await client.patient.findFirst({
-            where:{
-              IDNO:{
-                not:null
+            where: {
+              IDNO: {
+                not: null
               }
             },
-            orderBy:{
-              S_ID:'desc'
+            orderBy: {
+              S_ID: 'desc'
             },
-            select:{
-              IDNO:true
+            select: {
+              IDNO: true
             }
           })
 
 
           return await client.patient.create({
-            data:{
-              EMAIL:args.data!.email,
-              FULLNAME:`${args.data!.firstName} ${args.data!.lastName}`,
-              FNAME:args.data!.firstName,
-              LNAME:args.data!.lastName,
-              CONTACT_NO:args?.data?.phoneNumber,
-              HOME_ADD:args?.data!.address,
-              CLINIC:1,
-              LONGITUDE:args.data!.longitude,
-              LATITUDE:args.data!.latitude,
-              IDNO:Number(lastPatient?.IDNO + 1)
+            data: {
+              EMAIL: args.data!.email,
+              FULLNAME: `${args.data!.firstName} ${args.data!.lastName}`,
+              FNAME: args.data!.firstName,
+              LNAME: args.data!.lastName,
+              CONTACT_NO: args?.data?.phoneNumber,
+              HOME_ADD: args?.data!.address,
+              CLINIC: 1,
+              LONGITUDE: args.data!.longitude,
+              LATITUDE: args.data!.latitude,
+              IDNO: Number(lastPatient?.IDNO + 1)
             }
-          }).then(()=>{
+          }).then(() => {
             return rr;
-          }).catch((err)=>{
-            console.log(err.message,'???????????????????')
+          }).catch((err) => {
+            console.log(err.message, '???????????????????')
             throw new GraphQLError(err.message)
           })
 
 
         }).catch((err) => {
           const { message }: any = err;
-          console.log(message,'ERROR MESSAGE')
+          console.log(message, 'ERROR MESSAGE')
           if (message.includes('users_username'))
             throw new GraphQLError('Username unavailable.')
           else
@@ -599,10 +620,10 @@ export const user_update_phone_transactions = objectType({
 ///////////////////////////////////////
 
 export const updateUserInp = inputObjectType({
-  name:"updateUserInp",
+  name: "updateUserInp",
   definition(t) {
     t.int('id'),
-    t.int('value')
+      t.int('value')
   },
 })
 
@@ -616,22 +637,22 @@ export const logoutUserLogin = extendType({
         data: updateUserInp!,
       },
       async resolve(_, args, ctx) {
-       try {
-        console.log(args?.data,'___???__')
+        try {
+          console.log(args?.data, '___???__')
 
-        const userLogout = await client.user.update({
-          where:{
-            id:Number(args?.data?.id)
-          },
-          data:{
-            isOnline:Number(args?.data?.value)
-          }
-        })
+          const userLogout = await client.user.update({
+            where: {
+              id: Number(args?.data?.id)
+            },
+            data: {
+              isOnline: Number(args?.data?.value)
+            }
+          })
 
-        return userLogout
-       } catch (error) {
-        console.log(error,'_EROOR__________________')
-       }
+          return userLogout
+        } catch (error) {
+          console.log(error, '_EROOR__________________')
+        }
 
       }
     })
@@ -648,10 +669,10 @@ export const mutationUpdatePhone = extendType({
         data: UserUpdatePhoneProfileUpsertType!,
       },
       async resolve(_, args, ctx) {
-        const {mobile_number }: any = args.data;
+        const { mobile_number }: any = args.data;
         const { session } = ctx;
 
-        console.log(session,'wwwww')
+        console.log(session, 'wwwww')
 
         await cancelServerQueryRequest(client, session?.user?.id, '`mutationUpdatePhone`', 'UserUpdatePhoneProfileUpsertType');
 
@@ -692,7 +713,7 @@ export const mutationUpdatePhone = extendType({
             },
           });
 
-          if(session?.user.role === 'doctor'){
+          if (session?.user.role === 'doctor') {
             const updateDoctorInfo = await client.employees.updateMany({
               where: {
                 user: { id: Number(session?.user.id) }
@@ -701,8 +722,7 @@ export const mutationUpdatePhone = extendType({
                 CONTACT_NO: mobile_number, // The new mobile_number value
               },
             });
-          }else if(session?.user.role === 'patient')
-          {
+          } else if (session?.user.role === 'patient') {
             const updatePatientInfo = await client.patient.updateMany({
               where: {
                 EMAIL: session?.user.email
@@ -711,7 +731,7 @@ export const mutationUpdatePhone = extendType({
                 CONTACT_NO: mobile_number, // The new mobile_number value
               },
             });
-          }else{
+          } else {
             const updateSubaccountInfo = await client.sub_account.updateMany({
               where: {
                 email: session?.user.email
@@ -722,7 +742,7 @@ export const mutationUpdatePhone = extendType({
             });
           }
 
-          
+
 
 
           if (update) {
@@ -849,18 +869,17 @@ export const mutationUpdatePassword = extendType({
           if (!user) {
             resp.status = "Failed";
             resp.message = "User not found.";
-          } 
+          }
           //ERROR STATE IF NOT FIND USER
-          else 
-          {
+          else {
             const userProvidedPassword = password;
             const userProvidedNewPassword = newpassword;
             const userProvidedConfirmPassword = confirmpassword;
-            const phpHash : any = user.password;
+            const phpHash: any = user.password;
 
             let result;
             try {
-              const result:any = await bcrypt.compare(userProvidedPassword, phpHash);
+              const result: any = await bcrypt.compare(userProvidedPassword, phpHash);
 
               if (result) {
                 resp.status = "Success";
@@ -869,11 +888,11 @@ export const mutationUpdatePassword = extendType({
                 resp.status = "Failed";
                 resp.message = "Passwords do not match!";
               }
-              } catch (err) {
-                console.error('Error comparing passwords:', err);
-                resp.status = "Failed";
-                resp.message = "Error comparing passwords";
-              }
+            } catch (err) {
+              console.error('Error comparing passwords:', err);
+              resp.status = "Failed";
+              resp.message = "Error comparing passwords";
+            }
             if (resp.status == "Success") {
               if (userProvidedNewPassword === userProvidedConfirmPassword) {
                 const hashpassword = await bcrypt.hash(userProvidedNewPassword, 8);
@@ -901,7 +920,7 @@ export const mutationUpdatePassword = extendType({
               }
             } else {
               resp.status = "Failed";
-              resp.message = "Old Password do not match.";  
+              resp.message = "Old Password do not match.";
             }
 
           }
@@ -914,3 +933,148 @@ export const mutationUpdatePassword = extendType({
     });
   },
 });
+
+const mutateBusinessCardObj = objectType({
+  name:"mutateBusinessCardObj",
+  definition(t) {
+      t.string('message')
+  },
+})
+
+
+export const mutateBusinessCard = extendType({
+  type: "Mutation",
+  definition(t) {
+    t.nonNull.field("mutateBusinessCard", {
+      type: mutateBusinessCardObj,
+      args: {
+        file:'Upload'
+      },
+      async resolve(_, args, ctx) {
+        try {
+          const { session } = ctx;
+
+          const sFile = await args?.file;
+          let imgData:any;
+          console.log(sFile,'SFILEEEEEEEEEE')
+  
+          if (sFile?.type !== undefined) {
+            // const res: any = useUpload(sFile, 'public/uploads/');
+            const res: any = await useGoogleStorage(
+              sFile,
+              session?.user?.id,
+              'userDisplayProfile'
+            );
+
+            console.log(res,'RESSSSSSSSS')
+  
+            imgData = await client.employees_business_attachment.create({
+              data:{
+                filename:String(res!.path),
+                file_path:String(res!.path),
+              }
+            })
+  
+          }
+
+          const targetEmployee = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+
+          await client.employees.update({
+            where:{
+              EMP_ID:Number(targetEmployee?.EMP_ID)
+            },
+            data:{
+              ...targetEmployee,
+              EMP_B_ATTACHMENT:Number(imgData?.id)
+            }
+          })
+
+          // await client.employees.update({
+          //   where:{
+          //     EMP_EMAIL:session?.user?.email
+          //   },
+          //   data:{
+          //     EMP_B_ATTACHMENT:Number(imgData?.id)
+          //   }
+          // });
+
+          return {
+            response:"Updated successfully"
+          }
+        } catch (error) {
+          console.log(error);
+          throw new GraphQLError(error)
+        }
+      }
+    })
+  }
+});
+
+
+const generateCardInp = inputObjectType({
+  name:"generateCardInp",
+  definition(t) {
+      t.string('name');
+      t.string('occupation');
+      t.string('contact');
+      t.string('email');
+      t.string('address');
+      t.string('socials');
+      t.int('template_id')
+
+  },
+})
+
+export const generateCard = extendType({
+  type: "Mutation",
+  definition(t) {
+    t.nonNull.field("generateCard", {
+      type: mutateBusinessCardObj,
+      args: {
+        data:generateCardInp
+      },
+      async resolve(_, args, ctx) {
+        const { session } = ctx;
+
+        try {
+          console.log(session?.user,'USERRRRRRRRRR')
+
+          const card = await client.employee_card.create({
+            data:{
+              ...args.data
+            }
+          });
+
+          const doctor = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+
+     
+
+          await client.employees.update({
+            where:{
+              EMP_ID:Number(doctor?.EMP_ID)
+            },
+            data:{
+              ...doctor,
+              emp_card:Number(card?.id)
+            }
+          })
+
+          return {
+            message:"successfully created"
+          }
+        } catch (error) {
+          console.log(error);
+          throw new GraphQLError(error)
+        }
+      }
+    })
+  }
+})

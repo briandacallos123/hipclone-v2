@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import dynamic from 'next/dynamic';
 // @mui
 import Tab from '@mui/material/Tab';
 import Tabs from '@mui/material/Tabs';
@@ -15,7 +16,11 @@ import { useResponsive } from 'src/hooks/use-responsive';
 // components
 import { useSettingsContext } from 'src/components/settings';
 //
-import DashboardCover from '../dashboard-cover';
+// import DashboardCover from '../dashboard-cover';
+const DashboardCover = dynamic(() => import('../dashboard-cover'), {
+  ssr: false,
+});
+
 import DashboardAppointmentList from '../dashboard-appointment-list';
 import DashboardApprovedList from '../dashboard-approved-list';
 import DashboardInstruction from '../dashboard-instruction';

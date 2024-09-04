@@ -237,11 +237,10 @@ export default function CheckoutPayment({
 
   const onApproveOrder = (data, actions) => {
 
-
     return actions.order.capture().then((details) => {
       if (loadingButtonRef.current) {
         setValue('payment', 'paypal');
-        setValue('refNumber', details?.id)
+        setValue('refNumber', details?.id);
       }
     });
   }
@@ -250,6 +249,7 @@ export default function CheckoutPayment({
 
   useEffect(()=>{
     if(values.payment === 'paypal'){
+    
       loadingButtonRef.current.click();
     }
   },[values.payment])
@@ -328,17 +328,20 @@ export default function CheckoutPayment({
                 )
               }
 
-              {/* <LoadingButton
+              <LoadingButton
                 fullWidth
                 size="large"
                 type="submit"
                 variant="contained"
                 loading={isSubmitting}
                 ref={loadingButtonRef}
+                sx={{
+                  display:'none'
+                }}
                 
               >
                 Complete Order
-              </LoadingButton> */}
+              </LoadingButton>
               <Button
                 size="small"
                 color="inherit"

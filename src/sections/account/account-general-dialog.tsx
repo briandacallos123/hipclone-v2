@@ -48,7 +48,6 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data}) => {
         const parts = url?.split('public');
         const publicPart = parts ? parts[1] : null;
 
-        console.log(publicPart, '@@@@@@@');
 
         return publicPart;
       })() || null,

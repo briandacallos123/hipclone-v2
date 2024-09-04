@@ -456,7 +456,7 @@ export default function AccountGeneral() {
                   
                 </RHFSelect>
 
-                {user?.role === 'patient' && <Controller
+                <Controller
                   name="birthDate"
                   control={control}
                   render={({ field, fieldState: { error } }: CustomRenderInterface) => (
@@ -475,7 +475,7 @@ export default function AccountGeneral() {
                       }}
                     />
                   )}
-                />}
+                />
 
                 {user?.role !== 'secretary' && (
                   <RHFTextField name="nationality" label="Nationality" />

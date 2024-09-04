@@ -315,6 +315,7 @@ export const authOptions: AuthOptions = {
                 },
                 include: {
                   SpecializationInfo: true,
+                  
                 },
               });
               login_username = await client.user.findFirst({
@@ -322,6 +323,16 @@ export const authOptions: AuthOptions = {
                   email: token?.email,
                 },
               });
+
+              const emp_card = await client.employee_card.findFirst({
+                where:{
+                  id:Number(userInfo?.emp_card)
+                }
+              })
+              emp_card.socials = JSON.parse(emp_card.socials);
+
+              // console.log(emp_card,'businessCardbusinessCardbusinessCardbusinessCardbusinessCard')
+
 
               const esigDigital = await client.esig_dp.findMany({
                 where: {
@@ -359,6 +370,16 @@ export const authOptions: AuthOptions = {
                 ],
               });
 
+        
+              const businessCard = await client.employees_business_attachment.findFirst({
+                where:{
+                  id:Number(userInfo?.EMP_B_ATTACHMENT)
+                }
+              })
+              // businessCard.social = JSON.parse(businessCard.social);
+              // console.log(businessCard,'BUSINESSCARDDDDDDDDDDDDDDDDD')
+
+
               session.user.occupation = userInfo?.SpecializationInfo?.name;
               session.user.displayName = `${userInfo?.EMP_FNAME} ${userInfo?.EMP_LNAME}`;
               session.user.lastName = userInfo?.EMP_LNAME;
@@ -373,6 +394,15 @@ export const authOptions: AuthOptions = {
               session.user.esigFile = esigFile[0];
               session.user.esigDigital = esigDigital[0];
               session.user.esig = esigMain[0];
+              session.user.employee_card = {
+                name:emp_card?.name,
+                occupation:emp_card?.occupation,
+                contact:emp_card?.contact,
+                email:emp_card?.email,
+                address:emp_card?.address,
+                social:emp_card?.socials,
+                template_id:emp_card?.template_id
+              }
 
               session.user.PRC = userInfo?.LIC_NUMBER;
               session.user.PTR = userInfo?.PTR_LIC;
@@ -383,6 +413,7 @@ export const authOptions: AuthOptions = {
               session.user.username = login_username?.uname;
               session.user.uname = login_username?.uname;
               session.user.title = userInfo?.EMP_TITLE;
+              session.user.qrProfile =businessCard?.filename;
             }
             break;
           default: {
@@ -420,10 +451,16 @@ export const authOptions: AuthOptions = {
             uploaded: 'desc',
           },
         });
+        // const photoURL = d
+        // ? d?.filename.split('public')[1] 
+
         const photoURL = d
-          ? d?.filename.split('public')[1] // /public/www/ww ->
+          ? d?.filename 
           : `https://ui-avatars.com/api/?name=${session.user.displayName}&size=100&rounded=true&color=fff&background=E12328`;
+
+
         session.user.photoURL = photoURL;
+
         session.user.coverURL =
           'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_12.jpg';
       }

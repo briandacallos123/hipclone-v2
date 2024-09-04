@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { useUpload } from '../../hooks/use-upload';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads';
 
 // doctorID
 // idno
@@ -98,22 +99,36 @@ export const MutationESign = extendType({
           let uploadResult: any;
 
           if (sFile) {
-            uploadResult = await useUpload(sFile, 'public/documents/');
-            uploadResult.map(async (v: any) => {
-              await client.esig_dp.create({
+            uploadResult = await useGoogleStorage(
+              sFile,
+              Number(session?.user?.id),
+              'userDisplayEsign'
+              );
+
+            await client.esig_dp.create({
                 data: {
                   type: args?.data?.type,
                   doctorID: Number(session?.user?.id),
-                  filename: String(v.path),
+                  filename: String(uploadResult.path),
                 },
               });
-            });
+
+            // uploadResult = await useUpload(sFile, 'public/documents/');
+            // uploadResult.map(async (v: any) => {
+            //   await client.esig_dp.create({
+            //     data: {
+            //       type: args?.data?.type,
+            //       doctorID: Number(session?.user?.id),
+            //       filename: String(v.path),
+            //     },
+            //   });
+            // });
           }
 
           console.log(uploadResult, 'WEEEEEEEEEEE');
 
           return {
-            message: String(uploadResult[0]?.fileName),
+            message: String(uploadResult.path),
           };
         } catch (err) {
           return err;

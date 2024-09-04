@@ -40,6 +40,7 @@ import AccountGeneralSig from '@/sections/account/account-general-dialog';
 import Iconify from '@/components/iconify';
 import { QueryUserProfile } from '@/libs/gqls/users';
 import { useParams } from 'next/navigation';
+import AppointmentNewScheduleCard from '@/sections/appointment/appointment-new-schedule-card';
 // ----------------------------------------------------------------------
 
 interface FormValuesProps extends Omit<IUserProfile, 'avatarUrl'> {
@@ -147,6 +148,7 @@ export default function ProfileView({ dataVal }: any) {
       setValue('title', dataVal?.title);
       setValue('prcNumber', dataVal?.PRC);
       setValue('prcExpiry', dataVal?.validity);
+      setValue('email', dataVal?.email);
       setValue('ptrNumber', dataVal?.PTR);
       setValue('s2Number', dataVal?.s2_number);
       setValue('since', dataVal?.practicing_since);
@@ -352,6 +354,8 @@ export default function ProfileView({ dataVal }: any) {
     },
     [setValue]
   );
+  const [isProfile, setIsProfile] = useState(true);
+
 
   const handleRemoveFile = useCallback(() => {
     setValue('signatureUrl', null);
@@ -383,15 +387,15 @@ export default function ProfileView({ dataVal }: any) {
                       color: 'text.disabled',
                     }}
                   >
-                    Allowed *.jpeg, *.jpg, *.png, *.gif
-                    <br /> max size of {fData(3145728)}
+                    {/* Allowed *.jpeg, *.jpg, *.png, *.gif
+                    <br /> max size of {fData(3145728)} */}
                   </Typography>
                 }
               />
             </Card>
             <Card sx={{ py: { md: 2, xs: 1 }, px: { md: 3, xs: 1 }, textAlign: 'center' }}>
               <Stack spacing={1.5} sx={{ mt: 3 }}>
-                <Button
+                {/* <Button
                   onClick={openSig}
                   variant="contained"
                   color="primary"
@@ -408,7 +412,7 @@ export default function ProfileView({ dataVal }: any) {
                   }
                 >
                   Edit
-                </Button>
+                </Button> */}
                 <Stack direction="column">
                   <span
                     style={{
@@ -422,20 +426,20 @@ export default function ProfileView({ dataVal }: any) {
                   </span>
                   <Box sx={{ width: '135%', height: '58px' }}>
                     {dataVal?.esig?.filename && (
-                        <img
-                          alt=" "
-                          style={{ width: '25%', height: '115%' }}
-                          src={
-                            (() => {
-                              const url = dataVal?.esig?.filename;
-                              const parts = url?.split('public');
-                              const publicPart = parts ? parts[1] : null;
+                      <img
+                        alt=" "
+                        style={{ width: '25%', height: '115%' }}
+                        src={
+                          (() => {
+                            const url = dataVal?.esig?.filename;
+                            const parts = url?.split('public');
+                            const publicPart = parts ? parts[1] : null;
 
-                              return publicPart;
-                            })() || null
-                          }
-                        />
-                      )}
+                            return publicPart;
+                          })() || null
+                        }
+                      />
+                    )}
                   </Box>
 
                   <Stack direction="column" alignSelf="flex-end">
@@ -578,18 +582,24 @@ export default function ProfileView({ dataVal }: any) {
                   InputProps={{
                     readOnly: true,
                   }}
+                  name="email" label="Email" />
+
+                <RHFTextField
+                  InputProps={{
+                    readOnly: true,
+                  }}
                   name="suffix"
                   label="Name Suffix"
                   helperText="e.g.: I, II, Jr., Sr., etc."
                 />
 
-                <RHFSelect InputProps={{
+                {/* <RHFSelect InputProps={{
                   readOnly: true,
                 }} name="gender" label="Gender">
                   <MenuItem value={1}>Male</MenuItem>
                   <MenuItem value={2}>Female</MenuItem>
 
-                </RHFSelect>
+                </RHFSelect> */}
 
                 {/* {user?.role === 'patient' && <Controller
                   name="birthDate"
@@ -633,6 +643,16 @@ export default function ProfileView({ dataVal }: any) {
                   Save Changes
                 </LoadingButton>
               </Stack> */}
+            </Card>
+            <Card>
+              <CardHeader title="Hospitals" />
+              <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+                {dataVal?.clinicInfo?.map((item: any) => (
+                  <div key={item.id} style={{ flex: '50%', padding: '8px' }}>
+                    <AppointmentNewScheduleCard data={item} isProfile={isProfile} />
+                  </div>
+                ))}
+              </div>
             </Card>
           </Grid>
         </Grid>

@@ -77,6 +77,7 @@ export const QueryQueuePatient = gql`
                 patient_no
                 payment_status
                 patientID
+                room_id
                 date
             }
             position
@@ -86,6 +87,7 @@ export const QueryQueuePatient = gql`
             done_session
             is_ongoing
             startingTime
+            
             is_paid
             is_done
             otherApptList {

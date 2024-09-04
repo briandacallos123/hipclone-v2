@@ -65,15 +65,18 @@ const StyledThumbnailsContainer = styled('div')<{ length: number }>(({ length, t
 
 type Props = {
   product: IProduct;
+  isSlice?:any;
+  openLightbox:boolean;
+  onCloseParent:any;
 };
 
-export default function ProductDetailsCarousel({ product }: Props) {
+export default function ProductDetailsCarousel({onCloseParent, isSlice, product, openLightbox }: Props) {
   const theme = useTheme();
 
-  const slides = product.attachmentData.map((img) => ({
-    src:`/${img?.imagePath?.split('/').splice(1).join('/')}`
-  }));
 
+  const slides = product.attachmentData.map((img) => ({
+    src:!isSlice ? img?.imageData :`/${img?.imagePath?.split('/').splice(1).join('/')}`
+  }));
 
   const lightbox = useLightBox(slides);
 
@@ -103,6 +106,14 @@ export default function ProductDetailsCarousel({ product }: Props) {
       carouselLarge.onTogo(lightbox.selected);
     }
   }, [carouselLarge, lightbox.open, lightbox.selected]);
+
+
+
+  useEffect(()=>{
+    if(openLightbox){
+      lightbox.onOpen(slides[0]?.src)
+    }
+  },[openLightbox])
 
   const renderLargeImg = (
     <Box
@@ -180,15 +191,22 @@ export default function ProductDetailsCarousel({ product }: Props) {
         },
       }}
     >
-      {renderLargeImg}
+      {!openLightbox && <>
+        {renderLargeImg}
 
-      {renderThumbnails}
+        {renderThumbnails}
+      </>}
 
       <Lightbox
         index={lightbox.selected}
         slides={slides}
         open={lightbox.open}
-        close={lightbox.onClose}
+        close={()=>{
+          lightbox.onClose();
+          if(openLightbox){
+            onCloseParent()
+          }
+        }}
         onGetCurrentIndex={(index) => lightbox.setSelected(index)}
       />
     </Box>

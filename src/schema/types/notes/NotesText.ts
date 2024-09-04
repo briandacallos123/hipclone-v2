@@ -2,6 +2,7 @@ import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
 import { useUpload } from '../../../hooks/use-upload';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads';
 // import { useUpload } from '../';
 
 const client = new PrismaClient();
@@ -333,7 +334,13 @@ export const PostNotesTxt = extendType({
            
             if (sFile) {
               // console.log(sFile, 'FILE@@@');
-              const res: any = useUpload(sFile, 'public/documents/');
+              const res: any = await useGoogleStorage(
+                sFile,
+                session?.user?.id,
+                'feeds'
+              );
+  
+              // const res: any = useUpload(sFile, 'public/documents/');
               res?.map(async (v: any) => {
                 await client.notes_text_attachments.create({
                   data: {
@@ -341,7 +348,7 @@ export const PostNotesTxt = extendType({
                     doctorID: Number(session?.user?.id),
                     clinic: Number(recordNotes.CLINIC),
                     notes_text_id:Number(newChild?.id),
-                    file_name: String(v!.fileName),
+                    file_name: String(v!.path),
                     file_url: String(v!.path),
                    date:new Date()
                   },

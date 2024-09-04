@@ -605,7 +605,7 @@ export default function UserClinicListView() {
                         setHideSched={setHideSched}
                         selected={table.selected.includes(row.id)}
                         onSelectRow={() => table.onSelectRow(row.id)}
-                        onEditRow={() => handleEditRow(row)}
+                        onEditRow={(CreatePayment) => handleEditRow(row)}
                         onDeleteRow={() => handleDeleteRow(row.id)}
                         onAddSchedule={() => handleAddSched(row)}
                         refetch={() => refetch()}

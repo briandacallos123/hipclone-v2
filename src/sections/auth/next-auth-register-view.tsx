@@ -351,18 +351,14 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
     return (
       <div style={{
-        position: 'absolute',
-        bottom:0,
-        left:10,
-        backgroundColor: 'white',
         padding: 10,
         borderRadius: 10,
         zIndex: 100,
-        boxShadow: '1px 1px 3px black'
+        
       }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <h3>Password must meet the following requirements:</h3>
-          <Button variant="contained" onClick={handleClose}>Close</Button>
+          {/* <Button variant="contained" onClick={handleClose}>Close</Button> */}
         </Stack>
         <div>
           <ul>
@@ -459,7 +455,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
           />
         </Stack>
 
-
+        {Object.keys(errors).length !== 0 && isPassError && openReq && <ErrorDialog />}
 
         <LoadingButton
           fullWidth
@@ -505,7 +501,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         <PrivacyDialog open={privacyModal.value} handleClose={privacyModal.onFalse} />
 
       </DialogContent>
-        {Object.keys(errors).length !== 0 && isPassError && openReq && <ErrorDialog />}
+      
 
     </Dialog>
   );

@@ -337,6 +337,7 @@ export default function NotificationItemFinal({ notification, onReadView, onView
       }} size="small" color="info" variant="outlined">
         View
       </Button>}
+
       {(notification?.notification_type === 'approved order' ||notification?.notification_type === 'cancelled order' ||notification?.notification_type === 'done order' ) && <Button onClick={() => {
         onViewRow()
       }} size="small" color="info" variant="outlined">
@@ -345,6 +346,12 @@ export default function NotificationItemFinal({ notification, onReadView, onView
 
 
       {(notification?.notification_type === 'Your order was delivered!' ||notification?.notification_type === 'Sorry your order was delivery unsuccessfully!' ||notification?.notification_type === 'Your order is on its way!' || notification?.notification_type === 'Your order is waiting for pick up!' )  && <Button onClick={() => {
+        onViewRow()
+      }} size="small" color="info" variant="outlined">
+        View
+      </Button>}
+
+      {(notification?.notification_type === 'Marked as your appointment as paid!' ) && <Button onClick={() => {
         onViewRow()
       }} size="small" color="info" variant="outlined">
         View

@@ -47,6 +47,7 @@ import { useParams, useRouter } from 'src/routes/hook';
 import { useContextData } from './@view/patient-details-view';
 import PatientDetailsPDF from './patient-details-pdf';
 import { useMainContextData } from '../../layouts/dashboard/main';
+import axios from 'axios';
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -63,12 +64,13 @@ export default function PatientCover({ data, loading }: Props) {
   const [soapData, setSoapData] = useState<any>([]);
   const upMd = useResponsive('up', 'md');
   const [item, setItem] = useState<any>([]);
-  const { uuid } = useParams();
+  const { id } = useParams();
   const [isQueue, setIsQueue] = useState(false);
   const [apptID, setApptId] = useState<string>();
 
   useEffect(() => setItem(data), [data]);
 
+  console.log(allData,'UUID SA LABAS_________________________________________________________________________')
   const apptData = JSON.parse(sessionStorage.getItem('patientView'));
   // console.log('block', block.data);
   // console.log(
@@ -472,20 +474,68 @@ export default function PatientCover({ data, loading }: Props) {
     }
   }, [appointmentID, sent, smsConfirm, time]);
 
-  const handleOpenLink = () => {
-    // Replace 'https://example.com' with your desired static link
-    const link = `https://connect2.hips-md.com/routes.php?short=${apptID}`;
+  const handleOpenLink = useCallback(async() => {
+    const UUID = localStorage?.getItem('apptUUID');
+    // console.log(uuid,'UUID______________________________________________________________________')
+    const payload:any = {
+      agentName: user?.displayName,
+      visitorName: `${item?.patientInfo?.FNAME} ${item?.patientInfo?.LNAME}`,
+      datetime: "2024-08-28T11:04:00.000Z",
+      roomId: UUID,
+    };
+  
+    try {
+      const response = await axios({
+        method: 'options',
+        url: 'https://connect3.hips-md.com/api/index.php',
+        data: {
+          ...payload
+        },
+        headers: {
+          'Content-Type': 'application/json'
+        },
+      })
+
+      const {agenturl, visitorurl} = response?.data
+      
+      if(response?.data){
+        window.open(agenturl,'_blank');
+      }
+      
+      
+      // const response = await axios.options('https://connect3.hips-md.com/api/index.php',payload)
+      // const response = await fetch('https://connect3.hips-md.com/api/index.php', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(payload)
+      // });
+
+      // const response = await fetch('https://connect3.hips-md.com/api/', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(payload)
+      // });
+
+    
+
+    }catch(Err){
+      console.log(Err);
+    }
     // const link = `https://connect2.hips-md.com/routes.php?short=f38gdxnktx`;
     // Open the link in a new tab
-    const windowFeatures = 'width=500,height=500';
+    // const windowFeatures = 'width=500,height=500';
 
     // Open the link in a new window
-    if (upMd) {
-      window.open(link, 'Telemed', windowFeatures);
-    } else {
-      window.open(link, 'Telemed');
-    }
-  };
+    // if (upMd) {
+    //   window.open(link, 'Telemed', windowFeatures);
+    // } else {
+    //   window.open(link, 'Telemed');
+    // }
+  },[id])
 
   // console.log('openTelemed', openTelemed);
   const handleSetTelemed = () => {
@@ -741,7 +791,6 @@ export default function PatientCover({ data, loading }: Props) {
                     size={upMd ? 'medium' : 'small'}
                     onClick={() => {
                       handleOpenLink();
-                      // handleSetTelemed();
                     }}
                   >
                     Start Telemedicine

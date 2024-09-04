@@ -222,7 +222,9 @@ const dateIntervalChecker = (item: any, patient:any,notToday:any) => {
 
 
     // Check if the current date and time is within the interval
-    const isWithinInterval = phDate >= startDateTimeUTC && phDate <= endDateTimeUTC;
+    // const isWithinInterval = phDate >= startDateTimeUTC && phDate <= endDateTimeUTC;
+    const isWithinInterval = phDate >= startDateTimeUTC;
+
 
     if (!notToday && isWithinInterval && data?.patientID === Number(patient?.S_ID)) {
       isOngoing = true;
@@ -233,9 +235,11 @@ const dateIntervalChecker = (item: any, patient:any,notToday:any) => {
       startingTime = data?.time_slot;
     }
     
-    if(!notToday && data?.patientID === Number(patient?.S_ID) && phDate > endDateTimeUTC){
-      doneSession = true;
-    }if(notToday){
+    // if(!notToday && data?.patientID === Number(patient?.S_ID) && phDate > endDateTimeUTC){
+    //   doneSession = true;
+    // }
+    
+    if(notToday){
       newData.push(data);
 
     }
@@ -273,6 +277,12 @@ export const QueuePatient = extendType({
           const appt = await client.appointments.findFirst({
             where: {
               voucherId: voucherCode
+            }
+          })
+
+          const doctor = await client.employees.findFirst({
+            where:{
+              EMP_ID:Number(appt?.doctorID)
             }
           })
 
@@ -495,7 +505,7 @@ export const QueuePatient = extendType({
             position: patientSession && 1,
             is_not_today: haveSchedButNotToday(),
             is_done: isDoneAppt?.length !== 0,
-            is_paid: (Number(appt?.payment_status) === 1 || (appt?.hmo !== null && appt?.hmo !== 's:0:"";')),
+            is_paid: (Number(appt?.payment_status) === 1 || doctor?.isPaySchedShow === 1 || (appt?.hmo !== null && appt?.hmo !== 's:0:"";')),
             notStarted,
             done_session:doneSession,
             is_ongoing:isOngoing,

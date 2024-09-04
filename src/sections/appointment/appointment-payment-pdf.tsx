@@ -115,12 +115,13 @@ export default function AppointmentPaymentPDF({ item }: Props) {
               return (
                 <>
                 <View key={url}>
-                  {/* <Text style={styles.h5}>{urlObject?.filename} </Text> */}
-                  <Image
+                  <img src={urlObject?.filename} alt="" />
+                  {/* <Image
                     key={url}
-                    source={{ uri: publicPart }}
+                    alt={'image'}
+                    source={{ uri: urlObject?.filename }}
                     style={[styles.mb8, { height: '90%', width: '500px' }]}
-                  />
+                  /> */}
                 </View>
               </>
               );

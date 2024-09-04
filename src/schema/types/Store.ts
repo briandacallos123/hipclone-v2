@@ -6,6 +6,7 @@ import client from '../../../prisma/prismaClient';
 import bcrypt from 'bcryptjs';
 import { GraphQLError } from 'graphql';
 import { serialize, unserialize } from 'php-serialize';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads';
 
 export const storeType = objectType({
     name: "storeType",
@@ -443,18 +444,28 @@ export const CreateNewStore = extendType({
 
                 try {
                     if (sFile) {
-                        const res: any = useUpload(sFile, 'public/documents/');
+                        const res: any = await useGoogleStorage(
+                            sFile,
+                            session?.user?.id,
+                            'store/image'
+                          );
+                        // const res: any = useUpload(sFile, 'public/documents/');
 
                         med = await client.attachment_store.create({
                             data: {
-                                filename: String(res[0]!.fileName),
+                                filename: String(res[0]!.path),
                                 file_url: String(res[0]!.path),
                                 file_type: String(res[0]!.fileType),
                             }
                         })
                     }
                     if (sFile?.length > 1 && sFile[1] !== null) {
-                        const res: any = useUpload(sFile, 'public/documents/');
+                        const res: any = await useGoogleStorage(
+                            sFile,
+                            session?.user?.id,
+                            'store/image'
+                          );
+                        // const res: any = useUpload(sFile, 'public/documen/ts/');
                         paymentAttachment = await client.order_payment_attachment.create({
                             data: {
                                 filename: String(res[1]!.fileName),

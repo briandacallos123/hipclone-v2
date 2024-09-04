@@ -265,6 +265,7 @@ export default function QueueApproveListView({ setAprTotal }: Props) {
   const handleViewPatient = (data: any) => {
     sessionStorage.setItem('patientView', JSON.stringify({ data: tableData }));
     // setPatientView({ ...patientView, data: tableData });
+    localStorage.setItem('apptUUID',data?.room_id);
     router.push(paths.dashboard.patient.view(data?.patientInfo?.UUID));
   };
 

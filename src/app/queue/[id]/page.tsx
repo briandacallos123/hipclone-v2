@@ -108,7 +108,6 @@ const page = () => {
     }
 }
 
-console.log(clinicData,'AWITTTTTTTTTT SAYOOOOOOOOOOOO')
 
 
   return (
@@ -153,7 +152,7 @@ console.log(clinicData,'AWITTTTTTTTTT SAYOOOOOOOOOOOO')
           {queryQueueResult.loading ? <RenderLoadingContent /> :
             !inValidVoucher ? <Stack gap={3} >
               <Queue notStarted={notStarted} ongoing={ongoing} apptPaid={apptPaid} notAppNotToday={notAppNotToday} notApprovedVal={notApprovedVal} isDoneAppt={isDoneAppt} targetItem={targetItem} dataToday={notToday} newPosition={newPosition} remainingP={remainingP} position={position} data={data} loading={loading} />
-              <QueueCarousel loading={queryQueueResult.loading} data={clinicData} />
+              {/* {clinicData?.length && <QueueCarousel loading={queryQueueResult.loading} data={clinicData} />} */}
             </Stack> :
               <Box sx={{
                 width:'100%',

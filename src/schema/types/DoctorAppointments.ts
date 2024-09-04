@@ -304,6 +304,7 @@ export const DoctorAppointments = objectType({
     t.nullable.string('doctorID');
     t.nullable.string('voucherId');
     t.nullable.dateTime('appr_date');
+    t.nullable.string('room_id');
     t.nullable.string('p_ref');
     t.nullable.field('pendingPayment', {
       type: 'Int',
@@ -2428,8 +2429,13 @@ function addMinutesToTime(timeString, minutesToAdd) {
 
 
 function addTimeInterval(time, interval) {
+  // const newTime = new Date(time);
+  // newTime.setMinutes(newTime.getMinutes() + interval);
+  // return newTime;
+
   const newTime = new Date(time);
-  newTime.setMinutes(newTime.getMinutes() + interval);
+  // Add the interval in minutes directly
+  newTime.setMinutes((newTime.getMinutes() + interval));
   return newTime;
 }
 
@@ -2444,13 +2450,28 @@ export const BookAppointment = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`employees`', 'BookAppointment');
         try {
+
+          
+          const e_time = await client.clinic_schedule.findFirst({
+            where:{
+              clinic:Number(createData?.clinic)
+            },
+            orderBy:{
+              id:'desc'
+            }
+          })
+
+
           const AddRequestData = serialize(createData.AddRequest);
           const symptomsData = serialize(createData.symptoms);
           const hmoData = serialize(createData.hmo);
           const dateInput = convertDate(createData.date);
           const timeInput = new Date(createData.time_slot);
+          // timeInput.setMinutes(timeInput.getMinutes() - timeInput.getTimezoneOffset()); // Convert to UTC
           timeInput.setMinutes(timeInput.getMinutes() - timeInput.getTimezoneOffset()); // Convert to UTC
-
+         
+          
+          const newTime = addTimeInterval(timeInput, e_time?.time_interval);
 
           let isExists = true;
           let VoucherCode: any;
@@ -2479,20 +2500,12 @@ export const BookAppointment = extendType({
           })
 
 
-          const e_time = await client.clinic_schedule.findFirst({
-            where:{
-              clinic:Number(createData?.clinic)
-            },
-            orderBy:{
-              id:'desc'
-            }
-          })
 
-
-          const newTime = addTimeInterval(timeInput, e_time?.time_interval);
-          console.log(newTime)
+       
           const timeInputEnd = new Date(createData.end_time);
           timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
+     
+          console.log(newTime,'TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE', e_time?.time_interval)
 
           const BookTransaction = await client.$transaction(async (trx) => {
             const BookPost = await trx.appointments.create({

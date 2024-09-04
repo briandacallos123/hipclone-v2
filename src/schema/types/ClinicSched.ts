@@ -4,6 +4,7 @@ import { serialize, unserialize } from 'php-serialize';
 import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads';
 
 export const Clinics = objectType({
   name: 'Clinics',
@@ -468,16 +469,32 @@ export const PostClinic = extendType({
           const sFile = await args?.file;
           if (sFile) {
             const uploadResult = await useUpload(sFile, 'public/documents/');
-            uploadResult.map(async (v: any) => {
-              await client.clinicdp.create({
-                data: {
-                  doctorID: Number(session?.user?.id),
-                  doctor: String(session?.user?.doctorId),
-                  clinic: clinicSchedID,
-                  filename: String(v.path),
-                },
-              });
+            
+            const res: any = await useGoogleStorage(
+              sFile,
+              Number(session?.user?.id),
+              'userDisplayProfile'
+            );
+            
+            await client.clinicdp.create({
+              data: {
+                doctorID: Number(session?.user?.id),
+                doctor: String(session?.user?.doctorId),
+                clinic: clinicSchedID,
+                filename: String(res.path),
+              },
             });
+            // uploadResult.map(async (v: any) => {
+
+            //   await client.clinicdp.create({
+            //     data: {
+            //       doctorID: Number(session?.user?.id),
+            //       doctor: String(session?.user?.doctorId),
+            //       clinic: clinicSchedID,
+            //       filename: String(v.path),
+            //     },
+            //   });
+            // });
           }
 
           // console.log(clinicSched, 'clinicsched@@');
@@ -561,7 +578,7 @@ export const UpdateClinic = extendType({
       },
       async resolve(_parent, args, _ctx) {
         const createData: any = args?.data;
-
+        const { session } = _ctx;
         try {
           const clinic = await client.clinic.update({
             where: {
@@ -579,7 +596,14 @@ export const UpdateClinic = extendType({
 
           const sFile = await args?.file;
           if (sFile) {
-            const uploadResult = await useUpload(sFile, 'public/documents/');
+
+            const uploadResult: any = await useGoogleStorage(
+              sFile,
+              session?.user?.id,
+              'feeds'
+            );
+
+            // const uploadResult = await useUpload(sFile, 'public/documents/');
             uploadResult.map(async (v: any) => {
               await client.clinicdp.create({
                 data: {

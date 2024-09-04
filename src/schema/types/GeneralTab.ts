@@ -3,6 +3,7 @@ import { GraphQLError } from 'graphql/error/GraphQLError';
 import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads';
 
 export const GeneralTabInput = inputObjectType({
   name: 'GeneralTabInput',
@@ -98,7 +99,6 @@ export const GeneralTabMutation = extendType({
           'QueryAllPrescription'
         );
 
-        console.log(session,'SESSION______________')
 
         switch (session?.user?.role) {
           case 'doctor':
@@ -133,15 +133,17 @@ export const GeneralTabMutation = extendType({
                 const sFile = await args?.file;
 
                 if (sFile?.type !== undefined) {
-                  const res: any = useUpload(sFile, 'public/uploads/');
-                  res?.map(async (v: any) => {
-                    await client.display_picture.create({
-                      data: {
-                        userID: session?.user?.id,
-                        idno: String(result?.EMPID),
-                        filename: String(v!.path),
-                      },
-                    });
+                  const res: any = await useGoogleStorage(
+                    sFile,
+                    session?.user?.id,
+                    'userDisplayProfile'
+                  );
+                  await client.display_picture.create({
+                    data: {
+                      userID: session?.user?.id,
+                      idno: String(result?.EMPID),
+                      filename: String(res!.path),
+                    },
                   });
                 }
 
@@ -197,12 +199,12 @@ export const GeneralTabMutation = extendType({
                 return result;
               });
           } else if (targetTable === 'patient') {
-          
 
-            const { fname, mname, gender, nationality, lname, suffix, address, contact,birthDate }: any =
+
+            const { fname, mname, gender, nationality, lname, suffix, address, contact, birthDate }: any =
               args?.data;
 
-         
+
             const bday = extractDateFromISOString(birthDate);
 
             const updatedData = {
@@ -214,7 +216,7 @@ export const GeneralTabMutation = extendType({
               SUFFIX: suffix,
               HOME_ADD: address,
               CONTACT_NO: contact,
-              BDAY:bday
+              BDAY: bday
             };
 
             const patientId = await client.user.findFirst({
@@ -241,17 +243,21 @@ export const GeneralTabMutation = extendType({
               })
               .then(async (result: any) => {
                 const sFile = await args?.file;
-                console.log(sFile?.type, 'meron ba nto');
+
                 if (sFile?.type !== undefined) {
-                  const res: any = useUpload(sFile, 'public/uploads/');
-                  res?.map(async (v: any) => {
-                    await client.display_picture.create({
-                      data: {
-                        userID: session?.user?.id,
-                        idno: String(result?.IDNO),
-                        filename: String(v!.path),
-                      },
-                    });
+                  // const res: any = useUpload(sFile, 'public/uploads/');
+                  const res: any = await useGoogleStorage(
+                    sFile,
+                    session?.user?.id,
+                    'userDisplayProfile'
+                  );
+
+                  await client.display_picture.create({
+                    data: {
+                      userID: session?.user?.id,
+                      idno: String(result?.IDNO),
+                      filename: String(res!.path),
+                    },
                   });
                 }
 
@@ -267,6 +273,7 @@ export const GeneralTabMutation = extendType({
 
           return responseData;
         } catch (err) {
+          console.log(err)
           return new GraphQLError(err);
         }
       },
