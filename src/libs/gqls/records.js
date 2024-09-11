@@ -374,8 +374,39 @@ export const GET_RECORD_PATIENT = gql`
         patientID
         emrPatientID
         R_DATE
+        patientInfo{
+          S_ID
+          isEMR
+          FNAME
+          MNAME
+          LNAME
+          EMAIL
+          SEX
+          CONTACT_NO
+          SUFFIX
+          AGE
+          IDNO
+          BDAY
+          HOME_ADD
+          BLOOD_TYPE
+          OCCUPATION
+          EMERGENCYNAME
+          EMERGENCYADDRESS
+          EMERGENCYCONTACTNO
+          EMPLOYERSNAME
+          EMPLOYERSADDRESS
+          EMPLOYERSPHONENO
+          EMERGENCYRELATIONSHIP
+          PRIMARYCAREPHYSICIAN
+          REFFERINGPHYSICIAN
+          OTHERPHYSICIAN
+        }
         doctorInfo {
           EMP_FULLNAME
+          LIC_NUMBER
+        }
+        esig{
+          filename
         }
         clinicInfo {
           clinic_name

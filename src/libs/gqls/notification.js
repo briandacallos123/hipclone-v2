@@ -111,13 +111,54 @@ export const notification_query_final = gql`
             ID
           }
           orders {
-            attachment {
+            delivery_history {
+              created_at
               id
+              status_id {
+                id
+                name
+              }
             }
-            brand_name
-            created_at
+            delivery_status{
+              id
+              name
+            }
+            attachment{
+              file_path
+              id
+              filename
+            }
+            value
             dose
+            payment
+            price
+            online_reference
+            status_id
+            form
             generic_name
+            store{
+              name
+            }
+            id
+            is_paid
+            patient {
+              CONTACT_NO
+              EMAIL
+              FNAME
+              HOME_ADD
+              IDNO
+              LNAME
+              MNAME
+              SEX
+              STATUS
+              S_ID
+              isDeleted
+              Attachment
+            }
+            is_deliver
+            brand_name
+            quantity
+            created_at
           }
           appointments {
             Others

@@ -43,36 +43,38 @@ const Default2 = forwardRef((props, ref) => {
        <Image
             alt="logo"
             src="/logo/logo_full.png"
-            height={selected ? 40:25}
-            width={selected ? 120:80}
+            // height={selected ? 40:25}
+            // width={selected ? 120:80}
+            sx={{
+              width:selected?120:80
+            }}
           />
       </Box>
 
       <Grid container gap={2}>
 
-        <Grid item lg={6} justifyContent="center" alignItems="center">
+        <Grid item lg={5} justifyContent="center" alignItems="center">
           <Image
             src={link}
-            width={selected ? 130:120}
-            height={selected ? 120:90}
+            width={selected ? 130:90}
+            // height={selected ? 120:90}
             alt="qr image"
           />
         </Grid>
 
-        <Grid justifyContent="center" alignItems="center" item lg={4} sx={{
+        <Grid justifyContent="center" alignItems="center" item lg={6} sx={{
           width:'100%',
           textAlign:'center',
           mt:selected && 3
         }}>
-          <Stack alignItems="center" justifyContent="center" sx={{ mt: 1, width:'100%' }}>
-            <Typography variant="body2" sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}>{arrName && name}</Typography>
+          <Stack alignItems="center" justifyContent="center" sx={{ my: 1, width:'100%' }}>
+            <Typography variant="body1" sx={{ textTransform: 'capitalize', fontWeight: 'bold' }}>{arrName && name}</Typography>
             <Typography sx={{ textTransform: 'uppercase', fontSize: 10 }} variant="body2" color="gray">{arrSpecialty && specialty}</Typography>
           </Stack>
           <Stack justifyContent="center" alignItems="center">
           <Image
             alt="qr image"
-            width={selected ? 80:50}
-            height={selected ? 80:50}
+            width={selected ? 100:50}
             sx={{
               borderRadius:'50%'
             }}

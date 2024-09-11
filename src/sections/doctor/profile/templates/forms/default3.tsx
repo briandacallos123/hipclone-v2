@@ -62,8 +62,11 @@ const Default3 = forwardRef((props, ref) => {
         <Image
           alt="logo"
           src="/logo/logo_full.png"
-          width={selected ? 120:75}
-          height={selected ? 40:25}
+          // width={selected ? 120:75}
+          // height={selected ? 40:25}
+          sx={{
+            width:selected?120:80
+          }}
 
 
           

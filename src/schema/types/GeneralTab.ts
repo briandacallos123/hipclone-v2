@@ -21,7 +21,7 @@ export const GeneralTabInput = inputObjectType({
     t.nullable.string('address');
     t.nullable.string('contact');
     t.nullable.string('contact');
-    t.nullable.dateTime('birthDate');
+    t.nullable.string('birthDate');
 
   },
 });
@@ -57,8 +57,18 @@ const EmployeeObj = objectType({
   },
 });
 
+function extractDateFromISOString(isoString) {
+  const date = new Date(isoString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function assignEmployees(data) {
-  const { fname, name, mname, email, gender, contact, lname, nationality, suffix, address } = data;
+  const { fname,birthDate, name, mname, email, gender, contact, lname, nationality, suffix, address } = data;
+
+  const bday = extractDateFromISOString(birthDate);
 
   return {
     EMP_FNAME: fname,
@@ -67,19 +77,13 @@ function assignEmployees(data) {
     EMP_EMAIL: email,
     EMP_SEX: gender,
     EMP_NATIONALITY: nationality,
-
+    EMP_DOB:bday,
     EMP_SUFFIX: suffix,
     EMP_ADDRESS: address,
     CONTACT_NO: contact,
   };
 }
-function extractDateFromISOString(isoString) {
-  const date = new Date(isoString);
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
+
 
 export const GeneralTabMutation = extendType({
   type: 'Mutation',

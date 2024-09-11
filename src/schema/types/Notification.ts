@@ -817,7 +817,7 @@ const notifDataFinal = objectType({
         t.nullable.list.field('appointments',{
             type:DoctorAppointments,
             resolve(root){
-                const apptType = [1,3,4,5,6,7,8];
+                const apptType = [1,3,4,5,6,7,8, 18];
                 if(!apptType.includes(root?.notification_type_id)) return null;
                 
                 const data = root.notifData.map((item)=>item?.appointments);
@@ -860,14 +860,41 @@ const notifDataFinal = objectType({
         });
         t.nullable.list.field('orders',{
             type:orderType,
-            resolve(root){
+            async resolve(root){
                 const orderType = [11,12,13,14,15,16,17];
                 
 
                 if(!orderType.includes(root?.notification_type_id)) return null;
-                const data = root.notifData.map((item)=>item?.orders);
+                const result = root.notifData.map((item)=>item?.orders);
+
+                let new_result = result?.map(async (item: any) => {
+                    const store = await client.merchant_store.findUnique({
+                        where: {
+                            id: Number(item?.store_id)
+                        },
+                        include: {
+                            attachment_store: true
+                        }
+                    })
+
+                    const medecine = await client.merchant_medicine.findFirst({
+                        where: {
+                            id: Number(item?.medecine_id)
+                        },
+                    })
+                    const medecine_attachment = await client.medecine_attachment.findFirst({
+                        where: {
+                            id: Number(medecine?.attachment_id)
+                        }
+                    })
+                    return { ...item, store: { ...store }, attachment: { ...medecine_attachment } }
+                })
+
+                new_result = await Promise.all(new_result);
+
+               
      
-                return data
+                return new_result
                 
             }
         });

@@ -36,8 +36,7 @@ export const authOptions: AuthOptions = {
         const { username, password }: any = credentials;
         let user: any;
 
-        console.log(username, password,type, '??')
-
+        
         switch (type) {
           case "admin":
 
@@ -85,12 +84,15 @@ export const authOptions: AuthOptions = {
 
 
         if (!user) {
-          return null;
+         throw new Error("user not exists")
         }
         const hashPass = /^\$2y\$/.test(user.password)
           ? '$2a$' + user.password.slice(4)
           : user.password;
         const valid = bcrypt.compareSync(password, hashPass);
+
+
+     
 
         if (!valid) {
           throw new Error("Invalid Credentials")
@@ -329,7 +331,7 @@ export const authOptions: AuthOptions = {
                   id:Number(userInfo?.emp_card)
                 }
               })
-              emp_card.socials = JSON.parse(emp_card.socials);
+              // emp_card.socials = JSON.parse(emp_card.socials);
 
               // console.log(emp_card,'businessCardbusinessCardbusinessCardbusinessCardbusinessCard')
 
@@ -389,7 +391,7 @@ export const authOptions: AuthOptions = {
               session.user.nationality = userInfo?.EMP_NATIONALITY;
               session.user.contact = userInfo?.CONTACT_NO;
               session.user.address = userInfo?.EMP_ADDRESS;
-              session.user.dateOfBirth = userInfo?.EMP_DOB;
+              session.user.birthDate = userInfo?.EMP_DOB;
               session.user.sex = userInfo?.EMP_SEX;
               session.user.esigFile = esigFile[0];
               session.user.esigDigital = esigDigital[0];

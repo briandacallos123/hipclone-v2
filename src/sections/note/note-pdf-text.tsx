@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { capitalize } from 'lodash';
 import { Page, View, Text, Image, Document, Font, StyleSheet } from '@react-pdf/renderer';
 // _mock
@@ -80,9 +80,13 @@ const useStyles = () =>
 
 type Props = {
   item?: any;
+  imgSrc?: any;
 };
 
-export default function NotePDFText({ item }: Props) {
+export default function NotePDFText({ item, imgSrc }: Props) {
+
+
+
   // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
 
   // const keyDoctor = _doctorList.filter((_) => _.id === item?.doctor.id)[0].doctor;
@@ -122,44 +126,45 @@ export default function NotePDFText({ item }: Props) {
   const ESIG = () => {
     let text: any;
     if (item.doctorInfo?.esig_dp?.[0]?.type === 0) {
-        text = <></>;
+      text = <></>;
     } else if (item.doctorInfo?.esig_dp?.[0]?.type === 1) {
-        text = <>
+      text = <>
         <Image source={item.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
-        </>;
+      </>;
     } else if (item.doctorInfo?.esig_dp?.[0]?.type === 2) {
       text = <>
         <Image source={item.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
-        </>;
-    } 
+      </>;
+    }
     return text;
   };
 
 
-  
+
   const LIC = () => {
     let text: any;
     if (item?.doctorInfo?.PTR_LIC === "") {
-        text = <></>;
+      text = <></>;
     } else if (item?.doctorInfo?.PTR_LIC) {
-        text = <>
-        <Text style={{...styles.body1,fontSize: 8}}>Ptr License No.: {item?.doctorInfo?.PTR_LIC}</Text>
-        </>;
-    } 
+      text = <>
+        <Text style={{ ...styles.body1, fontSize: 8 }}>Ptr License No.: {item?.doctorInfo?.PTR_LIC}</Text>
+      </>;
+    }
     return text;
   };
 
   const S2 = () => {
     let text: any;
     if (item?.doctorInfo?.S2_LIC === "") {
-        text = <></>;
+      text = <></>;
     } else if (item?.doctorInfo?.S2_LIC) {
-        text = <>
-         <Text style={{...styles.body1,fontSize: 8}}>S2 License No.: {item?.doctorInfo?.S2_LIC}</Text>
-        </>;
-    } 
+      text = <>
+        <Text style={{ ...styles.body1, fontSize: 8 }}>S2 License No.: {item?.doctorInfo?.S2_LIC}</Text>
+      </>;
+    }
     return text;
   };
+
 
   return (
     <Document>
@@ -235,7 +240,7 @@ export default function NotePDFText({ item }: Props) {
             <Text style={styles.h4}>Control: #{item?.id}</Text>
           </View>
           <View style={styles.col6}>
-            <Text style={styles.h4}>Date: {formatDate(item?.dateCreated)}</Text>
+            <Text style={styles.h4}>Date: {fDate(item?.R_DATE)}</Text>
           </View>
         </View>
 
@@ -277,28 +282,40 @@ export default function NotePDFText({ item }: Props) {
 
           </View> */}
           {/* <View> */}
-            {/* <Text>{item?.attachment && item?.attachment[0]?.file_name}  yawaaa</Text>
+          {/* <Text>{item?.attachment && item?.attachment[0]?.file_name}  yawaaa</Text>
           </View> */}
 
-          <View style={[styles.stackContainer]}>
+          {/* <View style={[styles.stackContainer]}>
             {item?.attachment && item?.attachment?.map((urlObject: any) => {
                 const url = urlObject?.file_url || '';
                 const parts = url.split('public');
                 const publicPart = parts[1];
-    
-              // const url = urlObject?.file_url || '';
-
-              // if(!url) return <View><Text>No Attachment</Text></View>
-
-              // const parts = url.split('/');
-              // const publicPart = parts?.slice(1).join('/')
-
               return (
                 <View key={url}>
                   <Text style={styles.h4}>{urlObject?.file_name} </Text>
                   <Image
                     source={{ uri: publicPart }} 
                     style={[styles.mb8, { height: 'auto', width: '100%' }]}
+                  />
+                </View>
+              );
+            })}
+          </View> */}
+          <View style={[styles.stackContainer]}>
+            {item?.notes_text && item?.notes_text?.map((urlObject: any) => {
+              const url = urlObject?.file_url || '';
+              const parts = url.split('public');
+              const publicPart = parts[1];
+
+              return (
+                <View key={url}>
+                  {/* <Text style={styles.h4}>breaderrrrrr!!!!!!!</Text> */}
+                  {/* <Text style={styles.h4}>{urlObject?.file_name}</Text> */}
+                  <Image
+                    alt="yes"
+                    // source={{ uri: publicPart }} 
+                    src={imgSrc && imgSrc}
+                    style={[styles.mb8, { height: 300, width: 300 }]}
                   />
                 </View>
               );
@@ -316,9 +333,9 @@ export default function NotePDFText({ item }: Props) {
           </View>
 
           <View style={styles.col5}>
-             {ESIG()}
-            <Text style={{...styles.subtitle2,fontSize: 10}}>{item?.doctorInfo?.EMP_FULLNAME}, {item?.doctorInfo?.EMP_TITLE}</Text>
-            <Text style={{...styles.body1,fontSize: 8}}>License No.: {item?.doctorInfo?.LIC_NUMBER}</Text>
+            {ESIG()}
+            <Text style={{ ...styles.subtitle2, fontSize: 10 }}>{item?.doctorInfo?.EMP_FULLNAME}, {item?.doctorInfo?.EMP_TITLE}</Text>
+            <Text style={{ ...styles.body1, fontSize: 8 }}>License No.: {item?.doctorInfo?.LIC_NUMBER}</Text>
             {LIC()}
             {S2()}
           </View>

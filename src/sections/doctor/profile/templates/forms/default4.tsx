@@ -21,7 +21,7 @@ const Default4 = forwardRef((props, ref) => {
   const componentRef = useRef(null);
   const [imgSrc, setImgSrc]: any = useState(null)
 
-  const { contact: arrContact, email: arEmail, name: arrName, address: arrAddress, specialty: arrSpecialty } = arr;
+  const { contact: arrContact, email: arEmail, refname: arrName, address: arrAddress, specialty: arrSpecialty } = arr;
 
   // useEffect(() => {
   //   (async () => {
@@ -82,9 +82,11 @@ const Default4 = forwardRef((props, ref) => {
             src="/logo/logo_full.png"
             // width={75}
             // height={25}
-
-            width={selected ? 125:75}
-            height={selected ? 40:25}
+            sx={{
+              width:selected?120:80
+            }}
+            // width={selected ? 125:75}
+            // height={selected ? 40:25}
 
             // height={selected ? 35}
           />

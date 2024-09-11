@@ -52,7 +52,7 @@ type Props = {
   ids: any;
 };
 
-export default function NoteTableRow({ row, ids }: any) {
+export default function NoteTableRow({ row, ids, onViewRow}: any) {
   const view = useBoolean();
   const upMd = useResponsive('up', 'md');
   // const { textData, medClearData, medCertData, AbstractData, VaccData } = useNotesHooks(row);
@@ -447,7 +447,7 @@ export default function NoteTableRow({ row, ids }: any) {
 
         <TableCell align="center" sx={{ px: 1 }}>
           <Tooltip title="View Details" placement="top" arrow>
-            <IconButton onClick={view.onTrue}>
+            <IconButton onClick={onViewRow}>
               <Iconify icon="solar:clipboard-text-bold" />
             </IconButton>
           </Tooltip>

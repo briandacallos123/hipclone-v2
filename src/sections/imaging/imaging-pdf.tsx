@@ -57,9 +57,10 @@ const useStyles = () =>
 type Props = {
   item?: any;
   patientData?: any;
+  img?:any
 };
 
-export default function ImagingPDF({ patientData, item: DataItem }: Props) {
+export default function ImagingPDF({img, patientData, item: DataItem }: Props) {
   const [item, setItem] = useState(DataItem);
 
   useEffect(() => {
@@ -165,7 +166,7 @@ export default function ImagingPDF({ patientData, item: DataItem }: Props) {
           </View>
         </View>
 
-        <View style={[styles.stackContainer, styles.mb40]}>
+        <View style={[styles.stackContainer]}>
           {item?.labreport_attachments?.map((urlObject: any) => {
             const url = urlObject?.file_url || '';
             const parts = url.split('public');
@@ -175,8 +176,9 @@ export default function ImagingPDF({ patientData, item: DataItem }: Props) {
               <View key={url}>
                 {/* <Text style={styles.h5}>{urlObject?.file_name} </Text>  */}
                 <Image
-                  source={{ uri: publicPart }}
-                  style={[styles.mb8, { maxHeight: '70%', maxWidth: '80%' }]}
+                  // source={{ uri: publicPart }}
+                  source={{ uri: img }}
+                  style={[ { height: 200, width: 200 }]}
                 />
               </View>
             );

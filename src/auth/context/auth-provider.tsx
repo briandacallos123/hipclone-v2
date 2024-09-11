@@ -168,12 +168,18 @@ function NextAuthProvider({ children }: Props) {
       password,
       type
     });
+
+
     if (result?.error) {
-      // throw new Error(`Invalid Username / Email or Password`);
+      console.log(result?.error,'ERRORRRRRRRRRRR')
+
+      throw new Error(`Invalid Username / Email or Password`);
     }
+    
 
     const response = await axios.get('/api/auth/session/');
     const { user } = response.data;
+
 
     // let's add user id on session storage since we need it for push notification.
     localStorage.setItem('prevUserId', JSON.stringify({

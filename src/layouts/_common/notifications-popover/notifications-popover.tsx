@@ -39,6 +39,7 @@ import NotificationSkeleton from './NotificationSkeleton';
 import { useRouter } from 'next/navigation';
 import { useAuthContext } from '@/auth/hooks';
 import NotificationItemFinal from './notification-item-final';
+import OrderView from '@/sections/merchant/orders/view/merchant-view';
 // import NotificationsPopoverFinal from './notifications-popover-final';
 // ----------------------------------------------------------------------
 
@@ -83,6 +84,11 @@ export default function NotificationsPopover({ queryResults, notificationData, i
   ];
 
   const openView = useBoolean();
+
+  const openOrderView = useBoolean();
+
+
+
 
 
   const drawer = useBoolean();
@@ -169,6 +175,9 @@ export default function NotificationsPopover({ queryResults, notificationData, i
   );
 
   const [viewId, setViewId] = useState(null);
+
+  const [orderView, setOrderView] = useState(null);
+
   const [chatView, setChatView] = useState({
     open: false,
     id: null
@@ -188,9 +197,8 @@ export default function NotificationsPopover({ queryResults, notificationData, i
       d?.notification_type === 'approved order' || d?.notification_type === 'Your order was delivered!' ||
       d?.notification_type === 'Sorry your order was delivery unsuccessfully!' || d?.notification_type === 'Your order is on its way!' || d?.notification_type === 'Your order is waiting for pick up!'
 
-    let isApptRelated = d?.notification_type === 'done appointment' || d?.notification_type === 'to approve appointment' || d?.notification_type === 'approved appointment' || d?.notification_type === 'cancelled appointment' ||  d?.notification_type === 'Marked as your appointment as paid!'
-    
-    
+    let isApptRelated = d?.notification_type === 'done appointment' || d?.notification_type === 'to approve appointment' || d?.notification_type === 'approved appointment' || d?.notification_type === 'cancelled appointment' || d?.notification_type === 'Marked as your appointment as paid!' || d?.notification_type === 'sent payment'
+
 
 
     if (d?.notification_type === 'sent a message' || d?.notification_type === 'reply a message') {
@@ -204,10 +212,26 @@ export default function NotificationsPopover({ queryResults, notificationData, i
       }
     } else if (d?.notification_type === 'post feed') {
       navigate.push(paths.dashboard.feeds)
-    }else if(isApptRelated){
-      navigate.push(paths.dashboard.appointment?.root)
+    } else if (isApptRelated) {
+      if (d?.length > 1) {
+        navigate.push(paths.dashboard.appointment?.root)
+      } else {
+        openView.onTrue()
+        setViewId(d?.appointments[0])
+      }
     } else if (isOrderRelated) {
-      navigate.push(paths.dashboard.orders.root)
+      if (d?.length > 1) {
+        navigate.push(paths.dashboard.orders.root)
+      } else {
+        openOrderView.onTrue();
+        setOrderView(d?.orders[0])
+        // setChatView({
+        //   open: true,
+        //   id: d?.chat_id
+        // })
+      }
+      // n
+
     }
     else {
       // if(d?.many_appt?.length || (d?.group_child?.length && !d?.chat_id) || d?.siblings !== 0){
@@ -218,9 +242,11 @@ export default function NotificationsPopover({ queryResults, notificationData, i
       //   openView.onTrue();
       // }
     }
-    handleReadFunc({
-      notifIds: d?.notifIds
-    })
+    if (!d?.is_read) {
+      handleReadFunc({
+        notifIds: d?.notifIds
+      })
+    }
 
     // handleReadFunc({
     //   id:Number(d?.id),
@@ -245,6 +271,20 @@ export default function NotificationsPopover({ queryResults, notificationData, i
 
         {currentTab === 'all' &&
           notificationData.map((notification: any) => (
+            <NotificationItemFinal
+              onViewRow={() => {
+                handleViewRow(notification)
+              }}
+              onReadView={() => {
+                handleReadView(notification)
+              }}
+              key={notification.id}
+              notification={notification}
+            />
+          ))
+        }
+        {currentTab !== 'all' && totalUnRead >= 0 &&
+          unreadData.map((notification: any) => (
             <NotificationItemFinal
               onViewRow={() => {
                 handleViewRow(notification)
@@ -325,8 +365,11 @@ export default function NotificationsPopover({ queryResults, notificationData, i
           open={openView.value}
           onClose={openView.onFalse}
           id={viewId}
-          notif={true}
+          notif={false}
         />}
+
+        <OrderView dataView={orderView} open={openOrderView.value} onClose={openOrderView.onFalse} />
+
         <Table>
           {queryResults.loading && !notificationData?.length && [...Array(5)].map((_, i) => <NotificationSkeleton key={i} />)}
         </Table>

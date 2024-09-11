@@ -35,31 +35,6 @@ function getAvatar(image:any){
 export default function NotificationAppointment({data, handleReadFunc, isLoading}:any) {
   const navigate = useRouter();
   const openView = useBoolean();
-  const notification_data = data?.map((item:any)=>{
-    return{
-      userName:item?.user?.name,
-      id:item?.id,
-      isUnRead:item?.is_read === 1 ? true:false,
-      title:item?.notification_content?.content,
-      createdAt:item?.created_at,
-      avatarUrl:getAvatar(item?.user?.avatarAttachment?.filename),
-      type:item?.notification_type_id?.title,
-      appt_id: Number(item?.appt_data?.id),
-      chat_id:item?.chat_id,
-      many_chat:item?.is_many_chat,
-      chat_count:item?.chat_length,
-      child:item?.children,
-      many_appt:item?.appt_data?.id && item?.children,
-      appt_count:item?.appt_count,
-      isPatient:item?.isPatient,
-      is_group_count: item?.group_child?.length && item?.group_child?.length + 1 || 0,
-      group_child:item?.group_child || []
-      // appt_approved:notificationData?.data?.apprChild?.length && notificationData?.data?.apprChild?.length + 1 ,
-      // appt_cancelled:notificationData?.data?.cancelChild?.length && notificationData?.data?.cancelChild?.length + 1,
-      // appt_done:notificationData?.data?.doneChild?.length && notificationData?.data?.doneChild?.length + 1
-    }
-  })
-  
 
   const [viewId, setViewId] = useState(null);
 
@@ -106,10 +81,10 @@ export default function NotificationAppointment({data, handleReadFunc, isLoading
 
     <List disablePadding>
       <Table>
-        {isLoading && !notification_data?.length && [...Array(5)].map((_, i) => <NotificationSkeletons key={i} />)}
+        {isLoading && [...Array(5)].map((_, i) => <NotificationSkeletons key={i} />)}
       </Table>
 
-      {notification_data?.map((notifications:any) => (
+      {data?.map((notifications:any) => (
         <NotificationItem handleView={()=>{
           handleViewRow(notifications)
         }} key={notifications?.id} notification={notifications} />
@@ -137,40 +112,121 @@ type NotificationItemProps = {
 
 function NotificationItem({ notification, handleView }: any) {
 
-  console.log(notification,'_________________________________########################_________________________')
+  // console.log(notification,'_________________________________########################_________________________')
   const renderAvatar = (
     <ListItemAvatar>
-      {notification?.avatarUrl ? (
-        <Avatar src={notification.avatarUrl} sx={{ bgcolor: 'background.neutral' }} />
-      ) : (
-        <Stack
-          alignItems="center"
-          justifyContent="center"
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: '50%',
-            bgcolor: 'background.neutral',
-          }}
-        >
-          <Box
-            component="img"
-            src="/assets/icons/notification/ic_file.svg"
-            sx={{ width: 24, height: 24 }}
-          />
-        </Stack>
-      )}
+      <Stack
+        alignItems="center"
+        justifyContent="center"
+        sx={{
+          width: 40,
+          height: 40,
+          borderRadius: '50%',
+          bgcolor: 'background.neutral',
+        }}
+      >
+
+        <Box
+          component="img"
+          src={`/assets/icons/notification/${(notification?.notification_type === 'approved appointment' && 'ic_file') ||
+            (notification?.notification_type === 'done appointment' && 'ic_file') ||
+            (notification?.notification_type === 'cancelled appointment' && 'ic_file_deleted') ||
+            (notification?.notification_type === 'to approve appointment' && 'ic_file') ||
+            (notification?.notification_type === 'delivery' && 'ic_delivery') ||
+            (notification?.notification_type === 'sent a message' && 'ic_chat') ||
+            (notification?.notification_type === 'sent payment' && 'ic_payment') ||
+            (notification?.notification_type === 'reply a message' && 'ic_chat') ||
+            (notification?.notification_type === 'post feed' && 'ic_post') ||
+            (notification?.notification_type === 'approved order' && 'order') ||
+            (notification?.notification_type === 'cancelled order' && 'order') ||
+            (notification?.notification_type === 'done order' && 'order') ||
+            (notification?.notification_type === 'Your order is waiting for pick up!' && 'order') ||
+            (notification?.notification_type === 'Your order is waiting for pick up!' && 'order') ||
+            (notification?.notification_type === 'Your order is on its way!' && 'order') ||
+            (notification?.notification_type === 'Sorry your order was delivery unsuccessfully!' && 'order') ||
+            (notification?.notification_type === 'Your order was delivered!' && 'order')||
+            (notification?.notification_type === 'Marked as your appointment as paid!' && 'ic_payment') ||
+            (notification?.notification_type === 'created prescription' && 'ic_prescription')
+            
+            
+          }.svg`}
+          sx={{ width: 24, height: 24 }}
+        />
+      </Stack>
+    
     </ListItemAvatar>
   );
 
  
-  const message = (notification?.group_child?.length && notification?.chat_id && `<p>You've read these ${notification?.is_group_count} messages</p>`) ||
-  (notification?.group_child?.length && !notification?.chat_id && `<p>You've read these ${notification?.is_group_count} appointment updates</p>`) ||
-  (!notification?.many_chat && !notification?.many_appt && `<p><strong>${notification?.userName} </strong>${notification?.title}</p>`) ||
-  (notification?.many_appt && notification?.isPatient && `<p>You have <strong>${notification?.appt_count} new updates from your appointments</strong></p>`) ||
-  (notification?.many_appt && `<p>You have <strong>${notification?.appt_count} pending appointments</strong></p>`) ||
-  (notification?.many_chat && `<p>You have <strong>${notification?.chat_count} unread messages</strong></p>`)
-  ;
+  const message =
+    // appointment&& for approval && not read && length is > 1
+    (notification?.notification_type === 'to approve appointment' && notification?.length === 1 && `<p>${notification?.user}</strong> book an appointment<strong></p>`) ||
+
+
+    // appointment&& for approval && not read && length is > 1
+    (notification?.notification_type === 'to approve appointment' && notification?.length > 1 && `<p>${notification?.user}</strong> booked ${notification?.length} appointments<strong></p>`) ||
+
+
+    // appointment&& already approved && not read && length is === 1
+    (notification?.notification_type === 'approved appointment' && notification?.length === 1 && `<p>${notification?.user}</strong> already approved your appointment</p>`) ||
+    // appointment&& already approved && not read && length is > 1
+    (notification?.notification_type === 'approved appointment' && notification?.length > 1 && `<p>${notification?.user}</strong> already approved your ${notification?.length} appointments</p>`) ||
+    // chat && already approved && not read && length is > 1
+    (notification?.notification_type === 'sent a message' && notification?.length > 1 && `<p>${notification?.user}</strong> sent you ${notification?.length} messages</p>`) ||
+    // chat && already approved && not read && length is === 1
+    (notification?.notification_type === 'sent a message' && notification?.length === 1 && `<p>${notification?.user}</strong> sent you a message</p>`) ||
+    //post feed && length === 1
+    (notification?.notification_type === 'post feed' && notification?.length === 1 && `<p>${notification?.user}</strong> have a new post</p>`) ||
+    //post feed && length > 1
+    (notification?.notification_type === 'post feed' && notification?.length > 1 && `<p>You're missing ${notification?.length} new post by <strong>${notification?.user}</strong></p>`) ||
+    //sent payment && length > 1
+    (notification?.notification_type === 'sent payment' && notification?.length > 1 && `<p>${notification?.user}</strong> sent ${notification?.length} appointment payments</p>`) ||
+    //sent payment && length === 1
+    (notification?.notification_type === 'sent payment' && notification?.length === 1 && `<p>${notification?.user}</strong> sent a payment</p>`) ||
+    //sent reply && length > 1
+    (notification?.notification_type === 'reply a message' && notification?.length > 1 && `<p>${notification?.user}</strong> reply ${notification?.length} new messages</p>`) ||
+    //sent reply && length > 1
+    (notification?.notification_type === 'reply a message' && notification?.length === 1 && `<p>${notification?.user}</strong> sent a reply message</p>`) ||
+    //done appt && length === 1
+    (notification?.notification_type === 'done appointment' && notification?.length === 1 && `<p>${notification?.user} (Doctor)</strong> marked your appointment as done!</p>`) ||
+    //done appt && length === 1
+    (notification?.notification_type === 'done appointment' && notification?.length > 1 && `<p>${notification?.user} (Doctor)</strong> marked your ${notification?.length} appointments as done!</p>`) ||
+     //done appt && length === 1
+    (notification?.notification_type === 'approved order' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your order as <strong>approved</strong>!</p>`) ||
+    //done appt && length > 1
+    (notification?.notification_type === 'approved order' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your ${notification?.length} order as <strong>approved</strong>!</p>`) || 
+       //done appt && length > 1
+    (notification?.notification_type === 'cancelled order' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your order as <strong>cancelled</strong>!</p>`) ||
+    (notification?.notification_type === 'cancelled order' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your ${notification?.length} order as <strong>cancelled</strong>!</p>`) ||
+
+    (notification?.notification_type === 'done order' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your order as <strong>done</strong>!</p>`) ||
+
+    (notification?.notification_type === 'done order' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> marked your ${notification?.length} order as <strong>done</strong>!</p>`) ||
+    // order, 
+    (notification?.notification_type === 'Your order is waiting for pick up!' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> ${notification?.notification_type}</p>`) ||
+    // order, length > 1
+    (notification?.notification_type === 'Your order is waiting for pick up!' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> Your ${notification?.length} order is waiting for pick up!</p>`) ||
+    // order, length > 1
+    (notification?.notification_type === 'Your order is on its way!' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> ${notification?.notification_type}</p>`) ||
+    // order, length > 1
+    (notification?.notification_type === 'Your order is on its way!' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> Your ${notification?.length} are on its way!</p>`)  ||
+ // order, length > 1
+ (notification?.notification_type === 'Sorry your order was delivery unsuccessfully!' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> Sorry your order wasn't delivered successfully! </p>`) ||
+// order, length > 1
+(notification?.notification_type === 'Sorry your order was delivery unsuccessfully!' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> Sorry your ${notification?.length} orders was delivered unsuccessfully! </p>`) ||
+// order, length > 1
+(notification?.notification_type === 'Your order was delivered!' && notification?.length === 1 && `<p><strong>${notification?.user} (Merchant) </strong> ${notification?.notification_type} </p>`) ||
+(notification?.notification_type === 'Your order was delivered!' && notification?.length > 1 && `<p><strong>${notification?.user} (Merchant) </strong> Your ${notification?.length} order was delivered! </p>`)  ||
+
+// cancelled, length === 1
+(notification?.notification_type === 'cancelled appointment' && notification?.length === 1 && `<p><strong>${notification?.user} (Doctor) </strong>marked your appointment as cancelled! </p>`) ||
+(notification?.notification_type === 'cancelled appointment' && notification?.length > 1 && `<p><strong>${notification?.user} (Doctor) </strong>marked your ${notification?.length} appointment as cancelled! </p>`) ||
+// doctor's approved patient payment, length === 1
+(notification?.notification_type === 'Marked as your appointment as paid!' && notification?.length === 1 && `<p><strong>${notification?.user} (Doctor) </strong>marked your appointment as paid! </p>`) ||
+(notification?.notification_type === 'Marked as your appointment as paid!' && notification?.length > 1 && `<p><strong>${notification?.user} (Doctor) </strong>marked your ${notification?.length} appointment as paid! </p>`) || 
+
+(notification?.notification_type === 'created prescription' && notification?.length === 1 && `<p><strong>${notification?.user} (Doctor)</strong created new prescription for you!</p>`) 
+;
    
 
   const renderText = (

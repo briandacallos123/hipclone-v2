@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { FieldClinics } from './DoctorClinics';
+import { Clinics } from './ClinicSched';
 
 const client = new PrismaClient();
 
@@ -764,7 +765,7 @@ export const QueryAllPrescription = extendType({
         const { take, skip, orderBy, orderDir, uuid }: typeof data = data;
 
         const whereconditions = filters(args);
-        console.log(whereconditions, 'WHEREEEEEEEEEEEEEEEEEEEEEE????')
+        // console.log(whereconditions, 'WHEREEEEEEEEEEEEEEEEEEEEEE????')
         let order: any;
         switch (args?.data!.orderBy) {
           case 'date':
@@ -1344,7 +1345,7 @@ export const MutationPrescription = extendType({
               },
             });
 
-            
+
 
             return newChild;
           });
@@ -1390,7 +1391,7 @@ export const MutationPrescription = extendType({
             doctorInfo: doctorEmployee,
           };
 
-         
+
 
           return res;
         } catch (err) {
@@ -1401,3 +1402,63 @@ export const MutationPrescription = extendType({
     });
   },
 });
+
+
+// const QueryAllPrescriptionClinicDataInp = inputObjectType({
+//   name: "QueryAllPrescriptionClinicDataInp",
+//   definition(t) {
+//     t.string('uuid');
+//     t.
+//   },
+// })
+
+// const QueryAllPrescriptionClinicDataObj = objectType({
+//   name: "QueryAllPrescriptionClinicDataObj",
+//   definition(t) {
+//     t.list.field('clinicData', {
+//       type: Clinics
+//     })
+//   },
+// })
+
+// export const QueryAllPrescriptionClinicData = extendType({
+//   type: 'Query',
+//   definition(t) {
+//     t.nullable.field('QueryAllPrescriptionClinicData', {
+//       type: QueryAllPrescriptionClinicDataObj,
+//       args: { data: QueryAllPrescriptionClinicDataInp! },
+//       async resolve(_root, args, _ctx) {
+
+//         const {session} = _ctx;
+
+//         const checkUser = (() => {
+//           if (session?.user?.role === 'secretary')
+//             return {
+//               doctorID: session?.user?.permissions?.doctorID,
+//             };
+//           return {
+//             doctorID: session?.user?.id,
+//           };
+//         })();
+
+//         const user = await client.user.findFirst({
+//           where: {
+//             uuid: args?.data?.uuid
+//           }
+//         })
+
+//         const patient = await client.patient.findFirst({
+//           where: {
+//             EMAIL: user?.email
+//           }
+//         });
+
+//         const pres = await client.prescriptions.findMany({
+//           where: {
+
+//           }
+//         })
+//       }
+//     })
+//   }
+// })

@@ -13,6 +13,12 @@ import { LogoFull } from '@/components/logo';
 import { renderComponents } from '../doctor/profile/templates';
 import html2canvas from 'html2canvas';
 import { useAuthContext } from '@/auth/hooks';
+import Image from '@/components/image';
+// import domtoimage from 'dom-to-image';
+import Main from '../doctor/profile/templates/forms/main'
+import { Paper } from '@mui/material';
+import canvg from 'canvg';
+import axios from 'axios';
 
 const Transition = React.forwardRef(function Transition(props, ref) {
   return <Slide direction="up" ref={ref} {...props} />;
@@ -21,6 +27,21 @@ const Transition = React.forwardRef(function Transition(props, ref) {
 export default function DashboardQrView({ open, link, onClose, generate }: any) {
   const { user } = useAuthContext();
   const { address, contact, email, name, occupation, template_id } = user?.employee_card;
+  const element = React.useRef()
+
+  const [socials, setSocials] = React.useState({ facebook: "", twitter: "" });
+
+  // console.log(socials,'SOCIALSSSSSSSSS SA MAIN!!!!!!!!')
+
+  React.useEffect(() => {
+    if (user?.employee_card && user?.employee_card?.social) {
+      const data = JSON.parse(user?.employee_card?.social);
+      setSocials({
+        facebook: data?.facebook,
+        twitter: data?.twitter
+      })
+    }
+  }, [user])
 
   const [checkedValues, setCheckedValues] = React.useState({
     name: true,
@@ -37,11 +58,11 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
     onClose();
   };
 
-  const handleDownload = () => {
-    const element = document.getElementById('downloadable-content');
+  const handleDownload = async () => {
 
-    if (element) {
-      html2canvas(element).then((canvas) => {
+
+    if (element.current) {
+      html2canvas(element.current).then((canvas) => {
         const imgData = canvas.toDataURL('image/png');
         const link = document.createElement('a');
         link.href = imgData;
@@ -50,6 +71,39 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
       });
     }
   };
+
+  const [imgSrc, setImgSrc] = React.useState<string | undefined>(undefined);
+
+  React.useEffect(() => {
+    (async () => {
+      try {
+        const response = await fetch('/api/getImage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: user?.photoURL
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        setImgSrc(objectUrl);
+
+        // Clean up object URL on component unmount
+        return () => {
+          URL.revokeObjectURL(objectUrl);
+        };
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    })();
+  }, [user?.photoURL]);
 
   return (
     <React.Fragment>
@@ -78,15 +132,22 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
           </Toolbar>
         </AppBar>
 
-        <Box sx={{
-          width: 800,
+
+        <Paper sx={{
+          width: { xs: '100%', lg: 1100 },
           margin: '0 auto',
-          pt: 10,
-          height: '100%',
-        }}>
+          marginTop: 10,
+          height: 'auto',
+          // p: { xs: 5, lg: 3 }
+          py:{
+            xs:5,
+            lg:5
+          }
+        }} elevation={12}>
           <Stack justifyContent="flex-end" direction="row" gap={2} sx={{
             width: '100%',
-            mb: 2
+            mb: 5,
+            pr:10
           }}>
             <Button sx={{}} onClick={generate} variant="outlined">
               Generate
@@ -96,30 +157,56 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
             </Button>
           </Stack>
 
-          <Box id="downloadable-content" sx={{
-            width: "100%",
+          <Paper elevation={12}
+          sx={{
+            width: { xs: '100%', lg: 700 },
+            p: { xs: 5, lg: 3 },
+            margin:'0 auto',
+            marginBottom:10
           }}>
-            {renderComponents?.filter((item) => Number(item?.id) === Number(template_id))?.map(({ component: Component, id }) => {
-              return (
-                <Box key={id} sx={{
-                  width: "100%",
-                  height: '100%'
-                }}>
-                  <Component
+            <Box sx={{
+              width: "100%",
+            }}>
+              {name ? renderComponents?.filter((item) => Number(item?.id) === Number(template_id))?.map(({ component: Component, id }) => {
+                return (
+                  <Box key={id} sx={{
+                    width: "100%",
+                    // height: '100%'
+                  }}>
+                    <Component
+                      ref={element}
+                      isSelected={true}
+                      arr={checkedValues}
+                      email={email}
+                      facebook={socials?.facebook}
+                      twitter={socials?.twitter}
+                      selected={true}
+                      contact={contact}
+                      address={address}
+                      photo={imgSrc} link={link} title={"test"} name={name} specialty={occupation}
+                    />
+                  </Box>
+                )
+              }) :
+                <>
+                  <Main
                     isSelected={true}
+                    ref={element}
                     arr={checkedValues}
-                    email={email}
+                    email={user?.email}
+                    facebook={socials?.facebook}
+                    twitter={socials?.twitter}
                     selected={true}
-                    contact={contact}
-                    address={address}
-                    photo={user?.photoURL} link={link} title={"test"} name={name} specialty={occupation}
+                    contact={user?.contact}
+                    address={user?.address}
+                    photo={imgSrc} link={link} title={"test"} name={user?.displayName} specialty={user?.occupation}
                   />
-                </Box>
-              )
-            })}
-          </Box>
+                </>
+              }
+            </Box>
+          </Paper>
+        </Paper>
 
-        </Box>
       </Dialog>
     </React.Fragment>
   );

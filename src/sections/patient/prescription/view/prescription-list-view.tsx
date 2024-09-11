@@ -74,6 +74,7 @@ const defaultFilters = {
   hospital: [],
   startDate: null,
   endDate: null,
+  reset:false
 };
 
 // ----------------------------------------------------------------------
@@ -174,7 +175,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
       });
       setIsLoading(false);
     }
-  }, [prescriptionData]);
+  }, [prescriptionData, filters.reset]);
 
 
   const queryData = () => {
@@ -308,7 +309,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
     filters.startDate,
     filters.endDate,
     filters.hospital,
-
+    filters.reset,
     order,
     orderBy,
     page,
@@ -371,7 +372,15 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   );
 
   const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
+    setFilters({
+      
+      name: '',
+      hospital: [],
+      startDate: null,
+      endDate: null,
+      reset:false
+
+    });
   }, []);
 
   return (

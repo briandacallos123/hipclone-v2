@@ -194,3 +194,27 @@ mutation emr_mutation_lab_report_att($data: emr_lab_report_request!,$file: Uploa
   }
 }
 `;
+
+
+export const labreport_clinic_data = gql`
+  query queryLabreportClinics($data:queryLabreportClinicsInp!){
+    queryLabreportClinics(data: $data){
+      clinicData {
+        Province
+        clinic_name
+        doctorID
+        doctor_idno
+        id
+        isDeleted
+        location
+        number
+        clinicDPInfo {
+          clinic
+          date
+          doctorID
+          filename
+        }
+      }
+    }
+  }
+`;

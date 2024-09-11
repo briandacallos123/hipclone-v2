@@ -40,7 +40,7 @@ export default function ProfileVitalCreateView({openCategory, addedCategory, ope
 
       <Stack direction="row" sx={{pr:2}} alignItems="center" justifyContent="space-between">
         <DialogTitle>Add New Vital Reading</DialogTitle>
-        <Button onClick={openCategory} startIcon={<Iconify icon="mingcute:add-line" />} variant="contained">Add New Vital Category</Button>
+        {/* <Button onClick={openCategory} startIcon={<Iconify icon="mingcute:add-line" />} variant="contained">Add New Vital Category</Button> */}
       </Stack>
 
       <ProfileVitalNewEditForm addedCategory={addedCategory} onClose={onClose} items={items} refetch={refetch} user={user} />

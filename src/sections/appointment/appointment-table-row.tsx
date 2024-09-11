@@ -244,11 +244,12 @@ export default function AppointmentTableRow({
           secondary={(() => {
             let time: any;
 
-            if (row?.e_time) {
-              time = `${convertTime(row?.time_slot)} - ${convertTime(row?.e_time)}`
-            } else {
-              time = convertTime(row?.time_slot)
-            }
+            time = convertTime(row?.time_slot)
+            // if (row?.e_time) {
+            //   time = `${convertTime(row?.time_slot)} - ${convertTime(row?.e_time)}`
+            // } else {
+            //   time = convertTime(row?.time_slot)
+            // }
 
             return time;
           })()}

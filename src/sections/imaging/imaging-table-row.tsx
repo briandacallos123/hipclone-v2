@@ -37,9 +37,10 @@ import { Stack } from '@mui/material';
 type Props = {
   row: any;
   patientData: any;
+  handleView?:any;
 };
 
-export default function ImagingTableRow({ patientData, row }: any) {
+export default function ImagingTableRow({ patientData, row, handleView }: any) {
   const pathname = usePathname();
   const isEMR = pathname.includes('my-emr');
   const upMd = useResponsive('up', 'md');
@@ -236,7 +237,7 @@ export default function ImagingTableRow({ patientData, row }: any) {
               }
               color="primary"
             >
-              <IconButton onClick={view.onTrue}>
+              <IconButton onClick={handleView}>
                 <Iconify icon="solar:clipboard-text-bold" />
               </IconButton>
             </Badge>
@@ -262,7 +263,7 @@ export default function ImagingTableRow({ patientData, row }: any) {
               }
               color="primary"
             >
-              <IconButton onClick={view.onTrue}>
+              <IconButton onClick={handleView}>
                 <Iconify icon="solar:clipboard-text-bold" />
               </IconButton>
             </Badge>
@@ -278,7 +279,7 @@ export default function ImagingTableRow({ patientData, row }: any) {
               }
               color="primary"
             >
-              <IconButton onClick={view.onTrue}>
+              <IconButton onClick={handleView}>
                 <Iconify icon="solar:clipboard-text-bold" />
               </IconButton>
             </Badge>

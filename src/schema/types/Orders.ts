@@ -425,12 +425,6 @@ export const QueryAllPatientOrders = extendType({
                 })
 
                 new_result = await Promise.all(new_result)
-
-                // console.log(new_result,'HASHAHAHA')
-                // t.nullable.int('pending');
-                // t.nullable.int('cancelled');
-                // t.nullable.int('done');
-                // t.nullable.int('approved');
                 return {
                     orderType: new_result,
                     totalRecords,

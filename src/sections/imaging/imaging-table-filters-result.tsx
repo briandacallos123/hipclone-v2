@@ -57,7 +57,7 @@ export default function ImagingTableFiltersResult({
       {!!filters.clinic.length && (
           <Block label="Hospital:">
             {filters.clinic.map((item : any) => {
-              const info : any = hospitalOptions.find((v:any)=> v?.id === item)
+              const info : any = hospitalOptions?.find((v:any)=> v?.id === item)
               return (
                 <Chip
                   key={info?.id}

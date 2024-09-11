@@ -16,6 +16,8 @@ import { _hospitals, HOSPITAL_OPTIONS } from 'src/_mock';
 // types
 import { IImagingItem, IImagingTableFilters, IImagingTableFilterValue } from 'src/types/document';
 // components
+import PatientImagingPDF from '../imaging-pdf';
+
 import Scrollbar from 'src/components/scrollbar';
 import { isDateError } from 'src/components/custom-date-range-picker';
 import {
@@ -39,14 +41,18 @@ import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import { labreport_patient_data } from '@/libs/gqls/labreport_patient';
 // import { labreport_emr_patient_data } from '@/libs/gqls/labreport_emr_patient';
-import { emr_labreport_patient_data } from '@/libs/gqls/labreport_emr_patient';
-import { DR_CLINICS } from '@/libs/gqls/drprofile';
+import { emr_labreport_patient_data, labreport_clinic_data } from '@/libs/gqls/labreport_emr_patient';
+import { DoctorClinicsHistory, DR_CLINICS } from '@/libs/gqls/drprofile';
 import { get_note_vitals } from '@/libs/gqls/notes/notesVitals';
 //
 
 //
 import { usePathname, useParams } from 'src/routes/hook';
 import { useSessionStorage } from '@/hooks/use-sessionStorage';
+import { Box, Button, Dialog, DialogActions } from '@mui/material';
+import { LogoFull } from '@/components/logo';
+import { PDFViewer } from '@react-pdf/renderer';
+import { useBoolean } from '@/hooks/use-boolean';
 //
 // ----------------------------------------------------------------------
 
@@ -65,6 +71,8 @@ const defaultFilters = {
   clinic: [],
   startDate: null,
   endDate: null,
+  reset:false
+
 };
 
 // ----------------------------------------------------------------------
@@ -94,6 +102,9 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
       notifyOnNetworkStatusChange: true,
     }
   );
+
+
+
 
   useEffect(() => {
     dadad({
@@ -132,6 +143,7 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
   const upMd = useResponsive('up', 'md');
 
   const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
+  const view = useBoolean();
 
   // const [tableData] = useState(data);
   const [total, setTotal] = useState(0);
@@ -176,16 +188,40 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
     },
     [table]
   );
+
+  const {
+    data: drClinicData,
+    error: drClinicError,
+    loading: drClinicLoad,
+    refetch: drClinicFetch,
+  }: any = useQuery(labreport_clinic_data,{
+    variables: {
+      data: {
+        uuid: id,
+      },
+    },
+  });
+
+
   useEffect(() => {
     if (isRefetch) {
       labRefetch().then(() => {
         setRefetch(false);
       });
+      drClinicFetch()
+
     }
   }, [isRefetch]);
 
   const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
+    setFilters({
+      name: '',
+      clinic: [],
+      startDate: null,
+      endDate: null,
+      reset:false
+    
+    });
   }, []);
 
   // const pathname = usePathname();
@@ -232,7 +268,7 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
         setTableData1(labreport_patient_data?.labreport_patient);
         setTotal(labreport_patient_data?.total_records);
         setIsClinic(isClinic + 1);
-        setclinicData(labreport_patient_data?.clinic)
+        // setclinicData(labreport_patient_data?.clinic)
       } else {
         const { emr_labreport_patient_data } = data;
         setTableData1(emr_labreport_patient_data?.e_labreport_patient);
@@ -241,26 +277,31 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
       }
       setIsLoading(false)
     }
-  }, [data, filters.clinic, orderBy, order]);
+  }, [data, filters.clinic, orderBy, order, filters.reset]);
 
   
 
   ////////////////////////////////////////////////////////////////////////////
 
   //////////////////////////////////////////////////////////////////////////
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-
+ 
   useEffect(() => {
     if (user?.role !== 'patient' && drClinicData) {
-      const { doctorClinics } = drClinicData;
-      setclinicData(doctorClinics);
+      // console.log(drClinicData)
+      const {queryLabreportClinics} = drClinicData
+      setclinicData(queryLabreportClinics?.clinicData)
+      // console.log(drClinicData,'AWITTTTTTTTTTTTTTTTTTTTTTTTT___________')
+      // const { DoctorClinicsHistory } = drClinicData;
+      // setclinicData(DoctorClinicsHistory);
     }
   }, [drClinicData, user?.role]);
+
+
+  // useEffect(() => {
+  //   if ((drClinicData && user?.role === 'doctor') || user?.role === 'secretary') {
+  //     setclinicData(drClinicData?.DoctorClinicsHistory);
+  //   }
+  // }, [drClinicData]);
 
   // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
   const [clinicPayload, setClinicPayload] = useState<any>([]);
@@ -319,6 +360,70 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
     }
   }, []);
 
+  const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
+  const [noteData, setNoteData] = useState(null)
+
+
+  const handleViewRow = async(row:any) => {
+
+
+    // (async () => {
+      try {
+        const response = await fetch('/api/getImage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: row?.labreport_attachments[0]?.file_url
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        setImgSrc(objectUrl);
+        setNoteData(row)
+        view.onTrue()
+        
+        // Clean up object URL on component unmount
+        return () => {
+          URL.revokeObjectURL(objectUrl);
+        };
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    // })();
+
+    
+  }
+
+  
+const renderView = (
+  <Dialog fullScreen open={view.value}>
+    <Box sx={{ height: 1, display: 'flex', flexDirection: 'column' }}>
+      <DialogActions sx={{ p: 1.5 }}>
+        <Box sx={{ ml: 2, flex: 1 }}>
+          <LogoFull disabledLink />
+        </Box>
+
+        <Button variant="outlined" onClick={view.onFalse}>
+          Close
+        </Button>
+      </DialogActions>
+
+      <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
+        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+          <PatientImagingPDF img={imgSrc} patientData={noteData} item={noteData} />
+        </PDFViewer>
+      </Box>
+    </Box>
+  </Dialog>
+);
+
   return (
     <Card>
       <ProfileImagingTableToolbar
@@ -330,7 +435,7 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
         // hospitalOptions={HOSPITAL_OPTIONS.map((option) => option)}
       />
 
-      {canReset && (
+      {canReset && clinicData?.length !== 0 && (
         <ProfileImagingTableFiltersResult
           filters={filters}
           onFilters={handleFilters}
@@ -359,7 +464,9 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
               {isLoading
                 ? [...Array(rowsPerPage)]?.map((_, i) => <ProfileImagingTableRowSkeleton key={i} />)
                 : tableData1?.map((row: any) => (
-                    <ProfileImagingTableRow patientData={patientInfo} key={row.id} row={row} />
+                    <ProfileImagingTableRow handleView={()=>{
+                      handleViewRow(row)
+                    }} patientData={patientInfo} key={row.id} row={row} />
                   ))}
 
               <TableEmptyRows
@@ -367,11 +474,13 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
                 emptyRows={emptyRows(table.page, table.rowsPerPage, total)}
               />
 
+
               <TableNoData notFound={notFound } />
             </TableBody>
           </Table>
         </Scrollbar>
       </TableContainer>
+      {renderView}
 
       <TablePaginationCustom
         count={total}

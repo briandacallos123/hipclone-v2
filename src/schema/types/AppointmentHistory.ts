@@ -3,6 +3,7 @@ import client from '../../../prisma/prismaClient';
 import { unserialize } from 'php-serialize';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { Clinics } from './ClinicSched';
+import { GraphQLError } from 'graphql';
 // import { unserialize } from 'php-serialize';
 
 const PatientAppointments = objectType({
@@ -826,3 +827,102 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
     });
   },
 });
+
+
+const GET_ALL_PATIENT_APPOINTMENTS_CLINIC_TYPE = objectType({
+  name:"GET_ALL_PATIENT_APPOINTMENTS_CLINIC_TYPE",
+  definition(t) {
+    t.list.nullable.field('clinic',{
+      type:Clinics
+    })
+  },
+})
+
+const GET_ALL_PATIENT_APPOINTMENTS_CLINIC_INPUT = inputObjectType({
+  name:"GET_ALL_PATIENT_APPOINTMENTS_CLINIC_INPUT",
+  definition(t) {
+      t.string('uuid');
+  },
+})
+
+export const GET_ALL_PATIENT_APPOINTMENTS_CLINIC = extendType({
+  type: 'Query',
+  definition(t) {
+    // t.nullable.list.field('Hmo', {
+    t.nullable.field('GET_ALL_PATIENT_APPOINTMENTS_CLINIC', {
+      type: GET_ALL_PATIENT_APPOINTMENTS_CLINIC_TYPE,
+      args: { data: GET_ALL_PATIENT_APPOINTMENTS_CLINIC_INPUT! },
+      async resolve(_root, args, ctx) {
+
+       try {
+        const {uuid} = args?.data;
+
+        const {session} = ctx;
+
+        const checkUser = (() => {
+          if (session?.user?.role === 'secretary')
+            return {
+              doctorID: session?.user?.permissions?.doctorID,
+            };
+          return {
+            doctorID: session?.user?.id,
+          };
+        })();
+
+        // let patientId: any;
+
+
+        const user = await client.user.findFirst({
+          where:{
+            uuid:args?.data?.uuid
+          }
+        });
+
+        const patient = await client.patient.findFirst({
+          where:{
+            EMAIL:user?.email
+          }
+        })
+
+
+        // const renderCondition = (() => {
+        //   if (uuid) {
+        //     return {
+        //       patientID: Number(patientId?.patientInfo?.S_ID),
+        //     };
+        //   }
+        // })();
+
+        console.log(patient?.S_ID,'?????????')
+
+        const result = await client.appointments.findMany({
+          where:{
+            ...checkUser,
+            patientID:Number(patient?.S_ID),
+            isDeleted: 0,
+          },
+          include:{
+            clinicInfo: {
+              include: {
+                clinicDPInfo: {
+                  orderBy: {
+                    id: 'desc',
+                  },
+                },
+              },
+            },
+          },
+          distinct:['clinic']
+        })
+
+        return{
+          clinic:result?.map((item)=>item?.clinicInfo)
+        }
+       } catch (error) {
+        console.log(error);
+        throw new GraphQLError(error)
+       }
+      }
+    })
+  }
+})

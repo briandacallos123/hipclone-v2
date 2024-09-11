@@ -175,8 +175,8 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         password: bcrypt.hashSync(model.password, s),
         address: model.address,
         phoneNumber: model.phoneNumber,
-        latitude: model.latitude,
-        longitude: model.longitude
+        latitude: model?.latitude,
+        longitude: model?.longitude
       };
       registerUser({
         variables: {

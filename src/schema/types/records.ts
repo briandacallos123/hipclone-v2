@@ -17,6 +17,9 @@ const RecordObjectFields = objectType({
     t.int('emrPatientID');
     t.int('CLINIC');
     t.dateTime('R_DATE');
+    t.nullable.field('esig',{
+      type:esigType
+    })
     t.int('isDeleted');
     t.string('R_TYPE');
     t.nullable.field('clinicInfo', {
@@ -47,6 +50,14 @@ const RecordObjectFields = objectType({
     });
   },
 });
+
+const esigType = objectType({
+  name:"esigType",
+  definition(t) {
+      t.string('filename')
+  },
+})
+
 export const NoteTxtObjRec = objectType({
   name: 'NoteTxtObjRec',
   definition(t) {
@@ -84,6 +95,7 @@ const DoctorInfoObject4Records = objectType({
   definition(t) {
     t.id('EMP_ID');
     t.string('EMP_FULLNAME');
+    t.string('LIC_NUMBER')
   },
 });
 
@@ -1302,6 +1314,20 @@ const filters = (args: any) => {
       },
     };
   }
+  if (args?.data!.startDate && !args?.data!.endDate) {
+    whereDate = {
+      R_DATE: {
+        gte: args?.data!.startDate,
+      },
+    };
+  }
+  if (!args?.data!.startDate && args?.data!.endDate) {
+    whereDate = {
+      R_DATE: {
+        lte: args?.data!.endDate,
+      },
+    }
+  }
   multicondition = {
     ...multicondition,
     ...{
@@ -1780,6 +1806,7 @@ export const QueryRecordBypatient = extendType({
             orderConditions,
             patientData
           );
+          console.log(data,'datadatadatadatadatadata');
 
           return {
             Records_data: data,
@@ -1840,6 +1867,7 @@ const customizedFunction = async (
       },
     };
   })();
+  console.log("pumasok ditoo!!!!!!")
 
   // console.log(myData, '_____');
   if (myData) {
@@ -2063,7 +2091,10 @@ const customizedFunction = async (
         //   },
         // }),
         // count Total
+        
       ]);
+    console.log(medNoteData, 'tskkkkkkkkkkkkkkkkk!!!!!!!!!' );
+
       records = medNoteData;
       count = _count;
     }
@@ -2248,6 +2279,7 @@ const customizedFunction = async (
           ...orderConditions,
         }),
       ]);
+      console.log(medNoteData,'NASA BABA AKO BOSS')
       records = medNoteData;
       count = _count;
     } else {
@@ -2329,6 +2361,7 @@ const customizedFunction = async (
           ...orderConditions,
         }),
       ]);
+      console.log(medNoteData,'HATDOGGGGGGGG!')
       records = medNoteData;
       count = _count;
       return {
@@ -2412,16 +2445,22 @@ export const QueryRecordBypatientNew = extendType({
 
         try {
 
-
           const patientData = await client.user.findFirst({
             where: {
-              uuid: String(args?.data!.uuid),
+              OR:[
+                {
+                  uuid: String(args?.data!.uuid),
+                },
+                {
+                  id:Number(session?.user?.id)
+                }
+              ]
             },
             include: {
               patientInfo: true,
             },
           });
-
+          console.log(patientData,'patientDATA')
 
 
           const recordData = await client.records.findFirst({
@@ -2432,6 +2471,7 @@ export const QueryRecordBypatientNew = extendType({
               patientInfo: true,
             },
           });
+          console.log(recordData,'recordData')
 
           const recordDataClinics: any = await client.records.findMany({
             where: {
@@ -2448,9 +2488,12 @@ export const QueryRecordBypatientNew = extendType({
               }
             }
           });
+          // console.log(recordDataClinics,'recordDataClinics')
 
 
-          console.log("boss?")
+          // console.log(patientData,"boss?????????????????????????????????",)
+
+          // console.log(recordDataClinics,"boss?????????????????????????????????",)
 
           // console.log('record dta? ', recordData);
 
@@ -2465,7 +2508,8 @@ export const QueryRecordBypatientNew = extendType({
             orderConditions,
             patientData
           );
-          // console.log(recordDataClinics,'DATAAAAAAAAAAAA_________________________')
+          console.log(data,'DATAAAAAAAAAAAA_________________________')
+          console.log(count,'count_________________________')
 
           return {
             Records_data: data,
@@ -2474,6 +2518,7 @@ export const QueryRecordBypatientNew = extendType({
 
           };
         } catch (error) {
+          console.log(error,'ERRORRRRRRRRR!')
           return new GraphQLError(error);
         }
       },
@@ -2588,7 +2633,7 @@ const customFuncPatient = async (
                 emrPatientID: Number(recordData.emrPatientID),
               },
             ],
-            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }],
+            NOT: [{ clinicInfo: null }, { R_TYPE: '3' },{ R_TYPE: '0' }],
             isDeleted: 0,
             // isEMR: 0,
             ...whereconditions,
@@ -2658,7 +2703,7 @@ const customFuncPatient = async (
 
             patientID: Number(patientData?.patientInfo?.S_ID),
 
-            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }],
+            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }, { R_TYPE: '0' }],
             isDeleted: 0,
 
             ...setCurrentDay,
@@ -2682,10 +2727,31 @@ const customFuncPatient = async (
           ...orderConditions,
         }),
       ]);
+
+
       records = medNoteData;
       count = _count;
     }
   }
+  // let newData = records?.map(async(item)=>{
+  //   const esig = await client.esig_dp.findFirst({
+  //     where:{
+  //       doctorID:Number(item?.doctorID)
+  //     },
+  //     orderBy:{
+  //       uploaded:'desc'
+  //     },
+  //   });
+  //   return {
+  //     ...item,
+  //     esig:{
+  //       filename:esig?.filename
+  //     }
+  //   }
+  // })
+  // newData = await Promise.all(newData);
+  
+
   return {
     data: records,
     count,
@@ -2804,7 +2870,7 @@ export const QueryRecordByEMRNew = extendType({
               id: Number(args?.data!.emrID),
             },
           });
-          console.log(emrData, 'emrData');
+          // console.log(emrData, 'emrDataHUH??????');
           // const recordData = await client.records.findFirst({
           //   where: {
           //     patientID: Number(patientData?.patientInfo?.S_ID),
@@ -2834,6 +2900,7 @@ export const QueryRecordByEMRNew = extendType({
             total_records: Number(count.length),
           };
         } catch (error) {
+          console.log(error,'error')
           return new GraphQLError(error);
         }
       },
@@ -2890,7 +2957,7 @@ const customFuncEMR = async (
     };
   })();
 
-  console.log(emrData, '_____');
+
   if (emrData) {
     const isLinked = emrData.link !== 0;
     if (isLinked) {
@@ -3038,6 +3105,8 @@ const customFuncEMR = async (
           ...orderConditions,
         }),
       ]);
+      console.log(medNoteData, 'dito pala tnginaa!');
+
       records = medNoteData;
       count = _count;
     }

@@ -8,7 +8,7 @@ import { usePathname, useParams } from 'src/routes/hook';
 import { useResponsive } from 'src/hooks/use-responsive';
 // components
 import DashboardLayout from 'src/layouts/dashboard';
-
+import { styled } from '@mui/material/styles';
 import { useSearch } from '@/auth/context/Search';
 import beamsClient from '@/utils/beamClient';
 import activeUser from '@/utils/activeUser';
@@ -49,9 +49,29 @@ export default function Layout({ children }: Props) {
   //   }
   // }, [pathname]);
 
+
+  
+const StyledComponent = styled('div')({
+  background: `url('/assets/background/queue-bg.jpg')`,
+  backgroundSize: 'cover',
+  // backgroundPosition: 'center',
+  backgroundRepeat: 'no-repeat',
+  minHeight: '100vh', // Adjust the height as needed 
+  width: '100vw',
+  // display: 'flex',
+  // justifyContent: 'center',
+  // overflow: 'hidden',
+  // p: {
+  //   xs: 10,
+  //   lg: 5
+  // }
+});
+
   return (
     <AuthGuard>
-      <DashboardLayout>{children}</DashboardLayout>
+      <StyledComponent>
+        <DashboardLayout>{children}</DashboardLayout>
+      </StyledComponent>
     </AuthGuard>
   );
 }

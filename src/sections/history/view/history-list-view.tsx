@@ -17,6 +17,7 @@ import { HOSPITAL_OPTIONS } from 'src/_mock';
 import {
   GET_ALL_PATIENT_APPOINTMENTS,
   GET_ALL_PATIENT_APPOINTMENTS_USER,
+  GET_ALL_PATIENT_APPOINTMENTS_CLINIC
 } from '@/libs/gqls/appointmentHistory';
 import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
 import { PATIENT_APPTS } from '@/libs/gqls/patientApt';
@@ -115,6 +116,9 @@ export default function AppointmentHistoryListView() {
     }
   );
 
+  const { id } = useParams();
+
+
   const { user, getDefaultFilters } = useAuthContext();
   const [tableData, setTableData] = useState<any>([]);
   const [tempData, setTempData] = useState<any>([]);
@@ -129,15 +133,22 @@ export default function AppointmentHistoryListView() {
   const [faceToFace, setFaceToFace] = useState(0);
   const [clinicTake, setClinicTake] = useState(5);
   const [isClinic, setIsClinic] = useState(0);
+
   const {
     data: drClinicData,
     error: drClinicError,
     loading: drClinicLoad,
     refetch: drClinicFetch,
-  }: any = useQuery(DoctorClinicsHistory);
+  }: any = useQuery(GET_ALL_PATIENT_APPOINTMENTS_CLINIC,{
+    variables:{
+      data:{
+        uuid:id
+      }
+    }
+  });
+
   const [clinicData, setclinicData] = useState<any>([]);
 
-  const { id } = useParams();
 
   const containsLetters = (value: any) => /[a-zA-Z]/.test(value);
   // const [tableLoading, setTableLoading] = useState(true);
@@ -252,7 +263,7 @@ export default function AppointmentHistoryListView() {
           setSummary(GET_ALL_PATIENT_APPOINTMENTS_USER?.summary);
           setIsClinic(isClinic + 1);
           setTotal(GET_ALL_PATIENT_APPOINTMENTS_USER?.summary?.totalRecords)
-          setclinicData(GET_ALL_PATIENT_APPOINTMENTS_USER?.clinic)
+          // setclinicData(GET_ALL_PATIENT_APPOINTMENTS_USER?.clinic)
           // setTotal(GET_ALL_PATIENT_APPOINTMENTS_USER)
           
           // setTotalRecords(allAppointmentsbyUuid?.total_records)
@@ -275,16 +286,10 @@ export default function AppointmentHistoryListView() {
 
   useEffect(() => {
     if ((drClinicData && user?.role === 'doctor') || user?.role === 'secretary') {
-      setclinicData(drClinicData?.DoctorClinicsHistory);
+      // setclinicData(drClinicData?.DoctorClinicsHistory);
+      setclinicData(drClinicData?.GET_ALL_PATIENT_APPOINTMENTS_CLINIC?.clinic)
+      // console.log(drClinicData,'drClinicDatadrClinicDatadrClinicDatadrClinicDatadrClinicData')
     }
-    // drClinicFetch().then((result: any) => {
-    //   const { data } = result;
-    //   if (data) {
-    //     const { doctorClinics } = data;
-    //     setclinicData(doctorClinics);
-    //   }
-    // });
-    // return () => drClinicFetch();
   }, [drClinicData]);
 
   // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
@@ -392,7 +397,13 @@ export default function AppointmentHistoryListView() {
   );
 
   const handleResetFilters = useCallback(() => {
-    setFilters(defaultFilters);
+    setFilters({
+      name: '',
+      status: -1,
+      hospital: [],
+      startDate: null,
+      endDate: null,
+    });
   }, []);
 
   return (

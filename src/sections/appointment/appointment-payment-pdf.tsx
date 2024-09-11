@@ -55,16 +55,17 @@ const useStyles = () =>
 
 type Props = {
   item?: any;
+  img?:any;
 };
 
-export default function AppointmentPaymentPDF({ item }: Props) {
+export default function AppointmentPaymentPDF({img, item }: Props) {
   // console.log(item,"wooooo");
   // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
 
   // const patientName = `${keyPatient.firstName} ${keyPatient.lastName}`;
 
   // const patientName = `${item?.date_appt?.FNAME} ${item?.patientInfo?.MNAME} ${item?.patientInfo?.FNAME}`;
-  const patientName = `${item?.patientInfo?.FNAME} ${item?.patientInfo?.MNAME} ${item?.patientInfo?.LNAME}`;  // SEX
+  const patientName =item?.patientInfo?.MNAME ?  `${item?.patientInfo?.FNAME} ${item?.patientInfo?.MNAME} ${item?.patientInfo?.LNAME}`:`${item?.patientInfo?.FNAME} ${item?.patientInfo?.LNAME}`;  // SEX
   // AGE
   const styles = useStyles();
 
@@ -115,13 +116,14 @@ export default function AppointmentPaymentPDF({ item }: Props) {
               return (
                 <>
                 <View key={url}>
-                  <img src={urlObject?.filename} alt="" />
-                  {/* <Image
+                  {/* <img src={urlObject?.filename} alt="" /> */}
+                  <Image
                     key={url}
                     alt={'image'}
-                    source={{ uri: urlObject?.filename }}
+                    // source={{ uri: urlObject?.filename }}
+                    source={img}
                     style={[styles.mb8, { height: '90%', width: '500px' }]}
-                  /> */}
+                  />
                 </View>
               </>
               );

@@ -49,7 +49,7 @@ export default function useNotesHooks(payloads: any) {
   const [totalDataEMR, setTotalDataEMR] = useState(0);
   // console.log(payloads, '!!!!!!!!!!##########');
   const [Ids, setIds] = useState<any>([]);
-  const { data, loading, refetch }: any = useQuery(GET_RECORD_PATIENT, {
+  const { data, loading, refetch:refetchRecord }: any = useQuery(GET_RECORD_PATIENT, {
     variables: {
       data: {
         clinicIds: payloads.clinicIds,
@@ -83,9 +83,13 @@ export default function useNotesHooks(payloads: any) {
       setIsLoadingPatient(false);
       setClinicData(allRecordsbyPatientNew?.clinic)
     }
-  }, [data, user?.role]);
+  }, [data, user?.role, payloads]);
   // -------------------
   // ------EMR
+
+  const refetch = () => {
+    refetchRecord()
+  }
 
   const {
     data: EMRdata,
@@ -230,6 +234,7 @@ export default function useNotesHooks(payloads: any) {
     tableDataEMR,
     totalDataEMR,
     isLoadingPatient,
-    notesRecordResult
+    notesRecordResult,
+    patientLoading:notesRecordResult.loading
   };
 }

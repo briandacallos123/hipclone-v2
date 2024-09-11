@@ -61,7 +61,7 @@ export default function NotificationView() {
 
   const { user } = useAuthContext();
 
-  const {allData, handleReadFunc, isLoading} = NotificationController({isRun:false})
+  const {allData, handleReadFunc, isLoading, queryResults} = NotificationController({isRun:true})
 
   const upMd = useResponsive('up', 'md');
 
@@ -71,7 +71,7 @@ export default function NotificationView() {
     setCurrentTab(newValue);
   }, []);
 
-  // console.log(allData,'HEHEHE')
+
 
   const TABS = [
     {
@@ -109,15 +109,15 @@ export default function NotificationView() {
   const [apptData, setApptData] = useState([]);
   const [chatData, setChatData] = useState([]);
 
-  useEffect(()=>{
-    const appt = allData?.filter((item:any)=>item?.appt_data?.id);
-    setApptData(appt);
+  // useEffect(()=>{
+  //   const appt = allData?.filter((item:any)=>item?.appt_data?.id);
+  //   setApptData(appt);
 
-    const chat = allData?.filter((item:any)=>item?.chat_id);
-    setChatData(chat);
-  },[allData])
+  //   const chat = allData?.filter((item:any)=>item?.chat_id);
+  //   setChatData(chat);
+  // },[allData])
 
-  // console.log(apptData,'___________________________________????????')
+  console.log(allData,'___________________________________????????')
   // console.log(chatData,'___________________________________!!!!!!!!!!')
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
@@ -130,7 +130,7 @@ export default function NotificationView() {
         All Notifications
       </Typography>
 
-      <Tabs
+      {/* <Tabs
         value={currentTab}
         onChange={handleChangeTab}
         allowScrollButtonsMobile={false}
@@ -167,11 +167,13 @@ export default function NotificationView() {
             }}
           />
         ))}
-      </Tabs>
+      </Tabs> */}
 
-      {currentTab === 'appointment' && <NotificationAppointment isLoading={isLoading} handleReadFunc={handleReadFunc} data={apptData}/>}
+<NotificationAppointment isLoading={queryResults.loading} handleReadFunc={handleReadFunc} data={allData}/>
 
-      {currentTab === 'chat' && <NotificationChat isLoading={isLoading} handleReadFunc={handleReadFunc} data={chatData}/>}
+      {/* {currentTab === 'appointment' && }
+
+      {currentTab === 'chat' && <NotificationChat isLoading={isLoading} handleReadFunc={handleReadFunc} data={chatData}/>} */}
 
       {/* {currentTab === 'patient' && <NotificationPatient />}
 

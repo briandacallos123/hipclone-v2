@@ -291,6 +291,41 @@ export default function AppointmentDetails({
 
   const [isQueue, setIsQuee] = useState(null);
 
+  const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
+
+  useEffect(()=>{
+    (async () => {
+      try {
+        if(currentItem?.appt_payment_attachment?.length !== 0){
+          const response = await fetch('/api/getImage', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              image: currentItem?.appt_payment_attachment[0]?.file_url
+            }),
+          });
+  
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+  
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          setImgSrc(objectUrl);
+  
+          // Clean up object URL on component unmount
+          return () => {
+            URL.revokeObjectURL(objectUrl);
+          };
+        }
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    })();
+  },[])
+
 
   useEffect(() => {
     setValue('status', Number(listItem?.status))
@@ -455,7 +490,7 @@ export default function AppointmentDetails({
         </DialogActions>
         <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
           <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-            <AppointmentPaymentPDF item={currentItem} />
+            <AppointmentPaymentPDF img={imgSrc} item={currentItem} />
           </PDFViewer>
         </Box>
       </Box>

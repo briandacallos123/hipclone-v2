@@ -319,8 +319,8 @@ export const UserProfileUpsertType = inputObjectType({
     t.nonNull.string("email");
     t.nonNull.string("address");
     t.nonNull.string("phoneNumber");
-    t.nonNull.float('latitude');
-    t.nonNull.float('longitude');
+    t.nullable.float('latitude');
+    t.nullable.float('longitude');
 
 
 
@@ -390,8 +390,8 @@ export const mutationRegisterUser = extendType({
               CONTACT_NO: args?.data?.phoneNumber,
               HOME_ADD: args?.data!.address,
               CLINIC: 1,
-              LONGITUDE: args.data!.longitude,
-              LATITUDE: args.data!.latitude,
+              LONGITUDE: args.data?.longitude,
+              LATITUDE: args.data?.latitude,
               IDNO: Number(lastPatient?.IDNO + 1)
             }
           }).then(() => {

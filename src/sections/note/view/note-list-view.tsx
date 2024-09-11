@@ -42,6 +42,18 @@ import NoteTableRowSkeleton from '../note-table-row-skeleton';
 import useNotesHooks from '../_notesHooks';
 import { useSessionStorage } from '@/hooks/use-sessionStorage';
 import { DoctorClinicsHistory } from '@/libs/gqls/drprofile';
+import { Box, Button, Dialog, DialogActions } from '@mui/material';
+import { LogoFull } from '@/components/logo';
+import { PDFViewer } from '@react-pdf/renderer';
+
+import NotePDFSoap from '../note-pdf-soap';
+import NotePDFText from '../note-pdf-text';
+import NotePDFLaboratory from '../note-pdf-lab';
+import NotePDFCertificate from '../note-pdf-certificate';
+import NotePDFClearance from '../note-pdf-clearance';
+import NotePDFAbstract from '../note-pdf-abstract';
+import NotePDFVaccine from '../note-pdf-vaccine';
+import { useBoolean } from '@/hooks/use-boolean';
 
 // ----------------------------------------------------------------------
 
@@ -59,6 +71,7 @@ const defaultFilters = {
   startDate: null,
   endDate: null,
   recType: '-1',
+  reset:false
 };
 
 // ----------------------------------------------------------------------
@@ -76,6 +89,7 @@ type Props = {
   Ids: any;
   notesRecordResult:any;
   clinicData:any;
+  patientLoading?:any;
 };
 export default function NoteListView({
   refIds,
@@ -90,7 +104,8 @@ export default function NoteListView({
   totalData,
   Ids,
   notesRecordResult,
-  clinicData
+  clinicData,
+   patientLoading
 }: Props) {
   const upMd = useResponsive('up', 'md');
   const table = useTable({ defaultOrder: 'desc', defaultOrderBy: 'date' });
@@ -101,7 +116,7 @@ export default function NoteListView({
   const { getItem } = useSessionStorage();
   const [isClinic, setIsClinic] = useState(0);
 
-  console.log(clinicData,'clinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicData')
+  // console.log(clinicData,'clinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicData')
   useEffect(() => {
     setPayloads({
       //
@@ -122,6 +137,7 @@ export default function NoteListView({
   }, [
     filters?.endDate,
     filters?.hospital,
+    filters?.hospital?.length,
     filters.name,
     filters?.startDate,
     filters,
@@ -135,6 +151,7 @@ export default function NoteListView({
     setPayloads,
     user?.role,
     filters?.recType,
+    filters.reset
   ]);
 
   const dateError = isDateError(filters.startDate, filters.endDate);
@@ -175,7 +192,7 @@ export default function NoteListView({
   const [isLoadingPatient, setIsLoadingPatient] = useState(true);
 
 
-  const notFound = !notesRecordResult?.loading && !tableData1.length;
+  const notFound = !loading && !tableData1.length;
 
   const handleFilters = useCallback(
     (name: string, value: INoteTableFilterValue) => {
@@ -186,11 +203,20 @@ export default function NoteListView({
       }));
     },
     [table]
-  );
+  );    
+
+  console.log(filters,'???????????')
 
   const handleResetFilters = () => {
-    console.log('test')
-    setFilters(defaultFilters);
+    setFilters({
+      name: '',
+      hospital: [],
+      startDate: null,
+      endDate: null,
+      recType: '-1',
+      reset:false
+    });
+    // setPayloads(defaultFilters)
   };
 
 
@@ -203,7 +229,7 @@ export default function NoteListView({
       notifyOnNetworkStatusChange: true,
     }
   );
-  const notFoundPatient = !notesRecordResult?.loading && !tableData1?.length;
+  const notFoundPatient = !loading && !tableData1?.length;
  
 
   // const [clinicData, setclinicData] = useState<any>([]);
@@ -252,6 +278,107 @@ export default function NoteListView({
     setClinicPayload(clinicItem);
   }, []);
 
+  const view = useBoolean();
+  const [noteData, setNoteData] = useState(null)
+  const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
+
+  // useEffect(()=>{
+  //   if(noteData){
+  //     (async () => {
+  //       try {
+  //         const response = await fetch('/api/getImage', {
+  //           method: 'POST',
+  //           headers: {
+  //             'Content-Type': 'application/json',
+  //           },
+  //           body: JSON.stringify({
+  //             image: noteData?.notes_text[0]?.file_name
+  //           }),
+  //         });
+  
+  //         if (!response.ok) {
+  //           throw new Error('Network response was not ok');
+  //         }
+  
+  //         const blob = await response.blob();
+  //         const objectUrl = URL.createObjectURL(blob);
+  //         setImgSrc(objectUrl);
+  
+  //         // Clean up object URL on component unmount
+  //         return () => {
+  //           URL.revokeObjectURL(objectUrl);
+  //         };
+  //       } catch (error) {
+  //         console.error('Error fetching image:', error);
+  //       }
+  //     })();
+  //   }
+  // },[noteData])
+  console.log(noteData,'NOTEEEEEE')
+
+  const renderView = (
+    <Dialog fullScreen open={view.value}>
+      <Box sx={{ height: 1, display: 'flex', flexDirection: 'column' }}>
+        <DialogActions sx={{ p: 1.5 }}>
+          <Box sx={{ ml: 2, flex: 1 }}>
+            <LogoFull disabledLink />
+          </Box>
+
+          <Button variant="outlined" onClick={view.onFalse}>
+            Close
+          </Button>
+        </DialogActions>
+
+        <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
+          {Render(noteData?.R_TYPE, noteData, imgSrc)}
+        </Box>
+      </Box>
+    </Dialog>
+  );
+
+    useEffect(()=>{
+      if(imgSrc){
+        view.onTrue()
+      }
+    },[imgSrc])
+
+  const handleViewRow = async(row:any) => {
+
+    // (async () => {
+      try {
+        const response = await fetch('/api/getImage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: row?.notes_text[0]?.file_name
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        setImgSrc(objectUrl);
+        setNoteData(row)
+        
+        // Clean up object URL on component unmount
+        return () => {
+          URL.revokeObjectURL(objectUrl);
+        };
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    // })();
+
+    
+  }
+
+  const finalLoading = user?.role !== 'patient' ? loading:patientLoading
+
   return (
     <Card>
       <NoteTableToolbar
@@ -262,7 +389,7 @@ export default function NoteListView({
         hospitalOptions={clinicData}
       />
 
-      {canReset && (
+      {canReset && clinicData?.length !== 0 && (
         <NoteTableFiltersResult
           filters={filters}
           onFilters={handleFilters}
@@ -298,14 +425,17 @@ export default function NoteListView({
 
                   return <NoteTableRow key={row.id} row={row} />;
                 })} */}
-              {notesRecordResult?.loading && [...Array(rowsPerPage)].map((_, i) => <NoteTableRowSkeleton key={i} />)}
-              {!notesRecordResult?.loading &&
+              {finalLoading && [...Array(rowsPerPage)].map((_, i) => <NoteTableRowSkeleton key={i} />)}
+              {!finalLoading &&
                 tableData1?.map((row: any, index: number) => (
                   <NoteTableRow
                     key={index}
                     row={row}
                     ids={Ids}
                     onRefetch={refetch}
+                    onViewRow={()=>{
+                      handleViewRow(row)
+                    }}
                     // onViewRow={() => handleViewRow(String(row.id))}
                   />
                 ))}
@@ -322,6 +452,7 @@ export default function NoteListView({
           </Table>
         </Scrollbar>
       </TableContainer>
+      {imgSrc && renderView}
 
       <TablePaginationCustom
         count={totalData || 0}
@@ -354,3 +485,52 @@ function applyFilter({
 
   return inputData;
 }
+
+function Render(data: string, row: any, img:any) {
+  console.log(img,'IMGGGGGGGGGGGGGGGGGGGGGGGGGGGG')
+  return (
+    <>
+      {data === '1' && (
+        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+          <NotePDFSoap item={row} />
+        </PDFViewer>
+      )}
+
+      {data === '4' && img && (
+        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+          <NotePDFText imgSrc={img} item={row} />
+        </PDFViewer>
+      )}
+
+      {data === '5' && (
+        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+          <NotePDFLaboratory item={row} />
+        </PDFViewer>
+      )}
+
+      {data === '8' && (
+        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+          <NotePDFClearance item={row} />
+        </PDFViewer>
+      )}
+      {data === '9' && (
+        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+          <NotePDFCertificate item={row} />
+        </PDFViewer>
+      )}
+
+      {data === '10' && (
+        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+          <NotePDFAbstract item={row} />
+        </PDFViewer>
+      )}
+
+      {data === '11' && (
+        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+          <NotePDFVaccine item={row} />
+        </PDFViewer>
+      )}
+    </>
+  );
+}
+

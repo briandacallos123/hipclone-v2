@@ -409,7 +409,7 @@ export const labreport_p = objectType({
     });
     t.int('total_records');
     t.nullable.list.field('clinic', {
-        type: Clinics
+      type: Clinics
     });
   },
 });
@@ -461,12 +461,12 @@ export const labreport_patient_data = extendType({
             break;
           case 'type':
             {
-              order = { type: orderDir}
+              order = { type: orderDir }
             }
             break;
           default:
             order = {
-              id:'desc'
+              id: 'desc'
             };
         }
 
@@ -474,7 +474,6 @@ export const labreport_patient_data = extendType({
           orderBy: order,
         };
 
-        console.log(orderConditions,'TANGINA MO@')
 
         // ORDER BY
 
@@ -487,7 +486,7 @@ export const labreport_patient_data = extendType({
           'labreport_patient_data'
         );
 
-      
+
 
         try {
           const patientInfo: any = await client.user.findFirst({
@@ -503,7 +502,7 @@ export const labreport_patient_data = extendType({
               patientID: Number(patientInfo?.patientInfo?.S_ID),
             },
           });
-          
+
           if (emrPatientId && Number(emrPatientId?.link) === 1) {
             console.log("dito sa unahan")
             const [labreport, _count, count]: any = await client.$transaction([
@@ -608,7 +607,7 @@ export const labreport_patient_data = extendType({
               total_records: Number(_total?._count?.id),
               // summary_total: total_summary
             };
-            console.log(response,'RESPONSE SA unahan')
+            console.log(response, 'RESPONSE SA unahan')
 
 
             return response;
@@ -620,15 +619,15 @@ export const labreport_patient_data = extendType({
             console.log("dito sa pangalawan")
 
             // console.log(session?.user,'USERRRRRRRRRRRRRRRR')
-            const idConditions = (()=>{
+            const idConditions = (() => {
               let condition = [];
 
-              if(session?.user?.emr_patient_id){
+              if (session?.user?.emr_patient_id) {
                 condition.push({
                   emrPatientID: Number(session?.user?.emr_patient_id),
                 })
               }
-              if(session?.user?.s_id){
+              if (session?.user?.s_id) {
                 condition.push({
                   patientID: Number(session?.user?.s_id),
                 })
@@ -713,25 +712,25 @@ export const labreport_patient_data = extendType({
               }),
 
               client.labreport.findMany({
-                where:{
+                where: {
                   OR: idConditions,
                   AND: [{ isDeleted: 0 }],
-                  NOT:{
-                    clinicInfo:{
-                      clinic_name:null
+                  NOT: {
+                    clinicInfo: {
+                      clinic_name: null
                     }
                   }
                 },
-                include:{
-                  clinicInfo:true
+                include: {
+                  clinicInfo: true
                 },
-                distinct:['clinic']
+                distinct: ['clinic']
               })
             ]);
 
-            console.log(clinic,'CLINIC SA DULOOOOOOOOOOOOOOOOOOOOOOO___________')
+            console.log(clinic, 'CLINIC SA DULOOOOOOOOOOOOOOOOOOOOOOO___________')
 
-           
+
 
             const _result: any = labreport;
             const _total: any = count;
@@ -739,7 +738,7 @@ export const labreport_patient_data = extendType({
             const response: any = {
               labreport_patient: _result,
               total_records: Number(_total?._count?.id),
-              clinic:clinic?.map((item)=>item?.clinicInfo)
+              clinic: clinic?.map((item) => item?.clinicInfo)
             };
             // console.log(response,'RESPONSE SA pangalawa__')
 
@@ -787,7 +786,7 @@ export const labreport_patient_data = extendType({
                   },
                 },
                 ...orderConditions,
-              
+
               }),
               client.labreport.groupBy({
                 by: ['id'],
@@ -827,13 +826,13 @@ export const labreport_patient_data = extendType({
               // summary_total: total_summary
             };
 
-            console.log(response,'RESPONSE SA DULO__')
+            console.log(response, 'RESPONSE SA DULO__')
             return response;
             // OVERALL RESPONSE
             /// /////////////////////////////////////////////
           }
         } catch (error) {
-          console.log(error,'MAY ERROR DITO SAN KAYA NAG TRIGGER????')
+          console.log(error, 'MAY ERROR DITO SAN KAYA NAG TRIGGER????')
           return console.log(error);
         }
       },
@@ -981,7 +980,7 @@ export const mutation_lab_report = extendType({
                 // console.log(sFile);
                 if (sFile) {
 
-                  
+
                   const uploadResult: any = await useGoogleStorage(
                     sFile,
                     session?.user?.id,
@@ -1140,7 +1139,7 @@ export const mutation_lab_report = extendType({
                       patientID,
                       doctorID,
                       isEMR,
-                      patient:patientID,
+                      patient: patientID,
                       doctor,
                       clinic,
                       labreport_id: labReportID,
@@ -1211,7 +1210,7 @@ export const mutation_lab_report = extendType({
               };
             }
           } catch (error) {
-            console.log(error,'ERRORRRRRRRRRRRRRRRRR_________ BRIAN')
+            console.log(error, 'ERRORRRRRRRRRRRRRRRRR_________ BRIAN')
             throw new GraphQLError(error);
           }
         }
@@ -1220,4 +1219,76 @@ export const mutation_lab_report = extendType({
       },
     });
   },
+});
+
+
+const queryLabreportType = objectType({
+  name: "queryLabreportType",
+  definition(t) {
+    t.list.field('clinicData', {
+      type: Clinics
+    })
+  },
+})
+
+const queryLabreportClinicsInp = inputObjectType({
+  name: "queryLabreportClinicsInp",
+  definition(t) {
+    t.nonNull.string('uuid');
+  },
+})
+
+export const queryLabreportClinics = extendType({
+  type: 'Query',
+  definition(t) {
+    t.nullable.field('queryLabreportClinics', {
+      type: queryLabreportType,
+      args: { data: queryLabreportClinicsInp! },
+      async resolve(_root, args, ctx) {
+
+        try {
+
+          const { session } = ctx;
+
+          const user = await client.user.findFirst({
+            where: {
+              uuid: args?.data?.uuid
+            }
+          })
+          const patient = await client.patient.findFirst({
+            where: {
+              EMAIL: user?.email
+            }
+          })
+
+
+
+          const clinics = await client.labreport.findMany({
+            where: {
+              doctorID: Number(session?.user?.id),
+              patientID: Number(patient?.S_ID),
+              isDeleted: 0
+            },
+            include:{
+              clinicInfo:true,
+              doctorInfo:true,
+              patientInfo:true
+            },
+            distinct:['clinic']
+          })
+
+          // console.log(clinics,'AWITTTTTTTTTTT')
+
+          return {
+            clinicData:clinics?.map((item)=>item?.clinicInfo)
+          }
+
+        } catch (error) {
+          console.log(error,'ERROR BHEEEEEEEEEE')
+          throw new GraphQLError(error)
+        }
+
+      }
+    })
+  }
 });

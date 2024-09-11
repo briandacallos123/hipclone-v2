@@ -122,3 +122,18 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = gql`
     }
   }
 `;
+
+export const GET_ALL_PATIENT_APPOINTMENTS_CLINIC = gql`
+  query GET_ALL_PATIENT_APPOINTMENTS_CLINIC($data: GET_ALL_PATIENT_APPOINTMENTS_CLINIC_INPUT) {
+    GET_ALL_PATIENT_APPOINTMENTS_CLINIC(data: $data) {
+      clinic {
+        doctorID
+        clinic_name
+        id
+        isDeleted
+        location
+        number
+      }
+    }
+  }
+`;
