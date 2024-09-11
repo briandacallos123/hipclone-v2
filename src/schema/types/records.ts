@@ -1389,14 +1389,13 @@ export const QueryOneRecordProfile = extendType({
               patientInfo: true,
             },
           });
-          console.log(patientInfo, 'PATIENT INFO@@#@@@');
 
           const emrPatientId = await client.emr_patient.findFirst({
             where: {
               patientID: Number(patientInfo?.patientInfo?.S_ID),
             },
           });
-          console.log(emrPatientId, 'emrPatientId INFO@@#@@@');
+          // console.log(emrPatientId, 'emrPatientId INFO@@#@@@');
 
           const checkUser = (() => {
             if (session?.user?.role === 'secretary')
@@ -1407,7 +1406,7 @@ export const QueryOneRecordProfile = extendType({
               doctorID: session?.user?.id,
             };
           })();
-          console.log(checkUser, 'checkUser checkUsercheckUsercheckUsercheckUser@@#@@@');
+          // console.log(checkUser, 'checkUser checkUsercheckUsercheckUsercheckUser@@#@@@');
 
           if (emrPatientId && Number(emrPatientId?.link) === 1) {
             const [recordByID]: any = await client.$transaction([
@@ -1666,7 +1665,7 @@ export const QueryOneRecordProfile = extendType({
             ]);
 
             const _resultOne: any = recordByID;
-            console.log(_resultOne, "HAYOPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
+            // console.log(_resultOne, "HAYOPPPPPPPPPPPPPPPPPPPPPPPPPPPP")
             const response: any = {
               Records_ByIDs: _resultOne,
             };
@@ -1756,7 +1755,6 @@ export const QueryRecordBypatient = extendType({
         // checkIfEMR return Object
         const checkIfEMR = (() => {
           if (args?.data!.uuid !== 'undefined') {
-            console.log('NASA PATIENT KA1');
             // return {
             //   patientInfo: {
             //     userInfo: {
@@ -1780,7 +1778,6 @@ export const QueryRecordBypatient = extendType({
               },
             });
           }
-          console.log('here data: ', myData);
 
           let patientData: any;
           if (myResult === 2) {
@@ -1794,7 +1791,6 @@ export const QueryRecordBypatient = extendType({
               },
             });
           }
-          console.log('ang dta? ', patientData);
 
           // args session wherecondition orderconditon
 
@@ -3426,9 +3422,6 @@ export const QueryPatientData = extendType({
               patientInfo: true,
             },
           });
-          // console.log(patientInfo, 'PATIENT INFO@@#@@@');
-
-          // console.log('ELSE NAMAN PALA@@');
           const [recordByID]: any = await client.$transaction([
             client.records.findFirst({
               where: {

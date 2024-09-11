@@ -387,7 +387,6 @@ export const QueryNotesVitalsPatient = extendType({
         );
 
         try {
-          // console.log('Ok na');
           const patientData = await client.user.findFirst({
             where: {
               uuid: String(args?.data!.uuid),
@@ -396,6 +395,7 @@ export const QueryNotesVitalsPatient = extendType({
               patientInfo: true,
             },
           });
+          // console.log(patientData, 'Ok naaaaaaaaaaaaaa');
 
           const vitalsData = await client.notes_vitals.findFirst({
             where: {
@@ -413,7 +413,7 @@ export const QueryNotesVitalsPatient = extendType({
             vitalsData
           );
 
-          console.log(data,'PAGTINGINNNNNNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!')
+          // console.log(data,'PAGTINGINNNNNNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!')
           return {
             vitals_data: data,
           };
@@ -435,7 +435,7 @@ const customFuncVitalPatient = async (
 
   const checkUser = (() => {
     if (session?.user?.role === 'secretary'){
-      console.log("secretary______________")
+      // console.log("secretary______________")
       return {
         doctorID: session?.user?.permissions?.doctorID,
       };
@@ -445,13 +445,12 @@ const customFuncVitalPatient = async (
     };
   })();
 
-  console.log(checkUser,'CHECK USERRRRRRRRRR')
+  // console.log(Number(patientData?.patientInfo?.S_ID),'CHECK USERRRRRRRRRR')
+  // console.log(Number(patientData?.patientInfo),'CHECK USERRRRRRRRRR!!!!!')
 
   if (patientData) {
-    console.log("BATTLEEEEEEEE");
     const isLinked = vitalsData.emrPatientID !== null;
     if (isLinked) {
-      console.log(vitalsData, 'lnked');
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
           take: 10,
@@ -480,15 +479,15 @@ const customFuncVitalPatient = async (
           },
         }),
       ]);
+
+    // console.log(vitalData, "BATTLEEEEEEEE");
+
       // console.log(vitalData, 'LINKED VITAL DATA');
       vitals_data = vitalData;
     } else {
-      console.log('non link');
-      console.log(patientData,'WLANG UTAKKK!!!!!!!');
 
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
-          take: 10,
           orderBy: {
             id: 'desc',
           },
@@ -509,6 +508,8 @@ const customFuncVitalPatient = async (
           },
         }),
       ]);
+      // console.log(vitalData,'WLANG UTAKKK!!!!!!!', Number(patientData?.patientInfo?.S_ID));
+
       vitals_data = vitalData;
     }
   }
@@ -567,6 +568,7 @@ export const QueryNotesVitalsEMRPatient = extendType({
             vitals_data: data,
           };
         } catch (error) {
+          console.log(error,'error behhh')
           return new GraphQLError(error);
         }
       },
@@ -672,7 +674,16 @@ export const PostVitals = extendType({
         const { session } = ctx;
         try {
 
-          if (createData?.categoryValues?.length !== 0) {
+          const patientData = await client.user.findFirst({
+            where:{
+              uuid:createData?.uuid
+            },
+            include:{
+              patientInfo:true
+            }
+          })
+
+          if (createData?.categoryValues && createData?.categoryValues?.length !== 0) {
             const result = createData?.categoryValues.map(async (item) => {
               const categoryId = await client.vital_category.findFirst({
                 where: {
@@ -705,18 +716,18 @@ export const PostVitals = extendType({
             data: {
               clinic: createData?.clinicID,
               report_id: createData?.recordID,
-              patientID: createData?.patientID,
+              patientID: patientData?.patientInfo?.S_ID,
               doctorID: session?.user?.id,
 
-              wt: createData?.weight,
-              ht: createData?.height,
-              bmi: createData?.bmi,
-              bp1: createData?.bloodPresMM,
-              bp2: createData?.bloodPresHG,
-              spo2: createData?.oxygen,
-              hr: createData?.heartRate,
-              bt: createData?.bodyTemp,
-              rr: createData?.respRate,
+              wt: createData?.weight !== "0" ? createData?.weight:null ,
+              ht: createData?.height !== "0" ? createData?.height : null,
+              bmi: createData?.bmi !== "0.00" ? createData?.bmi:null,
+              bp1: createData?.bloodPresMM !== "0" ? createData?.bloodPresMM : null,
+              bp2: createData?.bloodPresHG !== "0" ? createData?.bloodPresHG :null,
+              spo2: createData?.oxygen !== "0" ? createData?.oxygen:null,
+              hr: createData?.heartRate !== "0" ? createData?.heartRate : null,
+              bt: createData?.bodyTemp !== "0" ? createData?.bodyTemp:null,
+              rr: createData?.respRate !== "0" ? createData?.respRate:null
             },
           });
           const res: any = vitals;
@@ -851,7 +862,7 @@ export const PostVitalsUser = extendType({
           })()
 
 
-          if (createData?.categoryValues?.length !== 0) {
+          if (createData?.categoryValues && createData?.categoryValues?.length !== 0) {
             const result = createData?.categoryValues.map(async (item) => {
               if(!item?.value) return;
               const categoryId = await client.vital_category.findFirst({
@@ -904,6 +915,7 @@ export const PostVitalsUser = extendType({
                 rr: createData?.respRate !== "0" ? createData?.respRate:null,
               },
             });
+            console.log(vitals,'VITALSSSSSSS')
             return {
               ...recordVitals,
               ...vitals,
@@ -914,7 +926,8 @@ export const PostVitalsUser = extendType({
           const res: any = vitalsTransaction;
           return res;
         } catch (e) {
-          console.log(e);
+          console.log(e,'error mo bihhhhhhhhhhhhh');
+          throw new GraphQLError(e)
         }
       },
     });

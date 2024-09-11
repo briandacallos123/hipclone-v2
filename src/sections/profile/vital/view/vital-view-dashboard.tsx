@@ -26,11 +26,11 @@ import VitalCreateNewSingle from './vital-create-new-single';
 
 // ----------------------------------------------------------------------
 
-type Props = {
-  data: any;
-};
+// type Props = {
+//   data: any;
+// };
 
-export default function   ProfileVitalView({ data }: Props) {
+export default function   ProfileVitalViewDashboard() {
   const openCreate = useBoolean();
   const openCreateVital = useBoolean();
   const openCreateSingle = useBoolean();
@@ -135,7 +135,7 @@ export default function   ProfileVitalView({ data }: Props) {
   return (
     <>
       <Box>
-        <Stack  gap={1} direction="row" alignItems="center" justifyContent="flex-end" sx={{ mb: 3}}>
+        {/* <Stack  gap={1} direction="row" alignItems="center" justifyContent="flex-end" sx={{ mb: 3}}>
           <Button
             onClick={openCreate.onTrue}
             variant="contained"
@@ -144,9 +144,9 @@ export default function   ProfileVitalView({ data }: Props) {
             New Records
           </Button>
         
-        </Stack>
+        </Stack> */}
 
-        {chartData && <VitalView openSingle={openVitalSingle} items2={chart2Data} items={chartData} loading={dateResult.loading} />}
+        {chartData && <VitalView isDashboard={true} openSingle={openVitalSingle} items2={chart2Data} items={chartData} loading={dateResult.loading} />}
       </Box>
 
       <ProfileVitalCreateView

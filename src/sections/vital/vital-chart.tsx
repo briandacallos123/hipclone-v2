@@ -36,6 +36,7 @@ interface Props extends CardProps {
   };
   loading: boolean;
   isDashboard: any;
+  createNew:any;
 }
 
 export default function VitalChart({
@@ -45,6 +46,7 @@ export default function VitalChart({
   chart,
   isDashboard,
   loading,
+  createNew,
   ...other
 }: Props) {
   const theme = useTheme();
@@ -92,9 +94,16 @@ export default function VitalChart({
             title={title}
             subheader={subheader}
             action={
-              <IconButton onClick={open.onTrue}>
-                <Iconify icon="solar:maximize-bold" />
-              </IconButton>
+              (
+                <>
+                  <IconButton onClick={createNew}>
+                    <Iconify icon="ic:baseline-add" />
+                  </IconButton>
+                  <IconButton onClick={open.onTrue}>
+                    <Iconify icon="solar:maximize-bold" />
+                </IconButton>
+                </>
+              )
             }
             sx={{ p: { xs: 0.7, md: 2 } }}
           />

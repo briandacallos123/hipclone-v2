@@ -20,6 +20,7 @@ import { VitalView } from 'src/sections/vital/view';
 import PatientVitalCreateView from './vital-create-view';
 import { GetAllVitalCategories, QueryAllVitalData } from '@/libs/gqls/vitals';
 import VitalCreateNew from './vital-create-new';
+import VitalCreateNewSingle from '@/sections/profile/vital/view/vital-create-new-single';
 
 // ----------------------------------------------------------------------
 
@@ -38,7 +39,7 @@ export default function PatientVitalView({ items, uuid }: Props) {
   const [isPatient, setIspatient] = useState(true);
   const [chart2Data, setChart2Data] = useState([]);
   const [addCategory, setAddCategory] = useState([])
-  
+
   const [chartData, setChartData] = useState<any>([]);
   const [getData, dataResults] = useLazyQuery(get_note_vitals_patient, {
     context: {
@@ -80,8 +81,8 @@ export default function PatientVitalView({ items, uuid }: Props) {
 
   useEffect(() => {
     getVitalsData({
-      variables:{
-        data:{
+      variables: {
+        data: {
           uuid
         }
       }
@@ -185,8 +186,15 @@ export default function PatientVitalView({ items, uuid }: Props) {
   const openVitalCategory = () => {
     openCreateVital.onTrue()
   }
+  const openCreateSingle = useBoolean();
 
-  
+  const [singleData, setSingleData] = useState(null);
+
+  const openVitalSingle = (props:any) => {
+    setSingleData(props)
+    openCreateSingle.onTrue()
+
+  }
   return (
     <>
       <Box>
@@ -200,14 +208,14 @@ export default function PatientVitalView({ items, uuid }: Props) {
           </Button>
         </Stack>
 
-        {chartData && <VitalView items2={chart2Data} items={chartData} loading={dataResults.loading} />}
+        {chartData && <VitalView openSingle={openVitalSingle} items2={chart2Data} items={chartData} loading={dataResults.loading} />}
       </Box>
 
       <PatientVitalCreateView
         open={openCreate.value}
         onClose={openCreate.onFalse}
         items={items}
-        refetch={()=>{
+        refetch={() => {
           dataResults.refetch()
           vitalDataResults.refetch()
         }}
@@ -215,8 +223,22 @@ export default function PatientVitalView({ items, uuid }: Props) {
         addedCategory={addCategory}
       />
 
-      <VitalCreateNew
 
+      <VitalCreateNewSingle
+        open={openCreateSingle.value}
+        onClose={openCreateSingle.onFalse}
+        refetch={() => {
+          vitalDataResults.refetch()
+          dataResults.refetch()
+        }}
+        items={chartData}
+        addedCategory={addCategory}
+        openCategory={openVitalCategory}
+        data={singleData}
+        user={user}
+      />
+
+      <VitalCreateNew
         open={openCreateVital.value}
         onClose={openCreateVital.onFalse}
         refetch={() => {

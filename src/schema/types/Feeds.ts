@@ -289,7 +289,7 @@ export const QueryPosts = extendType({
 
         const data = await Promise.all(result)
 
-        console.log(data,'RESULT ULITTT')
+        // console.log(data,'RESULT ULITTT')
 
         const overwriteRes: any = await data.map((v: any) => ({
           ...v,

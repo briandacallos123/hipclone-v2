@@ -229,7 +229,7 @@ export default function NoteListView({
       notifyOnNetworkStatusChange: true,
     }
   );
-  const notFoundPatient = !loading && !tableData1?.length;
+  const notFoundPatient = !patientLoading && !tableData1?.length;
  
 
   // const [clinicData, setclinicData] = useState<any>([]);

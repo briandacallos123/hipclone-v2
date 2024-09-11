@@ -26,6 +26,7 @@ import PatientDataController from './_patientDataController';
 import FeedsView from '../../feeds/feeds-view';
 import { fDate } from '@/utils/format-time';
 import VitalChartSmall from '../vital-chart-Small';
+import ProfileVitalViewDashboard from '@/sections/profile/vital/view/vital-view-dashboard';
 
 export default function DashboardPatientView() {
   const settings = useSettingsContext();
@@ -85,9 +86,9 @@ export default function DashboardPatientView() {
 
   return (
     <Grid container spacing={3} sx={{ width: '100%', p: 2 }}>
-      <Grid md={3} xs={12}>
-        <Card sx={{ p: 1 }}>
-          <Stack spacing={2} direction="column" alignItems="center">
+      <Grid md={12} xs={12}>
+        <Card sx={{ p: 1, mb:2 }}>
+          <Stack spacing={2} direction="row" alignItems="center">
             <Avatar
               src={user?.photoURL}
               alt="IMG"
@@ -162,10 +163,13 @@ export default function DashboardPatientView() {
             </Stack>
           </Stack>
         </Card>
+        <Card>
+          <ProfileVitalViewDashboard/>
+        </Card>
       </Grid>
-      <Grid md={9} xs={12}>
+      <Grid md={12} xs={12}>
         <Grid md={12} xs={12}>
-          <Card sx={{ pb: 1 }}>
+          <Card sx={{ pb: 1, height:{lg:300} }}>
             <VitalChart
               title=""
               subheader=""
@@ -190,7 +194,7 @@ export default function DashboardPatientView() {
             />
             <Grid md={12}>
               <Stack direction="row" justifyItems="flex-start" alignItems="flex-start" spacing={3}>
-                <VitalChartSmall
+                {/* <VitalChartSmall
                   isLegend={true}
                   title="Blood Pressure"
                   subheader=""
@@ -201,8 +205,8 @@ export default function DashboardPatientView() {
                     ],
                   }}
                   loading={loading}
-                />
-                <VitalChartSmall
+                /> */}
+                {/* <VitalChartSmall
                   title="Respiratory Rate"
                   subheader=""
                   chart={{
@@ -211,7 +215,7 @@ export default function DashboardPatientView() {
                     ],
                   }}
                   loading={loading}
-                />
+                /> */}
 
                 
               </Stack>

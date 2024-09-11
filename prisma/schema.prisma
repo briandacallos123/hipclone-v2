@@ -1123,6 +1123,7 @@ model notes_vitals {
   hr              String?      @db.VarChar(255)
   rr              String?      @db.VarChar(255)
   bmi             String?      @db.VarChar(255)
+  bsm             String?      @db.VarChar(255)
   bt              String?      @db.VarChar(255)
   spo2            String?      @db.VarChar(255)
   bp              String?      @db.VarChar(255)
