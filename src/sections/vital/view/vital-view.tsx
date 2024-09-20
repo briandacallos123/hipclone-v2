@@ -125,6 +125,7 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
     }
   })
 
+  console.log(loading,'LOADING TARAAAAAAAAAAAAA')
   // newData = newData?.map((item)=>{
   //   const newDate = item?.date?.map((item)=>{
   //     const data = item?.split(" ");

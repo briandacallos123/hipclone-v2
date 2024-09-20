@@ -211,6 +211,9 @@ export const NoteAbstInputType = inputObjectType({
     t.nullable.int('emrPatientID');
     t.nullable.string('R_TYPE');
     t.nullable.int('isEMR');
+    t.nullable.int('recordId');
+    t.nullable.int('abs_id');
+
     // Abs
     t.nullable.string('complaint');
     t.nullable.string('illness');
@@ -276,6 +279,23 @@ export const PostNotesAbs = extendType({
           // const notesChildInput = notesInput.NoteTxtChildInputType;
           // const uuid = notesInput.tempId;
 
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
+            }
+          }
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordAbs = await trx.records.create({
               data: {
@@ -284,6 +304,7 @@ export const PostNotesAbs = extendType({
                 R_TYPE: String(createData.R_TYPE), // 10
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(0),
+                qrcode:VoucherCode
               },
             });
             const newChild = await trx.notes_abstract.create({
@@ -307,6 +328,79 @@ export const PostNotesAbs = extendType({
                 procedures: String(createData.procedures),
                 treatplan: String(createData.treatplan),
               },
+            });
+            return {
+              ...recordAbs,
+              ...newChild,
+              // tempId: uuid,
+            };
+          });
+          const res: any = notesTransaction;
+          return res;
+        } catch (e) {
+          console.log(e);
+        }
+      },
+    });
+  },
+});
+
+export const UpdateNotesAbs = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('UpdateNotesAbs', {
+      type: RecordObjectFields4Abs,
+      args: { data: NoteAbstInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesAbs');
+
+        try {
+          // const notesInput = { ...args.data };
+          // const notesChildInput = notesInput.NoteTxtChildInputType;
+          // const uuid = notesInput.tempId;
+
+
+        
+
+          const notesTransaction = await client.$transaction(async (trx) => {
+            const recordAbs = await trx.records.update({
+              data: {
+                CLINIC: Number(createData.clinic),
+                patientID: Number(createData.patientID),
+                R_TYPE: String(createData.R_TYPE), // 10
+                doctorID: Number(session?.user?.id),
+                isEMR: Number(0)
+              },
+              where:{
+                R_ID:Number(createData?.recordId)
+              }
+            });
+            const newChild = await trx.notes_abstract.update({
+              data: {
+                clinic: Number(recordAbs.CLINIC),
+                patientID: Number(recordAbs.patientID),
+                isEMR: Number(0),
+                doctorID: Number(session?.user?.id),
+                report_id: Number(recordAbs.R_ID),
+
+                complaint: String(createData.complaint),
+                illness: String(createData.illness),
+                symptoms: String(createData.symptoms),
+                pastmed: String(createData.pastmed),
+                persoc: String(createData.persoc),
+                physical: String(createData.physical),
+                labdiag: String(createData.labdiag),
+                findings: String(createData.findings),
+                finaldiag: String(createData.finaldiag),
+                complications: String(createData.complications),
+                procedures: String(createData.procedures),
+                treatplan: String(createData.treatplan),
+              },
+              where:{
+                id:Number(createData?.abs_id)
+              }
             });
             return {
               ...recordAbs,

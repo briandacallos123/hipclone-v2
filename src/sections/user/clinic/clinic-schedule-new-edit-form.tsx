@@ -18,7 +18,7 @@ import { CLINIC_SCHED_POST, SCHED_UPDATE_ONE } from '@/libs/gqls/clinicSched';
 import { useMutation } from '@apollo/client';
 // components
 import { useSnackbar } from 'src/components/snackbar';
-import FormProvider, { RHFSelect, RHFMultiCheckbox, RHFCheckbox } from 'src/components/hook-form';
+import FormProvider, { RHFSelect, RHFMultiCheckbox, RHFCheckbox, RHFTextField } from 'src/components/hook-form';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 // ----------------------------------------------------------------------
 
@@ -102,8 +102,7 @@ export default function ClinicScheduleNewEditForm({
   // Test cases
   // eslint-disable-next-line react-hooks/exhaustive-deps
 
-  console.log(currentItem?.start_time,'_____________@!#!#P(O)HJPOdhjpojapo__________________')
-  console.log(currentItem?.end_time,'_____________@!#!#P(O)HJPOdhjpojapo__________________')
+
 
   const sTime = convertTime(currentItem?.start_time);
   const sTimeNew = newFormatTimeString(currentItem?.start_time);
@@ -122,11 +121,12 @@ export default function ClinicScheduleNewEditForm({
       start_time: new Date(sTime) ?? new Date(),
       end_time: (new Date(eTime) || new Date(eTimeNew)) ?? new Date(),
       time_interval: currentItem?.time_interval,
+      numberPatient:0
     }),
     [currentItem?.days, currentItem?.time_interval, currentItem?.type, eTime, sTime, sTimeNew]
   );
-  // console.log('@@@@@@', currentItem?.start_time);
-  // console.log(defaultValues, 'def@@');
+
+
   const methods = useForm<FieldValues>({
     resolver: yupResolver(UpdateUserSchema),
     defaultValues,
@@ -141,6 +141,16 @@ export default function ClinicScheduleNewEditForm({
     formState: { isSubmitting },
   } = methods;
 
+  const values = watch();
+
+  const [showTime, setShowTime] = useState(false);
+
+  useEffect(() => {
+    if (values?.time_interval === '1') {
+      setShowTime(true)
+    }
+  }, [values?.time_interval])
+
   // useEffect(() => {
   //   if(currentItem){
   //     setValue('type',currentItem?.type);
@@ -153,13 +163,15 @@ export default function ClinicScheduleNewEditForm({
   const [snackKey, setSnackKey]: any = useState(null);
 
   const handleSubmitValue = useCallback(
-    async (model: NexusGenInputs['ClinicInsertPayload']) => {
-      const data: NexusGenInputs['ClinicInsertPayload'] = {
+    async (model:any) => {
+
+      const data: any = {
         refId: Number(currentItem?.id),
         type: model.type,
         days: model.days,
         start_time: model.start_time,
         end_time: model.end_time,
+        numberPatient:model?.numberPatient,
         time_interval: model.time_interval,
       };
       try {
@@ -204,9 +216,8 @@ export default function ClinicScheduleNewEditForm({
     [snackKey]
   );
 
-  const values = watch();
 
-  const appendNum = (val:any) =>{
+  const appendNum = (val: any) => {
     return val < 10 ? `0${val}` : val
   }
 
@@ -341,7 +352,24 @@ export default function ClinicScheduleNewEditForm({
                 <MenuItem value="45">45 Mins</MenuItem>
                 <MenuItem value="60">1 Hour</MenuItem>
                 <MenuItem value="0">No Limit</MenuItem>
+                <MenuItem value="1">Limited</MenuItem>
+
               </RHFSelect>
+            </Box>
+            <Box
+              rowGap={3}
+              columnGap={2}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: 'repeat(3, 1fr)',
+              }}
+            >
+              {showTime && <RHFTextField
+                name="numberPatient"
+                type="number"
+                placeholder='Number of patients'
+              />}
             </Box>
           </Stack>
         </FormProvider>

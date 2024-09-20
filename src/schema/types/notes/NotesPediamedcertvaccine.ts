@@ -203,6 +203,9 @@ export const NotesPedCertObjInputType = inputObjectType({
     t.nullable.int('isLinked');
     t.nullable.string('R_TYPE');
     t.nullable.int('isEMR');
+    t.nullable.int('pedia_id');
+    t.nullable.int('R_ID');
+
     // vacc
     t.nullable.int('InOutPatient');
     t.nullable.string('dateCreated');
@@ -256,6 +259,24 @@ export const PostNotesVacc = extendType({
           // const notesInput = { ...args.data };
           // const notesChildInput = notesInput.NoteTxtChildInputType;
           // const uuid = notesInput.tempId;
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
+            }
+          }
+
+          console.log(VoucherCode,'VOUCHER CODEEEEEEEEEE')
 
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordVacc = await trx.records.create({
@@ -265,6 +286,7 @@ export const PostNotesVacc = extendType({
                 R_TYPE: String(createData.R_TYPE), // 9
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(0),
+                qrcode:VoucherCode
               },
             });
             const newChild = await trx.notes_pediamedcertvaccine.create({
@@ -304,6 +326,76 @@ export const PostNotesVacc = extendType({
   },
 });
 
+export const UpdateNotesVacc = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('UpdateNotesVacc', {
+      type: RecordObjectFields4Vacc,
+      args: { data: NotesPedCertObjInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesTxt');
+
+        try {
+          // const notesInput = { ...args.data };
+          // const notesChildInput = notesInput.NoteTxtChildInputType;
+          // const uuid = notesInput.tempId;
+        
+
+          const notesTransaction = await client.$transaction(async (trx) => {
+            const recordVacc = await trx.records.update({
+              data: {
+                CLINIC: Number(createData.clinic),
+                patientID: Number(createData.patientID),
+                R_TYPE: String(createData.R_TYPE), // 9
+                doctorID: Number(session?.user?.id),
+                isEMR: Number(0)
+              },
+              where:{
+                R_ID:Number(createData?.R_ID)
+              }
+            });
+            const newChild = await trx.notes_pediamedcertvaccine.update({
+              data: {
+                clinic: Number(recordVacc.CLINIC),
+                patientID: Number(recordVacc.patientID),
+                // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
+                isEMR: Number(0),
+
+                dateCreated: String(createData.dateCreated),
+                InOutPatient: Number(createData.InOutPatient),
+                diagnosis: String(createData.diagnosis),
+                eval: String(createData.eval),
+
+                doctorID: Number(session?.user?.id),
+                report_id: Number(recordVacc.R_ID),
+
+                // InOutPatient
+                // dateCreated
+                // diagnosis
+                // eval
+              },
+              where:{
+                id:Number(createData?.pedia_id)
+              }
+            });
+            return {
+              ...recordVacc,
+              ...newChild,
+              // tempId: uuid,
+            };
+          });
+          const res: any = notesTransaction;
+          return res;
+        } catch (e) {
+          console.log(e);
+        }
+      },
+    });
+  },
+});
+
 export const PostNotesVaccEMR = extendType({
   type: 'Mutation',
   definition(t) {
@@ -320,6 +412,10 @@ export const PostNotesVaccEMR = extendType({
           // const notesChildInput = notesInput.NoteTxtChildInputType;
           // const uuid = notesInput.tempId;
 
+          
+         
+
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordVacc = await trx.records.create({
               data: {
@@ -328,7 +424,7 @@ export const PostNotesVaccEMR = extendType({
                 emrPatientID: Number(createData.emrPatientID),
                 R_TYPE: String(createData.R_TYPE), // 9
                 doctorID: Number(session?.user?.id),
-                isEMR: Number(1),
+                isEMR: Number(1)
               },
             });
             const newChild = await trx.notes_pediamedcertvaccine.create({

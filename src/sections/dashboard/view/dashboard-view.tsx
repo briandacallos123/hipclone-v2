@@ -197,7 +197,7 @@ export default function DashboardView() {
   );
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-      <Grid container spacing={3}>
+      <Grid justifyContent={{xs:"center", lg:'flex-start'}} container>
         {(isDoctor || isSecretary) && (
           <Grid xs={12}>
             <DashboardCover

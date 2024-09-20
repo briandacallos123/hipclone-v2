@@ -18,6 +18,8 @@ import { _doctorList, _hospitals } from 'src/_mock';
 // types
 import { INoteItem } from 'src/types/document';
 // components
+import QRCode from 'qrcode'
+
 import Iconify from 'src/components/iconify';
 import { LogoFull } from 'src/components/logo';
 import { TableMobileRow } from 'src/components/table';
@@ -44,15 +46,19 @@ import NotePDFCertificate from './note-pdf-certificate';
 import NotePDFClearance from './note-pdf-clearance';
 import NotePDFAbstract from './note-pdf-abstract';
 import NotePDFVaccine from './note-pdf-vaccine';
+import CustomPopover, { usePopover } from '@/components/custom-popover';
+import { MenuItem, Stack } from '@mui/material';
+import { isToday } from '@/utils/format-time';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   row: any;
   ids: any;
+  onEditRow?: any;
 };
 
-export default function NoteTableRow({ row, ids, onViewRow}: any) {
+export default function NoteTableRow({ row, ids, onViewRow, onEditRow }: any) {
   const view = useBoolean();
   const upMd = useResponsive('up', 'md');
   // const { textData, medClearData, medCertData, AbstractData, VaccData } = useNotesHooks(row);
@@ -115,141 +121,143 @@ export default function NoteTableRow({ row, ids, onViewRow}: any) {
   const [rowData, setRowData] = useState<any>([]);
   // const [labData, setLabData] = useState<any>([]);
 
-  useEffect(() => {
-    if (row?.R_TYPE === '1') {
-      getSoapFunc({
-        variables: {
-          data: {
-            recordID: Number(row?.R_ID),
-          },
-        },
-      }).then(async (result: any) => {
-        const { data } = result;
-        if (data) {
-          const { QueryNoteSoap } = data;
+  // console.log(rowData,'ROWDATAAAAAAAAAAAAAAAAA!!!!!!!!')
 
-          setSoapData(QueryNoteSoap);
-          // console.log('asdadasdadsadasdasdasd', soapData);
-        }
-      });
-      setRowData(soapData);
-    }
-    if (row?.R_TYPE === '4') {
-      getTxtsFunc({
-        variables: {
-          data: {
-            recordID: Number(row?.R_ID),
-          },
-        },
-      }).then(async (result: any) => {
-        const { data } = result;
-        if (data) {
-          const { QueryNoteTxt } = data;
+  // useEffect(() => {
+  //   if (row?.R_TYPE === '1') {
+  //     getSoapFunc({
+  //       variables: {
+  //         data: {
+  //           recordID: Number(row?.R_ID),
+  //         },
+  //       },
+  //     }).then(async (result: any) => {
+  //       const { data } = result;
+  //       if (data) {
+  //         const { QueryNoteSoap } = data;
 
-          setTxtData(QueryNoteTxt);
-        }
-      });
-      // console.log(())
-      setRowData(textData);
-    }
-    if (row?.R_TYPE === '5') {
-      getLabFunc({
-        variables: {
-          data: {
-            recordID: Number(row?.R_ID), // need force to number
-          },
-        },
-      }).then(async (result: any) => {
-        const { data } = result;
-        if (data) {
-          const { QueryNotesLab } = data;
+  //         setSoapData(QueryNoteSoap);
+  //         // console.log('asdadasdadsadasdasdasd', soapData);
+  //       }
+  //     });
+  //     setRowData(soapData);
+  //   }
+  //   if (row?.R_TYPE === '4') {
+  //     getTxtsFunc({
+  //       variables: {
+  //         data: {
+  //           recordID: Number(row?.R_ID),
+  //         },
+  //       },
+  //     }).then(async (result: any) => {
+  //       const { data } = result;
+  //       if (data) {
+  //         const { QueryNoteTxt } = data;
 
-          setLabData(QueryNotesLab);
-        }
-      });
-      setRowData(labData);
-    }
-    if (row?.R_TYPE === '8') {
-      getMedClearFunc({
-        variables: {
-          data: {
-            recordID: Number(row?.R_ID),
-          },
-        },
-      }).then(async (result: any) => {
-        const { data } = result;
-        if (data) {
-          const { QueryNotesMedCler } = data;
+  //         setTxtData(QueryNoteTxt);
+  //       }
+  //     });
+  //     // console.log(())
+  //     setRowData(textData);
+  //   }
+  //   if (row?.R_TYPE === '5') {
+  //     getLabFunc({
+  //       variables: {
+  //         data: {
+  //           recordID: Number(row?.R_ID), // need force to number
+  //         },
+  //       },
+  //     }).then(async (result: any) => {
+  //       const { data } = result;
+  //       if (data) {
+  //         const { QueryNotesLab } = data;
 
-          setMedClearData(QueryNotesMedCler);
-        }
-      });
-      setRowData(medClearData);
-    }
-    if (row?.R_TYPE === '9') {
-      getMedCertFunc({
-        variables: {
-          data: {
-            recordID: Number(row?.R_ID),
-          },
-        },
-      }).then(async (result: any) => {
-        const { data } = result;
-        if (data) {
-          const { QueryNotesMedCert } = data;
+  //         setLabData(QueryNotesLab);
+  //       }
+  //     });
+  //     setRowData(labData);
+  //   }
+  //   if (row?.R_TYPE === '8') {
+  //     getMedClearFunc({
+  //       variables: {
+  //         data: {
+  //           recordID: Number(row?.R_ID),
+  //         },
+  //       },
+  //     }).then(async (result: any) => {
+  //       const { data } = result;
+  //       if (data) {
+  //         const { QueryNotesMedCler } = data;
 
-          setMedCertData(QueryNotesMedCert);
-        }
-      });
+  //         setMedClearData(QueryNotesMedCler);
+  //       }
+  //     });
+  //     setRowData(medClearData);
+  //   }
+  //   if (row?.R_TYPE === '9') {
+  //     getMedCertFunc({
+  //       variables: {
+  //         data: {
+  //           recordID: Number(row?.R_ID),
+  //         },
+  //       },
+  //     }).then(async (result: any) => {
+  //       const { data } = result;
+  //       if (data) {
+  //         const { QueryNotesMedCert } = data;
 
-      setRowData(medCertData);
-    }
-    if (row?.R_TYPE === '10') {
-      getAbstFunc({
-        variables: {
-          data: {
-            recordID: Number(row?.R_ID),
-          },
-        },
-      }).then(async (result: any) => {
-        const { data } = result;
-        if (data) {
-          const { QueryNotesAbstract } = data;
+  //         setMedCertData(QueryNotesMedCert);
+  //       }
+  //     });
 
-          setAbstData(QueryNotesAbstract);
-        }
-      });
-      setRowData(AbstractData);
-    }
-    if (row?.R_TYPE === '11') {
-      getVaccFunc({
-        variables: {
-          data: {
-            reportID: Number(row?.R_ID),
-          },
-        },
-      }).then(async (result: any) => {
-        const { data } = result;
-        if (data) {
-          const { QueryNotesPedCertObj } = data;
+  //     setRowData(medCertData);
+  //   }
+  //   if (row?.R_TYPE === '10') {
+  //     getAbstFunc({
+  //       variables: {
+  //         data: {
+  //           recordID: Number(row?.R_ID),
+  //         },
+  //       },
+  //     }).then(async (result: any) => {
+  //       const { data } = result;
+  //       if (data) {
+  //         const { QueryNotesAbstract } = data;
 
-          setVaccData(QueryNotesPedCertObj);
-        }
-      });
-      setRowData(VaccData);
-    }
-  }, [
-    labData,
-    VaccData,
-    AbstractData,
-    medCertData,
-    medClearData,
-    row?.R_ID,
-    row?.R_TYPE,
-    soapData,
-    textData,
-    view.value,
-  ]);
+  //         setAbstData(QueryNotesAbstract);
+  //       }
+  //     });
+  //     setRowData(AbstractData);
+  //   }
+  //   if (row?.R_TYPE === '11') {
+  //     getVaccFunc({
+  //       variables: {
+  //         data: {
+  //           reportID: Number(row?.R_ID),
+  //         },
+  //       },
+  //     }).then(async (result: any) => {
+  //       const { data } = result;
+  //       if (data) {
+  //         const { QueryNotesPedCertObj } = data;
+
+  //         setVaccData(QueryNotesPedCertObj);
+  //       }
+  //     });
+  //     setRowData(VaccData);
+  //   }
+  // }, [
+  //   labData,
+  //   VaccData,
+  //   AbstractData,
+  //   medCertData,
+  //   medClearData,
+  //   row?.R_ID,
+  //   row?.R_TYPE,
+  //   soapData,
+  //   textData,
+  //   view.value,
+  // ]);
   // console.log(row, '@___________@');
   // const [getData, { data, loading }]: any = useLazyQuery(get_note_lab);
 
@@ -302,6 +310,86 @@ export default function NoteTableRow({ row, ids, onViewRow}: any) {
     return `${month} ${day}, ${year}`;
   };
 
+
+  const generateQR = async (text: any) => {
+    try {
+      const res = await QRCode.toDataURL(text)
+      setQrImage(res)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+  const [link, setLink] = useState<string | null>(null)
+  const [qrImage, setQrImage] = useState(null)
+  const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
+
+  
+
+
+  useEffect(() => {
+    if (view.value) {
+      (async () => {
+        let domain = "";
+        switch (row?.R_TYPE) {
+          case "4":
+            domain = `records/medical-note/${row?.qrcode}`;
+            break;
+          case "9":
+            domain = `records/medical-certificate/${row?.qrcode}`;
+            break;
+          case "8":
+            domain = `records/medical-clearance/${row?.qrcode}`;
+            break;
+          case "1":
+            domain = `records/medical-soap/${row?.qrcode}`;
+            break;
+          case "10":
+            domain = `records/medical-abstract/${row?.qrcode}`;
+            break;
+          case "11":
+            domain = `records/medical-vaccine/${row?.qrcode}`;
+            break;
+
+        }
+        // const myLink = `https://hip.apgitsolutions.com/${domain}`;
+        const myLink = `http://localhost:9092/${domain}`;
+
+        setLink(myLink)
+        await generateQR(myLink)
+
+        if (row?.notes_text?.length !== 0) {
+          try {
+            const response = await fetch('/api/getImage', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                image: row?.notes_text[0]?.file_name
+              }),
+            });
+
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            setImgSrc(objectUrl);
+
+            // Clean up object URL on component unmount
+            return () => {
+              URL.revokeObjectURL(objectUrl);
+            };
+          } catch (error) {
+            console.error('Error fetching image:', error);
+          }
+        }
+      })()
+    }
+  }, [view.value])
+
   const renderView = (
     <Dialog fullScreen open={view.value}>
       <Box sx={{ height: 1, display: 'flex', flexDirection: 'column' }}>
@@ -316,11 +404,12 @@ export default function NoteTableRow({ row, ids, onViewRow}: any) {
         </DialogActions>
 
         <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
-          {Render(row?.R_TYPE, rowData)}
+          {Render(row?.R_TYPE, rowData, imgSrc, qrImage)}
         </Box>
       </Box>
     </Dialog>
   );
+
 
   if (!upMd) {
     return (
@@ -336,22 +425,22 @@ export default function NoteTableRow({ row, ids, onViewRow}: any) {
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
 
-            {row?.clinicInfo === null? (
-                <Avatar
-                  alt={row?.clinicInfo?.clinic_name} 
-                  sx={{ mr: 2 }}
-                >
-                     {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-                </Avatar>
-              ) : (
-                <Avatar
-                  alt={row?.clinicInfo?.clinic_name} 
-                  src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1] || ''}
-                  sx={{ mr: 2 }}
-                >
-                    {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-                </Avatar>
-              )}
+            {row?.clinicInfo === null ? (
+              <Avatar
+                alt={row?.clinicInfo?.clinic_name}
+                sx={{ mr: 2 }}
+              >
+                {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+              </Avatar>
+            ) : (
+              <Avatar
+                alt={row?.clinicInfo?.clinic_name}
+                src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1] || ''}
+                sx={{ mr: 2 }}
+              >
+                {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+              </Avatar>
+            )}
             <ListItemText
               primary={`#${row?.R_ID}`}
               secondary={
@@ -371,6 +460,7 @@ export default function NoteTableRow({ row, ids, onViewRow}: any) {
     );
   }
 
+  const popover = usePopover();
   return (
     <>
       <TableRow hover>
@@ -392,24 +482,24 @@ export default function NoteTableRow({ row, ids, onViewRow}: any) {
         <TableCell>
           <div style={{ display: 'flex', alignItems: 'center' }}>
 
-              {row?.clinicInfo === null  && row?.R_TYPE === '8'  ? (
-                <Avatar
-                  alt={row?.clinicInfo?.clinic_name} 
-                  sx={{ mr: 2 }}
-                >
-                     {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-                </Avatar>
-              ) : (
-                <Avatar
-                  alt={row?.clinicInfo?.clinic_name} 
-                  src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1]}
-                  sx={{ mr: 2 }}
-                >
-                    {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-                </Avatar>
-              )}
+            {row?.clinicInfo === null && row?.R_TYPE === '8' ? (
+              <Avatar
+                alt={row?.clinicInfo?.clinic_name}
+                sx={{ mr: 2 }}
+              >
+                {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+              </Avatar>
+            ) : (
+              <Avatar
+                alt={row?.clinicInfo?.clinic_name}
+                src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1]}
+                sx={{ mr: 2 }}
+              >
+                {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+              </Avatar>
+            )}
 
-             {/* <Avatar 
+            {/* <Avatar 
             alt={row?.clinicInfo?.clinic_name} 
             src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1]}
             sx={{ mr: 2 }}>
@@ -446,11 +536,47 @@ export default function NoteTableRow({ row, ids, onViewRow}: any) {
         </TableCell>
 
         <TableCell align="center" sx={{ px: 1 }}>
-          <Tooltip title="View Details" placement="top" arrow>
+
+          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+
+          <Stack direction="row" justifyContent="flex-end">
+            <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+
+              {isToday(row?.R_DATE) && <MenuItem
+                onClick={() => {
+                  onEditRow()
+                }}
+                sx={{ color: 'success.main' }}
+              >
+                <Iconify icon="mdi:pencil" />
+                Edit
+              </MenuItem>}
+
+              <MenuItem
+                onClick={() => {
+                  // popover.onClose();
+                  onViewRow()
+                  // view.onTrue()
+                }}
+                sx={{ color: 'success.main' }}
+              >
+                <Iconify icon="mdi:eye" />
+                View
+              </MenuItem>
+
+
+
+
+            </CustomPopover>
+          </Stack>
+
+          {/* <Tooltip title="View Details" placement="top" arrow>
             <IconButton onClick={onViewRow}>
               <Iconify icon="solar:clipboard-text-bold" />
             </IconButton>
-          </Tooltip>
+          </Tooltip> */}
         </TableCell>
       </TableRow>
 
@@ -476,18 +602,24 @@ function reader(data: string) {
   );
 }
 
-function Render(data: string, row: any) {
+
+function Render(data: string, row: any, img: any, qrImage: any) {
+  console.log(data,'DATAAAAAAAAA')
+  console.log(img,'imgimg')
+  console.log(qrImage,'qrImage')
+ 
+ 
   return (
     <>
       {data === '1' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFSoap item={row} />
+          <NotePDFSoap qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
 
-      {data === '4' && (
+      {data === '4' && img && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFText item={row} />
+          <NotePDFText qrImage={qrImage} imgSrc={img} item={row} />
         </PDFViewer>
       )}
 
@@ -499,24 +631,24 @@ function Render(data: string, row: any) {
 
       {data === '8' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFClearance item={row} />
+          <NotePDFClearance qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
       {data === '9' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFCertificate item={row} />
+          <NotePDFCertificate qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
 
       {data === '10' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFAbstract item={row} />
+          <NotePDFAbstract qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
 
       {data === '11' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFVaccine item={row} />
+          <NotePDFVaccine qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
     </>

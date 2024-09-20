@@ -7,7 +7,7 @@ import { extendType, inputObjectType, objectType } from 'nexus';
 import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
-import useGoogleStorage from '@/hooks/use-google-storage-uploads';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
 
 /// ////////////////////////////////////////////////////
 export const appt_payment_attachment_obj = objectType({

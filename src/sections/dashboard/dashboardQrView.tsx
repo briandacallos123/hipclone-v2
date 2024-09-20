@@ -113,99 +113,106 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
         onClose={handleClose}
         TransitionComponent={Transition}
       >
-        <AppBar sx={{ position: 'relative' }}>
-          <Toolbar>
-            <div style={{ position: 'absolute', top: 20, left: 20 }}>
-              <LogoFull />
-            </div>
-            <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-              {/* Sound */}
-            </Typography>
-            <IconButton
-              edge="start"
-              color="inherit"
-              onClick={handleClose}
-              aria-label="close"
-            >
-              <CloseIcon />
-            </IconButton>
-          </Toolbar>
-        </AppBar>
+        <Box sx={{
+          width:'100%',
+          height:'100vh',
+          background: `url('/assets/background/queue-bg.jpg')`,
+          backgroundSize: 'cover',
+          backgroundRepeat: 'no-repeat',
+
+        }}>
+          <AppBar sx={{ position: 'relative' }}>
+            <Toolbar>
+              <div style={{ position: 'absolute', top: 20, left: 20 }}>
+                <LogoFull />
+              </div>
+              <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+                {/* Sound */}
+              </Typography>
+              <IconButton
+                edge="start"
+                color="inherit"
+                onClick={handleClose}
+                aria-label="close"
+              >
+                <CloseIcon />
+              </IconButton>
+            </Toolbar>
+          </AppBar>
 
 
-        <Paper sx={{
-          width: { xs: '100%', lg: 1100 },
-          margin: '0 auto',
-          marginTop: 10,
-          height: 'auto',
-          // p: { xs: 5, lg: 3 }
-          py:{
-            xs:5,
-            lg:5
-          }
-        }} elevation={12}>
-          <Stack justifyContent="flex-end" direction="row" gap={2} sx={{
-            width: '100%',
-            mb: 5,
-            pr:10
-          }}>
-            <Button sx={{}} onClick={generate} variant="outlined">
-              Generate
-            </Button>
-            <Button sx={{}} variant="contained" onClick={handleDownload}>
-              Download
-            </Button>
-          </Stack>
-
-          <Paper elevation={12}
-          sx={{
-            width: { xs: '100%', lg: 700 },
-            p: { xs: 5, lg: 3 },
-            margin:'0 auto',
-            marginBottom:10
-          }}>
-            <Box sx={{
-              width: "100%",
+          <Paper sx={{
+            width: { xs: '100%', lg: 800 },
+            margin: '0 auto',
+            marginTop: 10,
+            height: 'auto',
+            py: {
+              xs: 5,
+              lg: 5
+            },
+          }} elevation={12}>
+            <Stack justifyContent="flex-end" direction="row" gap={2} sx={{
+              width: '100%',
+              mb: 5,
+              pr:2
             }}>
-              {name ? renderComponents?.filter((item) => Number(item?.id) === Number(template_id))?.map(({ component: Component, id }) => {
-                return (
-                  <Box key={id} sx={{
-                    width: "100%",
-                    // height: '100%'
-                  }}>
-                    <Component
-                      ref={element}
+              <Button sx={{}} onClick={generate} variant="outlined">
+                Generate
+              </Button>
+              <Button sx={{}} variant="contained" onClick={handleDownload}>
+                Download
+              </Button>
+            </Stack>
+
+            <Paper elevation={12}
+              sx={{
+                width: { xs: '100%', lg: 700 },
+                p: { xs:1, lg: 3 },
+                margin: '0 auto'
+              }}>
+              <Box sx={{
+                width: "100%",
+              }}>
+                {name ? renderComponents?.filter((item) => Number(item?.id) === Number(template_id))?.map(({ component: Component, id }) => {
+                  return (
+                    <Box key={id} sx={{
+                      width: "100%",
+                      // height: '100%'
+                    }}>
+                      <Component
+                        ref={element}
+                        isSelected={true}
+                        arr={checkedValues}
+                        email={email}
+                        facebook={socials?.facebook}
+                        twitter={socials?.twitter}
+                        selected={true}
+                        contact={contact}
+                        address={address}
+                        photo={imgSrc} link={link} title={"test"} name={name} specialty={occupation}
+                      />
+                    </Box>
+                  )
+                }) :
+                  <>
+                    <Main
                       isSelected={true}
+                      ref={element}
                       arr={checkedValues}
-                      email={email}
+                      email={user?.email}
                       facebook={socials?.facebook}
                       twitter={socials?.twitter}
                       selected={true}
-                      contact={contact}
-                      address={address}
-                      photo={imgSrc} link={link} title={"test"} name={name} specialty={occupation}
+                      contact={user?.contact}
+                      address={user?.address}
+                      photo={imgSrc} link={link} title={"test"} name={user?.displayName} specialty={user?.occupation}
                     />
-                  </Box>
-                )
-              }) :
-                <>
-                  <Main
-                    isSelected={true}
-                    ref={element}
-                    arr={checkedValues}
-                    email={user?.email}
-                    facebook={socials?.facebook}
-                    twitter={socials?.twitter}
-                    selected={true}
-                    contact={user?.contact}
-                    address={user?.address}
-                    photo={imgSrc} link={link} title={"test"} name={user?.displayName} specialty={user?.occupation}
-                  />
-                </>
-              }
-            </Box>
+                  </>
+                }
+              </Box>
+            </Paper>
           </Paper>
-        </Paper>
+        </Box>
 
       </Dialog>
     </React.Fragment>

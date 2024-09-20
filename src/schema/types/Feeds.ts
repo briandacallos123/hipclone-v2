@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType, intArg, stringArg } from 'nexus';
 import { useUpload } from '../../hooks/use-upload';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
-import useGoogleStorage from '@/hooks/use-google-storage-uploads';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
 
 const client = new PrismaClient();
 

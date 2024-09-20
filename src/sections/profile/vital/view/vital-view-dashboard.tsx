@@ -39,7 +39,8 @@ export default function   ProfileVitalViewDashboard() {
   const [chartData, setChartData] = useState<any>([]);
   const [chart2Data, setChart2Data] = useState([]);
   const [addCategory, setAddCategory] = useState([])
-  // console.log('@@@@', user);
+  const [isLoading, setLoading] = useState(null);
+
   const [
     getDataUser,
     dateResult
@@ -50,6 +51,9 @@ export default function   ProfileVitalViewDashboard() {
     },
     notifyOnNetworkStatusChange: true,
   });
+
+  console.log(dateResult.loading, 'LOADING BA????????????????????????????????????????????');
+
 
   const [
     getVitalDataDynamic,
@@ -103,6 +107,7 @@ export default function   ProfileVitalViewDashboard() {
 
   useEffect(() => {
     if (user?.role === 'patient') {
+      setLoading(true)
       getDataUser({
         variables: {
           data: {
@@ -114,6 +119,8 @@ export default function   ProfileVitalViewDashboard() {
         if (data) {
           const { QueryNotesVitalsUser } = data;
           setChartData(QueryNotesVitalsUser?.vitals_data);
+      setLoading(false)
+
         }
       });
     }
@@ -146,7 +153,7 @@ export default function   ProfileVitalViewDashboard() {
         
         </Stack> */}
 
-        {chartData && <VitalView isDashboard={true} openSingle={openVitalSingle} items2={chart2Data} items={chartData} loading={dateResult.loading} />}
+        {chartData && <VitalView isDashboard={true} openSingle={openVitalSingle} items2={chart2Data} items={chartData} loading={isLoading} />}
       </Box>
 
       <ProfileVitalCreateView

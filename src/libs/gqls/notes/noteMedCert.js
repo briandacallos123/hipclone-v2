@@ -81,6 +81,35 @@ export const POST_MED_CERT = gql`
   }
 `;
 
+export const UpdateNotesCert = gql`
+  mutation UpdateNotesCert($data: NotesMedCertInputType!) {
+    UpdateNotesCert(data: $data) {
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteCertInfo {
+        InOutPatient
+        barring
+        doctorID
+        e_date
+        s_date
+        report_id
+        patientID
+        isDeleted
+        id
+        diagnosis
+        dateCreated
+        remarks
+      }
+    }
+  }
+`;
+
 export const POST_MED_CERT_EMR = gql`
   mutation POST_MED_CERT_EMR($data: NotesMedCertInputType!) {
     PostNotesCertEMR(data: $data) {

@@ -4,7 +4,7 @@ import client from "../../../prisma/prismaClient";
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import bcrypt from 'bcryptjs';
 import { clinicInfo4FYD } from "./Hmo";
-import useGoogleStorage from "@/hooks/use-google-storage-uploads";
+import useGoogleStorage from "@/hooks/use-google-storage-uploads2";
 
 export const User = objectType({
   name: "User",

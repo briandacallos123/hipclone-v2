@@ -1,4 +1,4 @@
-import { Avatar, Box, Container, Stack, Typography } from '@mui/material';
+import { Avatar, Box, Container, Paper, Stack, Typography } from '@mui/material';
 // import Image from '@/components/image';
 import Image from 'next/image';
 import React, { forwardRef, useEffect, useState } from 'react';
@@ -17,14 +17,20 @@ type MainProps = {
   forDownload: any;
   isSelected?: boolean;
   selected?: boolean;
+  contact?:string;
+  arr?:string;
 };
 
 const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
-  const { forDownload, facebook, twitter, email, title, name, specialty, link, photo, isSelected, selected } = props;
+  const {arr, forDownload, facebook,contact, twitter, email, title, name, specialty, link, photo, isSelected, selected } = props;
+
+  const { facebook: arrFb, twitter: arrTt, contact: arrContact, email: arrEmail, name: arrName, specialty: arrSpecialty } = arr;
+
+
+  console.log(selected,' SLECTED??????????')
 
   return (
-    <Box
-      ref={ref}
+    <Paper elevation={4} ref={ref}
       sx={{
         width: '100%',
         height: isSelected ? 400 : selected ? 300 : 200,
@@ -35,25 +41,27 @@ const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
         p: 2,
         backgroundImage: "url(/assets/doctor/templates/default1.jpg)",
         backgroundSize: 'cover',
-        pt: 5,
-        position: 'relative'
+        // pt: 5,
+        position: 'relative',
       }}
     >
 
       <Box sx={{
         position: 'absolute',
-        top: {xs:10, lg:20},
-        left: 20
+        top: {xs:selected ? 10 : 5, lg:15},
+        left: selected ? 15:5
       }}>
         <Image
           alt="logo"
           src="/logo/logo_full.png"
-          width={120}
-          height={30}
+          height={selected ? 30 : 25}
+          width={selected ? 80 : 80}
         />
       </Box>
-      <Stack alignItems="center" justifyContent="center">
-        <Typography variant="body1" sx={{ textTransform: 'capitalize', fontWeight: 'bold', fontSize: 18 }}>
+      <Stack alignItems="center" sx={{
+        marginTop:!selected ? 2 : 5
+      }} justifyContent="center">
+        <Typography  variant="body1" sx={{   fontSize: !selected && 15,  textTransform: 'capitalize', fontWeight: 'bold', fontSize: 18 }}>
           {name}
         </Typography>
         <Typography sx={{ textTransform: 'uppercase', fontSize: 10 }} variant="body2" color="gray">
@@ -65,8 +73,8 @@ const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
         <Image
           alt="qr image"
           src={photo}  // Use the state variable for the src
-          width={120}
-          height={120}
+          width={isSelected ? 100 : selected ? 80 : 50}
+          height={isSelected ? 100 : selected ? 80 : 50}
           style={{
             borderRadius: '50%'
           }}
@@ -77,7 +85,7 @@ const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
 
         <Stack>
 
-          {facebook &&
+          {arrFb && facebook &&
             <Stack direction="row" alignItems="center" gap={1}>
               <Avatar
                 sx={{
@@ -86,11 +94,13 @@ const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
                 }}
                 src={'/assets/icons/socials/facebook.svg'}
               />
-              <Typography variant="body2">{facebook}</Typography>
+              <Typography sx={{
+              fontSize:!selected && 12
+              }} variant="body2">{facebook}</Typography>
             </Stack>
           }
 
-          {twitter && <Stack direction="row" alignItems="center" gap={1}>
+          {arrTt &&  twitter && <Stack direction="row" alignItems="center" gap={1}>
             <Avatar
               sx={{
                 width: 20,
@@ -98,11 +108,26 @@ const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
               }}
               src={'/assets/icons/socials/twitter.svg'}
             />
-            <Typography variant="body2">{twitter}</Typography>
+            <Typography sx={{
+              fontSize:!selected && 12
+              }}  variant="body2">{twitter}</Typography>
+          </Stack>}
+
+          {arrContact && contact && <Stack direction="row" alignItems="center" gap={1}>
+            <Avatar
+              sx={{
+                width: 20,
+                height: 20
+              }}
+              src={'/assets/icons/socials/phone.svg'}
+            />
+            <Typography sx={{
+              fontSize:!selected && 12
+              }}  variant="body2">{contact}</Typography>
           </Stack>}
 
 
-          {email && <Stack direction="row" alignItems="center" gap={1}>
+          {arrEmail && email && <Stack direction="row" alignItems="center" gap={1}>
             <Avatar
               sx={{
                 width: 20,
@@ -110,7 +135,9 @@ const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
               }}
               src={'/assets/icons/socials/google.svg'}
             />
-            <Typography variant="body2">{email}</Typography>
+            <Typography sx={{
+              fontSize:!selected && 12
+              }}  variant="body2">{email}</Typography>
           </Stack>}
 
 
@@ -120,12 +147,12 @@ const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
         </Stack>
         <Image
           src={link}
-          width={100}
-          height={100}
+          width={selected ? 100 : 60}
+          height={selected ? 100 : 60}
           alt="qr image"
         />
       </Stack>
-    </Box>
+    </Paper>
   );
 });
 

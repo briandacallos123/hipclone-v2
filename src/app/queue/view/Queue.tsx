@@ -123,7 +123,9 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
                     justifyContent: "center",
                     mb: 5
                 }}>
-                    <Typography variant="body1">{notApprovedMessage(notAppNotToday?.status)} </Typography>
+                    <Typography sx={{
+                        textAlign:'center'
+                    }} variant="body1">{notApprovedMessage(notAppNotToday?.status)} </Typography>
                     {/* <Typography variant="h5">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography> */}
 
 
@@ -160,7 +162,9 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
                     justifyContent: "center",
                     mb: 5
                 }}>
-                    <Typography variant="body1">{notApprovedMessage(notApprovedVal)}</Typography>
+                    <Typography sx={{
+                        textAlign:'center'
+                    }} variant="body1">{notApprovedMessage(notApprovedVal)}</Typography>
 
                     {/* <Typography variant="h5">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography> */}
 
@@ -201,9 +205,13 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
                     justifyContent: "center",
                     mb: 5
                 }}>
-                    <Typography variant="body1">Your Schedule is not yet started, please wait
+                    <Typography sx={{
+                        textAlign:'center'
+                    }} variant="body1">Your Schedule is not yet started, please wait
                         until</Typography>
-                    <Typography variant="h6">{`${getUTCTime(notStarted?.startingTime)}`}</Typography>
+                    <Typography sx={{
+                        textAlign:'center'
+                    }} variant="h6">{`${getUTCTime(notStarted?.startingTime)}`}</Typography>
 
 
                 </Box>
@@ -239,9 +247,13 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
                     justifyContent: "center",
                     mb: 5
                 }}>
-                    <Typography variant="body1">Your Schedule is not today, please wait
+                    <Typography sx={{
+                        textAlign:'center'
+                    }} variant="body1">Your Schedule is not today, please wait
                         until </Typography>
-                    <Typography variant="h6">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography>
+                    <Typography sx={{
+                        textAlign:'center'
+                    }} variant="h6">{`${fDate(targetItem?.date)} ${formatMilitaryTime(targetItem?.time_slot)}`}</Typography>
 
 
                 </Box>
@@ -277,7 +289,9 @@ const Queue = ({ apptPaid, notStarted, ongoing, data, notApprovedVal, notAppNotT
                     justifyContent: "center",
                     mb: 5
                 }}>
-                    <Typography variant="body1">You're currently unpaid, please pay first your appointment</Typography>
+                    <Typography sx={{
+                        textAlign:'center'
+                    }} variant="body1">You're currently unpaid, please pay first your appointment</Typography>
 
 
 

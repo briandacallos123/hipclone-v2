@@ -173,3 +173,22 @@ export function getUTCTime(time){
   return formattedTime;
 
 }
+export function isToday(dateStr) {
+  // Create a Date object from the input date string
+  let inputDate = new Date(dateStr);
+
+  // Get the current date
+  let currentDate = new Date();
+
+  // Extract year, month, and day from both dates
+  let inputYear = inputDate.getFullYear();
+  let inputMonth = inputDate.getMonth(); // Note: Months are zero-based (0-11)
+  let inputDay = inputDate.getDate();
+
+  let currentYear = currentDate.getFullYear();
+  let currentMonth = currentDate.getMonth();
+  let currentDay = currentDate.getDate();
+
+  // Compare the year, month, and day
+  return inputYear === currentYear && inputMonth === currentMonth && inputDay === currentDay;
+}

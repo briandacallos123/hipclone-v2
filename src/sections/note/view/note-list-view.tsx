@@ -54,6 +54,15 @@ import NotePDFClearance from '../note-pdf-clearance';
 import NotePDFAbstract from '../note-pdf-abstract';
 import NotePDFVaccine from '../note-pdf-vaccine';
 import { useBoolean } from '@/hooks/use-boolean';
+import QRCode from 'qrcode'
+import { isToday } from 'src/utils/format-time';
+import { get_note_lab } from '@/libs/gqls/notes/notesLabReq';
+import { get_note_soap } from '@/libs/gqls/notes/notesSoap';
+import { get_note_txt } from '@/libs/gqls/notes/notesTxt';
+import { get_note_medClear } from '@/libs/gqls/notes/notesMedClear';
+import { get_note_medCert } from '@/libs/gqls/notes/noteMedCert';
+import { get_note_Abstract } from '@/libs/gqls/notes/notesAbstract';
+import { get_note_vaccine } from '@/libs/gqls/notes/noteVaccine';
 
 // ----------------------------------------------------------------------
 
@@ -71,7 +80,7 @@ const defaultFilters = {
   startDate: null,
   endDate: null,
   recType: '-1',
-  reset:false
+  reset: false
 };
 
 // ----------------------------------------------------------------------
@@ -87,9 +96,14 @@ type Props = {
   tableData1: any;
   totalData: any;
   Ids: any;
-  notesRecordResult:any;
-  clinicData:any;
-  patientLoading?:any;
+  notesRecordResult: any;
+  clinicData: any;
+  patientLoading?: any;
+  updateRow?:any;
+  setClearData?:any;
+  clearData?:any;
+  refetchChild?:any;
+  setRefetchChild?:any;
 };
 export default function NoteListView({
   refIds,
@@ -105,7 +119,13 @@ export default function NoteListView({
   Ids,
   notesRecordResult,
   clinicData,
-   patientLoading
+  patientLoading,
+  updateRow,
+  clearData,
+  setClearData,
+  refetchChild,
+  setRefetchChild
+
 }: Props) {
   const upMd = useResponsive('up', 'md');
   const table = useTable({ defaultOrder: 'desc', defaultOrderBy: 'date' });
@@ -171,13 +191,12 @@ export default function NoteListView({
   });
 
   useEffect(() => {
-  //  if(!refIds) return;
+    //  if(!refIds) return;
     const data = getItem('defaultFilters');
     if (data?.clinic) {
       filters.hospital = [Number(data?.clinic?.id)]
     }
   }, []);
-
 
   const denseHeight = table.dense ? 56 : 76;
   const [isPatient, setIspatient] = useState<boolean>();
@@ -188,9 +207,64 @@ export default function NoteListView({
     (!!filters.startDate && !!filters.endDate) ||
     !!filters.startDate ||
     !!filters.endDate;
-  
-  const [isLoadingPatient, setIsLoadingPatient] = useState(true);
 
+    const [labData, setLabData] = useState<any>([]);
+  const [getLabFunc, getLabNotes]: any = useLazyQuery(get_note_lab, {
+    context: {
+      requestTrackerId: 'getNotesLab[gNOTLab]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const [soapData, setSoapData] = useState<any>([]);
+  const [getSoapFunc, getSoapNotes]: any = useLazyQuery(get_note_soap, {
+    context: {
+      requestTrackerId: 'getNotesSoap[gNOTSOP]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const [textData, setTxtData] = useState<any>([]);
+  const [getTxtsFunc, getTxtsNotes]: any = useLazyQuery(get_note_txt, {
+    context: {
+      requestTrackerId: 'getNotesTxt[gNOTTXT]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const [medClearData, setMedClearData] = useState<any>([]);
+  const [getMedClearFunc, getMedClearNotes]: any = useLazyQuery(get_note_medClear, {
+    context: {
+      requestTrackerId: 'getNotesMedCler[gNOTCLER]',
+    },
+    notifyOnNetworkStatusChange: true,
+    
+  });
+
+  const [medCertData, setMedCertData] = useState<any>([]);
+  const [getMedCertFunc, getMedCertNotes]: any = useLazyQuery(get_note_medCert, {
+    context: {
+      requestTrackerId: 'getNotesMedCert[gNOTCERT]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const [AbstractData, setAbstData] = useState<any>([]);
+  const [getAbstFunc, getAbstNotes]: any = useLazyQuery(get_note_Abstract, {
+    context: {
+      requestTrackerId: 'getNotesAbs[gNOTABS]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+  const [VaccData, setVaccData] = useState<any>([]);
+  const [getVaccFunc, getVaccNotes]: any = useLazyQuery(get_note_vaccine, {
+    context: {
+      requestTrackerId: 'getNotesVacc[gNOTVAC]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const [isLoadingPatient, setIsLoadingPatient] = useState(true);
 
   const notFound = !loading && !tableData1.length;
 
@@ -203,9 +277,7 @@ export default function NoteListView({
       }));
     },
     [table]
-  );    
-
-  console.log(filters,'???????????')
+  );
 
   const handleResetFilters = () => {
     setFilters({
@@ -214,9 +286,8 @@ export default function NoteListView({
       startDate: null,
       endDate: null,
       recType: '-1',
-      reset:false
+      reset: false
     });
-    // setPayloads(defaultFilters)
   };
 
 
@@ -230,16 +301,7 @@ export default function NoteListView({
     }
   );
   const notFoundPatient = !patientLoading && !tableData1?.length;
- 
 
-  // const [clinicData, setclinicData] = useState<any>([]);
-
-  useEffect(() => {
-    // if (user?.role === 'doctor' && drClinicData) {
-    //   const { doctorClinics } = drClinicData;
-    //   setclinicData(doctorClinics);
-    // }
-  }, [drClinicData, user?.role]);
 
   useEffect(() => {
     if (isClinic === 1) {
@@ -262,16 +324,7 @@ export default function NoteListView({
       },
     },
   });
-  useEffect(() => {
-    // if (user?.role === 'patient' && userClinicData) {
-    //   const { AllClinicUser } = userClinicData;
-    //   setclinicData(AllClinicUser);
-    //   setIsClinic(isClinic + 1);
-    // }
-  }, [user?.role, userClinicData]);
 
-  // console.log(clinicData,'HAHAAAAAAAAAAAAAAAAAAAAA_____________________________AWITTTTTTTTTTTTTT');
-  
 
   useEffect(() => {
     const clinicItem = tableData1?.map((item: any) => Number(item?.CLINIC));
@@ -282,39 +335,283 @@ export default function NoteListView({
   const [noteData, setNoteData] = useState(null)
   const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
 
-  // useEffect(()=>{
-  //   if(noteData){
-  //     (async () => {
-  //       try {
-  //         const response = await fetch('/api/getImage', {
-  //           method: 'POST',
-  //           headers: {
-  //             'Content-Type': 'application/json',
-  //           },
-  //           body: JSON.stringify({
-  //             image: noteData?.notes_text[0]?.file_name
-  //           }),
-  //         });
   
-  //         if (!response.ok) {
-  //           throw new Error('Network response was not ok');
-  //         }
-  
-  //         const blob = await response.blob();
-  //         const objectUrl = URL.createObjectURL(blob);
-  //         setImgSrc(objectUrl);
-  
-  //         // Clean up object URL on component unmount
-  //         return () => {
-  //           URL.revokeObjectURL(objectUrl);
-  //         };
-  //       } catch (error) {
-  //         console.error('Error fetching image:', error);
-  //       }
-  //     })();
+
+  const [openNotes, setOpenNotes] = useState(false);
+
+  // useEffect(() => {
+  //   if (imgSrc || openNotes) {
+  //     view.onTrue()
   //   }
-  // },[noteData])
-  console.log(noteData,'NOTEEEEEE')
+  // }, [imgSrc, openNotes])
+
+
+
+
+  const [link, setLink] = useState<string | null>(null)
+  const [qrImage, setQrImage] = useState(null)
+  const [rowData, setRowData] = useState<any>(null);
+
+  const generateQR = async (text: any) => {
+    try {
+      const res = await QRCode.toDataURL(text)
+      setQrImage(res)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+
+  useEffect(()=>{
+    if(noteData){
+      (async()=>{
+        const row = noteData;
+        let domain = "";
+        switch (row?.R_TYPE) {
+          case "4":
+            domain = `records/medical-note/${row?.qrcode}`;
+            break;
+          case "9":
+            domain = `records/medical-certificate/${row?.qrcode}`;
+            break;
+          case "8":
+              domain = `records/medical-clearance/${row?.qrcode}`;
+              break;
+          case "1":
+            domain = `records/medical-soap/${row?.qrcode}`;
+            break;
+          case "10":
+              domain = `records/medical-abstract/${row?.qrcode}`;
+              break;
+          case "11":
+              domain = `records/medical-vaccine/${row?.qrcode}`;
+              break;
+    
+        }
+        const myLink = `http://localhost:9092/${domain}`;
+    
+        setLink(myLink)
+        await generateQR(myLink)
+    
+        if (row?.notes_text?.length !== 0) {
+          try {
+            const response = await fetch('/api/getImage', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({
+                image: row?.notes_text[0]?.file_name
+              }),
+            });
+    
+            if (!response.ok) {
+              throw new Error('Network response was not ok');
+            }
+    
+            const blob = await response.blob();
+            const objectUrl = URL.createObjectURL(blob);
+            setImgSrc(objectUrl);
+            setNoteData(row)
+    
+            // Clean up object URL on component unmount
+            return () => {
+              URL.revokeObjectURL(objectUrl);
+            };
+          } catch (error) {
+            console.error('Error fetching image:', error);
+          }
+        }
+      })()
+    }
+  },[noteData])
+
+  const [targetQuery, setTargetQuery] = useState<number | null>(null);
+
+  console.log(targetQuery,'targettttttttttttttttttt')
+  useEffect(()=>{
+    if(refetchChild){
+      console.log(targetQuery,'?????????')
+      switch(targetQuery){
+        case 1:
+          getSoapNotes.refetch();
+          break;
+        case 4:
+          getTxtsNotes.refetch();
+          break;
+        case 5:
+          getLabNotes.refetch();
+          break;
+        case 8:
+          getMedClearNotes.refetch();
+          break;
+        case 9:
+          getMedCertNotes.refetch();
+          break;
+        case 10:
+          getAbstNotes.refetch();
+          break;
+        case 10:
+          getVaccNotes.refetch();
+          break;
+      }
+      setRefetchChild(false)
+    }
+  },[refetchChild])
+
+  const handleViewRow = async (row: any) => {
+
+    setNoteData(row)
+
+    
+    //  else {
+    //   setNoteData(row)
+    //   setOpenNotes(true)
+    // }
+
+
+
+    if (row?.R_TYPE === '1') {
+      getSoapFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNoteSoap } = data;
+
+          setTargetQuery(1);
+
+          // setSoapData(QueryNoteSoap);
+          setRowData(QueryNoteSoap);
+          // console.log('asdadasdadsadasdasdasd', soapData);
+        }
+      });
+      // setRowData(soapData);
+    }
+    if (row?.R_TYPE === '4') {
+      getTxtsFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNoteTxt } = data;
+
+          // setTxtData(QueryNoteTxt);
+      setTargetQuery(4);
+
+      setRowData(QueryNoteTxt);
+
+        }
+      });
+      // console.log(())
+    }
+    if (row?.R_TYPE === '5') {
+      getLabFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID), // need force to number
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesLab } = data;
+          setTargetQuery(5);
+
+          setRowData(QueryNotesLab);
+
+          // setLabData(QueryNotesLab);
+        }
+      });
+    }
+    if (row?.R_TYPE === '8') {
+      getMedClearFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesMedCler } = data;
+          setTargetQuery(8);
+
+          // setMedClearData(QueryNotesMedCler);
+      setRowData(QueryNotesMedCler);
+
+        }
+      });
+    }
+    if (row?.R_TYPE === '9') {
+      getMedCertFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesMedCert } = data;
+          setTargetQuery(9);
+
+          setRowData(QueryNotesMedCert);
+
+          // setMedCertData(QueryNotesMedCert);
+        }
+      });
+
+    }
+    if (row?.R_TYPE === '10') {
+      getAbstFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesAbstract } = data;
+          setTargetQuery(10);
+
+          setRowData(QueryNotesAbstract);
+
+          // setAbstData(QueryNotesAbstract);
+        }
+      });
+    }
+    if (row?.R_TYPE === '11') {
+      getVaccFunc({
+        variables: {
+          data: {
+            reportID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesPedCertObj } = data;
+          setTargetQuery(11);
+
+          setRowData(QueryNotesPedCertObj);
+
+          // setVaccData(QueryNotesPedCertObj);
+        }
+      });
+    }
+   
+  }
+
 
   const renderView = (
     <Dialog fullScreen open={view.value}>
@@ -324,60 +621,232 @@ export default function NoteListView({
             <LogoFull disabledLink />
           </Box>
 
-          <Button variant="outlined" onClick={view.onFalse}>
+          <Button variant="outlined" onClick={()=>{
+            view.onFalse()
+             setOpenNotes(false)
+            setRowData(null)
+            setNoteData(null)
+          }}>
             Close
           </Button>
         </DialogActions>
 
         <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
-          {Render(noteData?.R_TYPE, noteData, imgSrc)}
+          {Render(noteData?.R_TYPE, rowData, imgSrc, qrImage)}
         </Box>
       </Box>
     </Dialog>
   );
 
-    useEffect(()=>{
-      if(imgSrc){
-        view.onTrue()
+  const [isEdit, setIsEdit] = useState(false);
+
+  useEffect(()=>{
+    if(rowData && !isEdit){
+      view.onTrue();
+    }
+    if(rowData && isEdit){
+      const newData = {
+        ...rowData,
+        R_TYPE: noteData?.R_TYPE,
+        R_ID:noteData?.R_ID
       }
-    },[imgSrc])
+      updateRow(newData)
+    }
+  },[rowData, noteData, isEdit])
 
-  const handleViewRow = async(row:any) => {
 
-    // (async () => {
-      try {
-        const response = await fetch('/api/getImage', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
+   // useEffect(() => {
+  //   if (imgSrc || openNotes) {
+  //     view.onTrue()
+  //   }
+  // }, [imgSrc, openNotes])
+
+  useEffect(()=>{
+    if(clearData){
+      setNoteData(null)
+      setIsEdit(false)
+      setClearData(false)
+      setRowData(null)
+    }
+  },[clearData])
+
+  const handleViewUpdate = async( row:any) => {
+    setNoteData(row)
+    setIsEdit(true)
+ 
+
+    if (row?.R_TYPE === '1') {
+      getSoapFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
           },
-          body: JSON.stringify({
-            image: row?.notes_text[0]?.file_name
-          }),
-        });
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNoteSoap } = data;
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
+          setTargetQuery(1);
+
+          // setSoapData(QueryNoteSoap);
+          setRowData(QueryNoteSoap);
+          // console.log('asdadasdadsadasdasdasd', soapData);
         }
+      });
+      // setRowData(soapData);
+    }
+    if (row?.R_TYPE === '4') {
+      getTxtsFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNoteTxt } = data;
 
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        setImgSrc(objectUrl);
-        setNoteData(row)
-        
-        // Clean up object URL on component unmount
-        return () => {
-          URL.revokeObjectURL(objectUrl);
-        };
-      } catch (error) {
-        console.error('Error fetching image:', error);
-      }
-    // })();
+          // setTxtData(QueryNoteTxt);
+      setTargetQuery(4);
 
+      setRowData(QueryNoteTxt);
+
+        }
+      });
+      // console.log(())
+    }
+    if (row?.R_TYPE === '5') {
+      getLabFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID), // need force to number
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesLab } = data;
+          setTargetQuery(5);
+
+          setRowData(QueryNotesLab);
+
+          // setLabData(QueryNotesLab);
+        }
+      });
+    }
+    if (row?.R_TYPE === '8') {
+      getMedClearFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesMedCler } = data;
+          setTargetQuery(8);
+
+          // setMedClearData(QueryNotesMedCler);
+      setRowData(QueryNotesMedCler);
+
+        }
+      });
+    }
+    if (row?.R_TYPE === '9') {
+      getMedCertFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesMedCert } = data;
+          setTargetQuery(9);
+
+          setRowData(QueryNotesMedCert);
+
+          // setMedCertData(QueryNotesMedCert);
+        }
+      });
+
+    }
+    if (row?.R_TYPE === '10') {
+      getAbstFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesAbstract } = data;
+          setTargetQuery(10);
+
+          setRowData(QueryNotesAbstract);
+
+          // setAbstData(QueryNotesAbstract);
+        }
+      });
+    }
+    if (row?.R_TYPE === '11') {
+      getVaccFunc({
+        variables: {
+          data: {
+            reportID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesPedCertObj } = data;
+          setTargetQuery(11);
+
+          setRowData(QueryNotesPedCertObj);
+
+          // setVaccData(QueryNotesPedCertObj);
+        }
+      });
+    }
+ 
+    // const newData = {
+    //   ...data,
+    //   R_TYPE: row?.R_TYPE
     
+    // }
+    
+
+  
   }
 
-  const finalLoading = user?.role !== 'patient' ? loading:patientLoading
+  const finalLoading = user?.role !== 'patient' ? loading : patientLoading
+
+
+  const [targetPdf, setTargetPdf] = useState(null);
+  const [targetRow, setTargetRow] = useState(null);
+
+  // console.log(targetPdf,' data galing sa pdf')
+  // console.log(targetRow,' data galing sa row')
+  
+  useEffect(()=>{
+    if(targetPdf || targetRow){
+      const newData = {
+        ...targetPdf,
+        R_TYPE: targetRow?.R_TYPE
+      }
+     updateRow(newData)
+    }
+    
+  },[targetPdf, targetRow])
+
+
+
+
 
   return (
     <Card>
@@ -433,10 +902,17 @@ export default function NoteListView({
                     row={row}
                     ids={Ids}
                     onRefetch={refetch}
-                    onViewRow={()=>{
+                    onViewRow={() => {
                       handleViewRow(row)
                     }}
-                    // onViewRow={() => handleViewRow(String(row.id))}
+                    onEditRow={()=>{
+                      handleViewUpdate(row)
+                    }}
+                    // onEditRow={(data:any)=>{
+                    //   onEditFunc
+                    //   // handleViewUpdate(data, row)
+                    // }}
+                  // onViewRow={() => handleViewRow(String(row.id))}
                   />
                 ))}
               <TableEmptyRows
@@ -452,7 +928,7 @@ export default function NoteListView({
           </Table>
         </Scrollbar>
       </TableContainer>
-      {imgSrc && renderView}
+      {renderView}
 
       <TablePaginationCustom
         count={totalData || 0}
@@ -486,48 +962,52 @@ function applyFilter({
   return inputData;
 }
 
-function Render(data: string, row: any, img:any) {
-  console.log(img,'IMGGGGGGGGGGGGGGGGGGGGGGGGGGGG')
+function Render(data: string, row: any, img: any, qrImage:any) {
+
+  data = String(data)
+  console.log(img,'IMAGE')
+  console.log(qrImage,'qrImageqrImage')
+  
   return (
     <>
       {data === '1' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFSoap item={row} />
+          <NotePDFSoap qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
 
-      {data === '4' && img && (
+      {data === '4' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFText imgSrc={img} item={row} />
+          <NotePDFText  qrImage={qrImage} imgSrc={img} item={row} />
         </PDFViewer>
       )}
 
       {data === '5' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFLaboratory item={row} />
+          <NotePDFLaboratory qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
 
       {data === '8' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFClearance item={row} />
+          <NotePDFClearance  qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
       {data === '9' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFCertificate item={row} />
+          <NotePDFCertificate qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
 
       {data === '10' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFAbstract item={row} />
+          <NotePDFAbstract qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
 
       {data === '11' && (
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFVaccine item={row} />
+          <NotePDFVaccine qrImage={qrImage} item={row} />
         </PDFViewer>
       )}
     </>

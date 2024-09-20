@@ -39,8 +39,18 @@ export default function PatientNoteListView({ slug, uuid }: Props) {
     clinicData
   } = useNotesHooks(payloads);
   const openCreate = useBoolean();
+  const openUpdate = useBoolean();
   // console.log(tableData1, 'table data1');
   // const [tableData] = useState(_noteList.filter((_) => _.patientId === slug));
+  const [editData, setEditData] = useState(null);
+
+  const onUpdateRow = (row:any) => {
+    openUpdate.onTrue();
+    setEditData(row)
+  }
+  const [refetchChild, setRefetchChild ] = useState(false);
+
+  const [clearData, setClearData] = useState(false);
 
   return (
     <>
@@ -53,7 +63,12 @@ export default function PatientNoteListView({ slug, uuid }: Props) {
         clinicData={clinicData}
         tableData1={tableData1}
         totalData={totalData}
+        updateRow={onUpdateRow}
         isLoading={isLoadingPatient}
+        setRefetchChild={setRefetchChild}
+        refetchChild={refetchChild}
+        clearData={clearData}
+        setClearData={setClearData}
         Ids={Ids}
         action={
           upMd ? (
@@ -74,10 +89,19 @@ export default function PatientNoteListView({ slug, uuid }: Props) {
       />
 
       <PatientNoteCreateView
-        open={openCreate.value}
-        onClose={openCreate.onFalse}
+        open={openCreate.value || openUpdate.value}
+        onClose={(()=>{
+          openCreate.onFalse();
+          openUpdate.onFalse();
+          setEditData(null)
+          setClearData(true)
+        })}
         refIds={slug}
-        refetch={refetch}
+        refetch={()=>{
+          refetch()
+          setRefetchChild(true)
+        }}
+        editData={editData}
       />
     </>
   );

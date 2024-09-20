@@ -90,6 +90,7 @@ export default function AppointmentFindView() {
   const theme = useTheme();
   const lgUp = useResponsive('up', 'lg');
 
+
   const [collapse, setCollapse] = useState<boolean>();
   useEffect(() => {
     setCollapse(JSON.parse(sessionStorage.getItem('videoBool')));
@@ -129,6 +130,8 @@ export default function AppointmentFindView() {
   const router = useRouter();
 
   const isDoctorPath = path === '/dashboard/my-doctors/';
+
+  const [dType, setDType] = useState(isDoctorPath && 1);
 
   const table = useTable();
   const { page, rowsPerPage, order, orderBy } = table;
@@ -176,6 +179,7 @@ export default function AppointmentFindView() {
           searchKeyword: String(filters?.name),
           searchSpecial: String(filters?.specialty),
           searchClinic: String(filters?.hospital),
+          myDoctor:dType && dType === 1 ? true:false,
           hmoIds: filters?.hmo && filters?.hmo?.map((v: any) => Number(v)),
         },
       },
@@ -197,6 +201,7 @@ export default function AppointmentFindView() {
     filters?.specialty,
     filters?.hospital,
     filters?.hmo,
+    dType
   ]);
 
   const denseHeight = table.dense ? 56 : 76;
@@ -370,7 +375,7 @@ export default function AppointmentFindView() {
               <Iconify width={16} icon="mingcute:video-fill" />
             </StyledToggleButton>
           )} */}
-          <AppointmentFindSteps view={view} handleChange={handleChange}/>
+          <AppointmentFindSteps setDType={setDType} dType={dType} view={view} handleChange={handleChange}/>
           <Card
             sx={{
               mt: 3,

@@ -288,6 +288,7 @@ model clinic_schedule {
   clinic        Int?
   clinic_id     Int?
   doctor_idno   Int?
+  number_patient Int? 
   SchedName     String?    @db.LongText
   days          String?    @db.LongText
   type          String?    @db.LongText
@@ -1382,6 +1383,7 @@ model records {
   BLOODCOUNT                String?                     @db.VarChar(255)
   CHOLESTEROL               String?                     @db.VarChar(255)
   DIABETES                  String?                     @db.VarChar(255)
+  qrcode                    String?                     @db.VarChar(255)
   HEIGHT                    String?                     @db.VarChar(255)
   WEIGTH                    String?                     @db.VarChar(255)
   BMI                       String?                     @db.VarChar(255)

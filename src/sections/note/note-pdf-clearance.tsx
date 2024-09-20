@@ -73,9 +73,10 @@ const useStyles = () =>
 
 type Props = {
   item?: NexusGenObjects['NotesMedClerObj'];
+  qrImage?:any;
 };
 
-export default function NotePDFClearance({ item }: Props) {
+export default function NotePDFClearance({qrImage, item }: Props) {
   // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
 
   // const keyDoctor = _doctorList.filter((_) => _.id === item?.doctor.id)[0].doctor;
@@ -222,8 +223,15 @@ export default function NotePDFClearance({ item }: Props) {
             },
           ]}
         >
-          <View style={styles.col6}>
+          <View style={styles.col8}>
             <Text style={styles.h4}>Medical Clearance: #{item?.id}</Text>
+          </View>
+          <View style={styles.col4}>
+            <Image
+             alt="yes"
+             src={qrImage}
+             style={[styles.mb8, { height: 70, width: 70 }]}
+            />
           </View>
         </View>
 

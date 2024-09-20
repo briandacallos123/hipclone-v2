@@ -105,6 +105,44 @@ export const POST_NOTES_ABS = gql`
   }
 `;
 
+export const UpdateNotesAbs = gql`
+  mutation UpdateNotesAbs($data: NoteAbstInputType) {
+    UpdateNotesAbs(data: $data) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteAbsInfo {
+        clinic
+        complaint
+        complications
+        dateCreated
+        doctorID
+        finaldiag
+        findings
+        id
+        illness
+        isDeleted
+        labdiag
+        pastmed
+        patientID
+        persoc
+        physical
+        procedures
+        report_id
+        symptoms
+        treatplan
+      }
+    }
+  }
+`;
+
+
 export const POST_NOTES_ABS_EMR = gql`
   mutation POST_NOTES_ABS_EMR($data: NoteAbstInputType) {
     PostNotesAbsEMR(data: $data) {

@@ -80,9 +80,10 @@ const useStyles = () =>
 
 type Props = {
   item?: any;
+  qrImage?: any;
 };
 
-export default function NotePDFLaboratory({ item }: Props) {
+export default function NotePDFLaboratory({ qrImage, item }: Props) {
   // const [getData, { data, loading }]: any = useLazyQuery(get_procedure);
   // useEffect(() => {
   //   getData({
@@ -136,42 +137,42 @@ export default function NotePDFLaboratory({ item }: Props) {
   const ESIG = () => {
     let text: any;
     if (item.doctorInfo?.esig_dp?.[0]?.type === 0) {
-        text = <></>;
+      text = <></>;
     } else if (item.doctorInfo?.esig_dp?.[0]?.type === 1) {
-        text = <>
+      text = <>
         <Image source={item.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
-        </>;
+      </>;
     } else if (item.doctorInfo?.esig_dp?.[0]?.type === 2) {
       text = <>
         <Image source={item.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
-        </>;
-    } 
+      </>;
+    }
     return text;
   };
 
 
-  
+
   const LIC = () => {
     let text: any;
     if (item?.doctorInfo?.PTR_LIC === "") {
-        text = <></>;
+      text = <></>;
     } else if (item?.doctorInfo?.PTR_LIC) {
-        text = <>
-        <Text style={{...styles.body1,fontSize: 8}}>Ptr License No.: {item?.doctorInfo?.PTR_LIC}</Text>
-        </>;
-    } 
+      text = <>
+        <Text style={{ ...styles.body1, fontSize: 8 }}>Ptr License No.: {item?.doctorInfo?.PTR_LIC}</Text>
+      </>;
+    }
     return text;
   };
 
   const S2 = () => {
     let text: any;
     if (item?.doctorInfo?.S2_LIC === "") {
-        text = <></>;
+      text = <></>;
     } else if (item?.doctorInfo?.S2_LIC) {
-        text = <>
-         <Text style={{...styles.body1,fontSize: 8}}>S2 License No.: {item?.doctorInfo?.S2_LIC}</Text>
-        </>;
-    } 
+      text = <>
+        <Text style={{ ...styles.body1, fontSize: 8 }}>S2 License No.: {item?.doctorInfo?.S2_LIC}</Text>
+      </>;
+    }
     return text;
   };
 
@@ -244,15 +245,24 @@ export default function NotePDFLaboratory({ item }: Props) {
               borderBottomWidth: 1,
               borderStyle: 'solid',
               borderColor: '#DFE3E8',
+              alignItems:'center'
             },
           ]}
         >
-          <View style={styles.col6}>
+          <View style={styles.col5}>
             <Text style={styles.h4}>Request: #{item?.id}</Text>
           </View>
-          <View style={styles.col6}>
+          <View style={styles.col5}>
             <Text style={styles.h4}>Date: {formatDate(item?.dateCreated)}</Text>
           </View>
+          <View style={styles.col2}>
+            <Image
+             alt="yes"
+             src={qrImage}
+             style={[styles.mb8, { height: 70, width: 70 }]}
+            />
+          </View>
+          
         </View>
 
         {/* Patient Details */}
@@ -309,15 +319,14 @@ export default function NotePDFLaboratory({ item }: Props) {
           <View>
             <Text style={[styles.mb8, styles.body1]}>
               <Text style={styles.overline}>Fasting Hour: </Text>
-              {`${
-                item?.fasting === 0
+              {`${item?.fasting === 0
                   ? '6-8'
                   : item?.fasting === 1
-                  ? '8-10'
-                  : item?.fasting === 2
-                  ? '10-12'
-                  : '0'
-              }hrs`}
+                    ? '8-10'
+                    : item?.fasting === 2
+                      ? '10-12'
+                      : '0'
+                }hrs`}
             </Text>
 
             <Text style={styles.overline}>Others</Text>
@@ -336,8 +345,8 @@ export default function NotePDFLaboratory({ item }: Props) {
 
           <View style={styles.col5}>
             {ESIG()}
-            <Text style={{...styles.subtitle2,fontSize: 10}}>{item?.doctorInfo?.EMP_FULLNAME}, {item?.doctorInfo?.EMP_TITLE}</Text>
-            <Text style={{...styles.body1,fontSize: 8}}>License No.: {item?.doctorInfo?.LIC_NUMBER}</Text>
+            <Text style={{ ...styles.subtitle2, fontSize: 10 }}>{item?.doctorInfo?.EMP_FULLNAME}, {item?.doctorInfo?.EMP_TITLE}</Text>
+            <Text style={{ ...styles.body1, fontSize: 8 }}>License No.: {item?.doctorInfo?.LIC_NUMBER}</Text>
             {LIC()}
             {S2()}
           </View>

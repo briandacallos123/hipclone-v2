@@ -12,12 +12,12 @@ import { RoleBasedGuard } from '@/auth/guard';
 }; */
 
 export default function UserClinicPage() {
-  return(
-  <RoleBasedGuard hasContent roles={['doctor']}>  
-  <UserClinicListView />;
-  </RoleBasedGuard>
+  return (
+    <RoleBasedGuard hasContent roles={['doctor']}>
+      <UserClinicListView />;
+    </RoleBasedGuard>
   )
-    
-  
-  
+
+
+
 }

@@ -14,7 +14,7 @@ import DialogContent from '@mui/material/DialogContent';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
-import { POST_NOTES_TXT } from 'src/libs/gqls/notes/notesTxt';
+import { POST_NOTES_TXT, UpdateNotesText } from 'src/libs/gqls/notes/notesTxt';
 // _mock
 import { _hospitals } from 'src/_mock';
 // components
@@ -29,9 +29,10 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
+  editData:any;
 };
 
-export default function NoteNewFormText({ onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormText({editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const { getItem } = useSessionStorage();
@@ -69,13 +70,18 @@ export default function NoteNewFormText({ onClose, refIds, refetch: onRefetch }:
       }),
   });
   // patient
+
+
+
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
-      title: '',
-      date: new Date(),
-      remark: '',
-      attachments: [],
+      hospitalId: Number(editData?.clinicInfo?.id) || null,
+      title: editData?.title || '',
+      date: new Date(editData?.dateCreated) || new Date(),
+      remark: editData?.text_data || '',
+      recordID:editData?.report_id ||'',
+      notesID:editData?.id || '',
+      attachments: editData?.attachment?.length && editData?.attachment?.map((item)=>item?.file_name)|| [],
     }),
     []
   );
@@ -103,7 +109,16 @@ export default function NoteNewFormText({ onClose, refIds, refetch: onRefetch }:
 
   const values = watch();
   const [createNotesText] = useMutation(POST_NOTES_TXT);
-
+  const [updateNotesText] = useMutation(UpdateNotesText);
+  // hospitalId: Number(editData?.clinicInfo?.id) || null,
+  //     title: editData?.title || '',
+  //     date: new Date(editData?.dateCreated) || new Date(),
+  //     remark: editData?.text_data || '',
+  //     recordID:editData?.report_id ||'',
+  //     notesID:editData?.id || '',
+  //     attachments: editData?.attachment?.length && editData?.attachment?.map((item)=>item?.file_name)|| [],
+  //   }),
+  
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['NoteTxtInputType'] = {
@@ -113,8 +128,10 @@ export default function NoteNewFormText({ onClose, refIds, refetch: onRefetch }:
         dateCreated: String(formatDate(model.date)),
         title: String(model.title),
         text_data: String(model.remark),
+        recordID:Number(model?.recordID),
+        notesID:Number(model?.notesID)
       };
-      createNotesText({
+      (editData ? updateNotesText:createNotesText)({
         variables: {
           data,
           file: model?.attachments,
@@ -123,7 +140,7 @@ export default function NoteNewFormText({ onClose, refIds, refetch: onRefetch }:
         .then(async () => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar('Create success!');
+          enqueueSnackbar(!editData ? 'Create success!':"Updated Successfully");
           // refetch();
           reset();
           onRefetch();
@@ -226,13 +243,13 @@ export default function NoteNewFormText({ onClose, refIds, refetch: onRefetch }:
             <RHFAutocomplete
               name="hospitalId"
               label="Hospital/Clinic"
-              options={clinicData.map((hospital: any) => hospital.id)}
+              options={clinicData?.map((hospital: any) => hospital.id)}
               getOptionLabel={(option) =>
-                clinicData.find((hospital: any) => hospital.id === option)?.clinic_name
+                clinicData?.find((hospital: any) => hospital.id === option)?.clinic_name
               }
               isOptionEqualToValue={(option, value) => option === value}
               renderOption={(props, option) => {
-                const { id, clinic_name } = clinicData.filter(
+                const { id, clinic_name } = clinicData?.filter(
                   (hospital: any) => hospital.id === option
                 )[0];
 
@@ -302,7 +319,10 @@ export default function NoteNewFormText({ onClose, refIds, refetch: onRefetch }:
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outlined" onClick={()=>{
+          onClose()
+          reset()
+        }}>
           Cancel
         </Button>
 
@@ -312,7 +332,8 @@ export default function NoteNewFormText({ onClose, refIds, refetch: onRefetch }:
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          Create
+          
+          {editData ? "Update":"Create"}
         </LoadingButton>
       </DialogActions>
     </>

@@ -6,7 +6,7 @@ import client from '../../../prisma/prismaClient';
 import bcrypt from 'bcryptjs';
 import { GraphQLError } from 'graphql';
 import { serialize, unserialize } from 'php-serialize';
-import useGoogleStorage from '@/hooks/use-google-storage-uploads';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
 
 export const storeType = objectType({
     name: "storeType",

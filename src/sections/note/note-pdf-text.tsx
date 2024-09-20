@@ -81,25 +81,12 @@ const useStyles = () =>
 type Props = {
   item?: any;
   imgSrc?: any;
+  qrImage?:any;
 };
 
-export default function NotePDFText({ item, imgSrc }: Props) {
+export default function NotePDFText({ item, imgSrc, qrImage }: Props) {
 
-
-
-  // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
-
-  // const keyDoctor = _doctorList.filter((_) => _.id === item?.doctor.id)[0].doctor;
-
-  // const keyHospital = _hospitals.filter((_) => _.id === item?.hospitalId)[0];
-
-  // const document = _noteTextList.filter((_) => _.id === item?.documentId)[0];
-
-  // const doctorName = `${keyDoctor.firstName} ${keyDoctor.lastName}, ${keyDoctor.title}`;
-
-  // const patientName = `${keyPatient.firstName} ${keyPatient.lastName}`;
-
-  // console.log(item, 'itemitemitem');
+  console.log(item,'ITEM SA NOTES DATAAAAAAAAA')
 
   const styles = useStyles();
   const formatDate = (date: any) => {
@@ -125,15 +112,15 @@ export default function NotePDFText({ item, imgSrc }: Props) {
 
   const ESIG = () => {
     let text: any;
-    if (item.doctorInfo?.esig_dp?.[0]?.type === 0) {
+    if (item?.doctorInfo?.esig_dp?.[0]?.type === 0) {
       text = <></>;
-    } else if (item.doctorInfo?.esig_dp?.[0]?.type === 1) {
+    } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 1) {
       text = <>
-        <Image source={item.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
+        <Image source={item?.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
       </>;
-    } else if (item.doctorInfo?.esig_dp?.[0]?.type === 2) {
+    } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 2) {
       text = <>
-        <Image source={item.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
+        <Image source={item?.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
       </>;
     }
     return text;
@@ -236,11 +223,18 @@ export default function NotePDFText({ item, imgSrc }: Props) {
             },
           ]}
         >
-          <View style={styles.col6}>
+          <View style={styles.col4}>
             <Text style={styles.h4}>Control: #{item?.id}</Text>
           </View>
-          <View style={styles.col6}>
+          <View style={styles.col4}>
             <Text style={styles.h4}>Date: {fDate(item?.R_DATE)}</Text>
+          </View>
+          <View style={styles.col4}>
+            <Image
+                alt="yes"
+                src={qrImage}
+                style={[styles.mb8, { height: 70, width: 70 }]}
+            />
           </View>
         </View>
 
@@ -313,9 +307,8 @@ export default function NotePDFText({ item, imgSrc }: Props) {
                   {/* <Text style={styles.h4}>{urlObject?.file_name}</Text> */}
                   <Image
                     alt="yes"
-                    // source={{ uri: publicPart }} 
                     src={imgSrc && imgSrc}
-                    style={[styles.mb8, { height: 300, width: 300 }]}
+                    style={[styles.mb8, { height: 200, width: 200 }]}
                   />
                 </View>
               );

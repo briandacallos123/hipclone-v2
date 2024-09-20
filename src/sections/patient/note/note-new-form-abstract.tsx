@@ -8,7 +8,7 @@ import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { POST_NOTES_ABS } from '@/libs/gqls/notes/notesAbstract';
+import { POST_NOTES_ABS, UpdateNotesAbs } from '@/libs/gqls/notes/notesAbstract';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
@@ -26,9 +26,10 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
+  editData:any;
 };
 
-export default function NoteNewFormAbstract({ onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormAbstract({editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const {getItem} = useSessionStorage()
@@ -69,19 +70,19 @@ export default function NoteNewFormAbstract({ onClose, refIds, refetch: onRefetc
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
-      complaint: '',
-      history: '',
-      review: '',
-      medicalHistory: '',
-      personalHistory: '',
-      examination: '',
-      result: '',
-      finding: '',
-      diagnosis: '',
-      complication: '',
-      procedure: '',
-      treatment: '',
+      hospitalId: editData?.clinic || null,
+      complaint:editData?.complaint || '',
+      history:editData?.illness || '',
+      review: editData?.symptoms || '',
+      medicalHistory:editData?.pastmed || '',
+      personalHistory:editData?.persoc  || '',
+      examination:editData?.physical || '',
+      result: editData?.labdiag ||'',
+      finding:editData?.findings || '',
+      diagnosis:editData?.finaldiag || '',
+      complication:editData?.complications || '',
+      procedure:editData?.procedures || '',
+      treatment:editData?.treatplan || '',
     }),
     []
   );
@@ -107,6 +108,8 @@ export default function NoteNewFormAbstract({ onClose, refIds, refetch: onRefetc
 
 
   const [createNoteAbs] = useMutation(POST_NOTES_ABS);
+  const [updateNoteAbs] = useMutation(UpdateNotesAbs);
+  
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['NoteAbstInputType'] = {
@@ -126,7 +129,8 @@ export default function NoteNewFormAbstract({ onClose, refIds, refetch: onRefetc
         complications: String(model.complication),
         procedures: String(model.procedure),
         treatplan: String(model.treatment),
-
+        recordId:Number(editData?.R_ID),
+        abs_id:Number(editData?.id)
         // complaint
         // history
         // review
@@ -140,7 +144,7 @@ export default function NoteNewFormAbstract({ onClose, refIds, refetch: onRefetc
         // procedure
         // treatment
       };
-      createNoteAbs({
+      (editData ? updateNoteAbs:createNoteAbs)({
         variables: {
           data,
         },
@@ -148,7 +152,7 @@ export default function NoteNewFormAbstract({ onClose, refIds, refetch: onRefetc
         .then(async (res) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar('Create success!');
+          enqueueSnackbar(editData ? "Update Successfull":"Create success!");
           // refetch();
           reset();
           onRefetch();
@@ -262,7 +266,10 @@ export default function NoteNewFormAbstract({ onClose, refIds, refetch: onRefetc
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outlined" onClick={()=>{
+          onClose();
+          reset()
+        }}>
           Cancel
         </Button>
 
@@ -272,7 +279,7 @@ export default function NoteNewFormAbstract({ onClose, refIds, refetch: onRefetc
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          Create
+          {editData ? "Update":"Create"}
         </LoadingButton>
       </DialogActions>
     </>

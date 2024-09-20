@@ -77,9 +77,10 @@ const useStyles = () =>
 
 type Props = {
   item?: NexusGenObjects['NotesPedCertObj'];
+  qrImage?:any;
 };
 
-export default function NotePDFVaccine({ item }: Props) {
+export default function NotePDFVaccine({qrImage, item }: Props) {
   // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
 
   // const keyDoctor = _doctorList.filter((_) => _.id === item?.doctor.id)[0].doctor;

@@ -16,7 +16,7 @@ export default function PatientDataController() {
   const [allData, setAllData] = useState<any[]>([]);
   const { user } = useAuthContext();
 
-  const [getData, { data, loading }] = useLazyQuery(PATIENT_DATA, {
+  const [getData, getDataResult] = useLazyQuery(PATIENT_DATA, {
     context: {
       requestTrackerId: 'getRecord[gREC]',
     },
@@ -85,7 +85,8 @@ export default function PatientDataController() {
 
   return {
     allData,
-    loading,
+    loading:getDataResult?.loading,
     chartData,
+    getDataResult
   };
 }

@@ -1,4 +1,4 @@
-import { Avatar, Box, Container, Grid, Stack, Typography } from '@mui/material'
+import { Avatar, Box, Container, Grid, Paper, Stack, Typography } from '@mui/material'
 import Image from 'next/image';
 // import Image from '@/components/image';
 import React, { forwardRef } from 'react'
@@ -25,7 +25,7 @@ const Default5 = forwardRef((props, ref) => {
 
 
     return (
-        <Box ref={ref} sx={{
+        <Paper elevation={4} ref={ref} sx={{
             width: '100%',
             height: isSelected ? 400 : selected ? 300 : 200,
             display: 'flex',
@@ -75,7 +75,9 @@ const Default5 = forwardRef((props, ref) => {
                                     }}
                                     src={'/assets/icons/socials/phone.svg'}
                                 />
-                                <Typography variant="body2">{contact}</Typography>
+                                <Typography sx={{
+              fontSize:!selected && 12
+              }} variant="body2">{contact}</Typography>
                             </Stack>
                         }
 
@@ -88,7 +90,9 @@ const Default5 = forwardRef((props, ref) => {
                                     }}
                                     src={'/assets/icons/socials/facebook.svg'}
                                 />
-                                <Typography variant="body2">{facebook}</Typography>
+                                <Typography sx={{
+              fontSize:!selected && 12
+              }} variant="body2">{facebook}</Typography>
                             </Stack>
                         }
 
@@ -100,7 +104,9 @@ const Default5 = forwardRef((props, ref) => {
                                 }}
                                 src={'/assets/icons/socials/twitter.svg'}
                             />
-                            <Typography variant="body2">{twitter}</Typography>
+                            <Typography sx={{
+              fontSize:!selected && 12
+              }} variant="body2">{twitter}</Typography>
                         </Stack>}
 
 
@@ -112,7 +118,9 @@ const Default5 = forwardRef((props, ref) => {
                                 }}
                                 src={'/assets/icons/socials/google.svg'}
                             />
-                            <Typography variant="body2">{email}</Typography>
+                            <Typography sx={{
+              fontSize:!selected && 12
+              }} variant="body2">{email}</Typography>
                         </Stack>}
 
 
@@ -172,7 +180,7 @@ const Default5 = forwardRef((props, ref) => {
             </Stack> */}
 
 
-        </Box>
+        </Paper>
     )
 })
 

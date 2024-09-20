@@ -86,6 +86,8 @@ export default function VitalChart({
     ...options,
   });
 
+
+  console.log(loading,'loading sa vital view')
   return (
     <>
       {upMd && !dashboardVital && (

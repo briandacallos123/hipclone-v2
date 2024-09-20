@@ -3,7 +3,7 @@ import { GraphQLError } from 'graphql/error/GraphQLError';
 import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
-import useGoogleStorage from '@/hooks/use-google-storage-uploads';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
 
 export const GeneralTabInput = inputObjectType({
   name: 'GeneralTabInput',

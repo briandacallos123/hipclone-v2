@@ -203,6 +203,7 @@ export const FYDInputType = inputObjectType({
     t.nullable.string('orderBy');
     t.nullable.string('orderDir');
     t.nullable.string('searchKeyword');
+    t.nullable.boolean('myDoctor')
     t.nullable.string('searchClinic');
     t.nullable.string('searchSpecial');
     t.list.field('hmoIds', { type: 'Int' });
@@ -230,74 +231,145 @@ export const QueryFYD = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`employees`', 'findYourDoctor');
 
-  
+
+        let myDoctorOnly = args?.data?.myDoctor
+
+        let result;
+        let _count;
+        
+   
+
         try {
-          let [result, _count]: any = await client.$transaction([
-            client.employees.findMany({
-              orderBy: {
-                ...order,
-              },
-              skip,
-              take,
-              where: {
-                isDeleted: 0,
-                ...whereconditions, 
-              },
-              include: {
-                user: true,
-                clinicInfo: {
-                  where: {
-                    isDeleted: 0,
-                    NOT: [{ clinic_name: '' }, { clinic_name: null }, { isDeleted: 1 }],
-                  },
-                  include: {
-                    clinicDPInfo:{
-                      orderBy:{
-                        id:'desc'
-                      }
+          if(!myDoctorOnly){
+            let [result1, _count1]: any = await client.$transaction([
+              client.employees.findMany({
+                orderBy: {
+                  ...order,
+                },
+                skip,
+                take,
+                where: {
+                  isDeleted: 0,
+                  ...whereconditions, 
+                },
+                include: {
+                  user: true,
+                  clinicInfo: {
+                    where: {
+                      isDeleted: 0,
+                      NOT: [{ clinic_name: '' }, { clinic_name: null }, { isDeleted: 1 }],
                     },
-                    ClinicSchedInfo: {
-                      where: {
-                        isDeleted: 0,
+                    include: {
+                      clinicDPInfo:{
+                        orderBy:{
+                          id:'desc'
+                        }
+                      },
+                      ClinicSchedInfo: {
+                        where: {
+                          isDeleted: 0,
+                        },
                       },
                     },
                   },
+  
+                  SpecializationInfo: true,
                 },
-
-                SpecializationInfo: true,
-              },
-            }),
-            client.employees.aggregate({
-              where: {
-                isDeleted: 0,
-                ...whereconditions,
-                clinicInfo: {
-                  some: {
-                    isDeleted: 0,
+              }),
+              client.employees.aggregate({
+                where: {
+                  isDeleted: 0,
+                  ...whereconditions,
+                  clinicInfo: {
+                    some: {
+                      isDeleted: 0,
+                    },
                   },
                 },
+                _count: {
+                  EMPID: true,
+                },
+              }),
+            ]);
+            result = result1;
+            _count = _count1;
+          }else{
+            const patientDoctors = await client.records.findMany({
+              where:{
+                patientID:Number(session?.user?.s_id),
+                APPID:{
+                  not:null
+                }
               },
-              _count: {
-                EMPID: true,
-              },
-            }),
-          ]);
-          // console.log(result, 'result');
-
-          /* if (args?.data!.hmoIds?.length) {
-            const hmoIDS = args?.data!.hmoIds;
-
-            result?.forEach((p: any) => {
-              const newData: any = [];
-              if (p?.HMO) {
-                let hmo = unserialize(p?.HMO)?.map((i: any) => Number(i));
-                hmo?.forEach((i: any) => hmoIDS.includes(i) && newData.push(p));
+              select:{
+                doctorID:true
               }
-              console.log(newData.slice(0, 5));
-              result = newData.slice(0, 5);
-            });
-          } */
+            })
 
+            let [result1, _count1]: any = await client.$transaction([
+              client.employees.findMany({
+                orderBy: {
+                  ...order,
+                },
+                skip,
+                take,
+                where: {
+                  isDeleted: 0,
+                  ...whereconditions, 
+                  EMP_ID:{
+                    in:patientDoctors?.map((item)=>Number(item?.doctorID))
+                  }
+                },
+                include: {
+                  user: true,
+                  clinicInfo: {
+                    where: {
+                      isDeleted: 0,
+                      NOT: [{ clinic_name: '' }, { clinic_name: null }, { isDeleted: 1 }],
+                    },
+                    include: {
+                      clinicDPInfo:{
+                        orderBy:{
+                          id:'desc'
+                        }
+                      },
+                      ClinicSchedInfo: {
+                        where: {
+                          isDeleted: 0,
+                        },
+                      },
+                    },
+                  },
+  
+                  SpecializationInfo: true,
+                },
+              }),
+              client.employees.aggregate({
+                where: {
+                  isDeleted: 0,
+                  ...whereconditions,
+                  clinicInfo: {
+                    some: {
+                      isDeleted: 0,
+                    },
+                  },
+                  EMP_ID:{
+                    in:patientDoctors?.map((item)=>Number(item?.doctorID))
+                  }
+
+                },
+                _count: {
+                  EMPID: true,
+                },
+              }),
+            ]);
+            result = result1;
+            _count = _count1;
+
+         
+
+          }
+         
           const _result: any = result;
           const _total: any = _count;
           const response: any = {

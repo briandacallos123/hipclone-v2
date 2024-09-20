@@ -82,6 +82,35 @@ export const POST_NOTE_VACC = gql`
   }
 `;
 
+export const UpdateNotesVacc = gql`
+  mutation UpdateNotesVacc($data: NotesPedCertObjInputType!) {
+    UpdateNotesVacc(data: $data) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteVaccInfo {
+        InOutPatient
+        VISIBILITY
+        clinic
+        dateCreated
+        diagnosis
+        doctorID
+        eval
+        id
+        isDeleted
+        patientID
+        report_id
+      }
+    }
+  }
+`;
+
 
 export const POST_NOTE_VACC_EMR = gql`
   mutation POST_NOTE_VACC_EMR($data: NotesPedCertObjInputType!) {

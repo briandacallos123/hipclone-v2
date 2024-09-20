@@ -16,7 +16,7 @@ import DialogContent from '@mui/material/DialogContent';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
-import { POST_MED_CLER } from 'src/libs/gqls/notes/notesMedClear';
+import { POST_MED_CLER, UpdateNotesCler } from 'src/libs/gqls/notes/notesMedClear';
 // _mock
 import { _patientList, _hospitals } from 'src/_mock';
 // components
@@ -40,9 +40,10 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
+  editData?:any;
 };
 
-export default function NoteNewFormClearance({ onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormClearance({editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const {getItem} = useSessionStorage()
@@ -87,10 +88,10 @@ export default function NoteNewFormClearance({ onClose, refIds, refetch: onRefet
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
-      date: new Date(),
-      dateExamined: new Date(),
-      remark: '',
+      hospitalId: Number(editData?.clinicInfo?.id) || null,
+      date: editData?.dateCreated && new Date(editData?.dateCreated) || new Date(),
+      dateExamined:editData?.dateCreated?.dateExamined && new Date(editData?.dateCreated?.dateExamined) || new Date(),
+      remark: editData?.remarks || '',
     }),
     []
   );
@@ -117,6 +118,9 @@ export default function NoteNewFormClearance({ onClose, refIds, refetch: onRefet
 
 
   const [createNotesText] = useMutation(POST_MED_CLER);
+  const [UpdateNotesText] = useMutation(UpdateNotesCler);
+
+  
 
   const handleSubmitValue = useCallback(
     async (model: any) => {
@@ -127,8 +131,10 @@ export default function NoteNewFormClearance({ onClose, refIds, refetch: onRefet
         dateCreated: String(formatDate(model.date)),
         dateExamined: String(formatDate(model.dateExamined)),
         remarks: String(model.remark),
+        medical_ID:editData && Number(editData?.id),
+        recordID:editData && Number(editData?.R_ID)
       };
-      createNotesText({
+     (editData? UpdateNotesText: createNotesText)({
         variables: {
           data,
         },
@@ -136,7 +142,7 @@ export default function NoteNewFormClearance({ onClose, refIds, refetch: onRefet
         .then(async () => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar('Create success!');
+          enqueueSnackbar(editData ? "Updated Successfully":"Create success!");
           // refetch();
           reset();
           onRefetch();
@@ -208,9 +214,9 @@ export default function NoteNewFormClearance({ onClose, refIds, refetch: onRefet
             <RHFAutocomplete
               name="hospitalId"
               label="Hospital/Clinic"
-              options={clinicData.map((hospital: any) => hospital.id)}
+              options={clinicData.map((hospital: any) => Number(hospital.id))}
               getOptionLabel={(option) =>
-                clinicData.find((hospital: any) => hospital.id === option)?.clinic_name
+                clinicData.find((hospital: any) => Number(hospital.id) === Number(option))?.clinic_name
               }
               isOptionEqualToValue={(option, value) => option === value}
               renderOption={(props, option) => {
@@ -322,7 +328,10 @@ export default function NoteNewFormClearance({ onClose, refIds, refetch: onRefet
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outlined" onClick={()=>{
+          onClose();
+          reset()
+        }}>
           Cancel
         </Button>
 
@@ -332,7 +341,7 @@ export default function NoteNewFormClearance({ onClose, refIds, refetch: onRefet
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          Create
+          {editData ? "Update":"Create"}
         </LoadingButton>
       </DialogActions>
     </>

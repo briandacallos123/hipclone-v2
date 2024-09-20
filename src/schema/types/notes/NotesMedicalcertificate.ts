@@ -185,6 +185,8 @@ const RecordObjectFields4Cert = objectType({
     t.int('isDeleted');
     t.string('tempId');
     t.string('R_TYPE');
+    t.nullable.string('qrcode');
+
     t.nullable.field('clinicInfo', {
       type: ClinicObjectFields4NotesMedCert,
     });
@@ -220,6 +222,9 @@ export const NotesMedCertInputType = inputObjectType({
     t.nullable.string('R_TYPE');
     t.nullable.int('isEMR');
     t.nullable.int('isLinked');
+    t.nullable.int('cert_id');
+    t.nullable.int('R_ID');
+
 
     // cert
     t.nullable.int('InOutPatient');
@@ -286,6 +291,23 @@ export const PostNotesCert = extendType({
           // const notesChildInput = notesInput.NoteTxtChildInputType;
           // const uuid = notesInput.tempId;
 
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
+            }
+          }
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordCert = await trx.records.create({
               data: {
@@ -294,6 +316,8 @@ export const PostNotesCert = extendType({
                 R_TYPE: String(createData.R_TYPE), // 9
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(0),
+                qrcode:VoucherCode
+
               },
             });
             const newChild = await trx.notes_medicalcertificate.create({
@@ -322,6 +346,83 @@ export const PostNotesCert = extendType({
                 // barring
                 // remarks
               },
+            });
+            return {
+              ...recordCert,
+              ...newChild,
+              // tempId: uuid,
+            };
+          });
+          const res: any = notesTransaction;
+          return res;
+        } catch (e) {
+          console.log(e);
+        }
+      },
+    });
+  },
+});
+
+export const UpdateNotesCert = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('UpdateNotesCert', {
+      type: RecordObjectFields4Cert,
+      args: { data: NotesMedCertInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesTxt');
+
+        try {
+          // const notesInput = { ...args.data };
+          // const notesChildInput = notesInput.NoteTxtChildInputType;
+          // const uuid = notesInput.tempId;
+
+         
+
+          const notesTransaction = await client.$transaction(async (trx) => {
+            const recordCert = await trx.records.update({
+              data: {
+                CLINIC: Number(createData.clinic),
+                patientID: Number(createData.patientID),
+                R_TYPE: String(createData.R_TYPE), // 9
+                doctorID: Number(session?.user?.id),
+                isEMR: Number(0)
+              },
+              where:{
+                R_ID:Number(createData?.R_ID)
+              }
+            });
+            const newChild = await trx.notes_medicalcertificate.update({
+              data: {
+                clinic: Number(recordCert.CLINIC),
+                patientID: Number(recordCert.patientID),
+                // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
+                isEMR: Number(0),
+                dateCreated: String(createData.dateCreated),
+                InOutPatient: Number(createData.InOutPatient),
+                s_date: String(createData.s_date),
+                e_date: String(createData.e_date),
+                diagnosis: String(createData.diagnosis),
+                barring: String(createData.barring),
+                remarks: String(createData.remarks),
+
+                doctorID: Number(session?.user?.id),
+
+                report_id: Number(recordCert.R_ID),
+
+                // InOutPatient
+                // dateCreated
+                // s_date
+                // e_date
+                // diagnosis
+                // barring
+                // remarks
+              },
+              where:{
+                id:Number(createData?.cert_id)
+              }
             });
             return {
               ...recordCert,

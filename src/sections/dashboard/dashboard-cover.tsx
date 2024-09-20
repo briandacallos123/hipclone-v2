@@ -24,7 +24,7 @@ import { VitalView } from 'src/sections/vital/view';
 import IMG from '../../../public/assets/background/banner-bg.png';
 import QRCode from 'qrcode'
 // import Image from 'next/image';
-import { Checkbox, Container, DialogContent, Grid, ListItem, Paper, Tooltip } from '@mui/material';
+import { Checkbox, Container, DialogContent, Drawer, Grid, ListItem, Paper, Tooltip } from '@mui/material';
 import * as React from 'react';
 import Dialog from '@mui/material/Dialog';
 import ListItemButton from '@mui/material/ListItemButton';
@@ -54,6 +54,11 @@ import ProductDetailsCarousel from '../product/product-details-carousel-original
 import DefaultMain from '../doctor/profile/templates/forms/defaultMain';
 import DashboardQrView from './dashboardQrView';
 import { UPDATE_BUSINESSCARD } from '@/libs/gqls/users';
+import Iconify from '@/components/iconify';
+import { NAV } from '@/layouts/config-layout';
+import Scrollbar from '@/components/scrollbar';
+import BannerPreset from 'public/assets/background/BannerPreset';
+import BackgroundPalette from 'public/assets/background/backgrounPalette';
 // ----------------------------------------------------------------------
 
 export default function DashboardCover({
@@ -207,16 +212,20 @@ export default function DashboardCover({
       <Box
         sx={{
           ...bgGradient({
-            // background: `url('../../../public/assets/background/banner-bg.png')`,
+       
           }),
-          background: 'url(/assets/background/banner-bg.png)',
+          background: 'url(/assets/background/bg-blueee.jpg)',
           backgroundSize: 'cover',
-          height: 1,
+          backgroundRepeat: 'no-repeat',
+          height: '100%',
           color: 'common.white',
           display: 'flex',
           justifyContent: 'space-between'
         }}
       >
+        {/* <Box>
+            <BackgroundPalette/>
+        </Box> */}
         <Stack
           direction="row"
           sx={{
@@ -467,6 +476,9 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
   const [active, setActive] = useState<number | null>(null);
   const [generated, setGenerated] = useState(null);
   const componentRef = useRef();
+
+  const [prevTemplate, setPrevTemplate] = useState(null);
+
   const [socialsAcc, setSocialsAcc] = useState({ facebook: "", twitter: "" });
   // const {facebook, twitter} = user?.employee_card && JSON.parse(user?.employee_card?.social);
   const [checkedValues, setCheckedValues] = useState({
@@ -500,13 +512,15 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
       contact: user?.contact || '',
       address: user?.address || '',
       attachmentDefault: user?.photoUrl || '',
-      facebook: socialsAcc?.facebook && socialsAcc?.facebook || '',
-      twitter: socialsAcc?.twitter && socialsAcc?.twitter || ""
+      facebook: socialsAcc?.facebook || '',
+      twitter: socialsAcc?.twitter || ""
     }),
     [links, user, socialsAcc?.facebook, socialsAcc?.twitter]
   );
 
+  const lgUp = useResponsive('up', 'lg');
 
+  console.log(lgUp, '')
 
   const UpdateUserSchema = Yup.object().shape({
     name: Yup.string().required('Name is required'),
@@ -530,7 +544,6 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
   } = methods;
 
   const values = watch();
-  console.log(values, '??????????????????????????defaultvalues!!!!!!!!!')
 
   const handleChangeBox = (name: string, value) => {
     setCheckedValues({
@@ -554,21 +567,27 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
     if (user?.employee_card) {
       (() => {
 
+        setPrevTemplate(user?.employee_card?.template_id)
+
         if (user?.employee_card?.social) {
           const { facebook, twitter } = JSON.parse(user?.employee_card?.social);
+
+
+
           setSocialsAcc({
-            facebook,
-            twitter
+            facebook: facebook || '',
+            twitter: twitter || ''
           })
           setCheckedValues({
             ...checkedValues,
-            facebook: true,
-            twitter: true
+            facebook: facebook ? true : false,
+            twitter: twitter ? true : false
           })
-          setValue('facebook', facebook);
-          setValue('twitter', twitter);
+          setValue('facebook', facebook || '');
+          setValue('twitter', twitter || '');
 
         }
+     
 
       })()
     }
@@ -729,103 +748,358 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
     // })
   }
 
-  return (
-    <React.Fragment>
-      <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+  const openNav = useBoolean();
 
-        <Dialog
-          fullScreen
-          open={open}
-          onClose={handleClose}
-          TransitionComponent={Transition}
+  const RenderContentMain = (
+    <Box sx={{
+      px: { xs: 1, lg: 3 },
+      py: 1
+    }}>
+      <Stack sx={{ mb: 5 }} direction="row" justifyContent="space-between">
+        <Typography>2. Personalize Details</Typography>
+        <Button onClick={handleSubmitGenerate} variant="contained">Generate</Button>
+
+        {/* <Button ref={submitBtn} sx={{ display: 'none' }} type="submit">Submit</Button> */}
+      </Stack>
+
+      <Stack gap={5}>
+        <RHFUploadAvatar
+          name="avatarUrl"
+          maxSize={3145728}
+          onDrop={handleDrop}
+          helperText={
+            <Typography
+              variant="caption"
+              sx={{
+                mt: 3,
+                mx: 'auto',
+                display: 'block',
+                textAlign: 'center',
+                color: 'text.disabled',
+              }}
+            >
+              Allowed *.jpeg, *.jpg, *.png, *.gif
+              <br /> max size of {fData(3145728)}
+            </Typography>
+          }
+        />
+
+        <Box
+          rowGap={{ md: 3, xs: 1 }}
+          columnGap={{ md: 2, xs: 1 }}
+          display="grid"
 
         >
-          <AppBar sx={{ position: 'fixed', width: '100%', py: 1, background: { xs: "white", lg: 'none' } }}>
-            <Toolbar>
-              <div style={{ position: 'fixed', top: 20, left: 20 }}>
-                <LogoFull />
-              </div>
-              <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
-                {/* Sound */}
-              </Typography>
-              <div style={{ position: 'fixed', top: 20, right: 20 }}>
-                <IconButton
-                  edge="start"
-                  color="inherit"
-                  onClick={handleClose}
-                  aria-label="close"
-                >
-                  <CloseIcon />
-                </IconButton>
-              </div>
+          <Stack direction="row" alignItems="center">
+            <RHFTextField disabled={!checkedValues?.name} name="name" label="Name" />
+            <Checkbox
+              checked={checkedValues?.name}
+              disabled
+              // onChange={(e) => {
+              //   handleChangeBox('name', e.target.checked)
+              // }}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+          </Stack>
 
-            </Toolbar>
-          </AppBar>
+          <Stack direction="row" alignItems="center">
+            <RHFTextField disabled={!checkedValues?.email} name="email" label="Email" />
 
-          <Paper sx={{
-            width: { xs: '100%', lg: 1600 },
-            margin: '0 auto',
-            py: { xs: 5, lg: 2 },
-            px: { xs: 1, lg: 8 },
-            marginTop: { lg: 10 }
-          }} elevation={12}>
-            <Grid container justifyContent="space-around" spacing={2} sx={{
-              width: '100%',
-              p:3
+            <Checkbox
+              checked={checkedValues?.email}
+              onChange={(e) => {
+                handleChangeBox('email', e.target.checked)
+              }}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+          </Stack>
+
+          <Stack direction="row" alignItems="center" >
+            <RHFTextField disabled={!checkedValues?.address} name="address" label="Address" />
+            <Checkbox
+              checked={checkedValues?.address}
+              onChange={(e) => {
+                handleChangeBox('address', e.target.checked)
+              }}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+
+          </Stack>
+
+          <Stack direction="row" alignItems="center">
+
+            <RHFTextField disabled={!checkedValues?.contact} InputProps={{
+              readOnly: true,
+            }} name="contact" label="Contact #" />
+
+            <Checkbox
+              checked={checkedValues?.contact}
+              onChange={(e) => {
+                handleChangeBox('contact', e.target.checked)
+              }}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+
+          </Stack>
+
+          <Stack direction="row" alignItems="center" >
+            <RHFTextField disabled={!checkedValues?.specialty} name="specialty" label="Main Specialty" />
+            <Checkbox
+              checked={checkedValues?.specialty}
+              onChange={(e) => {
+                handleChangeBox('specialty', e.target.checked)
+              }}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+
+          </Stack>
+
+
+          <Stack direction="row" alignItems="center" >
+            <RHFTextField disabled={!checkedValues?.facebook} name="facebook" label="Facebook" />
+            <Checkbox
+              checked={checkedValues?.facebook}
+              onChange={(e) => {
+                handleChangeBox('facebook', e.target.checked)
+              }}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+
+          </Stack>
+
+          <Stack direction="row" alignItems="center" >
+            <RHFTextField disabled={!checkedValues?.twitter} name="twitter" label="Twitter" />
+            <Checkbox
+              checked={checkedValues?.twitter}
+              onChange={(e) => {
+                handleChangeBox('twitter', e.target.checked)
+              }}
+              inputProps={{ 'aria-label': 'controlled' }}
+            />
+
+          </Stack>
+
+
+
+          <Stack direction="row" alignItems="center">
+            <RHFTextField disabled={!checkedValues?.profile} InputProps={{
+              readOnly: true,
+            }} name="profile" label="Public Profile URL" />
+
+          </Stack>
+
+        </Box>
+
+      </Stack>
+    </Box>
+  )
+
+  const renderContent = (
+    <Scrollbar
+      sx={{
+        height: 1,
+        '& .simplebar-content': {
+          height: 1,
+          display: 'flex',
+          flexDirection: 'column',
+
+        },
+      }}
+    >
+      <LogoFull sx={{ mt: 3, ml: 4, mb: 1 }} />
+
+      {RenderContentMain}
+
+      <Box sx={{ flexGrow: 1 }} />
+
+      {/* <NavFooter /> */}
+    </Scrollbar>
+  );
+
+
+
+
+
+
+
+  return (
+    <React.Fragment>
+      <Box>
+        {openNav.value && <OpenDrawer />}
+        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+
+
+          <Dialog
+            fullScreen
+            open={open}
+            onClose={handleClose}
+            TransitionComponent={Transition}
+
+          >
+            <Box sx={{
+              width: '100vw',
+              background: `url('/assets/background/queue-bg.jpg')`,
+              backgroundSize: 'cover',
+              backgroundRepeat: 'no-repeat',
+              backgroundAttachment: 'fixed'
+
+
             }}>
-              <Grid sx={{
-                 pt: 7
-              }} xs={12} item rowGap={2} lg={7} columnGap={2}>
+              <AppBar sx={{ position: 'fixed', width: '100%', py: 1, background: { xs: "white", lg: 'none' } }}>
+                <Toolbar>
+                  <div style={{ position: 'fixed', top: 20, left: 20 }}>
+                    <LogoFull />
+                  </div>
+                  <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
+                    {/* Sound */}
+                  </Typography>
+                  <div style={{ position: 'fixed', top: 20, right: 20 }}>
 
-                <Paper elevation={12} sx={{
+
+                    <IconButton
+                      edge="start"
+                      color="inherit"
+                      onClick={handleClose}
+                      aria-label="close"
+                    >
+                      <CloseIcon />
+                    </IconButton>
+                  </div>
+
+                </Toolbar>
+              </AppBar>
+
+              <Box sx={{
+                width: { xs: '100%', lg: 1600 },
+                margin: '0 auto',
+                py: { xs: 5, lg: 2 },
+                px: { xs: 1, lg: 8 },
+                marginTop: { lg: 10 }
+              }}>
+                <Grid container justifyContent="space-around" spacing={2} sx={{
                   width: '100%',
-                  px: { xs: 1, lg: 8 },
-                  py:3
+                  height:'auto',
+                  p: 3
                 }}>
-                  <Stack gap={2} sx={{ mb: 3 }}>
+                  <Grid sx={{
+                    pt: 7
+                  }} xs={12} item rowGap={2} lg={7} columnGap={2}>
 
-                    <Typography variant="h4">QR Banners</Typography>
-                    <Typography>1. Choose a banners</Typography>
-                  </Stack>
-                  <Stack sx={{
-                    p: 2,
-                    px: 4,
-                    width: '100%',
-                    justifyContent: 'center'
-                  }}>
-                    <Typography sx={{ mb: 2 }} variant="body2" color="gray">*Default Banner</Typography>
-
-                    {!active ? <Stack alignItems="center" justifyContent="center" sx={{
+                    <Paper elevation={12} sx={{
                       width: '100%',
-                      height: '100%'
-
+                      px: { xs: 1, lg: 8 },
+                      py: 3
                     }}>
-                      <Box sx={{
-                        width: { xs: '100%', lg: '80%' },
-                        height: '100%',
-                      }}>
-                        <DefaultMain
-                          arr={checkedValues}
-                          email={values?.email}
-                          facebook={values?.facebook}
-                          twitter={values?.twitter}
-                          contact={values?.contact}
-                          address={values?.address}
-                          photo={typeof values?.avatarUrl === 'string' ? values?.avatarUrl : values?.avatarUrl?.preview}
-                          link={link} title={"test"} name={values?.name} specialty={values?.specialty}
-                        />
-                      </Box>
-                    </Stack> :
-                      <Stack alignItems="center" justifyContent="center" sx={{
+                      <Stack gap={2} sx={{ mb: 3 }}>
+
+                        <Typography variant="h4">QR Banners</Typography>
+                        <Typography>1. Choose a banners</Typography>
+                      </Stack>
+                      <Stack sx={{
+                        p: 2,
+                        px: { lg: 4 },
                         width: '100%',
-                        height: '100%'
-                      }} >
-                        {
-                          renderComponents?.filter((item) => Number(item?.id) === Number(active))?.map(({ component: Component, id }) => {
-                            return (
-                              <Box sx={{
-                                width: { lg: "80%" },
-                                height: { lg: '100%' },
+                        justifyContent: 'center'
+                      }}>
+                        <Typography sx={{ mb: 2 }} variant="body2" color="gray">*Default Banner</Typography>
+
+                        {!active && prevTemplate && renderComponents?.filter((item) => Number(item?.id) === Number(prevTemplate))?.map(({ component: Component, id }) => {
+                          return (
+                            <Box sx={{
+                              width: { lg: "80%" },
+                              height: { lg: '100%' },
+                            }}>
+                              <Component
+                                arr={checkedValues}
+                                facebook={values?.facebook}
+                                twitter={values?.twitter}
+                                ref={id === active ? componentRef : null}
+                                email={values?.email}
+                                selected={true}
+                                contact={values?.contact}
+                                address={values?.address}
+                                forDownload={generated == id} photo={typeof values?.avatarUrl === 'string' ? values?.avatarUrl : values?.avatarUrl?.preview} link={link} title={"test"} name={values?.name} specialty={values?.specialty}
+                              />
+                            </Box>
+                          )
+                        })}
+                        {!active && !prevTemplate && <Stack alignItems="center" justifyContent="center" sx={{
+                          width: '100%',
+                          height: '100%'
+
+                        }}>
+                          <Box sx={{
+                            width: { xs: '100%', lg: '80%' },
+                            height: '100%',
+                          }}>
+                            <DefaultMain
+                              arr={checkedValues}
+                              email={values?.email}
+                              facebook={values?.facebook}
+                              twitter={values?.twitter}
+                              contact={values?.contact}
+                              address={values?.address}
+                              photo={typeof values?.avatarUrl === 'string' ? values?.avatarUrl : values?.avatarUrl?.preview}
+                              link={link} title={"test"} name={values?.name} specialty={values?.specialty}
+                            />
+                          </Box>
+                        </Stack>}
+                          {active && <Stack alignItems="center" justifyContent="center" sx={{
+                            width: '100%',
+                            height: '100%'
+                          }} >
+                            {
+                              renderComponents?.filter((item) => Number(item?.id) === Number(active))?.map(({ component: Component, id }) => {
+                                return (
+                                  <Box sx={{
+                                    width: { lg: "80%" },
+                                    height: { lg: '100%' },
+                                  }}>
+                                    <Component
+                                      arr={checkedValues}
+                                      facebook={values?.facebook}
+                                      twitter={values?.twitter}
+                                      ref={id === active ? componentRef : null}
+                                      email={values?.email}
+                                      selected={true}
+                                      contact={values?.contact}
+                                      address={values?.address}
+                                      forDownload={generated == id} photo={typeof values?.avatarUrl === 'string' ? values?.avatarUrl : values?.avatarUrl?.preview} link={link} title={"test"} name={values?.name} specialty={values?.specialty}
+                                    />
+                                  </Box>
+                                )
+                              })
+                            }
+                          </Stack>}
+                        
+                      </Stack>
+
+
+
+                      <Stack sx={{
+                        width: '100%'
+                      }}>
+                        <Typography sx={{ mb: 2, ml: 4 }} variant="body2" color="gray">*Choose template</Typography>
+                        <Grid container gap={2} justifyContent={{ xs: 'center', lg: 'flex-start' }}>
+
+                          {renderComponents?.filter((item) => Number(item.id) !== (()=>{
+                            let target:any;
+
+                            if(active){
+                               target = active
+                            }else if(prevTemplate){
+                              target = prevTemplate
+                            }
+                            return target;
+                          })())?.map(({ component: Component, id }) => (
+                            <Grid item lg={5} >
+                              <ListItemButton onClick={() => {
+                                setActive(id)
+                                setNegate(!negate)
+                              }} sx={{
+                                p: 0,
+                                m: 0,
+                                border: id === active ? '5px solid green' : '',
                               }}>
                                 <Component
                                   arr={checkedValues}
@@ -833,226 +1107,48 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
                                   twitter={values?.twitter}
                                   ref={id === active ? componentRef : null}
                                   email={values?.email}
-                                  selected={true}
                                   contact={values?.contact}
+                                  selected={id === active}
                                   address={values?.address}
                                   forDownload={generated == id} photo={typeof values?.avatarUrl === 'string' ? values?.avatarUrl : values?.avatarUrl?.preview} link={link} title={"test"} name={values?.name} specialty={values?.specialty}
                                 />
-                              </Box>
-                            )
-                          })
-                        }
-
-
-                      </Stack>
-                    }
-                  </Stack>
-
-
-
-                  <Stack sx={{
-                    width: '100%'
-                  }}>
-                    <Typography sx={{ mb: 2, ml: 4 }} variant="body2" color="gray">*Choose template</Typography>
-                    <Grid container gap={2} justifyContent={{ xs: 'center', lg: 'flex-start' }}>
-
-                      {renderComponents?.filter((item) => Number(item.id) !== 1)?.map(({ component: Component, id }) => (
-                        <Grid item lg={5} >
-                          <ListItemButton onClick={() => {
-                            setActive(id)
-                            setNegate(!negate)
-                          }} sx={{
-                            p: 0,
-                            m: 0,
-                            border: id === active ? '5px solid green' : '',
-                          }}>
-                            <Component
-                              arr={checkedValues}
-                              facebook={values?.facebook}
-                              twitter={values?.twitter}
-                              ref={id === active ? componentRef : null}
-                              email={values?.email}
-                              contact={values?.contact}
-                              address={values?.address}
-                              forDownload={generated == id} photo={typeof values?.avatarUrl === 'string' ? values?.avatarUrl : values?.avatarUrl?.preview} link={link} title={"test"} name={values?.name} specialty={values?.specialty}
-
-                            />
-
-                          </ListItemButton>
+                              </ListItemButton>
+                            </Grid>
+                          ))}
                         </Grid>
-                      ))}
-                    </Grid>
-                  </Stack>
-                </Paper>
+                      </Stack>
+                    </Paper>
 
 
 
-              </Grid>
-              <Grid item xs={12} lg={3} sx={{
-                pt: 7
+                  </Grid>
+                  <Grid item xs={12} lg={3} sx={{
+                    pt: 7
+                  }}>
+                    <Paper elevation={12} sx={{
+                      px: { xs: 1, lg: 3 },
+                      py: 1
+                    }}>
+                      {RenderContentMain}
+
+                    </Paper>
+                  </Grid>
+                </Grid>
+              </Box>
+              <Box sx={{
+                height: '100px',
+                width: '100%',
+                visibility: 'hidden'
               }}>
-                <Paper elevation={12} sx={{
-                  px: { xs: 1, lg: 3 },
-                  py: 1
-                }}>
-                  <Stack sx={{ mb: 5 }} direction="row" justifyContent="space-between">
-                    <Typography>2. Personalize Details</Typography>
-                    <Button onClick={handleSubmitGenerate} variant="contained">Generate</Button>
-
-                    {/* <Button ref={submitBtn} sx={{ display: 'none' }} type="submit">Submit</Button> */}
-                  </Stack>
-
-                  <Stack gap={5}>
-                    <RHFUploadAvatar
-                      name="avatarUrl"
-                      maxSize={3145728}
-                      onDrop={handleDrop}
-                      helperText={
-                        <Typography
-                          variant="caption"
-                          sx={{
-                            mt: 3,
-                            mx: 'auto',
-                            display: 'block',
-                            textAlign: 'center',
-                            color: 'text.disabled',
-                          }}
-                        >
-                          Allowed *.jpeg, *.jpg, *.png, *.gif
-                          <br /> max size of {fData(3145728)}
-                        </Typography>
-                      }
-                    />
-
-                    <Box
-                      rowGap={{ md: 3, xs: 1 }}
-                      columnGap={{ md: 2, xs: 1 }}
-                      display="grid"
-
-                    >
-                      <Stack direction="row" alignItems="center">
-                        <RHFTextField disabled={!checkedValues?.name} name="name" label="Name" />
-                        <Checkbox
-                          checked={checkedValues?.name}
-                          disabled
-                          // onChange={(e) => {
-                          //   handleChangeBox('name', e.target.checked)
-                          // }}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-                      </Stack>
-
-                      <Stack direction="row" alignItems="center">
-                        <RHFTextField disabled={!checkedValues?.email} name="email" label="Email" />
-
-                        <Checkbox
-                          checked={checkedValues?.email}
-                          onChange={(e) => {
-                            handleChangeBox('email', e.target.checked)
-                          }}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-                      </Stack>
-
-                      <Stack direction="row" alignItems="center" >
-                        <RHFTextField disabled={!checkedValues?.address} name="address" label="Address" />
-                        <Checkbox
-                          checked={checkedValues?.address}
-                          onChange={(e) => {
-                            handleChangeBox('address', e.target.checked)
-                          }}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-
-                      </Stack>
-
-                      <Stack direction="row" alignItems="center">
-
-                        <RHFTextField disabled={!checkedValues?.contact} InputProps={{
-                          readOnly: true,
-                        }} name="contact" label="Contact #" />
-
-                        <Checkbox
-                          checked={checkedValues?.contact}
-                          onChange={(e) => {
-                            handleChangeBox('contact', e.target.checked)
-                          }}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-
-                      </Stack>
-
-                      <Stack direction="row" alignItems="center" >
-                        <RHFTextField disabled={!checkedValues?.specialty} name="specialty" label="Main Specialty" />
-                        <Checkbox
-                          checked={checkedValues?.specialty}
-                          onChange={(e) => {
-                            handleChangeBox('specialty', e.target.checked)
-                          }}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-
-                      </Stack>
-
-
-                      <Stack direction="row" alignItems="center" >
-                        <RHFTextField disabled={!checkedValues?.facebook} name="facebook" label="Facebook" />
-                        <Checkbox
-                          checked={checkedValues?.facebook}
-                          onChange={(e) => {
-                            handleChangeBox('facebook', e.target.checked)
-                          }}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-
-                      </Stack>
-
-                      <Stack direction="row" alignItems="center" >
-                        <RHFTextField disabled={!checkedValues?.twitter} name="twitter" label="Twitter" />
-                        <Checkbox
-                          checked={checkedValues?.twitter}
-                          onChange={(e) => {
-                            handleChangeBox('twitter', e.target.checked)
-                          }}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-
-                      </Stack>
-
-
-
-                      <Stack direction="row" alignItems="center">
-                        <RHFTextField disabled={!checkedValues?.profile} InputProps={{
-                          readOnly: true,
-                        }} name="profile" label="Public Profile URL" />
-
-                        {/* <Checkbox
-              checked={checkedValues?.profile}
-              onChange={(e) => {
-                handleChangeBox('profile', e.target.checked)
-              }}
-              inputProps={{ 'aria-label': 'controlled' }}
-            /> */}
-                      </Stack>
-
-                    </Box>
-
-                  </Stack>
-                </Paper>
-              </Grid>
-            </Grid>
-          </Paper>
-          <Box sx={{
-            height: '100px',
-            width: '100%',
-            visibility: 'hidden'
-          }}>
-            <p>Lorem ipsum dolor sit amet.</p>
-          </Box>
-        </Dialog>
-      </FormProvider>
+                <p>Lorem ipsum dolor sit amet.</p>
+              </Box>
+            </Box>
+          </Dialog>
+        </FormProvider>
+      </Box>
     </React.Fragment>
   );
 }
+
 
 

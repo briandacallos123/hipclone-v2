@@ -17,6 +17,8 @@ import FormProvider, { RHFSelect, RHFTextField, RHFUpload } from 'src/components
 import { useMutation } from '@apollo/client';
 import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
+import Image from '@/components/image';
+import { borderRadius } from '@mui/system';
 
 // ----------------------------------------------------------------------
 
@@ -36,7 +38,7 @@ type Props = {
   resolveData?: any;
   updateData?: any;
   onSuccess?: any;
-  isView?:boolean;
+  isView?: boolean;
 };
 
 export default function ServicePaymentMethodNewEditForm({
@@ -73,9 +75,7 @@ export default function ServicePaymentMethodNewEditForm({
       accountNumber: currentItem?.acct ?? '',
       instruction: currentItem?.description ?? '',
       id: currentItem?.id ?? '',
-      attachment:(()=>{
-        return currentItem && `https://hip.apgitsolutions.com/${currentItem?.attachment?.filename?.split('/').splice(1).join("/")}`
-      })() || null
+      attachment: currentItem?.attachment?.filename || ''
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [currentItem?.id]
@@ -95,7 +95,7 @@ export default function ServicePaymentMethodNewEditForm({
   } = methods;
   const values = watch();
 
- 
+
 
   const handleSubmitValue = useCallback(
     async (model: any) => {
@@ -146,7 +146,7 @@ export default function ServicePaymentMethodNewEditForm({
           description: values.instruction,
           type: 'create',
           tempId,
-          attachment:values.attachment
+          attachment: values.attachment
         };
 
         const payload2 = {
@@ -155,7 +155,7 @@ export default function ServicePaymentMethodNewEditForm({
           description: values.instruction,
           id: values.id,
           type: 'update',
-          attachment:values.attachment
+          attachment: values.attachment
 
         };
 
@@ -222,7 +222,7 @@ export default function ServicePaymentMethodNewEditForm({
 
   const handleRemoveAllFiles = useCallback(() => {
     setValue('attachment', null)
-}, [setValue]);
+  }, [setValue]);
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
@@ -244,7 +244,9 @@ export default function ServicePaymentMethodNewEditForm({
           }}
           sx={{ pt: 1 }}
         >
-          <RHFSelect disabled={isView} name="name" label="Payment Method">
+          <RHFSelect InputProps={{
+            readOnly: isView,
+          }} name="name" label="Payment Method">
             <MenuItem value="BDO">BDO</MenuItem>
             <MenuItem value="BPI">BPI</MenuItem>
             <MenuItem value="Philam">Philam</MenuItem>
@@ -252,22 +254,42 @@ export default function ServicePaymentMethodNewEditForm({
             <MenuItem value="PayMaya">PayMaya</MenuItem>
           </RHFSelect>
 
-          <RHFTextField disabled={isView} name="accountNumber" label="Account Number" />
+          <RHFTextField InputProps={{
+            readOnly: isView,
+          }} name="accountNumber" label="Account Number" />
         </Box>
 
-        <RHFTextField disabled={isView} name="instruction" label="Instruction" multiline rows={3} sx={{ my:3 }} />
-        <RHFUpload
+        <RHFTextField InputProps={{
+            readOnly: isView,
+          }} name="instruction" label="Instruction" multiline rows={3} sx={{ my: 3 }} />
+       
+
+      </DialogContent>
+      <Box sx={{
+        display:'flex',
+        justifyContent:'center',
+        alignItems:'center',
+        width:'100%',
+      }}>
+      {isView ? <Image
+        alt="image"
+        src={values?.attachment}
+        sx={{
+          borderRadius:5,
+          width:400,
+          height:400
+          
+        }}
+        />: <RHFUpload
           disabled={isView}
           thumbnail
-
           name="attachment"
           maxSize={3145728}
           onDrop={handleDrop}
           onRemove={handleRemoveFile}
           onRemoveAll={handleRemoveAllFiles}
-        />
-
-      </DialogContent>
+        />}
+      </Box>
 
       <DialogActions>
         <Button variant="outlined" onClick={onClose}>

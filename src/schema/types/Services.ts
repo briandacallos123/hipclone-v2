@@ -10,7 +10,7 @@ import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import bcrypt from 'bcryptjs';
 import { GraphQLError } from 'graphql';
 import { serialize, unserialize } from 'php-serialize';
-import useGoogleStorage from '@/hooks/use-google-storage-uploads';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
 
 const client = new PrismaClient();
 
@@ -261,19 +261,25 @@ export const CreatePayment = extendType({
               const res: any = await useGoogleStorage(
                 sFile,
                 session?.user?.id,
-                'feeds'
+                'paymentMethod'
               );
+              console.log(res,'awitttttttt')
 
-              res?.map(async (v: any) => {
-                await client.doctor_payment_dp.create({
-                  data: {
-                    filename: String(v!.path),
-                    doctorID: Number(session?.user?.id),
-                    doctor:String(session?.user?.doctorId),
-                    dp_id:String(result?.id)
-                  },
-                });
+              await client.doctor_payment_dp.create({
+                data: {
+                  filename: String(res!.path),
+                  doctorID: Number(session?.user?.id),
+                  doctor:String(session?.user?.doctorId),
+                  dp_id:String(result?.id)
+                },
               });
+
+              // res?.map(async (v: any) => {
+               
+              // });
+
+
+
             }
           }
           // const results = await client.doctor_payment.create({
@@ -289,6 +295,7 @@ export const CreatePayment = extendType({
           };
         } catch (err) {
           console.log(err);
+          throw new GraphQLError(err)
         }
       },
     });

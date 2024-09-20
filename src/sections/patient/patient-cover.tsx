@@ -556,7 +556,7 @@ export default function PatientCover({ data, loading }: Props) {
                 // imgUrl: user?.coverURL,
               }),
 
-              background: 'url(/assets/background/banner-bg.png)',
+              background: 'url(/assets/background/bg-blueee.jpg)',
               backgroundSize: 'cover',
               height: 1,
               color: 'common.white',

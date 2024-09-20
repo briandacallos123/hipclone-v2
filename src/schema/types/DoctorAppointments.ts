@@ -2490,14 +2490,7 @@ export const BookAppointment = extendType({
             }
           }
 
-          await client.records.create({
-            data: {
-              patientID: Number(session?.user?.s_id),
-              doctorID: Number(createData.doctorID),
-              CLINIC: Number(createData.clinic),
-              isEMR:0
-            }
-          })
+          
 
 
 
@@ -2540,7 +2533,15 @@ export const BookAppointment = extendType({
             }
           })
 
-
+          await client.records.create({
+            data: {
+              patientID: Number(session?.user?.s_id),
+              doctorID: Number(createData.doctorID),
+              CLINIC: Number(createData.clinic),
+              isEMR:0,
+              APPID: String(BookTransaction?.id)
+            }
+          })
 
           await client.notification.create({
             data: {

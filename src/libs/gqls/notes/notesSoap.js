@@ -236,6 +236,102 @@ export const POST_NOTES_SOAP = gql`
     }
   }
 `;
+export const UpdateNotesSoap = gql`
+  mutation UpdateNotesSoap($data: NoteSoapObjInputType!) {
+    UpdateNotesSoap(data: $data) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteSoapInfo {
+        bmi
+        bp
+        bp1
+        bp2
+        bt
+        clinic
+        complaint
+        dateCreated
+        diagnosis
+        doctorID
+        hr
+        ht
+        id
+        illness
+        isDeleted
+        patientID
+        plan
+        remarks1
+        remarks0
+        report_id
+        rr
+        wt
+        physicalInfo {
+          abdomen_comment
+          abdomen_status
+          backspine_comment
+          backspine_status
+          bmi_comment
+          bmi_status
+          clinic
+          date
+          doctorID
+          glasses_lenses
+          gusystem_comment
+          gusystem_status
+          hearing
+          heart_comment
+          heart_status
+          heent_comment
+          heent_status
+          id
+          lungs_comment
+          lungs_status
+          musculoskeletal_comment
+          musculoskeletal_status
+          neck_comment
+          neck_status
+          neurological_comment
+          neurological_status
+          patientID
+          psychiatric_comment
+          psychiatric_status
+          pupils
+          report_id
+          skin_comment
+          skin_status
+          teeth_comment
+          teeth_status
+          vision_l
+          vision_r
+        }
+      }
+      prescriptionInfo {
+        CLINIC
+        ID
+        PATIENTEMR
+        PR_ID
+        doctorID
+        patientID
+        prescriptions_child4Soap {
+          DOSE
+          DURATION
+          FORM
+          FREQUENCY
+          MEDICINE
+          MED_BRAND
+          PR_ID
+          QUANTITY
+        }
+      }
+    }
+  }
+`;
 
 export const POST_NOTES_SOAP_EMR = gql`
   mutation POST_NOTES_SOAP_EMR($data: NoteSoapObjInputType!) {

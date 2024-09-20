@@ -85,6 +85,31 @@ export const POST_MED_CLER = gql`
   }
 `;
 
+export const UpdateNotesCler = gql`
+  mutation UpdateNotesCler($data: NotesMedClerInputType!) {
+    UpdateNotesCler(data: $data) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteClerInfo {
+        dateCreated
+        dateExamined
+        id
+        report_id
+        doctorID
+        patientID
+        remarks
+      }
+    }
+  }
+`;
+
 export const POST_MED_CLER_EMR = gql`
   mutation POST_MED_CLER_EMR($data: NotesMedClerInputType!) {
     PostNotesClerEMR(data: $data) {

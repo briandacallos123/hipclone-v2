@@ -2,7 +2,8 @@ import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
 import { useUpload } from '../../../hooks/use-upload';
-import useGoogleStorage from '@/hooks/use-google-storage-uploads';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
+import { GraphQLError } from 'graphql';
 // import { useUpload } from '../';
 
 const client = new PrismaClient();
@@ -24,7 +25,8 @@ export const NoteTxtObj = objectType({
       async resolve(t){
         const attachment = await prisma?.notes_text_attachments.findMany({
           where:{
-            notes_text_id:Number(t.id)
+            notes_text_id:Number(t.id),
+            isDeleted:0
           }
         })
         return attachment;
@@ -214,6 +216,7 @@ export const NoteTxtInputType = inputObjectType({
   definition(t) {
     // record
     t.nullable.int('recordID');
+    t.nullable.int('notesID');
     t.nullable.int('CLINIC');
     t.nullable.int('doctorID');
     t.nullable.int('patientID');
@@ -291,6 +294,99 @@ export const QueryNoteTxt = extendType({
   },
 });
 
+export const UpdateNotesText = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('UpdateNotesText', {
+      type: RecordObjectFields4Text,
+      args: { data: NoteTxtInputType!, file:'Upload' },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesTxt');
+        const sFile = await args?.file;
+      
+        try {
+        
+
+          const notesTransaction = await client.$transaction(async (trx) => {
+            const recordNotes = await trx.records.update({
+              data: {
+                CLINIC: Number(createData.CLINIC),
+                patientID: Number(createData.patientID),
+                R_TYPE: String(createData.R_TYPE),
+                doctorID: Number(session?.user?.id),
+                isEMR: Number(0),
+              },
+              where:{
+                R_ID:Number(createData?.recordID)
+              }
+            });
+            const newChild = await trx.notes_text.update({
+              data: {
+                clinic: Number(recordNotes.CLINIC),
+                patientID: Number(recordNotes.patientID),
+                isEMR: Number(0),
+                dateCreated: String(createData.dateCreated),
+                title: String(createData.title),
+                text_data: String(createData.text_data),
+                doctorID: Number(session?.user?.id),
+                report_id: Number(recordNotes.R_ID),
+              },
+              where:{
+                id:Number(createData?.notesID)
+              }
+            });
+           
+            if (sFile) {
+
+              await client.notes_text_attachments.updateMany({
+                data:{
+                  isDeleted:1
+                },
+                where:{
+                  notes_text_id:Number(newChild?.id)
+                }
+              })
+
+              const res: any = await useGoogleStorage(
+                sFile,
+                session?.user?.id,
+                'feeds'
+              );
+  
+              res?.map(async (v: any) => {
+                await client.notes_text_attachments.create({
+                  data: {
+                    patientID: Number(recordNotes.patientID),
+                    doctorID: Number(session?.user?.id),
+                    clinic: Number(recordNotes.CLINIC),
+                    notes_text_id:Number(newChild?.id),
+                    file_name: String(v!.path),
+                    file_url: String(v!.path),
+                   date:new Date()
+                  }
+                 
+                });
+              });
+            }
+            return {
+              ...recordNotes,
+              ...newChild,
+              // tempId: uuid,
+            };
+          });
+          const res: any = notesTransaction;
+          return res;
+        } catch (e) {
+          console.log(e,'error');
+          throw new GraphQLError(e)
+        }
+      }
+    })
+  }
+})
+
 export const PostNotesTxt = extendType({
   type: 'Mutation',
   definition(t) {
@@ -302,12 +398,29 @@ export const PostNotesTxt = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesTxt');
         const sFile = await args?.file;
-        console.log(sFile,'FILE@@@@@@@@@@@@@@')
+      
         try {
           // const notesInput = { ...args.data };
           // const notesChildInput = notesInput.NoteTxtChildInputType;
           // const uuid = notesInput.tempId;
           // console.log("TESTING BROOOO@@@@@@@@@@@@")
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
+            }
+          }
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordNotes = await trx.records.create({
               data: {
@@ -316,13 +429,13 @@ export const PostNotesTxt = extendType({
                 R_TYPE: String(createData.R_TYPE),
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(0),
+                qrcode:VoucherCode
               },
             });
             const newChild = await trx.notes_text.create({
               data: {
                 clinic: Number(recordNotes.CLINIC),
                 patientID: Number(recordNotes.patientID),
-                // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
                 isEMR: Number(0),
                 dateCreated: String(createData.dateCreated),
                 title: String(createData.title),
@@ -333,14 +446,12 @@ export const PostNotesTxt = extendType({
             });
            
             if (sFile) {
-              // console.log(sFile, 'FILE@@@');
               const res: any = await useGoogleStorage(
                 sFile,
                 session?.user?.id,
                 'feeds'
               );
   
-              // const res: any = useUpload(sFile, 'public/documents/');
               res?.map(async (v: any) => {
                 await client.notes_text_attachments.create({
                   data: {
@@ -354,6 +465,7 @@ export const PostNotesTxt = extendType({
                   },
                 });
               });
+              console.log(res,'response ng res')
             }
             return {
               ...recordNotes,
@@ -364,7 +476,8 @@ export const PostNotesTxt = extendType({
           const res: any = notesTransaction;
           return res;
         } catch (e) {
-          console.log(e);
+          console.log(e,'error');
+          throw new GraphQLError(e)
         }
       },
     });
@@ -414,7 +527,14 @@ export const PostNotesTxtEMR = extendType({
             });
 
             if (sFile) {
-              const res: any = useUpload(sFile, 'public/documents/');
+
+              const res: any = await useGoogleStorage(
+                sFile,
+                session?.user?.id,
+                'notes-text'
+              );
+
+              // const res: any = useUpload(sFile, 'public/documents/');
               res?.map(async (v: any) => {
                 await client.notes_text_attachments.create({
                   data: {
@@ -440,6 +560,7 @@ export const PostNotesTxtEMR = extendType({
           return res;
         } catch (e) {
           console.log(e);
+          throw new GraphQLError(e)
         }
       },
     });

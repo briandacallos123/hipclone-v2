@@ -13,7 +13,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { POST_NOTE_VACC } from '@/libs/gqls/notes/noteVaccine';
+import { POST_NOTE_VACC, UpdateNotesVacc } from '@/libs/gqls/notes/noteVaccine';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
@@ -60,9 +60,10 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
+  editData?:any;
 };
 
-export default function NoteNewFormVaccine({ onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormVaccine({editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const { getItem } = useSessionStorage();
@@ -108,14 +109,16 @@ export default function NoteNewFormVaccine({ onClose, refIds, refetch: onRefetch
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
-      patientType: '0',
-      date: new Date(),
-      diagnosis: '',
-      option: '0',
+      hospitalId: editData?.clinic || null,
+      patientType: editData?.InOutPatient || '0',
+      date: editData?.dateCreated && new Date(editData?.dateCreated) || new Date(),
+      diagnosis:editData?.diagnosis || '',
+      option: editData?.eval || '0',
     }),
     []
   );
+
+   
 
   const methods = useForm<FieldValues>({
     resolver: yupResolver(NewNoteSchema),
@@ -130,6 +133,20 @@ export default function NoteNewFormVaccine({ onClose, refIds, refetch: onRefetch
     formState: { isSubmitting },
   } = methods;
 
+  const manualReset = ()=>{
+    setValue('hospitalId',null)
+    setValue('patientType','0')
+    setValue('date',new Date())
+    setValue('diagnosis','')
+    setValue('option','0')
+
+    // hospitalId: editData?.clinic || null,
+    // patientType: editData?.InOutPatient || '0',
+    // date: editData?.dateCreated && new Date(editData?.dateCreated) || new Date(),
+    // diagnosis:editData?.diagnosis || '',
+    // option: editData?.eval || '0',
+  }
+  
   useEffect(() => {
     const data = getItem('defaultFilters');
     if (data?.clinic) {
@@ -138,6 +155,9 @@ export default function NoteNewFormVaccine({ onClose, refIds, refetch: onRefetch
   }, []);
 
   const [createNoteVacc] = useMutation(POST_NOTE_VACC);
+  const [updateNoteVacc] = useMutation(UpdateNotesVacc);
+
+  
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['NotesPedCertObjInputType'] = {
@@ -149,8 +169,10 @@ export default function NoteNewFormVaccine({ onClose, refIds, refetch: onRefetch
         InOutPatient: Number(model.patientType),
         diagnosis: String(model.diagnosis),
         eval: String(model.option),
+        pedia_id:editData && editData?.id,
+        R_ID:editData && editData?.R_ID
       };
-      createNoteVacc({
+     (editData ?updateNoteVacc: createNoteVacc)({
         variables: {
           data,
         },
@@ -158,9 +180,10 @@ export default function NoteNewFormVaccine({ onClose, refIds, refetch: onRefetch
         .then(async (res) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar('Create success!');
+          enqueueSnackbar(editData ? "Update Success!":'Create Success!');
 
-          reset();
+          // reset();
+          manualReset()
           onRefetch();
         })
         .catch((error) => {
@@ -334,7 +357,10 @@ export default function NoteNewFormVaccine({ onClose, refIds, refetch: onRefetch
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outlined" onClick={()=>{
+          onClose();
+          manualReset()
+        }}>
           Cancel
         </Button>
 
@@ -344,7 +370,7 @@ export default function NoteNewFormVaccine({ onClose, refIds, refetch: onRefetch
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          Create
+          {editData ? "Update":"Create"}
         </LoadingButton>
       </DialogActions>
     </>

@@ -27,6 +27,7 @@ import FeedsView from '../../feeds/feeds-view';
 import { fDate } from '@/utils/format-time';
 import VitalChartSmall from '../vital-chart-Small';
 import ProfileVitalViewDashboard from '@/sections/profile/vital/view/vital-view-dashboard';
+import { Skeleton } from '@mui/material';
 
 export default function DashboardPatientView() {
   const settings = useSettingsContext();
@@ -34,9 +35,7 @@ export default function DashboardPatientView() {
   const upMd = useResponsive('up', 'md');
   const theme = useTheme();
 
-  console.log(user,'USERRRRRRRRRR')
-
-  const { allData, chartData, loading } = PatientDataController();
+  const { allData, chartData, loading, getDataResult } = PatientDataController();
 
   const allChartData: any = Array(6).fill(0); // Initialize allChartData with default values
 
@@ -61,14 +60,9 @@ export default function DashboardPatientView() {
   const weightData = chartData?.map((item: any) => item?.wt || 0)[0];
   const HeightData = chartData?.map((item: any) => item?.ht || 0)[0];
 
-  const mergeBp:any = []
+  const mergeBp: any = []
   mergeBp.push(BP1Data)
   mergeBp.push(BP2Data)
-
- 
-  //   const items: number[] = [5, 6, 7, 5, 7, 12];
-
-  // const loading = false;
 
   const BPCombinedData = [];
 
@@ -78,98 +72,147 @@ export default function DashboardPatientView() {
     BPCombinedData.push(bp1Value, bp2Value);
   }
 
-  console.log('mergeBp_____________________', mergeBp);
-  console.log('mergeBpCOMBINEDDDD_____________________', BPCombinedData);
+  const notFound = !getDataResult?.loading && !allData?.patientInfo?.allergy?.length
 
   const categories = dataDate?.map((_: any) => `${fDate(_, 'MMM dd')}`);
 
+  const SkeletonField = () => {
+    return (
+      <Grid container spacing={1}>
+        <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Skeleton variant="rectangular" width={150} height={30} />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Skeleton variant="rectangular" width={150} height={30} />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Skeleton variant="rectangular" width={150} height={30} />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Skeleton variant="rectangular" width={150} height={30} />
+        </Grid>
+        <Grid item xs={12} sm={6} md={4} lg={2}>
+          <Skeleton variant="rectangular" width={150} height={30} />
+        </Grid>
+        
+      </Grid>
+    )
+  }
 
   return (
-    <Grid container spacing={3} sx={{ width: '100%', p: 2 }}>
+    <Grid container spacing={3} sx={{ width: '100%' }}>
       <Grid md={12} xs={12}>
-        <Card sx={{ p: 1, mb:2 }}>
-          <Stack spacing={2} direction="row" alignItems="center">
-            <Avatar
-              src={user?.photoURL}
-              alt="IMG"
-              sx={{
-                mx: 'auto',
-                width: { xs: 60, md: 128 },
-                height: { xs: 60, md: 128 },
-                border: `solid 2px ${theme.palette.common.white}`,
-              }}
-            />
-            <Stack spacing={0.5} sx={{ textAlign: 'center' }}>
-              <Typography>{!user?.firstName ? user?.uname:`${user?.firstName} ${user?.lastName}`}</Typography>
-              <Typography>{user?.occupation}</Typography>
-              <Typography>{`+63${user?.contact}`}</Typography>
-            </Stack>
-
-            <Stack direction="row" spacing={3} justifyContent="space-between">
-              <Box>
-                <Typography sx={{ color: theme.palette.primary.main }}>Age</Typography>
-                <Typography>{allData?.patientInfo?.AGE}</Typography>
-              </Box>
-              <Box>
-                <Typography sx={{ color: theme.palette.primary.main }}>Nationality</Typography>
-                <Typography>{user?.nationality}</Typography>
-              </Box>
-              <Box>
-                <Typography sx={{ color: theme.palette.primary.main }}>Birth Date</Typography>
-                <Typography>{allData?.patientInfo?.BDAY}</Typography>
-              </Box>
-            </Stack>
-
-            <Stack sx={{ pt: 2 }}>
-              <Typography variant="subtitle2" sx={{ textAlign: 'left', pl: 3, mb: -2 }}>
-                Allergies
-              </Typography>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(2, 1fr)',
+        <Card sx={{ p: 1, mb: 2, width: '100%' }}>
+          <Grid sx={{
+            width: '100%',
+          }} gap={{xs:2, lg:1}} container justifyContent={{xs:'center', lg:"flex-end"}}>
+            <Grid lg={2} item>
+              <Avatar
+                src={user?.photoURL}
+                alt="IMG"
+                sx={{
+                  mx: 'auto',
+                  width: { xs: 70, md: 128 },
+                  height: { xs: 70, md: 128 },
+                  border: `solid 2px ${theme.palette.common.white}`,
                 }}
-                sx={{ p: 3 }}
-              >
-                {allData?.patientInfo?.allergy?.map((item: any) => (
-                  <Chip label={item.allergy} color="primary" sx={{ fontSize: '10px' }} />
-                ))}
-              </Box>
-            </Stack>
+              />
+              <Stack spacing={0.5} sx={{ textAlign: 'center' }}>
+                <Typography>{!user?.firstName ? user?.uname : `${user?.firstName} ${user?.lastName}`}</Typography>
+                <Typography>{user?.occupation}</Typography>
+                <Typography>{`+63${user?.contact}`}</Typography>
+              </Stack>
 
-            <Stack>
-              <Typography variant="subtitle2" sx={{ textAlign: 'left', pl: 3, mb: -2 }}>
-                Family history
-              </Typography>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                  md: 'repeat(2, 1fr)',
-                }}
-                sx={{ p: 3 }}
-              >
-                {allData?.patientInfo?.family_history?.map((item: any) => (
-                  <Chip label={item.family_history} color="primary" sx={{ fontSize: '10px' }} />
-                ))}
-              </Box>
-            </Stack>
-          </Stack>
+              <Stack direction="row" spacing={3} justifyContent="space-between">
+                <Box>
+                  <Typography sx={{ color: theme.palette.primary.main }}>Age</Typography>
+                  <Typography>{allData?.patientInfo?.AGE}</Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ color: theme.palette.primary.main }}>Nationality</Typography>
+                  <Typography>{user?.nationality}</Typography>
+                </Box>
+                <Box>
+                  <Typography sx={{ color: theme.palette.primary.main }}>Birth Date</Typography>
+                  <Typography>{allData?.patientInfo?.BDAY}</Typography>
+                </Box>
+              </Stack>
+            </Grid>
+
+            <Grid lg={9} item>
+              <Stack sx={{ pt: 2 }}>
+                <Typography variant="subtitle2" sx={{ textAlign: 'left', pl: 3, mb: -2 }}>
+                  Allergies
+                </Typography>
+                {getDataResult?.loading && <SkeletonField />}
+                <Box
+                  rowGap={3}
+                  columnGap={2}
+                  display="grid"
+                  gridTemplateColumns={{
+                    xs: 'repeat(1, 1fr)',
+                    sm: 'repeat(2, 1fr)',
+                    md: 'repeat(5, 1fr)'
+                  }}
+                  sx={{ p: 3 }}
+                >
+
+                  {allData?.patientInfo?.allergy?.map((item: any) => (
+                    <Chip label={item.allergy} color="primary" sx={{ fontSize: '10px' }} />
+                  ))}
+
+                  {
+                    notFound && <Typography variant="body1" sx={{
+                      color: 'grey'
+                    }}>No allergies found.</Typography>
+                  }
+
+                  {/* {allData?.patientInfo?.allergy?.map((item: any) => (
+                      <Chip label={item.allergy} color="primary" sx={{ fontSize: '10px' }} />
+                    ))} */}
+                </Box>
+              </Stack>
+              <Stack>
+                <Typography variant="subtitle2" sx={{ textAlign: 'left', pl: 3, mb: -2 }}>
+                  Family history
+                </Typography>
+                {getDataResult?.loading && <SkeletonField />}
+                <Box
+                  rowGap={3}
+                  columnGap={2}
+                  display="grid"
+                  gridTemplateColumns={{
+                    xs: 'repeat(1, 1fr)',
+                    sm: 'repeat(2, 1fr)',
+                    md: 'repeat(auto-fit, minmax(150px, 1fr))'
+                  }}
+                  sx={{ p: 3 }}
+                >
+                  {allData?.patientInfo?.family_history?.map((item: any) => (
+                    <Chip label={item.family_history} color="primary" sx={{ fontSize: '10px' }} />
+                  ))}
+                     {
+                    notFound && <Typography variant="body1" sx={{
+                      color: 'grey'
+                    }}>No family history found.</Typography>
+                  }
+                </Box>
+              </Stack>
+            </Grid>
+          </Grid>
+
+
+
+
+
         </Card>
         <Card>
-          <ProfileVitalViewDashboard/>
+          <ProfileVitalViewDashboard />
         </Card>
       </Grid>
       <Grid md={12} xs={12}>
         <Grid md={12} xs={12}>
-          <Card sx={{ pb: 1, height:{lg:300} }}>
+          <Card sx={{ pb: 1, height: { lg: 300 } }}>
             <VitalChart
               title=""
               subheader=""
@@ -217,7 +260,7 @@ export default function DashboardPatientView() {
                   loading={loading}
                 /> */}
 
-                
+
               </Stack>
             </Grid>
           </Card>
@@ -263,17 +306,17 @@ export default function DashboardPatientView() {
             </Stack>}
             <Stack>
 
-             <VitalChartSmall
-                  isSmall={true}
-                  title="Body Temperature"
-                  subheader=""
-                  chart={{
-                    data: [{ name: 'Celcius', data: TempData, color:'#FF5630' }],
-                  }}
-                  loading={loading}
-                />
+              <VitalChartSmall
+                isSmall={true}
+                title="Body Temperature"
+                subheader=""
+                chart={{
+                  data: [{ name: 'Celcius', data: TempData, color: '#FF5630' }],
+                }}
+                loading={loading}
+              />
             </Stack>
-          
+
 
             <Box sx={{ position: 'absolute', top: 0, bottom: 0, right: -10 }}>
               <img

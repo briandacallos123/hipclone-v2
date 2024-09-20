@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -54,6 +54,7 @@ type Props = {
   onClose: VoidFunction;
   refIds?: any;
   refetch: any;
+  editData?:any;
 };
 
 const FORMS = [
@@ -96,7 +97,7 @@ const FORMS = [
 
 // ----------------------------------------------------------------------
 
-export default function PatientNoteCreateView({ open, onClose, refIds, refetch }: Props) {
+export default function PatientNoteCreateView({ editData, open, onClose, refIds, refetch }: Props) {
   const [type, setType] = useState<string | null>(null);
 
   const openForm = useBoolean();
@@ -112,6 +113,46 @@ export default function PatientNoteCreateView({ open, onClose, refIds, refetch }
       {type === 'abstract' && 'ABSTRACT'}
     </>
   );
+
+    useEffect(()=>{
+      if(editData){
+        openForm.onTrue();
+        setType((()=>{
+          let formTarget:any;
+
+          switch(editData?.R_TYPE){
+            case "4":
+              formTarget = "text";
+              break;
+            case "9":
+              formTarget = "certificate";
+              break;
+            case "8":
+              formTarget = "clearance";
+              break;
+            case "1":
+              formTarget = "soap";
+              break;
+            case "10":
+              formTarget = "abstract";
+              break;
+            case "11":
+              formTarget = "vaccine";
+              break;
+            case "5":
+              formTarget = "laboratory";
+              break;
+
+
+          }
+
+          return formTarget;
+        })());
+      }
+    },[editData])
+  
+    console.log(editData,'EDIT DATAAAAAAAAA!#')
+
   return (
     <>
       <Dialog
@@ -183,6 +224,8 @@ export default function PatientNoteCreateView({ open, onClose, refIds, refetch }
             }}
             refIds={refIds?.patientInfo}
             refetch={refetch}
+            editData={editData}
+
           />
         )}
 
@@ -192,6 +235,7 @@ export default function PatientNoteCreateView({ open, onClose, refIds, refetch }
               openForm.onFalse();
               onClose();
             }}
+            editData={editData}
             refIds={refIds}
             refetch={refetch}
           />
@@ -205,6 +249,8 @@ export default function PatientNoteCreateView({ open, onClose, refIds, refetch }
             }}
             refIds={refIds?.patientInfo}
             refetch={refetch}
+            editData={editData}
+
           />
         )}
 
@@ -216,6 +262,7 @@ export default function PatientNoteCreateView({ open, onClose, refIds, refetch }
             }}
             refIds={refIds?.patientInfo}
             refetch={refetch}
+            editData={editData}
           />
         )}
 
@@ -227,6 +274,7 @@ export default function PatientNoteCreateView({ open, onClose, refIds, refetch }
             }}
             refIds={refIds?.patientInfo}
             refetch={refetch}
+            editData={editData}
           />
         )}
 
@@ -238,6 +286,8 @@ export default function PatientNoteCreateView({ open, onClose, refIds, refetch }
             }}
             refIds={refIds?.patientInfo}
             refetch={refetch}
+            editData={editData}
+
           />
         )}
 
@@ -249,6 +299,8 @@ export default function PatientNoteCreateView({ open, onClose, refIds, refetch }
             }}
             refetch={refetch}
             refIds={refIds?.patientInfo}
+            editData={editData}
+
           />
         )}
       </Dialog>

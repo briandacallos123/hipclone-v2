@@ -433,6 +433,9 @@ export const NoteSoapObjInputType = inputObjectType({
     t.nullable.int('isEMR');
     t.nullable.int('emrPatientID');
     t.nullable.string('R_TYPE');
+    t.nullable.int('phy_id');
+    t.nullable.int('soap_id');
+    t.nullable.int('R_ID');
 
     // soap payloads
     t.nullable.string('complaint');
@@ -529,6 +532,24 @@ export const PostNotesSoap = extendType({
           const notesChildInput = notesInput.NoteTxtChildInputType;
           const uuid = notesInput.tempId;
 
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
+            }
+          }
+
+
           const remarksData0 = serialize(createData.remarks0);
           const remarksData1 = serialize(createData.remarks1);
           const remarksData2 = serialize(createData.remarks2);
@@ -540,6 +561,7 @@ export const PostNotesSoap = extendType({
                 R_TYPE: String(createData.R_TYPE), // 1
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(0),
+                qrcode:VoucherCode
               },
             });
             const newChildSoap = await trx.notes_soap.create({
@@ -618,6 +640,8 @@ export const PostNotesSoap = extendType({
               },
             });
 
+            console.log(newChildPhys,'AWIT SAYOOOOOOOOOO')
+
             const patientID = await getPatientId(createData?.uuid);
 
             const prescriptionParent = await client.prescriptions.create({
@@ -655,6 +679,168 @@ export const PostNotesSoap = extendType({
           return res;
         } catch (e: any) {
           console.log(e);
+          throw new GraphQLError(e)
+        }
+      },
+    });
+  },
+});
+
+export const UpdateNotesSoap = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('UpdateNotesSoap', {
+      type: RecordObjectFields4Soap,
+      args: { data: NoteSoapObjInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesSoap');
+
+        try {
+          const notesInput = { ...args.data };
+          const notesChildInput = notesInput.NoteTxtChildInputType;
+          const uuid = notesInput.tempId;
+
+        
+
+          const remarksData0 = serialize(createData.remarks0);
+          const remarksData1 = serialize(createData.remarks1);
+          const remarksData2 = serialize(createData.remarks2);
+          const notesTransaction = await client.$transaction(async (trx) => {
+            const recordSoap = await trx.records.update({
+              data: {
+                CLINIC: Number(createData.clinic),
+                patientID: Number(createData.patientID),
+                R_TYPE: String(createData.R_TYPE), // 1
+                doctorID: Number(session?.user?.id),
+                isEMR: Number(0),
+              },
+              where:{
+                R_ID:Number(createData?.R_ID)
+              }
+            });
+            const newChildSoap = await trx.notes_soap.update({
+              data: {
+                clinic: Number(recordSoap.CLINIC),
+                patientID: Number(recordSoap.patientID),
+                // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
+                isEMR: Number(0),
+                doctorID: Number(session?.user?.id),
+                report_id: Number(recordSoap.R_ID),
+                // sunjective
+                complaint: String(createData.complaint),
+                illness: String(createData.illness),
+                // objective
+                wt: String(createData.wt),
+                ht: String(createData.ht),
+                bmi: String(createData.bmi),
+                bp1: String(createData.bp1),
+                bp2: String(createData.bp2),
+                spo2: String(createData.spo2),
+                rr: String(createData.rr),
+                hr: String(createData.hr),
+                bt: String(createData.bt),
+                remarks0: remarksData0,
+                remarks1: remarksData1,
+                remarks2: remarksData2,
+                // assessment
+                diagnosis: String(createData.diagnosis),
+                // Plan
+                plan: String(createData.plan),
+              },
+              where:{
+                id:Number(createData?.soap_id)
+              }
+            });
+
+            const newChildPhys = await trx.notes_physical.update({
+              data: {
+                clinic: Number(recordSoap.CLINIC),
+                patientID: Number(recordSoap.patientID),
+                // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
+                isEMR: Number(0),
+                doctorID: Number(session?.user?.id),
+                report_id: String(recordSoap.R_ID),
+
+                // physical Exam
+
+                vision_r: String(createData.vision_r),
+                vision_l: String(createData.vision_l),
+                pupils: String(createData.pupils),
+                glasses_lenses: String(createData.glasses_lenses),
+                hearing: String(createData.hearing),
+                bmi_status: String(createData.bmi_status),
+                bmi_comment: String(createData.bmi_comment),
+                skin_status: String(createData.skin_status),
+                skin_comment: String(createData.skin_comment),
+                heent_status: String(createData.heent_status),
+                heent_comment: String(createData.heent_comment),
+                teeth_status: String(createData.teeth_status),
+                teeth_comment: String(createData.teeth_comment),
+                neck_status: String(createData.neck_status),
+                neck_comment: String(createData.neck_comment),
+                lungs_status: String(createData.lungs_status),
+                lungs_comment: String(createData.lungs_comment),
+                heart_status: String(createData.heart_status),
+                heart_comment: String(createData.heart_comment),
+                abdomen_status: String(createData.abdomen_status),
+                abdomen_comment: String(createData.abdomen_comment),
+                gusystem_status: String(createData.gusystem_status),
+                gusystem_comment: String(createData.gusystem_comment),
+                musculoskeletal_status: String(createData.musculoskeletal_status),
+                musculoskeletal_comment: String(createData.musculoskeletal_comment),
+                backspine_status: String(createData.backspine_status),
+                backspine_comment: String(createData.backspine_comment),
+                neurological_status: String(createData.neurological_status),
+                neurological_comment: String(createData.neurological_comment),
+                psychiatric_status: String(createData.psychiatric_status),
+                psychiatric_comment: String(createData.psychiatric_comment),
+              },
+              where:{
+                id:Number(createData?.phy_id)
+              }
+            });
+
+
+            const patientID = await getPatientId(createData?.uuid);
+
+            const prescriptionParent = await client.prescriptions.create({
+              data: {
+                CLINIC: createData?.clinic,
+                patientID,
+                doctorID: session?.user?.id,
+              },
+            });
+
+            const presChild = createData?.prescriptions?.map(async (item: any) => {
+              const child = await client.prescriptions_child.create({
+                data: {
+                  PR_ID: prescriptionParent?.ID,
+                  patientID,
+                  CLINIC: createData?.clinic,
+
+                  ...item,
+                },
+              });
+              return child;
+            });
+            const cildren = await Promise.all(presChild);
+            console.log(cildren, 'yay@');
+
+            return {
+              ...recordSoap,
+              ...newChildSoap,
+              ...newChildPhys,
+              ...prescriptionParent,
+              ...presChild,
+            };
+          });
+          const res: any = notesTransaction;
+          return res;
+        } catch (e: any) {
+          console.log(e);
+          throw new GraphQLError(e)
         }
       },
     });
@@ -692,6 +878,24 @@ export const PostNotesSoapEMR = extendType({
           const remarksData0 = serialize(createData.remarks0);
           const remarksData1 = serialize(createData.remarks1);
           const remarksData2 = serialize(createData.remarks2);
+
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
+            }
+          }
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordSoap = await trx.records.create({
               data: {
@@ -701,6 +905,7 @@ export const PostNotesSoapEMR = extendType({
                 R_TYPE: String(createData.R_TYPE), // 1
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(1),
+                qrcode:VoucherCode
               },
             });
             const newChildSoap = await trx.notes_soap.create({

@@ -13,7 +13,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { POST_MED_CERT } from '@/libs/gqls/notes/noteMedCert';
+import { POST_MED_CERT, UpdateNotesCert } from '@/libs/gqls/notes/noteMedCert';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
@@ -45,15 +45,18 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
+  editData:any;
 };
 
-export default function NoteNewFormCertificate({ onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormCertificate({editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const { getItem } = useSessionStorage();
   const params = useParams();
   const [barringDays, setBarringDays] = useState<any>();
   // const { id } = params;
+
+  console.log(editData,'editDataeditDataeditDataeditData')
 
   // const currentItem = _patientList.filter((item) => item.id === id)[0];
   // console.log('certificate: ', refIds?.FNAME);
@@ -104,14 +107,14 @@ export default function NoteNewFormCertificate({ onClose, refIds, refetch: onRef
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
-      patientType: 1,
-      date: new Date(),
-      startDate: new Date(),
-      endDate: new Date(),
-      diagnosis: '',
-      day: 0,
-      recommendation: '',
+      hospitalId:editData?.clinic || null,
+      patientType: editData?.InOutPatient || 1,
+      date: new Date(editData?.dateCreated) ||  new Date(),
+      startDate: new Date(editData?.s_date) || new Date() ,
+      endDate: new Date(editData?.e_date) || new Date(),
+      diagnosis: editData?.diagnosis || '',
+      day: editData?.barring || 0,
+      recommendation: editData?.remarks || '',
     }),
     []
   );
@@ -141,6 +144,10 @@ export default function NoteNewFormCertificate({ onClose, refIds, refetch: onRef
 
   // console.log(values);
   const [createMedCert] = useMutation(POST_MED_CERT);
+  const [updateMedCert] = useMutation(UpdateNotesCert);
+
+  
+
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['NotesMedCertInputType'] = {
@@ -155,6 +162,8 @@ export default function NoteNewFormCertificate({ onClose, refIds, refetch: onRef
         diagnosis: String(model.diagnosis),
         barring: String(model.day),
         remarks: String(model.recommendation),
+        R_ID:Number(editData?.R_ID),
+        cert_id:Number(editData?.id)
         // CLINIC
         // patientID
         // R_TYPE
@@ -166,7 +175,7 @@ export default function NoteNewFormCertificate({ onClose, refIds, refetch: onRef
         // barring
         // remarks
       };
-      createMedCert({
+      (editData ? updateMedCert:createMedCert)({
         variables: {
           data,
         },
@@ -174,7 +183,7 @@ export default function NoteNewFormCertificate({ onClose, refIds, refetch: onRef
         .then(async (res) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar('Create success!');
+          enqueueSnackbar(editData?"Update successfully":'Create success!');
           // refetch();
           reset();
           onRefetch();
@@ -443,7 +452,10 @@ export default function NoteNewFormCertificate({ onClose, refIds, refetch: onRef
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outlined" onClick={()=>{
+          onClose();
+          reset();
+        }}>
           Cancel
         </Button>
 
@@ -453,7 +465,7 @@ export default function NoteNewFormCertificate({ onClose, refIds, refetch: onRef
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          Create
+          {editData ? "Update":"Create"}
         </LoadingButton>
       </DialogActions>
     </>

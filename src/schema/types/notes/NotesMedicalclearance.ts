@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
+import { GraphQLError } from 'graphql';
 
 const client = new PrismaClient();
 
@@ -202,7 +203,7 @@ const RecordObjectFields4Cler = objectType({
 export const NotesMedClerInputType = inputObjectType({
   name: 'NotesMedClerInputType',
   definition(t) {
-    t.nullable.int('recordID');
+    t.nullable.int('medical_ID');
 
     // record
     t.nullable.int('clinic');
@@ -216,6 +217,7 @@ export const NotesMedClerInputType = inputObjectType({
     t.nullable.string('dateCreated');
     t.nullable.string('dateExamined');
     t.nullable.string('remarks');
+    t.nullable.int('recordID');
 
     // dateCreated
     // dateExamined
@@ -278,6 +280,23 @@ export const PostNotesCler = extendType({
           // const notesChildInput = notesInput.NoteTxtChildInputType;
           // const uuid = notesInput.tempId;
 
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
+            }
+          }
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordCler = await trx.records.create({
               data: {
@@ -286,6 +305,8 @@ export const PostNotesCler = extendType({
                 R_TYPE: String(createData.R_TYPE), // 10
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(0),
+                qrcode:VoucherCode
+
               },
             });
             const newChild = await trx.notes_medicalclearance.create({
@@ -311,6 +332,70 @@ export const PostNotesCler = extendType({
           return res;
         } catch (e) {
           console.log(e);
+        }
+      },
+    });
+  },
+});
+
+export const UpdateNotesCler = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('UpdateNotesCler', {
+      type: RecordObjectFields4Cler,
+      args: { data: NotesMedClerInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesCler');
+
+        try {
+          // const notesInput = { ...args.data };
+          // const notesChildInput = notesInput.NoteTxtChildInputType;
+          // const uuid = notesInput.tempId;
+
+         
+
+          const notesTransaction = await client.$transaction(async (trx) => {
+            const recordCler = await trx.records.update({
+              data: {
+                CLINIC: Number(createData.clinic),
+                patientID: Number(createData.patientID),
+                R_TYPE: String(createData.R_TYPE), // 10
+                doctorID: Number(session?.user?.id),
+                isEMR: Number(0),
+              },
+              where:{
+                R_ID:Number(createData?.recordID)
+              }
+            });
+            const newChild = await trx.notes_medicalclearance.update({
+              data: {
+                clinic: Number(recordCler.CLINIC),
+                patientID: Number(recordCler.patientID),
+                doctorID: Number(session?.user?.id),
+                isEMR: Number(0),
+                report_id: Number(recordCler.R_ID),
+
+                dateCreated: String(createData.dateCreated),
+                dateExamined: String(createData.dateExamined),
+                remarks: String(createData.remarks),
+              },
+              where:{
+                id:Number(createData?.medical_ID)
+              }
+            });
+            return {
+              ...recordCler,
+              ...newChild,
+              // tempId: uuid,
+            };
+          });
+          const res: any = notesTransaction;
+          return res;
+        } catch (e) {
+          console.log(e);
+          throw new GraphQLError(e)
         }
       },
     });
@@ -361,7 +446,6 @@ export const PostNotesClerEMR = extendType({
             return {
               ...recordCler,
               ...newChild,
-              // tempId: uuid,
             };
           });
           const res: any = notesTransaction;
@@ -373,3 +457,5 @@ export const PostNotesClerEMR = extendType({
     });
   },
 });
+
+

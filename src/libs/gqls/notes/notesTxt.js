@@ -90,6 +90,27 @@ export const POST_NOTES_TXT = gql`
   }
 `;
 
+export const UpdateNotesText = gql`
+  mutation UpdateNotesText($data: NoteTxtInputType!,  $file: Upload) {
+    UpdateNotesText(data: $data, file: $file) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteTxtInfo {
+        text_data
+        title
+        report_id
+      }
+    }
+  }
+`;
+
 export const POST_NOTES_TXT_EMR = gql`
   mutation POST_NOTES_TXT_EMR($data: PostNotesTxtEMRInputs!, $file: Upload) {
     PostNotesTxtEMR(data: $data, file: $file) {

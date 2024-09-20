@@ -321,10 +321,47 @@ export default function ServicePaymentMethodList() {
   );
   const [isView, setIsView] = useState(false)
 
-  const handleViewRow = (row) => {
-    setEditId(row);
-    setIsView(true)
-    openEdit.onTrue();
+  const handleViewRow = async(row) => {
+    try {
+      const response = await fetch('/api/getImage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: row?.attachment?.filename
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      // setImgSrc(objectUrl);
+      // setNoteData(row)
+
+
+      setEditId({
+        ...row,
+        attachment:{
+          id:row?.attachment?.id,
+          filename:objectUrl
+        }
+      });
+      setIsView(true)
+      openEdit.onTrue();
+
+      // Clean up object URL on component unmount
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    } catch (error) {
+      console.error('Error fetching image:', error);
+    }
+
+   
   }
 
   return (

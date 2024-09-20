@@ -32,7 +32,7 @@ export default function ServicePaymentSchedule() {
   const { data, loading, refetch } = useQuery(GetPaymentSched);
   const [updateSched] = useMutation(UpdatePaymentSched, {
     context: {
-      requestTrackerId: 'Prescription_Mutation_Type[MutationPrescription]',
+      requestTrackerId: 'Prescription_MutationGetPaymentSched_Type[MutationPrescription]',
     },
     notifyOnNetworkStatusChange: true,
   });
@@ -92,7 +92,16 @@ export default function ServicePaymentSchedule() {
 
   useEffect(() => {
     if (data?.GetPaymentSched) {
-      setValue('paymentSchedule', data?.GetPaymentSched?.isPaySchedShow);
+      setValue('paymentSchedule', (()=>{
+        let val:any;
+
+        if(data?.GetPaymentSched?.isPaySchedShow){
+          val = 1;
+        }else{
+          val = 2
+        }
+        return val;
+      })());
     }
   }, [data?.GetPaymentSched]);
 

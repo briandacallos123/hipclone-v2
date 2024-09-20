@@ -64,7 +64,10 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
-};
+  editData?:any;
+  closeTab?:any;
+  qrImage?:any;
+}
 
 type StyledPaperProps = {
   active: boolean;
@@ -109,7 +112,7 @@ const TextFieldStyle = styled(TextField)(({ theme }) => ({
     },
   },
 }));
-export default function NoteNewFormLaboratory({ onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormLaboratory({qrImage, editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const { getItem } = useSessionStorage();
@@ -207,10 +210,11 @@ export default function NoteNewFormLaboratory({ onClose, refIds, refetch: onRefe
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
-      selection: [],
-      fastingHour: null,
-      other: '',
+      hospitalId:editData?.clinicInfo?.id && Number(editData?.clinicInfo?.id)  || null,
+      selection:editData?.procedures || [],
+      fastingHour:editData?.fasting ||  null,
+      other: editData?.others ||'',
+      
     }),
     []
   );
@@ -229,6 +233,8 @@ export default function NoteNewFormLaboratory({ onClose, refIds, refetch: onRefe
     formState: { isSubmitting },
   } = methods;
 
+
+ 
   const values = watch();
 
   useEffect(() => {
@@ -241,6 +247,8 @@ export default function NoteNewFormLaboratory({ onClose, refIds, refetch: onRefe
   // console.log('data: ', values);
 
   const [createLabReq] = useMutation(POST_NOTES_LAB);
+
+  
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['NotesLabInputType'] = {
@@ -994,9 +1002,9 @@ export default function NoteNewFormLaboratory({ onClose, refIds, refetch: onRefe
             <RHFAutocomplete
               name="hospitalId"
               label="Hospital/Clinic"
-              options={clinicData.map((hospital: any) => hospital.id)}
+              options={clinicData.map((hospital: any) => Number(hospital.id))}
               getOptionLabel={(option) =>
-                clinicData.find((hospital: any) => hospital.id === option)?.clinic_name
+                clinicData.find((hospital: any) => Number(hospital.id) === Number(option))?.clinic_name
               }
               isOptionEqualToValue={(option, value) => option === value}
               renderOption={(props, option) => {
@@ -1040,7 +1048,10 @@ export default function NoteNewFormLaboratory({ onClose, refIds, refetch: onRefe
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outlined" onClick={()=>{
+          onClose();
+          reset();
+        }}>
           Cancel
         </Button>
 

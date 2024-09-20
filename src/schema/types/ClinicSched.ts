@@ -4,7 +4,7 @@ import { serialize, unserialize } from 'php-serialize';
 import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { useUpload } from '../../hooks/use-upload';
-import useGoogleStorage from '@/hooks/use-google-storage-uploads';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
 
 export const Clinics = objectType({
   name: 'Clinics',
@@ -405,6 +405,7 @@ export const ClinicInsertPayload = inputObjectType({
     t.nullable.int('refId');
     // data from clinic sched table
     t.nullable.string('start_time');
+    t.nullable.int('numberPatient')
     t.nullable.string('end_time');
     t.nullable.string('time_interval');
     t.nullable.JSON('days');
@@ -727,6 +728,7 @@ export const UpdateClinicSched = extendType({
               time_interval: createData.time_interval,
               days: daysJson,
               type: typeJson,
+              number_patient:createData?.numberPatient
             },
           });
 

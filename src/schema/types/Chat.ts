@@ -4,7 +4,7 @@ import { GraphQLError } from "graphql/error/GraphQLError";
 import { useUpload } from '../../hooks/use-upload';
 import { unserialize, serialize } from 'php-serialize';
 import beamsClient from './beams'
-import useGoogleStorage from "@/hooks/use-google-storage-uploads";
+import useGoogleStorage from "@/hooks/use-google-storage-uploads2";
 
 export const UserContacts = objectType({
     name: 'UserContacts',

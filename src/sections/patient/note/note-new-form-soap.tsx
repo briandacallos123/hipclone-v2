@@ -9,7 +9,7 @@ import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 // prisma
-import { POST_NOTES_SOAP } from '@/libs/gqls/notes/notesSoap';
+import { POST_NOTES_SOAP, UpdateNotesSoap } from '@/libs/gqls/notes/notesSoap';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
@@ -33,9 +33,10 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
+  editData:any;
 };
 
-export default function NoteNewFormSoap({ onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormSoap({editData, onClose, refIds, refetch: onRefetch }: Props) {
   // const { enqueueSnackbar } = useSnackbar();
   const { fetchCover, setfetchCover }: any = useContextData();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
@@ -156,52 +157,52 @@ export default function NoteNewFormSoap({ onClose, refIds, refetch: onRefetch }:
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
+      hospitalId: editData?.clinic || null,
       // ------ SUBJECTIVE
-      chiefComplaint: '',
-      history: '',
+      chiefComplaint:editData?.complaint ||  '',
+      history:editData?.illness ||  '',
       // ------ OBJECTIVE
 
       // Vital
-      weight: null,
-      height: null,
-      bodyMass: null,
-      bloodPressureMm: null,
-      bloodPressureHg: null,
-      oxygen: null,
-      respiratory: null,
-      heartRate: null,
-      temperature: null,
+      weight:editData?. wt ||  null,
+      height:editData?.ht ||  null,
+      bodyMass:  null,
+      bloodPressureMm: editData?.bp1 || null,
+      bloodPressureHg:editData?.bp2 ||  null,
+      oxygen:editData?.spo2 ||  null,
+      respiratory:editData?.rr ||  null,
+      heartRate:editData?.hr ||  null,
+      temperature: editData?.bt || null,
       // Vision
-      visionLeft: null,
-      visionRight: null,
-      pupil: '',
-      lense: '',
+      visionLeft:editData?.physicalInfo?.vision_r ||  null,
+      visionRight:editData?.physicalInfo?.vision_l || null,
+      pupil:editData?.physicalInfo?.pupils || '',
+      lense: editData?.physicalInfo?.glasses_lenses ||'',
       // Hearing
-      hearing: '',
+      hearing:editData?.physicalInfo?.hearing || '',
       // Physical Exam
-      bmi: { option: '', comment: '' },
-      skin: { option: '', comment: '' },
-      heent: { option: '', comment: '' },
-      teeth: { option: '', comment: '' },
-      neck: { option: '', comment: '' },
-      lung: { option: '', comment: '' },
-      heart: { option: '', comment: '' },
-      abdomen: { option: '', comment: '' },
-      guSystem: { option: '', comment: '' },
-      musculoskeletal: { option: '', comment: '' },
-      back: { option: '', comment: '' },
-      neurological: { option: '', comment: '' },
-      psychiatric: { option: '', comment: '' },
+      bmi: { option: editData?.physicalInfo?.bmi_status || '', comment: editData?.physicalInfo?.bmi_comment ||'' },
+      skin: { option: editData?.physicalInfo?.skin_status || '', comment: editData?.physicalInfo?.skin_comment ||'' },
+      heent: { option: editData?.physicalInfo?.skin_status || '', comment: editData?.physicalInfo?.skin_comment || '' },
+      teeth: { option: editData?.physicalInfo?.teeth_status || '', comment: editData?.physicalInfo?.teeth_comment || '' },
+      neck: { option: editData?.physicalInfo?.neck_status || '', comment: editData?.physicalInfo?.neck_comment || '' },
+      lung: { option: editData?.physicalInfo?.lungs_status || '', comment: editData?.physicalInfo?.lungs_comment || '' },
+      heart: { option: editData?.physicalInfo?.heart_status || '', comment: editData?.physicalInfo?.heart_comment || '' },
+      abdomen: { option: editData?.physicalInfo?.abdomen_status || '', comment: editData?.physicalInfo?.abdomen_comment || '' },
+      guSystem: { option: editData?.physicalInfo?.gusystem_status || '', comment: editData?.physicalInfo?.gusystem_comment || '' },
+      musculoskeletal: { option: editData?.physicalInfo?.musculoskeletal_status || '', comment: editData?.physicalInfo?.musculoskeletal_comment || '' },
+      back: { option: editData?.physicalInfo?.backspine_status || '', comment: editData?.physicalInfo?.backspine_comment || '' },
+      neurological: { option: editData?.physicalInfo?.neurological_status || '', comment: editData?.physicalInfo?.neurological_comment || '' },
+      psychiatric: { option: editData?.physicalInfo?.psychiatric_status || '', comment: editData?.physicalInfo?.psychiatric_comment|| '', },
       // Other
-      remarkObjective: [{ message: '' }],
+      remarkObjective:editData?.remarks0?.length && editData?.remarks0?.map((item)=>item?.message) || [{ message:"" }],
       // ------ ASSESSMENT
-      diagnosis: '',
-      remarkAssessment: [{ message: '' }],
+      diagnosis: editData?.diagnosis || '',
+      remarkAssessment:editData?.remarks1?.length && editData?.remarks1?.map((item)=>item?.message) || [{ message:"" }],
       // ------ PLAN
-      plan: '',
+      plan: editData?.plan || '',
       prescriptions: [],
-      remarkPlan: [{ message: '' }],
+      remarkPlan: editData?.remarks2?.length && editData?.remarks2?.map((item)=>item?.message) || [{ message:"" }],
     }),
     []
   );
@@ -239,7 +240,8 @@ export default function NoteNewFormSoap({ onClose, refIds, refetch: onRefetch }:
   // console.log('data Soap:', values);
 
   const [createSoap] = useMutation(POST_NOTES_SOAP);
-
+  const [updateSoap] = useMutation(UpdateNotesSoap);
+  
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['NoteSoapObjInputType'] = {
@@ -300,7 +302,9 @@ export default function NoteNewFormSoap({ onClose, refIds, refetch: onRefetch }:
 
         plan: String(model.plan),
         remarks2: model.remarkPlan,
-
+        R_ID:editData?.R_ID && Number(editData?.R_ID),
+        phy_id:editData?.physicalInfo?.id && Number(editData?.physicalInfo?.id),
+        soap_id:editData?.id && Number(editData?.id),
         // hindi naka array
 
         prescriptions: model.prescriptions,
@@ -313,7 +317,7 @@ export default function NoteNewFormSoap({ onClose, refIds, refetch: onRefetch }:
         // FREQUENCY: String(model.prescriptions),
         // DURATION: String(model.prescriptions),
       };
-      createSoap({
+     (editData ? updateSoap:createSoap)({
         variables: {
           data,
         },
@@ -321,7 +325,7 @@ export default function NoteNewFormSoap({ onClose, refIds, refetch: onRefetch }:
         .then(async (res) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar('Create success!');
+          enqueueSnackbar(editData ? "Update success!":'Create success!');
           // refetch();
           setfetchCover(true);
           reset();
@@ -416,7 +420,10 @@ export default function NoteNewFormSoap({ onClose, refIds, refetch: onRefetch }:
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={onClose}>
+        <Button variant="outlined" onClick={()=>{
+          onClose();
+          reset()
+        }}>
           Cancel
         </Button>
 
@@ -426,7 +433,7 @@ export default function NoteNewFormSoap({ onClose, refIds, refetch: onRefetch }:
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          Create
+          {editData ? "Update":"Create"}
         </LoadingButton>
       </DialogActions>
     </>

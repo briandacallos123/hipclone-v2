@@ -10,7 +10,7 @@ import { useResponsive } from 'src/hooks/use-responsive';
 // components
 import Iconify from 'src/components/iconify';
 import Carousel, { CarouselArrows, useCarousel } from 'src/components/carousel';
-import { ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { FormControl, InputLabel, MenuItem, Select, ToggleButton, ToggleButtonGroup } from '@mui/material';
 import FormatAlignJustifyIcon from '@mui/icons-material/FormatAlignJustify';
 import { useState } from 'react';
 // ----------------------------------------------------------------------
@@ -24,11 +24,13 @@ const STEPS = [
 // ----------------------------------------------------------------------
 
 type FindStepsProps = {
-  view?:String;
-  handleChange?:any;
+  view?: String;
+  handleChange?: any;
+  dType?:any;
+  setDType?:any;
 }
 
-export default function AppointmentFindSteps({view, handleChange}:FindStepsProps) {
+export default function AppointmentFindSteps({dType, setDType, view, handleChange }: FindStepsProps) {
   const theme = useTheme();
 
   const upMd = useResponsive('up', 'md');
@@ -133,20 +135,40 @@ export default function AppointmentFindSteps({view, handleChange}:FindStepsProps
 
 
   return (
-    <Stack direction="row" spacing={2} textAlign="center" justifyContent="flex-end">
-       <ToggleButtonGroup
-          value={view}
-          exclusive
-          onChange={handleChange}
-        >
-            <ToggleButton value="row" aria-label="quilt">
-              <FormatAlignJustifyIcon />
-          </ToggleButton>
-          <ToggleButton value="column" aria-label="module">
-            <ViewModuleIcon />
-          </ToggleButton>
-        
-    </ToggleButtonGroup>
+    <Stack sx={{
+      background:'white',
+      p:2
+    }} direction="row" spacing={2} textAlign="center" justifyContent="flex-end">
+         <FormControl >
+          {/* <InputLabel id="demo-simple-select-label">Age</InputLabel> */}
+          <Select
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            value={dType}
+            label="Age"
+            onChange={()=>{
+              setDType(dType === 1 ? 2:1)
+            }}
+          >
+            <MenuItem value={1}>My Doctors</MenuItem>
+            <MenuItem value={2}>All Doctors</MenuItem>
+          </Select>
+        </FormControl>
+      <ToggleButtonGroup
+        value={view}
+        exclusive
+        onChange={handleChange}
+      >
+       
+        <ToggleButton value="row" aria-label="quilt">
+          <FormatAlignJustifyIcon />
+        </ToggleButton>
+        <ToggleButton value="column" aria-label="module">
+          <ViewModuleIcon />
+        </ToggleButton>
+
+
+      </ToggleButtonGroup>
     </Stack>
     // <Box>
     //   <Typography variant="h5" sx={{ mb: 3, color: 'text.secondary', textAlign: 'center' }}>
