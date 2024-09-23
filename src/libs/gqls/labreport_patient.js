@@ -145,4 +145,30 @@ mutation mutation_lab_report_att($data: lab_report_request!,$file: Upload) {
 `;
 
 
+export const update_lab_report = gql`
+mutation update_lab_report($data: lab_report_request!,$file: Upload) {
+  update_lab_report(data: $data,file : $file) {
+    status
+    message
+    lab_report_data{
+      id
+      patientID
+      emrPatientID
+      doctorID
+      isEMR
+      patient
+      doctor
+      clinic
+      dateCreated
+      type
+      labName
+      resultDate
+      remarks
+      isDeleted
+    }
+  }
+}
+`;
+
+
 

@@ -27,7 +27,7 @@ import FormProvider, {
 
 import { gql, useMutation, useQuery } from '@apollo/client';
 import { useAuthContext } from '@/auth/hooks';
-import { mutation_lab_report } from '@/libs/gqls/labreport_patient';
+import { mutation_lab_report, update_lab_report } from '@/libs/gqls/labreport_patient';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
 import { YMD } from 'src/utils/format-time';
@@ -82,6 +82,7 @@ type Props = {
   setRefetch?: any;
   setLoading?: any;
   isLoading?: any;
+  editData?:any;
 };
 
 export default function PatientImagingNewForm({
@@ -90,6 +91,7 @@ export default function PatientImagingNewForm({
   isLoading,
   onClose,
   data: data1,
+  editData
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {getItem} = useSessionStorage()
@@ -137,13 +139,16 @@ export default function PatientImagingNewForm({
     ),
   });
 
+  console.log(editData,'editData MO BHE!@#')
+
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null, // clinic name
-      resultdate: new Date(),
-      remark: '',
-      type: 'Audiometry',
-      attachment: [] || null,
+      hospitalId:editData?.clinic || null, // clinic name
+      resultdate:editData?.resultDate && new Date(editData?.resultDate) || new Date(),
+      remark: editData?.remarks || '',
+      type: editData?.type ||'Audiometry',
+      labName:editData?.labName || '',
+      attachment: editData?.labreport_attachments?.map((item)=>item?.file_url) || null,
     }),
     []
   );
@@ -175,6 +180,16 @@ export default function PatientImagingNewForm({
     },
     notifyOnNetworkStatusChange: true,
   });
+
+  const [updateData] = useMutation(update_lab_report, {
+    context: {
+      requestTrackerId: 'mutation_lab_report[lab_report_request]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+
+
   const [snackKey, setSnackKey]: any = useState(null);
 
   const handleSubmitValue = useCallback(
@@ -191,8 +206,9 @@ export default function PatientImagingNewForm({
         resultDate: YMD(model.resultDate),
         labName: model.labName,
         remarks: model.remarks,
+        labreport_id: editData && Number(editData?.id)
       };
-      uploadData({
+      (editData?updateData:uploadData)({
         variables: {
           data,
           file: model?.attachment,

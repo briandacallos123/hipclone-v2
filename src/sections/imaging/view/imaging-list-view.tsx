@@ -82,9 +82,11 @@ type Props = {
   isRefetch: any;
   setRefetch: any;
   action?: React.ReactNode;
+  editData?:any;
+  setEditData?:any;
 };
 
-export default function ImagingListView({ data_slug, action, isRefetch, setRefetch }: Props) {
+export default function ImagingListView({editData, setEditData, data_slug, action, isRefetch, setRefetch }: Props) {
   const params = useParams();
   const { id }: any = params;
   const [isPatient, setIspatient] = useState<boolean>(true);
@@ -365,7 +367,7 @@ export default function ImagingListView({ data_slug, action, isRefetch, setRefet
 
 
   const handleViewRow = async(row:any) => {
-
+    console.log(row,'ROWWWWWWWWWWWWWW')
 
     // (async () => {
       try {
@@ -424,6 +426,10 @@ const renderView = (
   </Dialog>
 );
 
+  const handleUpdateRow = (row:any) => {
+    setEditData(row)
+  }
+
   return (
     <Card>
       <ProfileImagingTableToolbar
@@ -464,7 +470,9 @@ const renderView = (
               {isLoading
                 ? [...Array(rowsPerPage)]?.map((_, i) => <ProfileImagingTableRowSkeleton key={i} />)
                 : tableData1?.map((row: any) => (
-                    <ProfileImagingTableRow handleView={()=>{
+                    <ProfileImagingTableRow handleUpdate={()=>{
+                      handleUpdateRow(row)
+                    }} handleView={()=>{
                       handleViewRow(row)
                     }} patientData={patientInfo} key={row.id} row={row} />
                   ))}

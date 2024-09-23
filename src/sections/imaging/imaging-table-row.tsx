@@ -29,18 +29,20 @@ import { TableMobileRow } from 'src/components/table';
 import PatientImagingPDF from './imaging-pdf';
 import { usePathname } from 'src/routes/hook';
 import { useAuthContext } from 'src/auth/hooks';
-import { TYPE_OPTIONS } from '../patient/imaging/type_option'; 
-import { Stack } from '@mui/material';
+import { TYPE_OPTIONS } from '../patient/imaging/type_option';
+import { MenuItem, Stack } from '@mui/material';
+import { isToday } from '@/utils/format-time';
+import CustomPopover, { usePopover } from '@/components/custom-popover';
 
 // ----------------------------------------------------------------------
 
 type Props = {
   row: any;
   patientData: any;
-  handleView?:any;
+  handleView?: any;
 };
 
-export default function ImagingTableRow({ patientData, row, handleView }: any) {
+export default function ImagingTableRow({ patientData, row, handleUpdate, handleView }: any) {
   const pathname = usePathname();
   const isEMR = pathname.includes('my-emr');
   const upMd = useResponsive('up', 'md');
@@ -63,26 +65,26 @@ export default function ImagingTableRow({ patientData, row, handleView }: any) {
       text = (
         <>
           {row?.clinicInfo !== null ? (
-                <Avatar
-                  alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-                  src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1]}
-                  // src={row?.clinicInfo?.clinicDPInfo[0]?.display_picture[0].filename.split('public')[1] || row?.patientInfo?.userInfo[0]?.display_picture[0].filename.split('public')[1]}
-                  sx={{ mr: 2 }}
-                >
-                    {isEMR
-                    ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
-                    : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-                </Avatar>
-              ) : (
-                <Avatar
-                  alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-                  sx={{ mr: 2 }}
-                >
-                    {isEMR
-                    ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
-                    : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-                </Avatar>
-              )}
+            <Avatar
+              alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
+              src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1]}
+              // src={row?.clinicInfo?.clinicDPInfo[0]?.display_picture[0].filename.split('public')[1] || row?.patientInfo?.userInfo[0]?.display_picture[0].filename.split('public')[1]}
+              sx={{ mr: 2 }}
+            >
+              {isEMR
+                ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
+                : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+            </Avatar>
+          ) : (
+            <Avatar
+              alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
+              sx={{ mr: 2 }}
+            >
+              {isEMR
+                ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
+                : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+            </Avatar>
+          )}
           {/* <Avatar
             alt={!isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
             // src={row?.patientInfo?.userInfo[0]?.display_picture[0].filename.split('public')[1] || ''}
@@ -106,27 +108,27 @@ export default function ImagingTableRow({ patientData, row, handleView }: any) {
       // for emr
       text = (
         <>
-            {row?.clinicInfo === null ? (
-                <Avatar
-                  alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-                  src={row?.patientInfo?.[0]?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1] || row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]}
-                  sx={{ mr: 2 }}
-                >
-                    {isEMR
-                    ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
-                    : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-                </Avatar>
-              ) : (
-                <Avatar
-                  alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-                  src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1] || ''}
-                  sx={{ mr: 2 }}
-                >
-                    {isEMR
-                    ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
-                    : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-                </Avatar>
-              )}
+          {row?.clinicInfo === null ? (
+            <Avatar
+              alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
+              src={row?.patientInfo?.[0]?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1] || row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]}
+              sx={{ mr: 2 }}
+            >
+              {isEMR
+                ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
+                : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+            </Avatar>
+          ) : (
+            <Avatar
+              alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
+              src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1] || ''}
+              sx={{ mr: 2 }}
+            >
+              {isEMR
+                ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
+                : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+            </Avatar>
+          )}
 
           {isEMR && row.clinicInfo?.clinic_name ? (
             <ListItemText
@@ -153,20 +155,20 @@ export default function ImagingTableRow({ patientData, row, handleView }: any) {
       text = (
         <>
           {row?.clinicInfo !== null ? (
-                <Avatar
-                  alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-                  src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1]}
-                  // src={row?.clinicInfo?.clinicDPInfo[0]?.display_picture[0].filename.split('public')[1] || row?.patientInfo?.userInfo[0]?.display_picture[0].filename.split('public')[1]}
-                  sx={{ mr: 2 }}
-                >
-                </Avatar>
-              ) : (
-                <Avatar
-                  alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-                  sx={{ mr: 2 }}
-                >
-                </Avatar>
-              )}
+            <Avatar
+              alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
+              src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1]}
+              // src={row?.clinicInfo?.clinicDPInfo[0]?.display_picture[0].filename.split('public')[1] || row?.patientInfo?.userInfo[0]?.display_picture[0].filename.split('public')[1]}
+              sx={{ mr: 2 }}
+            >
+            </Avatar>
+          ) : (
+            <Avatar
+              alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
+              sx={{ mr: 2 }}
+            >
+            </Avatar>
+          )}
           {/* <Avatar
             alt={!isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
             // src={row?.patientInfo?.userInfo[0]?.display_picture[0].filename.split('public')[1] || ''}
@@ -188,27 +190,27 @@ export default function ImagingTableRow({ patientData, row, handleView }: any) {
       // for emr
       text = (
         <>
-            {row?.clinicInfo === null ? (
-                <Avatar
-                  alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-                  src={row?.patientInfo?.[0]?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1] || row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]}
-                  sx={{ mr: 2 }}
-                >
-                    {/* {isEMR
+          {row?.clinicInfo === null ? (
+            <Avatar
+              alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
+              src={row?.patientInfo?.[0]?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1] || row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]}
+              sx={{ mr: 2 }}
+            >
+              {/* {isEMR
                     ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
                     : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()} */}
-                </Avatar>
-              ) : (
-                <Avatar
-                  alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-                  src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1] || ''}
-                  sx={{ mr: 2 }}
-                >
-                    {/* {isEMR
+            </Avatar>
+          ) : (
+            <Avatar
+              alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
+              src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1] || ''}
+              sx={{ mr: 2 }}
+            >
+              {/* {isEMR
                     ? row.clinicInfo?.clinic_name.charAt(0).toUpperCase()
                     : row.clinicInfo?.clinic_name.charAt(0).toUpperCase()} */}
-                </Avatar>
-              )}
+            </Avatar>
+          )}
 
           {isEMR && row.clinicInfo?.clinic_name ? (
             <></>
@@ -222,6 +224,8 @@ export default function ImagingTableRow({ patientData, row, handleView }: any) {
 
     return text;
   };
+
+  const popover = usePopover();
 
   const isSecretary = () => {
     let text: any;
@@ -263,9 +267,35 @@ export default function ImagingTableRow({ patientData, row, handleView }: any) {
               }
               color="primary"
             >
-              <IconButton onClick={handleView}>
+              <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+                <Iconify icon="eva:more-vertical-fill" />
+              </IconButton>
+              <Stack direction="row" justifyContent="flex-end">
+                <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+
+                  {isToday(row?.dateCreated) && <MenuItem
+                    onClick={handleUpdate}
+                    sx={{ color: 'success.main' }}
+                  >
+                    <Iconify icon="mdi:pencil" />
+                    Edit
+                  </MenuItem>}
+
+                  <MenuItem
+                    onClick={handleView}
+                    sx={{ color: 'success.main' }}
+                  >
+                    <Iconify icon="mdi:eye" />
+                    View
+                  </MenuItem>
+                </CustomPopover>
+              </Stack>
+              {/* <IconButton onClick={handleView}>
                 <Iconify icon="solar:clipboard-text-bold" />
               </IconButton>
+             {isToday(row?.dateCreted) &&  <IconButton onClick={handleUpdate}>
+                <Iconify icon="solar:clipboard-text-bold" />
+              </IconButton>} */}
             </Badge>
           </>
         );
@@ -335,23 +365,23 @@ export default function ImagingTableRow({ patientData, row, handleView }: any) {
             <ListItemText
               primary={
                 <>
-                <Stack direction="row" alignItems="center" sx={{py:1}}>
-                <Iconify icon={  (()=>{
-                  let icon:any;
-                  TYPE_OPTIONS?.forEach((p:any)=>{
-                      p?.classify?.find((c:any)=>{
-                          if(row?.type === c?.name){
-                              icon =  c?.icon;
+                  <Stack direction="row" alignItems="center" sx={{ py: 1 }}>
+                    <Iconify icon={(() => {
+                      let icon: any;
+                      TYPE_OPTIONS?.forEach((p: any) => {
+                        p?.classify?.find((c: any) => {
+                          if (row?.type === c?.name) {
+                            icon = c?.icon;
                           }
+                        })
                       })
-                  })
-                  return icon || ''
-                  })()} width={20}  />
-      
-                  <Typography sx={{ml:2}}>
-                  {type}
-                  </Typography>
-                </Stack>
+                      return icon || ''
+                    })()} width={20} />
+
+                    <Typography sx={{ ml: 2 }}>
+                      {type}
+                    </Typography>
+                  </Stack>
                 </>
               }
               secondary={
@@ -468,25 +498,25 @@ export default function ImagingTableRow({ patientData, row, handleView }: any) {
         <TableCell>{row.dateCreated}</TableCell>
 
 
-        <TableCell sx={{ color: 'primary.main', textTransform: 'capitalize'}}>
-          
-            <Stack direction="row" alignItems="center" sx={{py:1}}>
-            <Iconify icon={  (()=>{
-            let icon:any;
-            TYPE_OPTIONS?.forEach((p:any)=>{
-                p?.classify?.find((c:any)=>{
-                    if(row?.type === c?.name){
-                        icon =  c?.icon;
-                    }
-                })
-            })
-            return icon || ''
-            })()} width={20}  />
+        <TableCell sx={{ color: 'primary.main', textTransform: 'capitalize' }}>
 
-            <Typography sx={{ml:2}}>
-            {row?.type}
+          <Stack direction="row" alignItems="center" sx={{ py: 1 }}>
+            <Iconify icon={(() => {
+              let icon: any;
+              TYPE_OPTIONS?.forEach((p: any) => {
+                p?.classify?.find((c: any) => {
+                  if (row?.type === c?.name) {
+                    icon = c?.icon;
+                  }
+                })
+              })
+              return icon || ''
+            })()} width={20} />
+
+            <Typography sx={{ ml: 2 }}>
+              {row?.type}
             </Typography>
-            </Stack>
+          </Stack>
         </TableCell>
 
         <TableCell align="left" sx={{ px: 1 }}>

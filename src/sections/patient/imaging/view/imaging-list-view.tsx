@@ -29,6 +29,7 @@ export default function PatientImagingListView({ slug, data }: Props) {
   const [isRefetch, setRefetch] = useState(false);
   const [isLoading, setLoading] = useState(false);
   const openCreate = useBoolean();
+  const [editData, setEditData] = useState(null);
 
   const { user } = useAuthContext();
 
@@ -40,6 +41,8 @@ export default function PatientImagingListView({ slug, data }: Props) {
         data_slug={slug}
         isRefetch={isRefetch}
         setRefetch={setRefetch}
+        editData={editData}
+        setEditData={setEditData}
         action={
           upMd ? (
             
@@ -90,10 +93,14 @@ export default function PatientImagingListView({ slug, data }: Props) {
 
       <PatientImagingCreateView
         setRefetch={setRefetch}
+        editData={editData}
         setLoading={setLoading} 
         isLoading={isLoading}
-        open={openCreate.value}
-        onClose={openCreate.onFalse}
+        open={openCreate.value || editData}
+        onClose={()=>{
+          openCreate.onFalse()
+          setEditData(null)
+        }}
         data={data}
       />
     </>

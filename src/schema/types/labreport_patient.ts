@@ -894,6 +894,7 @@ export const lab_report_request = inputObjectType({
     t.nullable.string('resultDate');
     t.nullable.string('labName');
     t.nullable.string('remarks');
+    t.nullable.int('labreport_id')
   },
 });
 
@@ -984,7 +985,7 @@ export const mutation_lab_report = extendType({
                   const uploadResult: any = await useGoogleStorage(
                     sFile,
                     session?.user?.id,
-                    'feeds'
+                    'lab_report'
                   );
 
                   // const uploadResult = await useUpload(sFile, 'public/documents/');
@@ -1130,7 +1131,7 @@ export const mutation_lab_report = extendType({
                 const uploadResult: any = await useGoogleStorage(
                   sFile,
                   session?.user?.id,
-                  'feeds'
+                  'lab_report'
                 );
                 // const uploadResult = await useUpload(sFile, 'public/documents/');
                 uploadResult.map(async (v: any) => {
@@ -1171,6 +1172,318 @@ export const mutation_lab_report = extendType({
                   labName,
                   remarks,
                 },
+              });
+
+              const labReportID = res.id;
+
+              const sFile = await args?.file;
+              // console.log(sFile);
+              if (sFile) {
+                const uploadResult: any = await useGoogleStorage(
+                  sFile,
+                  session?.user?.id,
+                  'lab report'
+                );
+                // const uploadResult = await useUpload(sFile, 'public/documents/');
+                uploadResult.map(async (v: any) => {
+                  await client.labreport_attachments.create({
+                    data: {
+                      patientID,
+                      doctorID,
+                      isEMR,
+                      patient,
+                      doctor,
+                      clinic,
+                      labreport_id: labReportID,
+                      file_name: String(v.path),
+                      file_url: String(v.path),
+                      file_size: String(v.fileSize),
+                      file_type: String(v.fileType),
+                    },
+                  });
+                });
+              }
+
+              res = {
+                status: 'Success',
+                message: 'Create Lab Report Successfully',
+                lab_report_data: [res],
+              };
+            }
+          } catch (error) {
+            console.log(error, 'ERRORRRRRRRRRRRRRRRRR_________ BRIAN')
+            throw new GraphQLError(error);
+          }
+        }
+
+        return res;
+      },
+    });
+  },
+});
+
+export const update_lab_report = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nonNull.field('update_lab_report', {
+      type: lab_report_transactions,
+      args: {
+        data: lab_report_request!,
+        file: 'Upload',
+      },
+      async resolve(_, args, ctx) {
+        const {
+          patientID,
+          doctorID,
+          isEMR,
+          patient,
+          doctor,
+          clinic,
+          type,
+          resultDate,
+          labName,
+          remarks,
+          labreport_id
+        }: any = args.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(
+          client,
+          session?.user?.id,
+          '`mutation_lab_report`',
+          'lab_report_request'
+        );
+
+        let res: any;
+
+        if (session?.user?.role === 'secretary') {
+          const subPermissions: any = await client.sub_account_doctor.findFirst({
+            where: {
+              secretaryID: session.user?.subAccId,
+            },
+          });
+
+          if (Number(subPermissions?.lab_result) !== 1) {
+            throw new GraphQLError('Unauthorized');
+          }
+
+          if (session?.user?.permissions?.lab_result === 1) {
+            try {
+              if (session.user.role === 'patient') {
+                res = await client.labreport.create({
+                  data: {
+                    patientID,
+                    doctorID,
+                    isEMR,
+                    patient,
+                    doctor,
+                    clinic,
+                    type,
+                    resultDate,
+                    labName,
+                    remarks,
+                  },
+                });
+
+                const labReportID = res.id;
+
+                const sFile = await args?.file;
+                // console.log(sFile);
+                if (sFile) {
+
+
+                  const uploadResult: any = await useGoogleStorage(
+                    sFile,
+                    session?.user?.id,
+                    'lab_report'
+                  );
+
+                  // const uploadResult = await useUpload(sFile, 'public/documents/');
+                  uploadResult.map(async (v: any) => {
+                    await client.labreport_attachments.create({
+                      data: {
+                        patientID,
+                        doctorID,
+                        isEMR,
+                        patient,
+                        doctor,
+                        clinic,
+                        labreport_id: labReportID,
+                        file_name: String(v.path),
+                        file_url: String(v.path),
+                        file_size: String(v.fileSize),
+                        file_type: String(v.fileType),
+                      },
+                    });
+                  });
+                }
+
+                res = {
+                  status: 'Success',
+                  message: 'Create Lab Report Successfully',
+                  lab_report_data: [res],
+                };
+              } else {
+                res = await client.labreport.create({
+                  data: {
+                    patientID,
+                    doctorID,
+                    isEMR,
+                    patient,
+                    doctor,
+                    clinic,
+                    type,
+                    resultDate,
+                    labName,
+                    remarks,
+                  },
+                });
+
+                const labReportID = res.id;
+                const labReportPatientID = res?.patient;
+
+                const patient_findfirst = await client.patient.findFirst({
+                  where: {
+                    S_ID: res?.patientID,
+                  },
+                });
+
+                const secretary_findfirst = await client.sub_account.findFirst({
+                  where: {
+                    id: session.user?.subAccId,
+                  },
+                });
+
+                const currentDate = new Date();
+                const formattedDate = currentDate.toISOString();
+
+                const secretary_create = await client.log_action.create({
+                  data: {
+                    secretaryID: session.user?.subAccId,
+                    patientID,
+                    idno: Number(secretary_findfirst?.idno) || null,
+                    request: `${patient_findfirst?.FNAME} ${patient_findfirst?.LNAME} Lab and Imaging Result - Uploaded`,
+                    patient: labReportPatientID,
+                    log_type: '4',
+                    date: formattedDate,
+                    type: 0,
+                  },
+                });
+
+                const sFile = await args?.file;
+
+                if (sFile) {
+                  const uploadResult: any = await useGoogleStorage(
+                    sFile,
+                    session?.user?.id,
+                    'feeds'
+                  );
+
+                  // const uploadResult = await useUpload(sFile, 'public/documents/');
+                  uploadResult.map(async (v: any) => {
+                    await client.labreport_attachments.create({
+                      data: {
+                        patientID,
+                        doctorID,
+                        isEMR,
+                        patient,
+                        doctor,
+                        clinic,
+                        labreport_id: labReportID,
+                        file_name: String(v.path),
+                        file_url: String(v.path),
+                        file_size: String(v.fileSize),
+                        file_type: String(v.fileType),
+                      },
+                    });
+                  });
+                }
+
+                res = {
+                  status: 'Success',
+                  message: 'Create Lab Report Successfully',
+                  lab_report_data: [res],
+                };
+              }
+            } catch (error) {
+              throw new GraphQLError(error);
+            }
+          } else {
+            res = {
+              status: 'Failed',
+              message: 'You are not authorize for this action',
+              lab_report_data: res,
+            };
+          }
+        } else {
+          try {
+            if (session.user.role === 'patient') {
+              res = await client.labreport.create({
+                data: {
+                  patientID,
+                  doctorID,
+                  isEMR,
+                  patient,
+                  doctor,
+                  clinic,
+                  type,
+                  resultDate,
+                  labName,
+                  remarks,
+                },
+              });
+
+              const labReportID = res.id;
+
+              const sFile = await args?.file;
+              // console.log(sFile);
+              if (sFile) {
+                const uploadResult: any = await useGoogleStorage(
+                  sFile,
+                  session?.user?.id,
+                  'lab_report'
+                );
+                // const uploadResult = await useUpload(sFile, 'public/documents/');
+                uploadResult.map(async (v: any) => {
+                  await client.labreport_attachments.create({
+                    data: {
+                      patientID,
+                      doctorID,
+                      isEMR,
+                      patient: patientID,
+                      doctor,
+                      clinic,
+                      labreport_id: labReportID,
+                      file_name: String(v.path),
+                      file_url: String(v.path),
+                      file_size: String(v.fileSize),
+                      file_type: String(v.fileType),
+                    },
+                  });
+                });
+              }
+
+              res = {
+                status: 'Success',
+                message: 'Create Lab Report Successfully',
+                lab_report_data: [res],
+              };
+            } else {
+              res = await client.labreport.update({
+                data: {
+                  patientID,
+                  doctorID,
+                  isEMR,
+                  patient,
+                  doctor,
+                  clinic,
+                  type,
+                  resultDate,
+                  labName,
+                  remarks,
+                },
+                where:{
+                  id:Number(labreport_id)
+                }
               });
 
               const labReportID = res.id;

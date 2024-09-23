@@ -18,6 +18,7 @@ type Props = {
   setRefetch?: any;
   setLoading?: any;
   isLoading?: any;
+  editData?:any;
 };
 
 // ----------------------------------------------------------------------
@@ -29,6 +30,7 @@ export default function PatientImagingCreateView({
   open,
   onClose,
   data,
+  editData
 }: Props) {
   const upMd = useResponsive('up', 'md');
   // console.log(setLoading, 'setRefetch');
@@ -53,6 +55,7 @@ export default function PatientImagingCreateView({
         isLoading={isLoading}
         onClose={onClose}
         data={data}
+        editData={editData}
       />
     </Dialog>
   );
