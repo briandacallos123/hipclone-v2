@@ -1,7 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
-import { GraphQLError } from 'graphql';
+import { GraphQLError } from 'graphql/error/GraphQLError';
+import { isToday } from '@/utils/format-time';
+
 
 const client = new PrismaClient();
 
@@ -212,6 +214,7 @@ export const NotesMedClerInputType = inputObjectType({
     t.nullable.int('emrPatientID');
     t.nullable.int('isLinked');
     t.nullable.string('R_TYPE');
+    t.nullable.string('qrCode');
     t.nullable.int('isEMR');
     // cler
     t.nullable.string('dateCreated');
@@ -239,9 +242,23 @@ export const QueryNotesMedCler = extendType({
           '`notes_medicalclearance`',
           '`QueryNotesMedCler`'
         );
+
+        let recordId:any;
+        await(async()=>{
+          let qrCode = args?.data?.qrCode;
+          if(qrCode){
+            let recordData = await client.records.findFirst({
+              where:{
+                qrcode:qrCode
+              }
+            });
+            recordId = recordData?.R_ID;
+          }
+        })()
+
         const result: any = await client.notes_medicalclearance.findFirst({
           where: {
-            report_id: Number(args?.data!.recordID),
+            report_id: Number(args?.data!.recordID || recordId),
           },
 
           include: {
@@ -349,53 +366,115 @@ export const UpdateNotesCler = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesCler');
 
-        try {
-          // const notesInput = { ...args.data };
-          // const notesChildInput = notesInput.NoteTxtChildInputType;
-          // const uuid = notesInput.tempId;
-
-         
-
-          const notesTransaction = await client.$transaction(async (trx) => {
-            const recordCler = await trx.records.update({
-              data: {
-                CLINIC: Number(createData.clinic),
-                patientID: Number(createData.patientID),
-                R_TYPE: String(createData.R_TYPE), // 10
-                doctorID: Number(session?.user?.id),
-                isEMR: Number(0),
-              },
-              where:{
-                R_ID:Number(createData?.recordID)
-              }
+        if(isToday(createData?.dateCreated)){
+          try {
+            // const notesInput = { ...args.data };
+            // const notesChildInput = notesInput.NoteTxtChildInputType;
+            // const uuid = notesInput.tempId;
+  
+           
+  
+            const notesTransaction = await client.$transaction(async (trx) => {
+              const recordCler = await trx.records.update({
+                data: {
+                  CLINIC: Number(createData.clinic),
+                  patientID: Number(createData.patientID),
+                  R_TYPE: String(createData.R_TYPE), // 10
+                  doctorID: Number(session?.user?.id),
+                  isEMR: Number(0),
+                },
+                where:{
+                  R_ID:Number(createData?.recordID)
+                }
+              });
+              const newChild = await trx.notes_medicalclearance.update({
+                data: {
+                  clinic: Number(recordCler.CLINIC),
+                  patientID: Number(recordCler.patientID),
+                  doctorID: Number(session?.user?.id),
+                  isEMR: Number(0),
+                  report_id: Number(recordCler.R_ID),
+  
+                  dateCreated: String(createData.dateCreated),
+                  dateExamined: String(createData.dateExamined),
+                  remarks: String(createData.remarks),
+                },
+                where:{
+                  id:Number(createData?.medical_ID)
+                }
+              });
+              return {
+                ...recordCler,
+                ...newChild,
+                // tempId: uuid,
+              };
             });
-            const newChild = await trx.notes_medicalclearance.update({
-              data: {
-                clinic: Number(recordCler.CLINIC),
-                patientID: Number(recordCler.patientID),
-                doctorID: Number(session?.user?.id),
-                isEMR: Number(0),
-                report_id: Number(recordCler.R_ID),
+            const res: any = notesTransaction;
+            return res;
+          } catch (e) {
+            console.log(e);
+            throw new GraphQLError(e)
+          }
+        }else{
+          throw new GraphQLError("Unable to update")
 
-                dateCreated: String(createData.dateCreated),
-                dateExamined: String(createData.dateExamined),
-                remarks: String(createData.remarks),
-              },
-              where:{
-                id:Number(createData?.medical_ID)
-              }
+        }
+      },
+    });
+  },
+});
+
+
+export const DeleteNotesCler = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('DeleteNotesCler', {
+      type: RecordObjectFields4Cler,
+      args: { data: NotesMedClerInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesCler');
+
+        if(isToday(createData?.dateCreated)){
+          try {
+            // const notesInput = { ...args.data };
+            // const notesChildInput = notesInput.NoteTxtChildInputType;
+            // const uuid = notesInput.tempId;
+  
+           
+  
+            const notesTransaction = await client.$transaction(async (trx) => {
+              const recordCler = await trx.records.update({
+                data: {
+                  isDeleted:1
+                },
+                where:{
+                  R_ID:Number(createData?.recordID)
+                }
+              });
+              const newChild = await trx.notes_medicalclearance.update({
+                data: {
+                  isDeleted:1
+                },
+                where:{
+                  id:Number(createData?.medical_ID)
+                }
+              });
+              return {
+                ...recordCler,
+                ...newChild,
+                // tempId: uuid,
+              };
             });
-            return {
-              ...recordCler,
-              ...newChild,
-              // tempId: uuid,
-            };
-          });
-          const res: any = notesTransaction;
-          return res;
-        } catch (e) {
-          console.log(e);
-          throw new GraphQLError(e)
+            const res: any = notesTransaction;
+            return res;
+          } catch (e) {
+            console.log(e);
+            throw new GraphQLError(e)
+          }
+        }else{
+          throw new GraphQLError("Unable to update")
         }
       },
     });

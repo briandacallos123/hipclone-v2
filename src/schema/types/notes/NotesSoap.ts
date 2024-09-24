@@ -6,6 +6,7 @@ import { extendType, objectType, inputObjectType } from 'nexus';
 import { NotePhysObj } from './NotesPhysical';
 import { notesVitalObj } from './NotesVitals';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
+import { isToday } from '@/utils/format-time';
 
 const client = new PrismaClient();
 
@@ -402,9 +403,24 @@ export const QueryNoteSoap = extendType({
         );
         const recordID: any = args?.data?.recordID;
         const PatientID: any = args?.data?.patientID;
+
+        let recordId:any;
+
+        await(async()=>{
+          let qrCode = args?.data?.qrCode;
+          if(qrCode){
+            let recordData = await client.records.findFirst({
+              where:{
+                qrcode:qrCode
+              }
+            });
+            recordId = recordData?.R_ID
+          }
+        })()
+
         const result: any = await client.notes_soap.findFirst({
           where: {
-            OR:[{report_id: recordID},{patientID: PatientID}],
+            OR:[{report_id: recordID || recordId},{patientID: PatientID}],
           },
           orderBy:{
             id:'desc'
@@ -435,11 +451,14 @@ export const NoteSoapObjInputType = inputObjectType({
     t.nullable.string('R_TYPE');
     t.nullable.int('phy_id');
     t.nullable.int('soap_id');
+    t.nullable.int('presc_id')
     t.nullable.int('R_ID');
+    t.nullable.date('dateCreated')
 
     // soap payloads
     t.nullable.string('complaint');
     t.nullable.string('illness');
+    t.nullable.string('qrCode');
     t.nullable.string('wt');
     t.nullable.string('ht');
     t.nullable.string('bmi');
@@ -697,6 +716,7 @@ export const UpdateNotesSoap = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesSoap');
 
+       if(isToday(createData?.dateCreated)){
         try {
           const notesInput = { ...args.data };
           const notesChildInput = notesInput.NoteTxtChildInputType;
@@ -841,6 +861,143 @@ export const UpdateNotesSoap = extendType({
         } catch (e: any) {
           console.log(e);
           throw new GraphQLError(e)
+        }
+       }else{
+        throw new GraphQLError('Unable to update')
+
+       }
+      },
+    });
+  },
+});
+
+export const DeleteNotesSoap = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('DeleteNotesSoap', {
+      type: RecordObjectFields4Soap,
+      args: { data: NoteSoapObjInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesSoap');
+
+        if(isToday(createData?.dateCreated)){
+          try {
+            const notesInput = { ...args.data };
+            const notesChildInput = notesInput.NoteTxtChildInputType;
+            const uuid = notesInput.tempId;
+  
+          
+  
+           
+            const notesTransaction = await client.$transaction(async (trx) => {
+              const recordSoap = await trx.records.update({
+                data: {
+                  isDeleted:1
+                },
+                where:{
+                  R_ID:Number(createData?.R_ID)
+                }
+              });
+              const newChildSoap = await trx.notes_soap.update({
+                data: {
+                  isDeleted:1
+                },
+                where:{
+                  id:Number(createData?.soap_id)
+                }
+              });
+  
+              // const newChildPhys = await trx.notes_physical.update({
+              //   data: {
+              //     clinic: Number(recordSoap.CLINIC),
+              //     patientID: Number(recordSoap.patientID),
+              //     // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
+              //     isEMR: Number(0),
+              //     doctorID: Number(session?.user?.id),
+              //     report_id: String(recordSoap.R_ID),
+  
+              //     // physical Exam
+  
+              //     vision_r: String(createData.vision_r),
+              //     vision_l: String(createData.vision_l),
+              //     pupils: String(createData.pupils),
+              //     glasses_lenses: String(createData.glasses_lenses),
+              //     hearing: String(createData.hearing),
+              //     bmi_status: String(createData.bmi_status),
+              //     bmi_comment: String(createData.bmi_comment),
+              //     skin_status: String(createData.skin_status),
+              //     skin_comment: String(createData.skin_comment),
+              //     heent_status: String(createData.heent_status),
+              //     heent_comment: String(createData.heent_comment),
+              //     teeth_status: String(createData.teeth_status),
+              //     teeth_comment: String(createData.teeth_comment),
+              //     neck_status: String(createData.neck_status),
+              //     neck_comment: String(createData.neck_comment),
+              //     lungs_status: String(createData.lungs_status),
+              //     lungs_comment: String(createData.lungs_comment),
+              //     heart_status: String(createData.heart_status),
+              //     heart_comment: String(createData.heart_comment),
+              //     abdomen_status: String(createData.abdomen_status),
+              //     abdomen_comment: String(createData.abdomen_comment),
+              //     gusystem_status: String(createData.gusystem_status),
+              //     gusystem_comment: String(createData.gusystem_comment),
+              //     musculoskeletal_status: String(createData.musculoskeletal_status),
+              //     musculoskeletal_comment: String(createData.musculoskeletal_comment),
+              //     backspine_status: String(createData.backspine_status),
+              //     backspine_comment: String(createData.backspine_comment),
+              //     neurological_status: String(createData.neurological_status),
+              //     neurological_comment: String(createData.neurological_comment),
+              //     psychiatric_status: String(createData.psychiatric_status),
+              //     psychiatric_comment: String(createData.psychiatric_comment),
+              //   },
+              //   where:{
+              //     id:Number(createData?.phy_id)
+              //   }
+              // });
+  
+  
+              const patientID = await getPatientId(createData?.uuid);
+  
+              // const prescriptionParent = await client.prescriptions.update({
+              //   data: {
+              //     isDeleted:1
+              //   },
+              //   where:{
+              //     ID:Number(createData?.presc_id)
+              //   }
+              // });
+  
+              // const presChild = createData?.prescriptions?.map(async (item: any) => {
+              //   const child = await client.prescriptions_child.updateMany({
+              //     data: {
+              //       isDeleted:1
+              //     },
+              //     where:{
+              //       PR_ID:Number(prescriptionParent?.ID)
+              //     }
+              //   });
+              //   return child;
+              // });
+              // const cildren = await Promise.all(presChild);
+  
+              return {
+                ...recordSoap,
+                ...newChildSoap,
+                // ...newChildPhys,
+                // ...prescriptionParent,
+                // ...presChild,
+              };
+            });
+            const res: any = notesTransaction;
+            return res;
+          } catch (e: any) {
+            console.log(e);
+            throw new GraphQLError(e)
+          }
+        }else{
+          throw new GraphQLError("Unable to update");
         }
       },
     });

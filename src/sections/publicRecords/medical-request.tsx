@@ -19,6 +19,8 @@ import { useSnackbar } from 'src/components/snackbar';
 import { GET_RECORD_PATIENT } from '@/libs/gqls/records';
 import NotePDFText from '../note/note-pdf-text';
 import NotePDFSoap from '../note/note-pdf-soap';
+import { get_note_lab } from '@/libs/gqls/notes/notesLabReq';
+import NotePDFLaboratory from '../note/note-pdf-lab';
 let imageURL = '../../assets/background/bgScan.jpg';
 
 
@@ -64,7 +66,7 @@ const MedicalRequest = () => {
 
   }, [])
 
-  const [getMedical, { data, loading, error }] = useLazyQuery(GET_RECORD_PATIENT, {
+  const [getMedical, { data, loading, error }] = useLazyQuery(get_note_lab, {
     context: {
       requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
     },
@@ -113,27 +115,14 @@ const MedicalRequest = () => {
       getMedical({
         variables: {
           data: {
-            qrcode: id,
-            skip:0,
-            take:1
+            qrCode:id
           },
         },
       }).then(async (result: any) => {
         const { data } = result;
-        console.log(data,'DATA BOYYYYYYYYYYY')
         if (data) {
-          const { allRecordsbyPatientNew } = data;
-          setCurrentItem(allRecordsbyPatientNew?.Records_data[0]);
-
-
-
-          // // setTable(todaysAPR);
-          // setLoading(false)
-          // setTableData1(allRecordsbyPatientNew?.Records_data);
-          // setIds(allRecordsbyPatientNew?.RecordIds);
-          // setTotalData(allRecordsbyPatientNew?.total_records);
-          // setIsLoadingPatient(false);
-          // setClinicData(allRecordsbyPatientNew?.clinic)
+          const { QueryNotesLab } = data;
+          setCurrentItem(QueryNotesLab);
 
         }
         // setIsLoading(false);
@@ -185,6 +174,7 @@ const MedicalRequest = () => {
         width:'100vw',
         background: `url('/assets/background/queue-bg.jpg')`,
         backgroundSize: 'cover',
+        p:0
       }}>
        {isVerified ?
             <Grid
@@ -201,7 +191,7 @@ const MedicalRequest = () => {
                 {currentItem && isOpen && <Box sx={{ height: '100%', overflow: 'hidden' }}>
                   <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
                     {/* <PrescriptionPDF qrImage={qrImage} item={currentItem} /> */}
-                    <NotePDFSoap  qrImage={qrImage} item={currentItem}/>
+                    <NotePDFLaboratory  qrImage={qrImage} item={currentItem}/>
                   </PDFViewer>
                 </Box>}
               </Grid>

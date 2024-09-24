@@ -18,57 +18,112 @@ type Props = {
   isDashboard?: any;
   addedCategory?: any;
   items2: any;
+  refetch?:any;
   openSingle?: any;
 };
 
-export default function VitalView({ openSingle, items2, items, loading, isDashboard, addedCategory }: Props) {
+export default function VitalView({refetch, openSingle, items2, items, loading, isDashboard, addedCategory }: Props) {
   const upMd = useResponsive('up', 'md');
 
-  const weightData = items?.filter((item: any) => item?.wt)?.map((item) => item?.wt);
+  const weightData = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => {
+    return {
+      data:item?.wt,
+      id:item?.id
+    }
+  });
   // fDate(item?.date, 'MMM dd')
-  const weightDataDate = items?.filter((item: any) => item?.wt)?.map((item) => fDate(item?.date, 'MMM dd'))
+  const weightDataDate = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => fDate(item?.date, 'MMM dd'))
+  const weightDataDateNoFormat = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => item?.date)
 
-  const HeightData = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => item?.ht)
+  const HeightData = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => {
+    return {
+      data:item?.ht,
+      id:item?.id
+    }
+  })
   const HeightDataDate = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const HeightDataDateNoFormat = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) =>item?.date);
 
-  const BMIData = items?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi)?.map((item) => item?.bmi);
-  const BMIDataDate = items?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const BMIData = items?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)?.map((item) => {
+    return{
+      data:item?.bmi,
+      id:item?.id
+    }
+  });
+  const BMIDataDate = items?.filter((item: any) => item?.bmi !== '0.00' &&item?.bmi !== '0'  && item?.bmi)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const BMIDataDateNoFormat = items?.filter((item: any) => item?.bmi !== '0.00' &&item?.bmi !== '0'  && item?.bmi)?.map((item) => item?.date);
 
-  const BP1Data = items?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)?.map((item) => item?.bp1);
+  const BP1Data = items?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)?.map((item) =>{
+    return{
+      data: item?.bp1,
+      id:item?.id
+    }
+  });
   const BP1DataDate = items?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const BP1DataDateNoFormat = items?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)?.map((item) => item?.date);
 
-  const BP2Data = items?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)?.map((item) => item?.bp2);
+  const BP2Data = items?.filter((item: any) => item?.bp2 !== '0' && item?.b2 !== '0.00' && item?.bp2)?.map((item) => {
+    return{
+      data:item?.bp2,
+      id:item?.id
+    }
+  });
+
+
   const BP2DataDate = items?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const BP2DataDateNoFormat = items?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)?.map((item) => item?.date);
 
-  const OxygenData = items?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)?.map((item) => item?.spo2);
+  const OxygenData = items?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)?.map((item) =>{
+    return {
+      data:item?.spo2,
+      id:item?.id
+    }
+  });
   const OxygenDataDate = items?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const OxygenDataDateNoFormat = items?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)?.map((item) => item?.date);
 
-  const HeartRateData = items?.filter((item: any) => item?.hr !== '0' && item?.hr)?.map((item) => item?.hr);
+  const HeartRateData = items?.filter((item: any) => item?.hr !== '0' && item?.hr)?.map((item) => {
+    return{
+      data:item?.hr,
+      id:item?.id
+    }
+  });
   const HeartRateDataDate = items?.filter((item: any) => item?.hr !== '0' && item?.hr)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const HeartRateDataDateNoFormat = items?.filter((item: any) => item?.hr !== '0' && item?.hr)?.map((item) => item?.date);
 
-  const RespData = items?.filter((item: any) => item?.rr !== '0' && item?.rr)?.map((item) => item?.rr);
+
+  const RespData = items?.filter((item: any) => item?.rr !== '0' && item?.rr)?.map((item) =>{
+    return{
+      data:item?.rr,
+      id:item?.id
+    }
+  });
   const RespDataDate = items?.filter((item: any) => item?.rr !== '0' && item?.rr)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const RespDataDateNoFormat = items?.filter((item: any) => item?.rr !== '0' && item?.rr)?.map((item) => item?.date);
 
 
-  const TempData = items?.filter((item: any) => item?.bt !== '0' && item?.bt)?.map((item) => item?.bt);
+  const TempData = items?.filter((item: any) => item?.bt !== '0' && item?.bt)?.map((item) => {
+    return{
+      data:item?.bt,
+      id:item?.id
+    }
+  });
   const TempDataDate = items?.filter((item: any) => item?.bt !== '0' && item?.bt)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const TempDataDateNoFormat = items?.filter((item: any) => item?.bt !== '0' && item?.bt)?.map((item) => item?.date);
+
+  const SugarMonitoringData = items?.filter((item: any) => item?.bsm !== '0' && item?.bsm)?.map((item) => {
+    return{
+      data:item?.bsm,
+      id:item?.id
+    }
+  });
+  const SugarMonitoringDataDate = items?.filter((item: any) => item?.bsm !== '0' && item?.bsm)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const SugarMonitoringDataDateNoFormat = items?.filter((item: any) => item?.bsm !== '0' && item?.bsm)?.map((item) => item?.date);
+
+
 
   const dataDate = items?.map((item: any) => item?.date || new Date());
   const categories = dataDate?.filter((_: any) => `${fDate(_, 'MMM dd')}`);
-
-
-
-  // const weightData = items?.map((item: any) => item?.wt || 0);
-  // const HeightData = items?.map((item: any) => item?.ht || 0);
-  // const BMIData = items?.map((item: any) => item?.bmi || 0);
-  // const BP1Data = items?.map((item: any) => item?.bp1 || 0);
-  // const BP2Data = items?.map((item: any) => item?.bp2 || 0);
-  // const OxygenData = items?.map((item: any) => item?.spo2 || 0);
-  // const HeartRateData = items?.map((item: any) => item?.hr || 0);
-  // const RespData = items?.map((item: any) => item?.rr || 0);
-  // const TempData = items?.map((item: any) => item?.bt || 0);
-  // const dataDate = items?.map((item: any) => item?.date || new Date());
-  // const categories = dataDate?.map((_: any) => `${fDate(_, 'MMM dd')}`);
 
 
   let newData: any = [];
@@ -173,14 +228,18 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
         >
           <VitalChart
             title="Weight"
+            refetch={refetch}
             subheader="by kilogram"
             chart={{
               categories: [...weightDataDate],
-              data: [{ name: 'kg', data: weightData }],
+              data: [{ name: 'kg', data: weightData?.map((item)=>item?.data)}],
             }}
             list={[...Array(weightDataDate?.length)].map((_, index) => ({
-              value: `${weightData[index]} kg`,
+              value: `${weightData[index]?.data} kg`,
               date: weightDataDate[index],
+              id:weightData[index]?.id,
+              category:'wt',
+              dataDate:weightDataDateNoFormat[index]
             }))}
             loading={loading}
             isDashboard={isDashboard}
@@ -198,13 +257,18 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
           <VitalChart
             title="Height"
             subheader="by centimeter"
+            refetch={refetch}
             chart={{
               categories: [...HeightDataDate],
-              data: [{ name: 'cm', data: HeightData }],
+              data: [{ name: 'cm', data: HeightData?.map((item)=>item?.data) }],
             }}
-            list={[...Array(HeightData?.length)].map((_, index) => ({
-              value: `${HeightData[index]} cm`,
+            list={[...Array(HeightDataDate?.length)].map((_, index) => ({
+              value: `${HeightData[index]?.data} cm`,
               date: HeightDataDate[index],
+              id:HeightData[index]?.id,
+              category:'ht',
+              dataDate:HeightDataDateNoFormat[index]
+
             }))}
             loading={loading}
             isDashboard={isDashboard}
@@ -222,13 +286,18 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
           <VitalChart
             title="Body Mass Index"
             subheader="by kg/m2"
+            refetch={refetch}
             chart={{
               categories: [...BMIDataDate],
-              data: [{ name: 'bmi', data: BMIData }],
+              data: [{ name: 'bmi', data: BMIData?.map((item)=>item?.data) }],
             }}
-            list={[...Array(BMIData?.length)].map((_, index) => ({
-              value: `${BMIData[index]} bmi`,
+            list={[...Array(BMIDataDate?.length)].map((_, index) => ({
+              value: `${BMIData[index]?.data} bmi`,
               date: BMIDataDate[index],
+              id:BMIData[index]?.id,
+              category:'bmi',
+              dataDate:BMIDataDateNoFormat[index]
+
             }))}
             loading={loading}
             isDashboard={isDashboard}
@@ -247,16 +316,20 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
           <VitalChart
             title="Blood Pressure"
             subheader="by mm/Hg"
+            refetch={refetch}
             chart={{
               categories: [...BP1DataDate],
               data: [
-                { name: 'mm', data: BP1Data },
-                { name: 'Hg', data: BP2Data },
+                { name: 'mm', data: BP1Data?.map((item)=>item?.data) },
+                { name: 'Hg', data: BP2Data?.map((item)=>item?.data) },
               ],
             }}
             list={[...Array(BP1Data?.length)].map((_, index) => ({
-              value: `${BP1Data[index]}mm / ${BP2Data[index]}Hg`,
-              date: dataDate[index],
+              value: `${BP1Data[index]?.data}mm / ${BP2Data[index]?.data}Hg`,
+              date: BP1DataDate[index],
+              id:BP1Data[index]?.id,
+              category:'bp',
+              dataDate:BP1DataDateNoFormat[index]
             }))}
             loading={loading}
             isDashboard={isDashboard}
@@ -274,14 +347,18 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
 
           <VitalChart
             title="Oxygen Saturation"
+            refetch={refetch}
             subheader="by percentage"
             chart={{
               categories: [...OxygenDataDate],
-              data: [{ name: 'percentage', data: OxygenData }],
+              data: [{ name: 'percentage', data: OxygenData?.map((item)=>item?.data) }],
             }}
             list={[...Array(OxygenData?.length)].map((_, index) => ({
-              value: `${OxygenData[index]}%`,
+              value: `${OxygenData[index]?.data}%`,
               date: OxygenDataDate[index],
+              id:OxygenData[index]?.id,
+              category:'spo2',
+              dataDate:OxygenDataDateNoFormat[index]
             }))}
             loading={loading}
             isDashboard={isDashboard}
@@ -298,14 +375,18 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
 
           <VitalChart
             title="Respiratory Rate"
+            refetch={refetch}
             subheader="by breathes per minutes "
             chart={{
               categories: [...RespDataDate],
-              data: [{ name: 'bpm', data: RespData }],
+              data: [{ name: 'bpm', data: RespData?.map((item:any)=>item?.data) }],
             }}
-            list={[...Array(RespData?.length)].map((_, index) => ({
-              value: `${RespData[index]} bpm`,
+            list={[...Array(RespDataDate?.length)].map((_, index) => ({
+              value: `${RespData[index]?.data} bpm`,
               date: RespDataDate[index],
+              id:RespData[index]?.id,
+              category:'rr',
+              dataDate:RespDataDateNoFormat[index]
             }))}
             loading={loading}
             isDashboard={isDashboard}
@@ -323,13 +404,18 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
           <VitalChart
             title="Heart Rate"
             subheader="by beats per minutes"
+            refetch={refetch}
             chart={{
               categories: [...HeartRateDataDate],
-              data: [{ name: 'bpm', data: HeartRateData }],
+              data: [{ name: 'bpm', data: HeartRateData?.map((item)=>item?.data) }],
             }}
-            list={[...Array(HeartRateData?.length)].map((_, index) => ({
-              value: `${HeartRateData[index]} bpm`,
+            list={[...Array(HeartRateDataDate?.length)].map((_, index) => ({
+              value: `${HeartRateData[index]?.data} bpm`,
               date: HeartRateDataDate[index],
+              id:HeartRateData[index]?.id,
+              category:'hr',
+              dataDate:HeartRateDataDateNoFormat[index]
+
             }))}
             loading={loading}
             isDashboard={isDashboard}
@@ -346,14 +432,19 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
 
           <VitalChart
             title="Body Temperature"
+            refetch={refetch}
             subheader="by Celcius"
             chart={{
               categories: [...TempDataDate],
-              data: [{ name: 'Celcius', data: TempData }],
+              data: [{ name: 'Celcius', data: TempData?.map((item)=>item?.data) }],
             }}
             list={[...Array(TempData?.length)].map((_, index) => ({
-              value: `${TempData[index]} °C`,
+              value: `${TempData[index]?.data} °C`,
               date: TempDataDate[index],
+              id:TempData[index]?.id,
+              category:'bt',
+              dataDate:TempDataDateNoFormat[index]
+              
             }))}
             loading={loading}
             isDashboard={isDashboard}
@@ -371,23 +462,27 @@ export default function VitalView({ openSingle, items2, items, loading, isDashbo
           <VitalChart
             title="Blood Sugar Monitoring"
             subheader="by Percentage"
+            refetch={refetch}
             chart={{
-              categories: [...TempDataDate],
-              data: [{ name: 'Percentage', data: TempData }],
+              categories: [...SugarMonitoringDataDate],
+              data: [{ name: 'Percentage', data: SugarMonitoringData?.map((item)=>item?.data) }],
             }}
-            list={[...Array(TempData?.length)].map((_, index) => ({
-              value: `${TempData[index]} %`,
-              date: TempDataDate[index],
+            list={[...Array(SugarMonitoringDataDate?.length)].map((_, index) => ({
+              value: `${SugarMonitoringData[index]?.data} %`,
+              date: SugarMonitoringDataDate[index],
+              id:SugarMonitoringData[index]?.id,
+              category:'bsm',
+              dataDate:SugarMonitoringDataDateNoFormat[index]
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "bodyTemp",
+                name: "bsm",
                 type: 'number',
-                label: "Body Temperature",
+                label: "Blood Sugar Monitoring",
                 placeholder: "0",
-                adornment: "bpm"
+                adornment: "%"
               })
             }}
           />

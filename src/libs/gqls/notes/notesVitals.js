@@ -39,6 +39,7 @@ export const get_note_vitals_patient = gql`
         bmi
         bp
         bp1
+        bsm
         bp2
         bt
         chiefcomplaint
@@ -60,6 +61,14 @@ export const get_note_vitals_patient = gql`
         spo2
         wt
       }
+    }
+  }
+`;
+
+export const DeleteNotesVitalPatient = gql`
+  mutation DeleteNotesVitalPatient($data: notesVitalInputType!) {
+    DeleteNotesVitalPatient(data: $data) {
+     message
     }
   }
 `;
@@ -113,6 +122,7 @@ export const POST_VITALS = gql`
       clinic
       patientID
       date
+      bsm
     }
   }
 `;

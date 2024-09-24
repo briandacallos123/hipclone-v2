@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ApexOptions } from 'apexcharts';
 // @mui
 import { useTheme } from '@mui/material/styles';
@@ -38,12 +38,22 @@ import {
   TableHeadCustom,
   TablePaginationCustom,
 } from 'src/components/table';
+import CustomPopover, { usePopover } from '@/components/custom-popover';
+import { MenuItem } from '@mui/material';
+import { useBoolean } from '@/hooks/use-boolean';
+import { ConfirmDialog } from '@/components/custom-dialog';
+import { useMutation } from '@apollo/client';
+import {  DeleteNotesVitalPatient } from '@/libs/gqls/notes/notesVitals';
+import VitalFullScreenRow from './vital-fs-row';
+import { useSnackbar } from 'notistack';
 
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
   { id: 'date', label: 'Date' },
   { id: 'value', label: 'Value' },
+  { id: '', label: 'Action' },
+
 ];
 
 type Props = {
@@ -51,6 +61,7 @@ type Props = {
   open: boolean;
   onClose: VoidFunction;
   list: { value: string; date: string }[];
+  refetch:any;
   chart: {
     categories: string[];
     data: {
@@ -62,7 +73,7 @@ type Props = {
   };
 };
 const NAV_WIDTH = 800;
-export default function VitalFullscreen({ title, open, onClose, chart, list }: Props) {
+export default function VitalFullscreen({refetch, title, open, onClose, chart, list }: Props) {
   const [openMobile, setOpenMobile] = useState(true);
   const [collapseDesktop, setCollapseDesktop] = useState(false);
   const theme = useTheme();
@@ -71,10 +82,7 @@ export default function VitalFullscreen({ title, open, onClose, chart, list }: P
     setCollapseDesktop(!collapseDesktop);
   };
 
-  console.log(chart,'chart')
-
-  console.log( list,'list')
-
+  console.log(list,'listtttttttttt')
 
   const renderBtn = (
     <IconButton
@@ -145,6 +153,36 @@ export default function VitalFullscreen({ title, open, onClose, chart, list }: P
   });
 
   const denseHeight = table.dense ? 52 : 72;
+  const popover = usePopover();
+  const confirm = useBoolean();
+  const [deleteRow, setDeleteRow] = useState(null)
+
+  const [deleteNotesVitals] = useMutation(DeleteNotesVitalPatient, {
+    context: {
+      requestTrackerId: 'Create_notes[Create_notes_vitals]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+
+
+  const handleDeleteRow = useCallback((row) => {
+    deleteNotesVitals({
+      variables:{
+        data:{
+          vital_id:Number(row?.id),
+          category_delete:row?.category,
+          dateCreated:row?.dataDate
+        }
+      }
+    }).then(()=>{
+      refetch();
+      enqueueSnackbar("Deleted successfully!")
+    })
+  },[])
 
   const notFound = !dataFiltered.length;
   const renderList = (
@@ -168,11 +206,62 @@ export default function VitalFullscreen({ title, open, onClose, chart, list }: P
                   table.page * table.rowsPerPage + table.rowsPerPage
                 )
                 .map((row) => (
-                  <TableRow hover>
-                    <TableCell>{fDateTime(row.date)}</TableCell>
+                  <VitalFullScreenRow
+                  row={row}
+                  handleDelete={()=>{
+                    handleDeleteRow(row)
+                  }}
+                  />
+                  // <TableRow hover>
+                  //   <TableCell>{fDateTime(row.date)}</TableCell>
 
-                    <TableCell sx={{ typography: 'subtitle2' }}>{row.value}</TableCell>
-                  </TableRow>
+                  //   <TableCell sx={{ typography: 'subtitle2' }}>{row.value}</TableCell>
+
+                  //   <TableCell>
+                  //     <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+                  //       <Iconify icon="eva:more-vertical-fill" />
+                  //     </IconButton>
+                  //   </TableCell>
+                  //   <Stack direction="row" justifyContent="flex-end">
+                  //     <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+
+                  //       {/* {isToday(row?.R_DATE) && <MenuItem
+                  //         onClick={() => {
+                  //           onEditRow()
+                  //         }}
+                  //         sx={{ color: 'success.main' }}
+                  //       >
+                  //         <Iconify icon="mdi:pencil" />
+                  //         Edit
+                  //       </MenuItem>} */}
+
+                  //       {/* <MenuItem
+                  //         onClick={() => {
+                  //           onViewRow()
+                  //         }}
+                  //         sx={{ color: 'success.main' }}
+                  //       >
+                  //         <Iconify icon="mdi:eye" />
+                  //         View
+                  //       </MenuItem> */}
+
+                  //       {/* {isToday(row?.R_DATE) && } */}
+                  //       <MenuItem
+                  //         onClick={() => {
+                  //           handleDelete(row);
+                  //           confirm.onTrue();
+                  //           popover.onClose();
+                  //         }}
+                  //         sx={{ color: 'error.main' }}
+                  //       >
+                  //         <Iconify icon="ic:baseline-delete" />
+                  //         Delete
+                  //       </MenuItem>
+
+
+                  //     </CustomPopover>
+                  //   </Stack>
+                  // </TableRow>
                 ))}
 
               <TableEmptyRows

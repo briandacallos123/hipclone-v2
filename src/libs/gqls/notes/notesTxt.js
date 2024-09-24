@@ -131,3 +131,26 @@ export const POST_NOTES_TXT_EMR = gql`
     }
   }
 `;
+
+
+
+export const DeleteNotesText = gql`
+  mutation DeleteNotesText($data: NoteTxtInputType!,  $file: Upload) {
+    DeleteNotesText(data: $data, file: $file) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteTxtInfo {
+        text_data
+        title
+        report_id
+      }
+    }
+  }
+`;

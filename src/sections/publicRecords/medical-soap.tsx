@@ -19,6 +19,7 @@ import { useSnackbar } from 'src/components/snackbar';
 import { GET_RECORD_PATIENT } from '@/libs/gqls/records';
 import NotePDFText from '../note/note-pdf-text';
 import NotePDFSoap from '../note/note-pdf-soap';
+import { get_note_soap } from '@/libs/gqls/notes/notesSoap';
 let imageURL = '../../assets/background/bgScan.jpg';
 
 
@@ -64,7 +65,7 @@ const MedicalSoap = () => {
 
   }, [])
 
-  const [getMedical, { data, loading, error }] = useLazyQuery(GET_RECORD_PATIENT, {
+  const [getMedical, { data, loading, error }] = useLazyQuery(get_note_soap, {
     context: {
       requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
     },
@@ -113,30 +114,15 @@ const MedicalSoap = () => {
       getMedical({
         variables: {
           data: {
-            qrcode: id,
-            skip:0,
-            take:1
+            qrCode:id
           },
         },
       }).then(async (result: any) => {
         const { data } = result;
-        console.log(data,'DATA BOYYYYYYYYYYY')
         if (data) {
-          const { allRecordsbyPatientNew } = data;
-          setCurrentItem(allRecordsbyPatientNew?.Records_data[0]);
-
-
-
-          // // setTable(todaysAPR);
-          // setLoading(false)
-          // setTableData1(allRecordsbyPatientNew?.Records_data);
-          // setIds(allRecordsbyPatientNew?.RecordIds);
-          // setTotalData(allRecordsbyPatientNew?.total_records);
-          // setIsLoadingPatient(false);
-          // setClinicData(allRecordsbyPatientNew?.clinic)
-
+          const { QueryNoteSoap } = data;
+          setCurrentItem(QueryNoteSoap);
         }
-        // setIsLoading(false);
       });
     }
   }, [id])

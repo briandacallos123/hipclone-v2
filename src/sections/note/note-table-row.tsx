@@ -49,6 +49,7 @@ import NotePDFVaccine from './note-pdf-vaccine';
 import CustomPopover, { usePopover } from '@/components/custom-popover';
 import { MenuItem, Stack } from '@mui/material';
 import { isToday } from '@/utils/format-time';
+import { ConfirmDialog } from '@/components/custom-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -56,12 +57,36 @@ type Props = {
   row: any;
   ids: any;
   onEditRow?: any;
+  onDeleteRow?:any;
 };
 
-export default function NoteTableRow({ row, ids, onViewRow, onEditRow }: any) {
+export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditRow }: any) {
   const view = useBoolean();
   const upMd = useResponsive('up', 'md');
   // const { textData, medClearData, medCertData, AbstractData, VaccData } = useNotesHooks(row);
+  const confirm = useBoolean();
+
+
+  const renderConfirm = (
+    <ConfirmDialog
+      open={confirm.value}
+      onClose={confirm.onFalse}
+      title="Delete"
+      content="Are you sure want to delete?"
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            onDeleteRow();
+            confirm.onFalse();
+          }}
+        >
+          Delete
+        </Button>
+      }
+    />
+  );
 
   const [labData, setLabData] = useState<any>([]);
   const [getLabFunc, getLabNotes]: any = useLazyQuery(get_note_lab, {
@@ -324,7 +349,7 @@ export default function NoteTableRow({ row, ids, onViewRow, onEditRow }: any) {
   const [qrImage, setQrImage] = useState(null)
   const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
 
-  
+
 
 
   useEffect(() => {
@@ -456,6 +481,7 @@ export default function NoteTableRow({ row, ids, onViewRow, onEditRow }: any) {
         </TableMobileRow>
 
         {renderView}
+        {renderConfirm}
       </>
     );
   }
@@ -534,7 +560,7 @@ export default function NoteTableRow({ row, ids, onViewRow, onEditRow }: any) {
             }}
           />
         </TableCell>
-
+        {renderConfirm}
         <TableCell align="center" sx={{ px: 1 }}>
 
           <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
@@ -566,7 +592,16 @@ export default function NoteTableRow({ row, ids, onViewRow, onEditRow }: any) {
                 View
               </MenuItem>
 
-
+              {isToday(row?.R_DATE) && <MenuItem
+                onClick={() => {
+                  confirm.onTrue();
+                  popover.onClose();
+                }}
+                sx={{ color: 'error.main' }}
+              >
+                <Iconify icon="ic:baseline-delete" />
+                Delete
+              </MenuItem>}
 
 
             </CustomPopover>
@@ -604,11 +639,11 @@ function reader(data: string) {
 
 
 function Render(data: string, row: any, img: any, qrImage: any) {
-  console.log(data,'DATAAAAAAAAA')
-  console.log(img,'imgimg')
-  console.log(qrImage,'qrImage')
- 
- 
+  console.log(data, 'DATAAAAAAAAA')
+  console.log(img, 'imgimg')
+  console.log(qrImage, 'qrImage')
+
+
   return (
     <>
       {data === '1' && (

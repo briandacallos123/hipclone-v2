@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
+import { isToday } from '@/utils/format-time';
+import { GraphQLError } from 'graphql/error/GraphQLError';
 
 const client = new PrismaClient();
 
@@ -213,6 +215,7 @@ export const NoteAbstInputType = inputObjectType({
     t.nullable.int('isEMR');
     t.nullable.int('recordId');
     t.nullable.int('abs_id');
+    t.nullable.string('qrCode');
 
     // Abs
     t.nullable.string('complaint');
@@ -227,6 +230,7 @@ export const NoteAbstInputType = inputObjectType({
     t.nullable.string('complications');
     t.nullable.string('procedures');
     t.nullable.string('treatplan');
+    t.nullable.dateTime('dateCreated')
   },
 });
 
@@ -245,9 +249,22 @@ export const QueryNotesAbstract = extendType({
           '`QueryNotesAbstract`'
         );
 
+        let recordId:any;
+
+        await(async()=>{
+          if(args?.data?.qrCode){
+            const recordData = await client.records.findFirst({
+              where:{
+                qrcode:args?.data?.qrCode
+              }
+            })
+            recordId = recordData?.R_ID
+          }
+        })()
+
         const result: any = await client.notes_abstract.findFirst({
           where: {
-            report_id: Number(args?.data!.recordID),
+            report_id: Number(args?.data!.recordID) || recordId,
           },
           include: {
             patientInfo: true,
@@ -304,7 +321,7 @@ export const PostNotesAbs = extendType({
                 R_TYPE: String(createData.R_TYPE), // 10
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(0),
-                qrcode:VoucherCode
+                qrcode: VoucherCode
               },
             });
             const newChild = await trx.notes_abstract.create({
@@ -356,62 +373,126 @@ export const UpdateNotesAbs = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesAbs');
 
-        try {
-          // const notesInput = { ...args.data };
-          // const notesChildInput = notesInput.NoteTxtChildInputType;
-          // const uuid = notesInput.tempId;
+        if (isToday(createData?.dateCreated)) {
+          try {
+            // const notesInput = { ...args.data };
+            // const notesChildInput = notesInput.NoteTxtChildInputType;
+            // const uuid = notesInput.tempId;
 
 
-        
 
-          const notesTransaction = await client.$transaction(async (trx) => {
-            const recordAbs = await trx.records.update({
-              data: {
-                CLINIC: Number(createData.clinic),
-                patientID: Number(createData.patientID),
-                R_TYPE: String(createData.R_TYPE), // 10
-                doctorID: Number(session?.user?.id),
-                isEMR: Number(0)
-              },
-              where:{
-                R_ID:Number(createData?.recordId)
-              }
+
+            const notesTransaction = await client.$transaction(async (trx) => {
+              const recordAbs = await trx.records.update({
+                data: {
+                  CLINIC: Number(createData.clinic),
+                  patientID: Number(createData.patientID),
+                  R_TYPE: String(createData.R_TYPE), // 10
+                  doctorID: Number(session?.user?.id),
+                  isEMR: Number(0)
+                },
+                where: {
+                  R_ID: Number(createData?.recordId)
+                }
+              });
+              const newChild = await trx.notes_abstract.update({
+                data: {
+                  clinic: Number(recordAbs.CLINIC),
+                  patientID: Number(recordAbs.patientID),
+                  isEMR: Number(0),
+                  doctorID: Number(session?.user?.id),
+                  report_id: Number(recordAbs.R_ID),
+
+                  complaint: String(createData.complaint),
+                  illness: String(createData.illness),
+                  symptoms: String(createData.symptoms),
+                  pastmed: String(createData.pastmed),
+                  persoc: String(createData.persoc),
+                  physical: String(createData.physical),
+                  labdiag: String(createData.labdiag),
+                  findings: String(createData.findings),
+                  finaldiag: String(createData.finaldiag),
+                  complications: String(createData.complications),
+                  procedures: String(createData.procedures),
+                  treatplan: String(createData.treatplan),
+                },
+                where: {
+                  id: Number(createData?.abs_id)
+                }
+              });
+              return {
+                ...recordAbs,
+                ...newChild,
+                // tempId: uuid,
+              };
             });
-            const newChild = await trx.notes_abstract.update({
-              data: {
-                clinic: Number(recordAbs.CLINIC),
-                patientID: Number(recordAbs.patientID),
-                isEMR: Number(0),
-                doctorID: Number(session?.user?.id),
-                report_id: Number(recordAbs.R_ID),
+            const res: any = notesTransaction;
+            return res;
+          } catch (e) {
+            throw new e(extendType)
 
-                complaint: String(createData.complaint),
-                illness: String(createData.illness),
-                symptoms: String(createData.symptoms),
-                pastmed: String(createData.pastmed),
-                persoc: String(createData.persoc),
-                physical: String(createData.physical),
-                labdiag: String(createData.labdiag),
-                findings: String(createData.findings),
-                finaldiag: String(createData.finaldiag),
-                complications: String(createData.complications),
-                procedures: String(createData.procedures),
-                treatplan: String(createData.treatplan),
-              },
-              where:{
-                id:Number(createData?.abs_id)
-              }
+          }
+        } else {
+          throw new GraphQLError("Unable to delete")
+
+        }
+      },
+    });
+  },
+});
+
+export const DeleteNotesAbs = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('DeleteNotesAbs', {
+      type: RecordObjectFields4Abs,
+      args: { data: NoteAbstInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesAbs');
+
+        if (isToday(createData?.dateCreated)) {
+          try {
+            // const notesInput = { ...args.data };
+            // const notesChildInput = notesInput.NoteTxtChildInputType;
+            // const uuid = notesInput.tempId;
+
+
+
+
+            const notesTransaction = await client.$transaction(async (trx) => {
+              const recordAbs = await trx.records.update({
+                data: {
+                  isDeleted: 1
+                },
+                where: {
+                  R_ID: Number(createData?.recordId)
+                }
+              });
+              const newChild = await trx.notes_abstract.update({
+                data: {
+                  isDeleted: 1
+                },
+                where: {
+                  id: Number(createData?.abs_id)
+                }
+              });
+              return {
+                ...recordAbs,
+                ...newChild,
+                // tempId: uuid,
+              };
             });
-            return {
-              ...recordAbs,
-              ...newChild,
-              // tempId: uuid,
-            };
-          });
-          const res: any = notesTransaction;
-          return res;
-        } catch (e) {
-          console.log(e);
+            const res: any = notesTransaction;
+            return res;
+          } catch (e) {
+            console.log(e);
+            throw new GraphQLError(e)
+
+          }
+        } else {
+          throw new GraphQLError("Unable to delete")
         }
       },
     });

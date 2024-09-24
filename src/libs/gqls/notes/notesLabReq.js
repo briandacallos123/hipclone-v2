@@ -90,6 +90,33 @@ export const POST_NOTES_LAB = gql`
   }
 `;
 
+export const DeleteNotesLabReq = gql`
+  mutation DeleteNotesLabReq($data: NotesLabInputType!) {
+    DeleteNotesLabReq(data: $data) {
+      CLINIC
+      R_DATE
+      R_ID
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      NotesLabObj {
+        fasting
+        others
+        procedures
+        emrPatientID
+        isEMR
+        doctorID
+        record_id
+        id
+      }
+    }
+  }
+`;
+
+
 
 
 export const POST_NOTES_LAB_EMR = gql`

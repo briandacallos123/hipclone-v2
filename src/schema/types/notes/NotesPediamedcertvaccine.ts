@@ -1,6 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
+import { isToday } from '@/utils/format-time';
+import { GraphQLError } from 'graphql/error/GraphQLError';
+
 
 const client = new PrismaClient();
 
@@ -165,6 +168,7 @@ const RecordObjectFields4Vacc = objectType({
     t.int('emrPatientID');
     t.int('CLINIC');
     t.dateTime('R_DATE');
+    t.boolean('unableToUpdate')
     t.int('isDeleted');
     t.string('tempId');
     t.string('R_TYPE');
@@ -204,6 +208,7 @@ export const NotesPedCertObjInputType = inputObjectType({
     t.nullable.string('R_TYPE');
     t.nullable.int('isEMR');
     t.nullable.int('pedia_id');
+    t.nullable.string('qrCode');
     t.nullable.int('R_ID');
 
     // vacc
@@ -228,9 +233,25 @@ export const QueryNotesPedCertObj = extendType({
           '`notes_pediamedcertvaccine`',
           '`QueryNotesPedCertObj`'
         );
+
+        let recordId: any;
+
+        await(async () => {
+          let qrCode = args?.data?.qrCode;
+          if (qrCode) {
+            const recordData = await client.records.findFirst({
+              where: {
+                qrcode: qrCode
+              }
+            })
+            recordId = recordData?.R_ID
+
+          }
+        })()
+
         const result: any = await client.notes_pediamedcertvaccine.findFirst({
           where: {
-            report_id: Number(args?.data!.reportID),
+            report_id: Number(args?.data!.reportID || recordId),
           },
           include: {
             patientInfo: true,
@@ -336,60 +357,118 @@ export const UpdateNotesVacc = extendType({
         const createData: any = args?.data;
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesTxt');
-
-        try {
-          // const notesInput = { ...args.data };
-          // const notesChildInput = notesInput.NoteTxtChildInputType;
-          // const uuid = notesInput.tempId;
+        // if(isToday(createData?.dateCreated)){
+            
+        // }s
+        if(isToday(createData?.dateCreated)){
+          try {
         
+          
 
-          const notesTransaction = await client.$transaction(async (trx) => {
-            const recordVacc = await trx.records.update({
-              data: {
-                CLINIC: Number(createData.clinic),
-                patientID: Number(createData.patientID),
-                R_TYPE: String(createData.R_TYPE), // 9
-                doctorID: Number(session?.user?.id),
-                isEMR: Number(0)
-              },
-              where:{
-                R_ID:Number(createData?.R_ID)
-              }
+            const notesTransaction = await client.$transaction(async (trx) => {
+              const recordVacc = await trx.records.update({
+                data: {
+                  CLINIC: Number(createData.clinic),
+                  patientID: Number(createData.patientID),
+                  R_TYPE: String(createData.R_TYPE), // 9
+                  doctorID: Number(session?.user?.id),
+                  isEMR: Number(0)
+                },
+                where:{
+                  R_ID:Number(createData?.R_ID)
+                }
+              });
+              const newChild = await trx.notes_pediamedcertvaccine.update({
+                data: {
+                  clinic: Number(recordVacc.CLINIC),
+                  patientID: Number(recordVacc.patientID),
+                  // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
+                  isEMR: Number(0),
+  
+                  dateCreated: String(createData.dateCreated),
+                  InOutPatient: Number(createData.InOutPatient),
+                  diagnosis: String(createData.diagnosis),
+                  eval: String(createData.eval),
+  
+                  doctorID: Number(session?.user?.id),
+                  report_id: Number(recordVacc.R_ID),
+  
+                  // InOutPatient
+                  // dateCreated
+                  // diagnosis
+                  // eval
+                },
+                where:{
+                  id:Number(createData?.pedia_id)
+                }
+              });
+              return {
+                ...recordVacc,
+                ...newChild,
+                // tempId: uuid,
+              };
             });
-            const newChild = await trx.notes_pediamedcertvaccine.update({
-              data: {
-                clinic: Number(recordVacc.CLINIC),
-                patientID: Number(recordVacc.patientID),
-                // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
-                isEMR: Number(0),
+            const res: any = notesTransaction;
+            return res;
+          } catch (e) {
+            console.log(e);
+          }
+        }else{
+          throw new GraphQLError("Unable to update")
+        }
+      },
+    });
+  },
+});
 
-                dateCreated: String(createData.dateCreated),
-                InOutPatient: Number(createData.InOutPatient),
-                diagnosis: String(createData.diagnosis),
-                eval: String(createData.eval),
+export const DeleteNotesVacc = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('DeleteNotesVacc', {
+      type: RecordObjectFields4Vacc,
+      args: { data: NotesPedCertObjInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesTxt');
+        // if(isToday(createData?.dateCreated)){
+            
+        // }s
+        if(isToday(createData?.dateCreated)){
+          try {
+        
+          
 
-                doctorID: Number(session?.user?.id),
-                report_id: Number(recordVacc.R_ID),
-
-                // InOutPatient
-                // dateCreated
-                // diagnosis
-                // eval
-              },
-              where:{
-                id:Number(createData?.pedia_id)
-              }
+            const notesTransaction = await client.$transaction(async (trx) => {
+              const recordVacc = await trx.records.update({
+                data: {
+                  isDeleted:1
+                },
+                where:{
+                  R_ID:Number(createData?.R_ID)
+                }
+              });
+              const newChild = await trx.notes_pediamedcertvaccine.update({
+                data: {
+                  isDeleted:1
+                },
+                where:{
+                  id:Number(createData?.pedia_id)
+                }
+              });
+              return {
+                ...recordVacc,
+                ...newChild,
+                // tempId: uuid,
+              };
             });
-            return {
-              ...recordVacc,
-              ...newChild,
-              // tempId: uuid,
-            };
-          });
-          const res: any = notesTransaction;
-          return res;
-        } catch (e) {
-          console.log(e);
+            const res: any = notesTransaction;
+            return res;
+          } catch (e) {
+            console.log(e);
+          }
+        }else{
+          throw new GraphQLError("Unable to delete!")
         }
       },
     });

@@ -118,7 +118,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
       : Yup.number()
         .moreThan(0, 'Temperature must be greater than 0')
         .required('Temperature is required'),
-      ...dynamicFields
+    ...dynamicFields
   });
 
   const defaultValues = useMemo(
@@ -129,6 +129,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
       bodyMass: 0,
       bloodPressureMm: 0,
       bloodPressureHg: 0,
+      sugarMonitoring:0,
       oxygen: 0,
       respiratory: 0,
       heart: 0,
@@ -156,11 +157,11 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
 
   useEffect(() => {
     if (
-      (()=>{
+      (() => {
         let noZero = true;
 
-        Object.values(values).forEach((item)=>{
-          if(item !== 0){
+        Object.values(values).forEach((item) => {
+          if (item !== 0) {
             noZero = false
           }
         })
@@ -224,6 +225,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
         oxygen: String(model.oxygen),
         heartRate: String(model.heart),
         bodyTemp: String(model.temperature),
+        bsm:String(model?.sugarMonitoring),
         respRate: String(model.respiratory),
         categoryValues: [...model.categoryData]
 
@@ -308,16 +310,16 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
     [enqueueSnackbar, handleSubmitValue, onClose, reset, refetch, addedCategoryTitle]
   );
 
-  const {getItem} = useSessionStorage()
+  const { getItem } = useSessionStorage()
 
-  useEffect(()=>{
+  useEffect(() => {
     const data = getItem('defaultFilters');
-    if(data?.clinic){
-      setValue('hospitalId',Number(data?.clinic?.id))
+    if (data?.clinic) {
+      setValue('hospitalId', Number(data?.clinic?.id))
     }
-   },[])
+  }, [])
 
-   
+
   return (
     <>
       <DialogContent>
@@ -456,6 +458,17 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
               InputLabelProps={{ shrink: true }}
               InputProps={{
                 endAdornment: <InputAdornment position="end">°C</InputAdornment>,
+              }}
+            />
+
+            <RHFTextField
+              type="number"
+              name="sugarMonitoring"
+              label="Blood sugar monitoring"
+              placeholder="0"
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>,
               }}
             />
 

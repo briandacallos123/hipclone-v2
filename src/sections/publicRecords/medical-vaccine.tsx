@@ -20,6 +20,7 @@ import { GET_RECORD_PATIENT } from '@/libs/gqls/records';
 import NotePDFText from '../note/note-pdf-text';
 import NotePDFSoap from '../note/note-pdf-soap';
 import NotePDFVaccine from '../note/note-pdf-vaccine';
+import { get_note_vaccine } from '@/libs/gqls/notes/noteVaccine';
 let imageURL = '../../assets/background/bgScan.jpg';
 
 
@@ -65,7 +66,7 @@ const MedicalVaccine = () => {
 
   }, [])
 
-  const [getMedical, { data, loading, error }] = useLazyQuery(GET_RECORD_PATIENT, {
+  const [getMedical, { data, loading, error }] = useLazyQuery(get_note_vaccine, {
     context: {
       requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
     },
@@ -114,17 +115,15 @@ const MedicalVaccine = () => {
       getMedical({
         variables: {
           data: {
-            qrcode: id,
-            skip:0,
-            take:1
+            qrCode:id
           },
         },
       }).then(async (result: any) => {
         const { data } = result;
         console.log(data,'DATA BOYYYYYYYYYYY')
         if (data) {
-          const { allRecordsbyPatientNew } = data;
-          setCurrentItem(allRecordsbyPatientNew?.Records_data[0]);
+          const { QueryNotesPedCertObj } = data;
+          setCurrentItem(QueryNotesPedCertObj);
 
 
 

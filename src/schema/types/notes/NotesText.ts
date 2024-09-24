@@ -3,8 +3,9 @@ import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
 import { useUpload } from '../../../hooks/use-upload';
 import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
-import { GraphQLError } from 'graphql';
+import { isToday } from '@/utils/format-time';
 // import { useUpload } from '../';
+import { GraphQLError } from 'graphql/error/GraphQLError';
 
 const client = new PrismaClient();
 
@@ -225,6 +226,7 @@ export const NoteTxtInputType = inputObjectType({
     t.nullable.int('isLinked');
     t.nullable.string('R_TYPE');
     t.nullable.int('isEMR');
+    t.nullable.string('qrCode');
     // notes
     t.nullable.int('report_id');
     t.nullable.string('dateCreated');
@@ -278,9 +280,25 @@ export const QueryNoteTxt = extendType({
         const createData: any = args?.data;
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`notes_text`', '`QueryNoteTxt`');
+       
+        let recordId;
+
+        await(async()=>{
+          let qrCode = args?.data?.qrCode;
+          if(qrCode){
+            let recordData = await client.records.findFirst({
+              where:{
+                qrcode:qrCode
+              }
+            });
+            recordId = recordData?.R_ID;
+          }
+        })();
+
+       
         const result: any = await client.notes_text.findFirst({
           where: {
-            report_id: Number(args?.data!.recordID),
+            report_id: Number(args?.data!.recordID || recordId),
           },
           include: {
             patientInfo: true,
@@ -306,6 +324,7 @@ export const UpdateNotesText = extendType({
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesTxt');
         const sFile = await args?.file;
       
+       if(isToday(createData?.dateCreated)){
         try {
         
 
@@ -382,6 +401,75 @@ export const UpdateNotesText = extendType({
           console.log(e,'error');
           throw new GraphQLError(e)
         }
+       }else{
+        throw new GraphQLError('Unable to delete')
+
+       }
+      }
+    })
+  }
+})
+
+export const DeleteNotesText = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('DeleteNotesText', {
+      type: RecordObjectFields4Text,
+      args: { data: NoteTxtInputType!, file:'Upload' },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesTxt');
+        const sFile = await args?.file;
+      
+       if(isToday(args?.data?.dateCreated)){
+        try {
+        
+
+          const notesTransaction = await client.$transaction(async (trx) => {
+            const recordNotes = await trx.records.update({
+              data: {
+                isDeleted:1
+              },
+              where:{
+                R_ID:Number(createData?.recordID)
+              }
+            });
+            const newChild = await trx.notes_text.update({
+              data: {
+                isDeleted:1
+              },
+              where:{
+                id:Number(createData?.notesID)
+              }
+            });
+           
+       
+
+              await client.notes_text_attachments.updateMany({
+                data:{
+                  isDeleted:1
+                },
+                where:{
+                  notes_text_id:Number(newChild?.id)
+                }
+              })
+              
+            return {
+              ...recordNotes,
+              ...newChild,
+              // tempId: uuid,
+            };
+          });
+          const res: any = notesTransaction;
+          return res;
+        } catch (e) {
+          console.log(e,'error');
+          throw new GraphQLError(e)
+        }
+       }else{
+        throw new GraphQLError("Unable to delete!")
+       }
       }
     })
   }

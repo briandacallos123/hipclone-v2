@@ -88,6 +88,37 @@ export const UpdateNotesVacc = gql`
       CLINIC
       R_DATE
       R_ID
+      unableToUpdate
+      R_TYPE
+      doctorID
+      emrPatientID
+      isDeleted
+      isEMR
+      patientID
+      noteVaccInfo {
+        InOutPatient
+        VISIBILITY
+        clinic
+        dateCreated
+        diagnosis
+        doctorID
+        eval
+        id
+        isDeleted
+        patientID
+        report_id
+      }
+    }
+  }
+`;
+
+export const DeleteNotesVacc = gql`
+  mutation DeleteNotesVacc($data: NotesPedCertObjInputType!) {
+    DeleteNotesVacc(data: $data) {
+      CLINIC
+      R_DATE
+      R_ID
+      unableToUpdate
       R_TYPE
       doctorID
       emrPatientID

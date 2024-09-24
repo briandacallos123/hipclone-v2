@@ -20,6 +20,7 @@ import { GET_RECORD_PATIENT } from '@/libs/gqls/records';
 import NotePDFText from '../note/note-pdf-text';
 import NotePDFCertificate from '../note/note-pdf-certificate';
 import NotePDFAbstract from '../note/note-pdf-abstract';
+import { get_note_Abstract } from '@/libs/gqls/notes/notesAbstract';
 let imageURL = '../../assets/background/bgScan.jpg';
 
 
@@ -65,7 +66,7 @@ const MedicalAbstract = () => {
 
   }, [])
 
-  const [getMedical, { data, loading, error }] = useLazyQuery(GET_RECORD_PATIENT, {
+  const [getMedical, { data, loading, error }] = useLazyQuery(get_note_Abstract, {
     context: {
       requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
     },
@@ -82,17 +83,14 @@ const MedicalAbstract = () => {
       getMedical({
         variables: {
           data: {
-            qrcode: id,
-            skip:0,
-            take:1
+            qrCode: id,
           },
         },
       }).then(async (result: any) => {
         const { data } = result;
-        console.log(data,'DATA BOYYYYYYYYYYY')
         if (data) {
-          const { allRecordsbyPatientNew } = data;
-          setCurrentItem(allRecordsbyPatientNew?.Records_data[0]);
+          const { QueryNotesAbstract } = data;
+          setCurrentItem(QueryNotesAbstract);
         }
       });
     }
@@ -129,19 +127,17 @@ const MedicalAbstract = () => {
 
     <Dialog
       open={true}
-      onClose={() => { }}
       fullScreen
       aria-labelledby="alert-dialog-title"
       aria-describedby="alert-dialog-description"
-      sx={{
-       
-      }}
+      
     >
       <DialogContent sx={{
          minHeight:'100vh',
         width:'100vw',
         background: `url('/assets/background/queue-bg.jpg')`,
         backgroundSize: 'cover',
+        p:0
       }}>
        {isVerified ?
             <Grid
@@ -151,7 +147,7 @@ const MedicalAbstract = () => {
               }}>
 
               <Grid item sm={12} md={12}>
-                {currentItem && isOpen && <Box sx={{ height: '100%', overflow: 'hidden' }}>
+                {currentItem && isOpen && <Box sx={{ height: '100vh', width:'100vw', overflow: 'hidden' }}>
                   <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
                     {/* <PrescriptionPDF qrImage={qrImage} item={currentItem} /> */}
                     <NotePDFAbstract qrImage={qrImage} item={currentItem}/>

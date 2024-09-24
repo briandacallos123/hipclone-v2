@@ -37,11 +37,13 @@ interface Props extends CardProps {
   loading: boolean;
   isDashboard: any;
   createNew:any;
+  refetch:any;
 }
 
 export default function VitalChart({
   title,
   subheader,
+  refetch,
   list,
   chart,
   isDashboard,
@@ -66,7 +68,7 @@ export default function VitalChart({
     data,
     options,
   } = chart;
-  console.log('chart', chart);
+
 
   const chartOptions = useChart({
     colors: colors.map((colr) => colr[1]),
@@ -87,7 +89,6 @@ export default function VitalChart({
   });
 
 
-  console.log(loading,'loading sa vital view')
   return (
     <>
       {upMd && !dashboardVital && (
@@ -157,6 +158,7 @@ export default function VitalChart({
       <VitalFullscreen
         title={title}
         open={open.value}
+        refetch={refetch}
         onClose={open.onFalse}
         chart={chart}
         list={list}

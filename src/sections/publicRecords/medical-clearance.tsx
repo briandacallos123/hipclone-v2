@@ -20,6 +20,7 @@ import { GET_RECORD_PATIENT } from '@/libs/gqls/records';
 import NotePDFText from '../note/note-pdf-text';
 import NotePDFCertificate from '../note/note-pdf-certificate';
 import NotePDFClearance from '../note/note-pdf-clearance';
+import { get_note_medClear } from '@/libs/gqls/notes/notesMedClear';
 let imageURL = '../../assets/background/bgScan.jpg';
 
 
@@ -65,7 +66,7 @@ const MedicalClearance = () => {
 
   }, [])
 
-  const [getMedical, { data, loading, error }] = useLazyQuery(GET_RECORD_PATIENT, {
+  const [getMedical, { data, loading, error }] = useLazyQuery(get_note_medClear, {
     context: {
       requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
     },
@@ -82,16 +83,14 @@ const MedicalClearance = () => {
       getMedical({
         variables: {
           data: {
-            qrcode: id,
-            skip:0,
-            take:1
+            qrCode: id
           },
         },
       }).then(async (result: any) => {
         const { data } = result;
         if (data) {
-          const { allRecordsbyPatientNew } = data;
-          setCurrentItem(allRecordsbyPatientNew?.Records_data[0]);
+          const { QueryNotesMedCler } = data;
+          setCurrentItem(QueryNotesMedCler);
         }
       });
     }
@@ -141,6 +140,7 @@ const MedicalClearance = () => {
         width:'100vw',
         background: `url('/assets/background/queue-bg.jpg')`,
         backgroundSize: 'cover',
+        p:0
       }}>
        {isVerified ?
             <Grid

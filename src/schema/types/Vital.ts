@@ -56,6 +56,9 @@ const QueryAllVitalDataInp = inputObjectType({
     name: "QueryAllVitalDataInp",
     definition(t) {
         t.nullable.string('uuid')
+        t.nullable.int('take');
+        t.nullable.int('skip');
+
     },
 })
 
@@ -66,6 +69,7 @@ export const QueryAllVitalData = extendType({
             type: QueryAllVitalDataResponse,
             args: { data: QueryAllVitalDataInp },
             async resolve(_root, args, ctx) {
+                const createData = args?.data;
 
                 try {
                     const { session } = ctx;
@@ -104,6 +108,8 @@ export const QueryAllVitalData = extendType({
                     }).then(async (res) => {
 
                         result = await client.vital_data.findMany({
+                            skip:createData?.skip,
+                            take:createData?.take,
                             where: {
                                 patientId: Number(res),
                                 isDeleted: 0,

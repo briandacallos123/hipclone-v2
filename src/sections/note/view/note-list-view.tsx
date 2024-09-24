@@ -34,7 +34,7 @@ import { GET_RECORD_BY_PATIENT, GET_RECORD_BY_PATIENT_USER } from '@/libs/gqls/r
 import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
 import { EMR_MED_NOTE } from '@/libs/gqls/emr';
 import { DR_CLINICS } from '@/libs/gqls/drprofile';
-import { useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import NoteTableRow from '../note-table-row';
 import NoteTableToolbar from '../note-table-toolbar';
 import NoteTableFiltersResult from '../note-table-filters-result';
@@ -56,13 +56,14 @@ import NotePDFVaccine from '../note-pdf-vaccine';
 import { useBoolean } from '@/hooks/use-boolean';
 import QRCode from 'qrcode'
 import { isToday } from 'src/utils/format-time';
-import { get_note_lab } from '@/libs/gqls/notes/notesLabReq';
-import { get_note_soap } from '@/libs/gqls/notes/notesSoap';
-import { get_note_txt } from '@/libs/gqls/notes/notesTxt';
-import { get_note_medClear } from '@/libs/gqls/notes/notesMedClear';
-import { get_note_medCert } from '@/libs/gqls/notes/noteMedCert';
-import { get_note_Abstract } from '@/libs/gqls/notes/notesAbstract';
-import { get_note_vaccine } from '@/libs/gqls/notes/noteVaccine';
+import { DeleteNotesLabReq, get_note_lab } from '@/libs/gqls/notes/notesLabReq';
+import { DeleteNotesSoap, get_note_soap } from '@/libs/gqls/notes/notesSoap';
+import { DeleteNotesText, get_note_txt } from '@/libs/gqls/notes/notesTxt';
+import { DeleteNotesCler, get_note_medClear } from '@/libs/gqls/notes/notesMedClear';
+import { DeleteNotesCert, get_note_medCert } from '@/libs/gqls/notes/noteMedCert';
+import { DeleteNotesAbs, get_note_Abstract } from '@/libs/gqls/notes/notesAbstract';
+import { DeleteNotesVacc, get_note_vaccine } from '@/libs/gqls/notes/noteVaccine';
+import { useSnackbar } from 'src/components/snackbar';
 
 // ----------------------------------------------------------------------
 
@@ -361,6 +362,7 @@ export default function NoteListView({
     }
   }
 
+  console.log(link, "MYLINKKK")
 
   useEffect(()=>{
     if(noteData){
@@ -377,6 +379,9 @@ export default function NoteListView({
           case "8":
               domain = `records/medical-clearance/${row?.qrcode}`;
               break;
+          case "5":
+            domain = `records/medical-request/${row?.qrcode}`;
+            break;
           case "1":
             domain = `records/medical-soap/${row?.qrcode}`;
             break;
@@ -388,7 +393,7 @@ export default function NoteListView({
               break;
     
         }
-        const myLink = `http://localhost:9092/${domain}`;
+        const myLink = `https://hip.apgitsolutions.com/${domain}`;
     
         setLink(myLink)
         await generateQR(myLink)
@@ -428,10 +433,10 @@ export default function NoteListView({
 
   const [targetQuery, setTargetQuery] = useState<number | null>(null);
 
-  console.log(targetQuery,'targettttttttttttttttttt')
+
   useEffect(()=>{
     if(refetchChild){
-      console.log(targetQuery,'?????????')
+      console.log(targetQuery,'target mo boi')
       switch(targetQuery){
         case 1:
           getSoapNotes.refetch();
@@ -451,13 +456,13 @@ export default function NoteListView({
         case 10:
           getAbstNotes.refetch();
           break;
-        case 10:
+        case 11:
           getVaccNotes.refetch();
           break;
       }
       setRefetchChild(false)
     }
-  },[refetchChild])
+  },[refetchChild, targetQuery])
 
   const handleViewRow = async (row: any) => {
 
@@ -844,7 +849,320 @@ export default function NoteListView({
     
   },[targetPdf, targetRow])
 
+  // delete mutation functions
+  const [deleteNotesVacc] = useMutation(DeleteNotesVacc);
+  const [deleteNotesText] = useMutation(DeleteNotesText);
+  const [deleteSoap] = useMutation(DeleteNotesSoap);
+  const [deleteAbstract] = useMutation(DeleteNotesAbs);
+  const [deleteClearance] = useMutation(DeleteNotesCler);
+  const [deleteCertificate] = useMutation(DeleteNotesCert);
+  const [deleteLabRequest] = useMutation(DeleteNotesLabReq);
+  
+  
 
+  const [isDeleted, setIsDeleted] = useState(false);
+  const [deleteRow, setDeleteRow] = useState(null);
+  // pamalit sa row data kasi nag tatama sila nung update tsaka view
+  const [deleteRowData, setDeleteRowData] = useState(null)
+
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const deleteData = useCallback(async () => {
+  
+  }, [isDeleted, deleteRowData, targetQuery, deleteRow]);
+  
+  useEffect(()=>{
+    // console.log(isDeleted,'delete')
+    // console.log(deleteRowData,'deleteRowData')
+    // console.log(targetQuery,'targetQuery')
+    // console.log(deleteRow,'deleteRow')
+
+    if(isDeleted && deleteRowData && targetQuery && deleteRow){
+     (async()=>{
+      try {
+       (()=>{
+        return new Promise(async(resolve, reject)=>{
+          switch (targetQuery) {
+            case 1:
+              
+              await deleteSoap({
+                variables: {
+                  data: {
+                    R_ID: Number(deleteRow?.R_ID),
+                    soap_id: Number(deleteRowData?.id),
+                    dateCreated: deleteRow?.R_DATE
+                  },
+                },
+              }).then((res)=>{
+                resolve("success")
+              }).catch((err)=>{
+                reject("error")
+              });
+              break;
+            case 4:
+              await deleteNotesText({
+                variables: {
+                  data: {
+                    recordID: Number(deleteRow?.R_ID),
+                    notesID: Number(deleteRowData?.id),
+                    dateCreated: deleteRow?.R_DATE
+                  },
+                },
+              }).then((res)=>{
+                resolve("success")
+              }).catch((err)=>{
+                reject("error")
+              });
+              break;
+            case 5:
+              await deleteLabRequest({
+                variables: {
+                  data: {
+                    recordID: Number(deleteRow?.R_ID),
+                    notesID: Number(deleteRowData?.id),
+                    dateCreated: deleteRow?.R_DATE
+                  },
+                },
+              }).then((res)=>{
+                resolve("success")
+              }).catch((err)=>{
+                reject("error")
+              });
+              
+              break;
+            case 8:
+              await deleteClearance({
+                variables: {
+                  data: {
+                    recordID: Number(deleteRow?.R_ID),
+                    medical_ID: Number(deleteRowData?.id),
+                    dateCreated: deleteRow?.R_DATE
+                  },
+                },
+              }).then((res)=>{
+                resolve("success")
+              }).catch((err)=>{
+                reject("error")
+              });
+              break;
+            case 9:
+              // await getMedCertNotes.refetch();
+              await deleteCertificate({
+                variables: {
+                  data: {
+                    R_ID: Number(deleteRow?.R_ID),
+                    cert_id: Number(deleteRowData?.id),
+                    dateCreated: deleteRow?.R_DATE
+                  },
+                },
+              }).then((res)=>{
+                resolve("success")
+              }).catch((err)=>{
+                reject("error")
+              });
+              break;
+            case 10:
+              await deleteAbstract({
+                variables: {
+                  data: {
+                    recordId: Number(deleteRow?.R_ID),
+                    abs_id: Number(deleteRowData?.id),
+                    dateCreated: deleteRow?.R_DATE
+                  },
+                },
+              }).then((res)=>{
+                resolve("success")
+              }).catch((err)=>{
+                reject("error")
+              });
+              break;
+            case 11:
+              await deleteNotesVacc({
+                variables: {
+                  data: {
+                    R_ID: Number(deleteRow?.R_ID),
+                    pedia_id: Number(deleteRowData?.id),
+                    dateCreated: deleteRow?.R_DATE
+                  },
+                },
+              }).then((res)=>{
+                resolve("success")
+              }).catch((err)=>{
+                reject("error")
+              })
+              
+          }
+        })
+       })().then(()=>{
+        enqueueSnackbar("Deleted successfully")
+        refetch();
+        setDeleteRow(null)
+        setIsDeleted(false)
+        setDeleteRowData(null)
+       }).catch((err)=>{
+        enqueueSnackbar(err,{variant:"error"})
+
+       })
+
+      } catch (error) {
+        throw error; // Rethrow error to be handled by the caller
+      }
+     })()
+     
+      // deleteData().then(()=>{
+      //   refetch();
+      //   setDeleteRow(null)
+      //   setIsDeleted(false)
+      //   setDeleteRowData(null)
+      // })
+    }
+  },[isDeleted, deleteRowData, targetQuery, deleteRow])
+  console.log(targetQuery, "delete behhhh!")
+
+
+  const handleDelete = useCallback((row)=>{
+    
+    if (row?.R_TYPE === '1') {
+      getSoapFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNoteSoap } = data;
+
+          setTargetQuery(1);
+
+          // setSoapData(QueryNoteSoap);
+          setDeleteRowData(QueryNoteSoap);
+          // console.log('asdadasdadsadasdasdasd', soapData);
+        }
+      });
+      // setRowData(soapData);
+    }
+    if (row?.R_TYPE === '4') {
+      getTxtsFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNoteTxt } = data;
+
+          // setTxtData(QueryNoteTxt);
+      setTargetQuery(4);
+
+      setDeleteRowData(QueryNoteTxt);
+
+        }
+      });
+      // console.log(())
+    }
+    if (row?.R_TYPE === '5') {
+      getLabFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID), // need force to number
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesLab } = data;
+          setTargetQuery(5);
+
+          setDeleteRowData(QueryNotesLab);
+
+          // setLabData(QueryNotesLab);
+        }
+      });
+    }
+    if (row?.R_TYPE === '8') {
+      getMedClearFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesMedCler } = data;
+          setTargetQuery(8);
+
+          // setMedClearData(QueryNotesMedCler);
+          setDeleteRowData(QueryNotesMedCler);
+
+        }
+      });
+    }
+    if (row?.R_TYPE === '9') {
+      getMedCertFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesMedCert } = data;
+          setTargetQuery(9);
+
+          setDeleteRowData(QueryNotesMedCert);
+
+          // setMedCertData(QueryNotesMedCert);
+        }
+      });
+
+    }
+    if (row?.R_TYPE === '10') {
+      getAbstFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesAbstract } = data;
+          setTargetQuery(10);
+
+          setDeleteRowData(QueryNotesAbstract);
+
+          // setAbstData(QueryNotesAbstract);
+        }
+      });
+    }
+    if (row?.R_TYPE === '11') {
+      getVaccFunc({
+        variables: {
+          data: {
+            reportID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesPedCertObj } = data;
+          setTargetQuery(11);
+
+          setDeleteRowData(QueryNotesPedCertObj);
+
+          // setVaccData(QueryNotesPedCertObj);
+        }
+      });
+    }
+    setIsDeleted(true)
+    setDeleteRow(row)
+  },[]);
 
 
 
@@ -907,6 +1225,9 @@ export default function NoteListView({
                     }}
                     onEditRow={()=>{
                       handleViewUpdate(row)
+                    }}
+                    onDeleteRow={()=>{
+                      handleDelete(row)
                     }}
                     // onEditRow={(data:any)=>{
                     //   onEditFunc

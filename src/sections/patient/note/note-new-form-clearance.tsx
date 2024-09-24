@@ -46,6 +46,8 @@ type Props = {
 export default function NoteNewFormClearance({editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
+  const [isEdit, setIsEdit] = useState(editData);
+
   const {getItem} = useSessionStorage()
   const {
     data: drClinicData,
@@ -131,10 +133,10 @@ export default function NoteNewFormClearance({editData, onClose, refIds, refetch
         dateCreated: String(formatDate(model.date)),
         dateExamined: String(formatDate(model.dateExamined)),
         remarks: String(model.remark),
-        medical_ID:editData && Number(editData?.id),
-        recordID:editData && Number(editData?.R_ID)
+        medical_ID:isEdit && Number(isEdit?.id),
+        recordID:isEdit && Number(isEdit?.R_ID)
       };
-     (editData? UpdateNotesText: createNotesText)({
+     (isEdit? UpdateNotesText: createNotesText)({
         variables: {
           data,
         },
@@ -154,7 +156,7 @@ export default function NoteNewFormClearance({editData, onClose, refIds, refetch
           enqueueSnackbar('Something went wrong', { variant: 'error' });
         });
     },
-    [createNotesText, enqueueSnackbar, refIds, reset, snackKey]
+    [createNotesText, enqueueSnackbar, refIds, reset,isEdit, snackKey]
   );
 
   const [myData, setMyData]: any = useState(null);

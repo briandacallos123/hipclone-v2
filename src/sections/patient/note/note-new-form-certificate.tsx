@@ -45,18 +45,19 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
-  editData:any;
+  editData: any;
 };
 
-export default function NoteNewFormCertificate({editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormCertificate({ editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const { getItem } = useSessionStorage();
   const params = useParams();
   const [barringDays, setBarringDays] = useState<any>();
+  const [isEdit, setIsEdit] = useState(editData);
   // const { id } = params;
 
-  console.log(editData,'editDataeditDataeditDataeditData')
+  console.log(isEdit, 'isEditisEditisEditisEdit')
 
   // const currentItem = _patientList.filter((item) => item.id === id)[0];
   // console.log('certificate: ', refIds?.FNAME);
@@ -107,16 +108,16 @@ export default function NoteNewFormCertificate({editData, onClose, refIds, refet
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId:editData?.clinic || null,
+      hospitalId: editData?.clinic || null,
       patientType: editData?.InOutPatient || 1,
-      date: new Date(editData?.dateCreated) ||  new Date(),
-      startDate: new Date(editData?.s_date) || new Date() ,
+      date: new Date(editData?.dateCreated) || new Date(),
+      startDate: new Date(editData?.s_date) || new Date(),
       endDate: new Date(editData?.e_date) || new Date(),
       diagnosis: editData?.diagnosis || '',
       day: editData?.barring || 0,
       recommendation: editData?.remarks || '',
     }),
-    []
+    [editData]
   );
 
   const methods = useForm<FieldValues>({
@@ -146,7 +147,57 @@ export default function NoteNewFormCertificate({editData, onClose, refIds, refet
   const [createMedCert] = useMutation(POST_MED_CERT);
   const [updateMedCert] = useMutation(UpdateNotesCert);
 
-  
+
+
+  const handleSubmitUpdate = useCallback(async (model: any) => {
+    // create
+    console.log(isEdit,'SA LOOB')
+
+    const data: NexusGenInputs['NotesMedCertInputType'] = {
+      clinic: Number(model.hospitalId),
+      patientID: Number(refIds?.S_ID),
+
+      R_TYPE: String(9),
+      dateCreated: String(formatDate(model.date)),
+      InOutPatient: Number(model.patientType),
+      s_date: String(formatDate(model.startDate)),
+      e_date: String(formatDate(model.endDate)),
+      diagnosis: String(model.diagnosis),
+      barring: String(model.day),
+      remarks: String(model.recommendation),
+      R_ID: Number(isEdit?.R_ID),
+      cert_id: Number(isEdit?.id)
+      // CLINIC
+      // patientID
+      // R_TYPE
+      // dateCreated
+      // InOutPatient
+      // s_date
+      // e_date
+      // diagnosis
+      // barring
+      // remarks
+    };
+
+     updateMedCert({
+      variables: {
+        data
+      }
+    }).then(async (res) => {
+      closeSnackbar(snackKey);
+      setSnackKey(null);
+      enqueueSnackbar('Update successfully!');
+      // refetch();
+      reset();
+      onRefetch();
+    })
+      .catch((error) => {
+        closeSnackbar(snackKey);
+        setSnackKey(null);
+        // console.log(error, 'ano error?');
+        enqueueSnackbar('Something went wrong', { variant: 'error' });
+      })
+  }, [createMedCert, enqueueSnackbar, refIds?.S_ID, reset, snackKey, editData])
 
   const handleSubmitValue = useCallback(
     async (model: any) => {
@@ -162,8 +213,8 @@ export default function NoteNewFormCertificate({editData, onClose, refIds, refet
         diagnosis: String(model.diagnosis),
         barring: String(model.day),
         remarks: String(model.recommendation),
-        R_ID:Number(editData?.R_ID),
-        cert_id:Number(editData?.id)
+        R_ID: Number(editData?.R_ID),
+        cert_id: Number(editData?.id)
         // CLINIC
         // patientID
         // R_TYPE
@@ -175,38 +226,48 @@ export default function NoteNewFormCertificate({editData, onClose, refIds, refet
         // barring
         // remarks
       };
-      (editData ? updateMedCert:createMedCert)({
+      createMedCert({
         variables: {
-          data,
-        },
+          data
+        }
+      }).then(async (res) => {
+        closeSnackbar(snackKey);
+        setSnackKey(null);
+        enqueueSnackbar("Created successfully bro");
+        // refetch();
+        reset();
+        onRefetch();
       })
-        .then(async (res) => {
-          closeSnackbar(snackKey);
-          setSnackKey(null);
-          enqueueSnackbar(editData?"Update successfully":'Create success!');
-          // refetch();
-          reset();
-          onRefetch();
-        })
         .catch((error) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
           // console.log(error, 'ano error?');
           enqueueSnackbar('Something went wrong', { variant: 'error' });
-        });
+        })
+      
     },
-    [createMedCert, enqueueSnackbar, refIds?.S_ID, reset, snackKey]
+    [createMedCert, enqueueSnackbar, refIds?.S_ID, reset, snackKey, editData]
   );
 
   const [myData, setMyData]: any = useState(null);
   useEffect(() => {
     if (snackKey) {
       (async () => {
-        await handleSubmitValue({ ...myData });
-        // setSnackKey(null);
+        console.log(isEdit,'EDIT DATA BEHH');
+
+        if(isEdit){
+          console.log("nasa edit data naman")
+         await handleSubmitUpdate({ ...myData })
+        }else{
+          await handleSubmitValue({ ...myData });
+
+        }
+
       })();
     }
-  }, [snackKey, myData]);
+  }, [snackKey, myData, isEdit]);
+
+  console.log(editData,'ANO BA VALUE NITO')
 
   const onSubmit = useCallback(
     async (data: FieldValues) => {
@@ -452,7 +513,7 @@ export default function NoteNewFormCertificate({editData, onClose, refIds, refet
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={()=>{
+        <Button variant="outlined" onClick={() => {
           onClose();
           reset();
         }}>
@@ -465,7 +526,7 @@ export default function NoteNewFormCertificate({editData, onClose, refIds, refet
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          {editData ? "Update":"Create"}
+          {editData ? "Update" : "Create"}
         </LoadingButton>
       </DialogActions>
     </>

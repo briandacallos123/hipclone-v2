@@ -9,7 +9,7 @@ import Button from '@mui/material/Button';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
 // prisma
-import { POST_NOTES_SOAP, UpdateNotesSoap } from '@/libs/gqls/notes/notesSoap';
+import { DeleteNotesSoap, POST_NOTES_SOAP, UpdateNotesSoap } from '@/libs/gqls/notes/notesSoap';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
@@ -241,6 +241,8 @@ export default function NoteNewFormSoap({editData, onClose, refIds, refetch: onR
 
   const [createSoap] = useMutation(POST_NOTES_SOAP);
   const [updateSoap] = useMutation(UpdateNotesSoap);
+ 
+
   
   const handleSubmitValue = useCallback(
     async (model: any) => {

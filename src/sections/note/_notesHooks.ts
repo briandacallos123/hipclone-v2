@@ -52,12 +52,13 @@ export default function useNotesHooks(payloads: any) {
 
 
   const [getRecordPatient, recordPatientResult] = useLazyQuery(GET_RECORD_PATIENT,{
-   
     context: {
       requestTrackerId: 'records[allRecordsbyPatientNew]',
     },
     notifyOnNetworkStatusChange: true,
   })
+
+
   useEffect(()=>{
     if(user?.role !== 'patient'){
       getRecordPatient({
@@ -103,6 +104,12 @@ export default function useNotesHooks(payloads: any) {
      payloads.recordType
     ])
 
+    const [deleteRecordPatient, deleteRecordResult] = useLazyQuery(GET_RECORD_PATIENT,{
+      context: {
+        requestTrackerId: 'records[allRecordsbyPatientNew]',
+      },
+      notifyOnNetworkStatusChange: true,
+    })
 
   // const { data, loading, refetch }: any = useQuery(GET_RECORD_PATIENT, {
   //   variables: {

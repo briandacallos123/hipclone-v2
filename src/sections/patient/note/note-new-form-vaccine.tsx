@@ -13,7 +13,7 @@ import Button from '@mui/material/Button';
 import Typography from '@mui/material/Typography';
 import DialogActions from '@mui/material/DialogActions';
 import DialogContent from '@mui/material/DialogContent';
-import { POST_NOTE_VACC, UpdateNotesVacc } from '@/libs/gqls/notes/noteVaccine';
+import { DeleteNotesVacc, POST_NOTE_VACC, UpdateNotesVacc } from '@/libs/gqls/notes/noteVaccine';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { DR_CLINICS } from 'src/libs/gqls/drprofile';
@@ -63,12 +63,15 @@ type Props = {
   editData?:any;
 };
 
-export default function NoteNewFormVaccine({editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormVaccine({editData:editRow, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
+  const [editData, setEditData] = useState(editRow)
   const { getItem } = useSessionStorage();
   // console.log('@@refetch', onRefetch);
   const params = useParams();
+
+
 
   // const { id } = params;
 
@@ -169,8 +172,8 @@ export default function NoteNewFormVaccine({editData, onClose, refIds, refetch: 
         InOutPatient: Number(model.patientType),
         diagnosis: String(model.diagnosis),
         eval: String(model.option),
-        pedia_id:editData && editData?.id,
-        R_ID:editData && editData?.R_ID
+        pedia_id:editData && Number(editData?.id),
+        R_ID:editData && Number(editData?.R_ID)
       };
      (editData ?updateNoteVacc: createNoteVacc)({
         variables: {
@@ -189,8 +192,7 @@ export default function NoteNewFormVaccine({editData, onClose, refIds, refetch: 
         .catch((error) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          console.log(error, 'ano error?');
-          enqueueSnackbar('Something went wrong', { variant: 'error' });
+          enqueueSnackbar(error?.message, { variant: 'error' });
         });
     },
     [createNoteVacc, enqueueSnackbar, refIds?.S_ID, reset, snackKey]

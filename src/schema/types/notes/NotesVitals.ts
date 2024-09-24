@@ -1,8 +1,9 @@
 import { PrismaClient } from '@prisma/client';
 import { extendType, objectType, inputObjectType } from 'nexus';
-import { GraphQLError } from 'graphql/error';
 import { subYears, startOfYear, endOfYear } from 'date-fns';
 import { cancelServerQueryRequest } from '../../../utils/cancel-pending-query';
+import { isToday } from '@/utils/format-time';
+import { GraphQLError } from 'graphql/error/GraphQLError';
 
 const client = new PrismaClient();
 
@@ -38,6 +39,7 @@ export const notesVitalObj = objectType({
     t.string('bmi');
     t.string('bt');
     t.string('spo2');
+    t.string('bsm');
     t.string('bp');
     t.string('bp1');
     t.string('bp2');
@@ -74,16 +76,22 @@ export const notesVitalInputType = inputObjectType({
     t.nullable.int('recordID');
     t.nullable.int('clinicID');
     t.nullable.string('uuid');
+    t.nullable.string('dateCreated');
     t.nullable.int('doctorID');
+    t.nullable.int('skip');
+    t.nullable.int('take');
     t.nullable.int('emrID');
     t.nullable.string('weight');
     t.nullable.string('height');
+    t.nullable.int('vital_id')
+    t.nullable.string('category_delete');
     t.nullable.string('bmi');
     t.nullable.string('bloodPresMM');
     t.nullable.string('bloodPresHG');
     t.nullable.string('oxygen');
     t.nullable.string('respRate');
     t.nullable.string('heartRate');
+    t.nullable.string('bsm');
     t.nullable.string('bodyTemp');
     t.nullable.list.field('categoryValues', {
       type: categoryValues
@@ -425,6 +433,61 @@ export const QueryNotesVitalsPatient = extendType({
   },
 });
 
+const DeleteNotesVitalPatientType = objectType({
+  name:"DeleteNotesVitalPatientType",
+  definition(t) {
+      t.string("message")
+  },
+})
+
+export const DeleteNotesVitalPatient = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('DeleteNotesVitalPatient', {
+      type: DeleteNotesVitalPatientType,
+      args: { data: notesVitalInputType! },
+      async resolve(_root, args, ctx) {
+        const createData = args?.data;
+        const currentYear = new Date().getFullYear();
+        const yearStartDate = startOfYear(new Date(currentYear, 0, 1));
+        const yearEndDate = endOfYear(new Date(currentYear, 11, 31));
+
+        const { session } = ctx;
+        await cancelServerQueryRequest(
+          client,
+          session?.user?.id,
+          '`notes_vitals`',
+          '`QueryNotesVitalsPatient`'
+        );
+
+        if(isToday(createData?.dateCreated)){
+          try {
+            await client.notes_vitals.update({
+              data:{
+                [args?.data?.category_delete]:'0'
+              },
+              where:{
+                id:Number(args?.data?.vital_id)
+              }
+            })
+            return {
+              message:"Successfully deleted"
+            };
+          } catch (error) {
+            return new GraphQLError(error);
+          }
+        }else{
+          throw new GraphQLError("Unable to update")
+
+        }
+      
+
+          
+      },
+    });
+  },
+});
+
 const customFuncVitalPatient = async (
   args: any,
   session: any,
@@ -453,7 +516,8 @@ const customFuncVitalPatient = async (
     if (isLinked) {
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
-          take: 10,
+          take: args?.data?.take,
+          skip: args?.data?.skip,
           orderBy: {
             id: 'desc',
           },
@@ -488,6 +552,8 @@ const customFuncVitalPatient = async (
 
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
+          take: args?.data?.take,
+          skip: args?.data?.skip,
           orderBy: {
             id: 'desc',
           },
@@ -674,6 +740,8 @@ export const PostVitals = extendType({
         const { session } = ctx;
         try {
 
+          console.log(createData,'CREATE DATAAAAAAAAAA___________')
+
           const patientData = await client.user.findFirst({
             where:{
               uuid:createData?.uuid
@@ -716,7 +784,7 @@ export const PostVitals = extendType({
             data: {
               clinic: createData?.clinicID,
               report_id: createData?.recordID,
-              patientID: patientData?.patientInfo?.S_ID,
+              patientID: patientData?.patientInfo?.S_ID || createData?.patientID,
               doctorID: session?.user?.id,
 
               wt: createData?.weight !== "0" ? createData?.weight:null ,
@@ -727,7 +795,8 @@ export const PostVitals = extendType({
               spo2: createData?.oxygen !== "0" ? createData?.oxygen:null,
               hr: createData?.heartRate !== "0" ? createData?.heartRate : null,
               bt: createData?.bodyTemp !== "0" ? createData?.bodyTemp:null,
-              rr: createData?.respRate !== "0" ? createData?.respRate:null
+              rr: createData?.respRate !== "0" ? createData?.respRate:null,
+              bsm: createData?.bsm !== "0" ? createData?.bsm:null,
             },
           });
           const res: any = vitals;

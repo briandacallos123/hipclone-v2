@@ -264,11 +264,14 @@ export const NotesLabInputType = inputObjectType({
     t.nullable.int('emrPatientID');
     t.nullable.string('R_TYPE'); // 5
     t.nullable.int('isLinked');
+    t.nullable.string('qrCode')
     t.nullable.int('isEMR');
     // lab req
     t.nullable.JSON('procedures');
     t.nullable.int('fasting');
     t.nullable.string('others');
+    t.nullable.id('notesID')
+    t.nullable.string('dateCreated')
   },
 });
 
@@ -286,9 +289,27 @@ export const QueryNotesLab = extendType({
           '`notes_labrequest`',
           '`QueryNotesLab`'
         );
+
+        let recordId: any;
+
+        await(async () => {
+          let qrCode = args?.data?.qrCode;
+          if (qrCode) {
+            const recordData = await client.records.findFirst({
+              where: {
+                qrcode: qrCode
+              }
+            })
+            recordId = recordData?.R_ID
+
+          }
+        })()
+
+
+
         const result: any = await client.notes_labrequest.findFirst({
           where: {
-            record_id: Number(args?.data!.recordID),
+            record_id: Number(args?.data!.recordID || recordId),
           },
           include: {
             patientInfo: true,
@@ -367,6 +388,24 @@ export const PostNotesLabReq = extendType({
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesLabReq');
         const procedureJson = serialize(createData.procedures);
         try {
+          let isExists = true;
+          let VoucherCode: any;
+
+          while (isExists) {
+            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+
+            const result = await client.prescriptions.findFirst({
+              where: {
+                presCode: VoucherCode
+              }
+            })
+
+            if (!result) {
+              isExists = false;
+            }
+          }
+
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordLabReq = await trx.records.create({
               data: {
@@ -375,6 +414,7 @@ export const PostNotesLabReq = extendType({
                 R_TYPE: String(createData.R_TYPE), // 5
                 doctorID: Number(session?.user?.id),
                 isEMR: Number(0),
+                qrcode:VoucherCode
               },
             });
             const newChild = await trx.notes_labrequest.create({
@@ -390,6 +430,51 @@ export const PostNotesLabReq = extendType({
                 fasting: Number(createData.fasting),
                 others: String(createData.others),
               },
+            });
+            return {
+              ...recordLabReq,
+              ...newChild,
+              // tempId: uuid,
+            };
+          });
+          const res: any = notesTransaction;
+          return res;
+        } catch (e) {
+          console.log(e);
+        }
+      },
+    });
+  },
+});
+
+export const DeleteNotesLabReq = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('DeleteNotesLabReq', {
+      type: RecordObjectFields4LabReq,
+      args: { data: NotesLabInputType! },
+      async resolve(_parent, args, ctx) {
+        const createData: any = args?.data;
+        const { session } = ctx;
+        await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostNotesLabReq');
+        // const procedureJson = serialize(createData.procedures);
+        try {
+          const notesTransaction = await client.$transaction(async (trx) => {
+            const recordLabReq = await trx.records.update({
+              data: {
+                isDeleted: 1
+              },
+              where: {
+                R_ID: Number(createData?.recordID)
+              }
+            });
+            const newChild = await trx.notes_labrequest.update({
+              data: {
+                isDeleted: 1
+              },
+              where: {
+                id: Number(createData?.notesID)
+              }
             });
             return {
               ...recordLabReq,
