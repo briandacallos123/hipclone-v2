@@ -429,3 +429,12 @@ export const MutationPrescriptionChild = gql`
     }
   }
 `;
+
+
+export const PrescriptionDelete = gql`
+  mutation PrescriptionDelete($data: PrescriptionDeleteInp!) {
+    PrescriptionDelete(data: $data) {
+       message
+    }
+  }
+`;

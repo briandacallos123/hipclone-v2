@@ -50,9 +50,9 @@ import PatientPrescriptionTableRow from '../prescription-table-row';
 import PatientPrescriptionTableRowSkeleton from '../prescription-table-row-skeleton';
 import PatientPrescriptionTableToolbar from '../prescription-table-toolbar';
 import PatientPrescriptionTableFiltersResult from '../prescription-table-filters-result';
-import { Prescriptions } from '../../../../libs/gqls/prescription';
+import { PrescriptionDelete, Prescriptions } from '../../../../libs/gqls/prescription';
 import { DR_CLINICS } from '../../../../libs/gqls/drprofile';
-import { useLazyQuery, useQuery } from '@apollo/client';
+import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import { reset } from 'numeral';
 import { C } from '@fullcalendar/core/internal-common';
 import { useAuthContext } from 'src/auth/hooks';
@@ -198,6 +198,13 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const [isFail, setIsFail] = useState(false);
+
+  const [createMedFunc] = useMutation(PrescriptionDelete, {
+    context: {
+      requestTrackerId: 'Delete_presc[DELETE_PRESC]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
 
   const [removeSlice, setRemoveSlice] = useState(null);
 
@@ -383,6 +390,19 @@ export default function PatientPrescriptionListView({ slug }: Props) {
     });
   }, []);
 
+  const handleDeleteRow = (row:any) => {
+    createMedFunc({
+      variables:{
+        data:{
+          prescription_id:Number(row?.ID),
+          dateCreated:row?.DATE
+        }
+      }
+    }).then((res)=>{
+      refetch();
+    })
+  }
+
   return (
     <>
       <Box>
@@ -485,6 +505,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
                         row={row}
                         onEditRow={() => handleEditRow(row)}
                         onViewRow={() => handleViewRow(row)}
+                        onDeleteRow={()=>handleDeleteRow(row)}
                       />
                     ))}
 

@@ -1,4 +1,4 @@
-import { fDateTime } from 'src/utils/format-time';
+import { fDateTime, isToday } from 'src/utils/format-time';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
@@ -18,9 +18,13 @@ import { IPrescriptionItem } from 'src/types/prescription';
 // // components
 import Iconify from 'src/components/iconify';
 import { TableMobileRow } from 'src/components/table';
-import { Skeleton } from '@mui/material';
+import { Box, Button, Dialog, DialogActions, MenuItem, Skeleton } from '@mui/material';
 import { useAuthContext } from 'src/auth/hooks';
 import Label from '@/components/label';
+import CustomPopover, { usePopover } from '@/components/custom-popover';
+import { useBoolean } from '@/hooks/use-boolean';
+import { LogoFull } from '@/components/logo';
+import { ConfirmDialog } from '@/components/custom-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -52,61 +56,125 @@ type Props = {
   row: any;
   onEditRow: VoidFunction;
   onViewRow: VoidFunction;
+  onDeleteRow: ()=>void;
 };
 
-export default function PatientPrescriptionTableRow({ row, onEditRow, onViewRow }: Props) {
+export default function PatientPrescriptionTableRow({onDeleteRow, row, onEditRow, onViewRow }: Props) {
   const upMd = useResponsive('up', 'md');
-      const { user } = useAuthContext();
+  const { user } = useAuthContext();
 
   const { DATE, clinicInfo, ID } = row;
 
-  const date = new Date(Number(DATE));
+  const date = DATE
+  const popover = usePopover();
+  const confirm = useBoolean();
+  const view = useBoolean();
 
+  const renderConfirm = (
+    <ConfirmDialog
+      open={confirm.value}
+      onClose={confirm.onFalse}
+      title="Delete"
+      content="Are you sure want to delete?"
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            onDeleteRow()
+            confirm.onFalse();
+          }}
+        >
+          Delete
+        </Button>
+      }
+    />
+  );
+  const isSecretary = () => {
 
-  const isSecretary = ()=>{
-
-    let text:any
+    let text: any
 
     // for patient
-    if(user?.role === 'secretary' || user?.role === 'doctor' ){
-      if(user?.permissions?.pres_view === 1 && user?.role === 'secretary')
-      {
-        text = <>
-        <Tooltip title="View Details" placement="top" arrow>
-          <IconButton onClick={() => onViewRow()}>
-            <Iconify icon="solar:clipboard-text-bold" />
-          </IconButton>
-        </Tooltip>
-        </>
-      }else{
-        text = <>
-       <IconButton disabled>
-            <Iconify icon="solar:clipboard-text-bold" />
-          </IconButton>
-        </>
-      }
-      if(user?.role === 'doctor')
-      {
+    if (user?.role === 'secretary' || user?.role === 'doctor') {
+      if (user?.permissions?.pres_view === 1 && user?.role === 'secretary') {
         text = <>
           <Tooltip title="View Details" placement="top" arrow>
-          <IconButton onClick={() => onViewRow()}>
+            <IconButton onClick={() => onViewRow()}>
+              <Iconify icon="solar:clipboard-text-bold" />
+            </IconButton>
+          </Tooltip>
+        </>
+      } else {
+        text = <>
+          <IconButton disabled>
             <Iconify icon="solar:clipboard-text-bold" />
           </IconButton>
-         </Tooltip>
-
-         <Tooltip title="Repeat" placement="top" arrow>
-          <IconButton onClick={() => onEditRow()}>
-            <Iconify
-              icon="solar:repeat-one-minimalistic-bold"
-              sx={{ transform: 'rotate(90deg)' }}
-            />
-          </IconButton>
-        </Tooltip>
         </>
       }
-      
+      if (user?.role === 'doctor') {
+        text = <>
+          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+            <Iconify icon="eva:more-vertical-fill" />
+          </IconButton>
+
+          <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+
+            {<MenuItem
+              onClick={() => {
+                onEditRow()
+              }}
+              sx={{ color: 'sucess.main' }}
+            >
+              <Iconify icon="fluent:arrow-repeat-all-24-regular" />
+              Repeat
+            </MenuItem>}
+
+            <MenuItem
+              onClick={() => {
+                // popover.onClose();
+                onViewRow()
+                // view.onTrue()
+              }}
+              sx={{ color: 'success.main' }}
+            >
+              <Iconify icon="mdi:eye" />
+              View
+            </MenuItem>
+
+            {<MenuItem
+              onClick={() => {
+                confirm.onTrue();
+                popover.onClose();
+              }}
+              sx={{ color: 'error.main' }}
+            >
+              <Iconify icon="mdi:delete" />
+              Delete
+            </MenuItem>}
+
+
+          </CustomPopover>
+
+          {/* <Tooltip title="View Details" placement="top" arrow>
+            <IconButton onClick={() => onViewRow()}>
+              <Iconify icon="solar:clipboard-text-bold" />
+            </IconButton>
+          </Tooltip>
+
+          <Tooltip title="Repeat" placement="top" arrow>
+            <IconButton onClick={() => onEditRow()}>
+              <Iconify
+                icon="solar:repeat-one-minimalistic-bold"
+                sx={{ transform: 'rotate(90deg)' }}
+              />
+            </IconButton>
+          </Tooltip> */}
+
+        </>
+      }
+
     }
-  return text;
+    return text;
   }
 
   if (!upMd) {
@@ -133,7 +201,7 @@ export default function PatientPrescriptionTableRow({ row, onEditRow, onViewRow 
             secondary={
               <>
                 <Typography variant="caption">{clinicInfo?.clinic_name}</Typography>
-                <Typography variant="caption">{fDateTime(date)}</Typography>
+                <Typography variant="caption">{date}</Typography>
               </>
             }
             primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
@@ -167,22 +235,22 @@ export default function PatientPrescriptionTableRow({ row, onEditRow, onViewRow 
             <Avatar
               alt={row?.clinicInfo?.clinic_name}
               src={row?.clinicInfo?.clinicDPInfo?.[0].filename.split('public')[1]}
-              sx={{mr: 2}}
+              sx={{ mr: 2 }}
             >
               {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-              
+
             </Avatar>
           ) : (
-            <Avatar alt={row?.clinicInfo?.clinic_name}  sx={{mr: 2}}>
-               <Avatar sx={{ textTransform: 'capitalize' }}>
+            <Avatar alt={row?.clinicInfo?.clinic_name} sx={{ mr: 2 }}>
+              <Avatar sx={{ textTransform: 'capitalize' }}>
                 {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-               </Avatar>
+              </Avatar>
             </Avatar>
           )}
 
           {/* <Avatar alt={clinicInfo?.clinic_name} sx={{ mr: 2 }}> */}
-            {/* <Avatar alt={clinic.clinic_name} src={clinic.clinic_name[0]} sx={{ mr: 2 }}> */}
-            {/* {clinicInfo?.clinic_name[0]} */}
+          {/* <Avatar alt={clinic.clinic_name} src={clinic.clinic_name[0]} sx={{ mr: 2 }}> */}
+          {/* {clinicInfo?.clinic_name[0]} */}
           {/* </Avatar> */}
 
           <ListItemText
@@ -196,19 +264,21 @@ export default function PatientPrescriptionTableRow({ row, onEditRow, onViewRow 
           />
         </div>
       </TableCell>
+      {/* {renderView} */}
+      {renderConfirm}
 
       <TableCell>
-              <Label variant="soft" >
-                      {row?.presCode ? row?.presCode: "empty"}
-                  </Label>
-            </TableCell>
+        <Label variant="soft" >
+          {row?.presCode ? row?.presCode : "empty"}
+        </Label>
+      </TableCell>
       {/* <TableCell>{format(new Date(date), 'dd MMM yyyy')}</TableCell> */}
-      <TableCell>{fDateTime(date)}</TableCell>
+      <TableCell>{date}</TableCell>
 
       <TableCell align="center" sx={{ px: 1, whiteSpace: 'nowrap' }}>
-        
-      {isSecretary()}
-        
+
+        {isSecretary()}
+
       </TableCell>
     </StyledTableRow>
   );

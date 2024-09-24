@@ -5,6 +5,8 @@ import { extendType, objectType, inputObjectType } from 'nexus';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
 import { FieldClinics } from './DoctorClinics';
 import { Clinics } from './ClinicSched';
+import { GraphQLError } from 'graphql/error/GraphQLError';
+import { isToday } from '@/utils/format-time';
 
 const client = new PrismaClient();
 
@@ -12,7 +14,7 @@ export const prescriptions = objectType({
   name: 'prescriptions',
   definition(t) {
     t.id('ID');
-    t.string('DATE');
+    t.date('DATE');
     t.string('PATIENTEMR');
     t.int('isFavorite');
     t.int('patientID');
@@ -1240,6 +1242,67 @@ const Prescription_Child_Inputs = inputObjectType({
     t.nullable.string('DURATION');
     t.nullable.int('PR_ID');
   },
+});
+
+const PrescriptionDeleteInp = inputObjectType({
+  name:"PrescriptionDeleteInp",
+  definition(t) {
+      t.nonNull.int('prescription_id');
+      t.nonNull.string('dateCreated');
+  },
+})
+
+const PrescriptionDeleteObj = objectType({
+  name:"PrescriptionDeleteObj",
+  definition(t) {
+      t.string("message")
+  },
+})
+
+export const PrescriptionDelete = extendType({
+  type: 'Mutation',
+  definition(t) {
+    t.nullable.field('PrescriptionDelete', {
+      type: PrescriptionDeleteObj,
+      args: { data: PrescriptionDeleteInp! },
+      async resolve(_, args, _ctx) {
+        const { session } = _ctx;
+
+        const deleteData = args?.data;
+
+       if(isToday(deleteData?.dateCreated)){
+        try {
+          await client.prescriptions.update({
+            data:{
+              isDeleted:1
+            },
+            where:{
+              ID:Number(deleteData?.prescription_id)
+            }
+          })
+
+          await client.prescriptions_child.updateMany({
+            data:{
+              isDeleted:1
+            },
+            where:{
+              PR_ID:Number(deleteData?.prescription_id)
+            }
+          })
+          return{
+            message:"Deleted successfully!"
+          }
+        } catch (error) {
+          console.log(error,'errorrs');
+          throw new GraphQLError(error);
+        }
+       }else{
+        throw new GraphQLError('Unable to delete');
+
+       }
+      }
+    })
+  }
 });
 
 export const MutationPrescription = extendType({
