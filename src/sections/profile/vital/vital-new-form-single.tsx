@@ -103,6 +103,8 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
   //   return () => drClinicFetch();
   // }, []);
 
+  console.log(data,"DATA NA PINAPASA")
+
   const defaultValues = useMemo(
     () => ({
       [data?.name]: 0
@@ -176,10 +178,20 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const field = data?.name;
-      const payload = {
-       [field]:String(model[`${data?.name}`]),
-       uuid:id
+      let payload:any;
+      if(!model?.new){
+        payload ={
+          [field]:String(model[`${data?.name}`]),
+          uuid:id
+         }
+      }else{
+        payload ={
+          categoryValues : model?.categoryData,
+          uuid:id
+         }
       }
+
+
 
       createVitals({
         variables: {
@@ -215,14 +227,13 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
   }, [setValue, values.weight, values.height]);
 
   const onSubmit = useCallback(
-    async (data: any) => {
+    async (datas: any) => {
       try {
         
         const categoryData:any = [];
         
-        Object.entries(data).forEach((item)=>{
+        Object.entries(datas).forEach((item)=>{
           const [key, val] = item;
-
           if(addedCategoryTitle.includes(key)){
             categoryData.push({
               title:key,
@@ -231,17 +242,27 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
           }
         })
 
-        await handleSubmitValue({
-          ...data,
-          categoryData:[...categoryData]
-        });
+       
+      
+        if(data?.new){
+          await handleSubmitValue({
+            new:true,
+            categoryData:[...categoryData]
+          });
+        }else{
+
+          await handleSubmitValue({
+            ...datas,
+            categoryData:[...categoryData]
+          });
+        }
         onClose();
         
       } catch (error) {
         console.error(error);
       }
     },
-    [enqueueSnackbar, handleSubmitValue, onClose, refetch, reset, addedCategoryTitle]
+    [enqueueSnackbar,data, handleSubmitValue, onClose, refetch, reset, addedCategoryTitle]
   );
   // console.log(addedCategoryTitle,'????')
 

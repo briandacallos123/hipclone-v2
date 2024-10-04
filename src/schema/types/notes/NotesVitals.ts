@@ -434,11 +434,16 @@ export const QueryNotesVitalsPatient = extendType({
 });
 
 const DeleteNotesVitalPatientType = objectType({
-  name:"DeleteNotesVitalPatientType",
+  name: "DeleteNotesVitalPatientType",
   definition(t) {
-      t.string("message")
+    t.string("message")
   },
 })
+
+const isNumber = (value) => {
+  const regex = /^-?\d+(\.\d+)?$/; // Matches integers and decimal numbers
+  return regex.test(value);
+};
 
 export const DeleteNotesVitalPatient = extendType({
   type: 'Mutation',
@@ -460,29 +465,48 @@ export const DeleteNotesVitalPatient = extendType({
           '`QueryNotesVitalsPatient`'
         );
 
-        if(isToday(createData?.dateCreated)){
+        let category_data = args?.data?.category_delete;
+
+        if (isToday(createData?.dateCreated)) {
           try {
-            await client.notes_vitals.update({
-              data:{
-                [args?.data?.category_delete]:'0'
-              },
-              where:{
-                id:Number(args?.data?.vital_id)
-              }
-            })
+
+            if (!isNumber(category_data)) {
+           
+              await client.notes_vitals.update({
+                data: {
+                  [category_data]: '0'
+                },
+                where: {
+                  id: Number(args?.data?.vital_id)
+                }
+              })
+
+            } else {
+
+              console.log(Number(category_data),'awit')
+              await client.vital_data.update({
+                data: {
+                  isDeleted:1
+                },
+                where: {
+                  id: Number(args?.data?.vital_id)
+                }
+              })
+            }
             return {
-              message:"Successfully deleted"
+              message: "Successfully deleted"
             };
           } catch (error) {
+            console.log(error,'error')
             return new GraphQLError(error);
           }
-        }else{
+        } else {
           throw new GraphQLError("Unable to update")
 
         }
-      
 
-          
+
+
       },
     });
   },
@@ -497,7 +521,7 @@ const customFuncVitalPatient = async (
   let vitals_data: any;
 
   const checkUser = (() => {
-    if (session?.user?.role === 'secretary'){
+    if (session?.user?.role === 'secretary') {
       // console.log("secretary______________")
       return {
         doctorID: session?.user?.permissions?.doctorID,
@@ -544,7 +568,7 @@ const customFuncVitalPatient = async (
         }),
       ]);
 
-    // console.log(vitalData, "BATTLEEEEEEEE");
+      // console.log(vitalData, "BATTLEEEEEEEE");
 
       // console.log(vitalData, 'LINKED VITAL DATA');
       vitals_data = vitalData;
@@ -634,7 +658,7 @@ export const QueryNotesVitalsEMRPatient = extendType({
             vitals_data: data,
           };
         } catch (error) {
-          console.log(error,'error behhh')
+          console.log(error, 'error behhh')
           return new GraphQLError(error);
         }
       },
@@ -740,38 +764,39 @@ export const PostVitals = extendType({
         const { session } = ctx;
         try {
 
-          console.log(createData,'CREATE DATAAAAAAAAAA___________')
+          console.log(createData, 'CREATE DATAAAAAAAAAA___________')
 
           const patientData = await client.user.findFirst({
-            where:{
-              uuid:createData?.uuid
+            where: {
+              uuid: createData?.uuid
             },
-            include:{
-              patientInfo:true
+            include: {
+              patientInfo: true
             }
           })
+          console.log(patientData,'TANGGGGGGGGGGGGGGGGGGGGGGGGGGGG')
+
 
           if (createData?.categoryValues && createData?.categoryValues?.length !== 0) {
             const result = createData?.categoryValues.map(async (item) => {
               const categoryId = await client.vital_category.findFirst({
                 where: {
                   title: item?.title,
-                  patientId: Number(createData?.patientID),
+                  patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
                   isDeleted: 0
-                },
-                select: {
-                  id: true
                 }
               })
+              console.log(categoryId, "categoryId")
 
               const vitalData = await client.vital_data.create({
                 data: {
-                  patientId: Number(createData?.patientID),
+                  patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
                   doctorId: Number(session?.user?.id),
-                  categoryId: categoryId?.id,
+                  categoryId: Number(categoryId?.id),
                   value: item?.value,
                 }
               })
+              console.log(vitalData, "vitalData")
 
               return vitalData
             })
@@ -787,16 +812,16 @@ export const PostVitals = extendType({
               patientID: patientData?.patientInfo?.S_ID || createData?.patientID,
               doctorID: session?.user?.id,
 
-              wt: createData?.weight !== "0" ? createData?.weight:null ,
+              wt: createData?.weight !== "0" ? createData?.weight : null,
               ht: createData?.height !== "0" ? createData?.height : null,
-              bmi: createData?.bmi !== "0.00" ? createData?.bmi:null,
+              bmi: createData?.bmi !== "0.00" ? createData?.bmi : null,
               bp1: createData?.bloodPresMM !== "0" ? createData?.bloodPresMM : null,
-              bp2: createData?.bloodPresHG !== "0" ? createData?.bloodPresHG :null,
-              spo2: createData?.oxygen !== "0" ? createData?.oxygen:null,
+              bp2: createData?.bloodPresHG !== "0" ? createData?.bloodPresHG : null,
+              spo2: createData?.oxygen !== "0" ? createData?.oxygen : null,
               hr: createData?.heartRate !== "0" ? createData?.heartRate : null,
-              bt: createData?.bodyTemp !== "0" ? createData?.bodyTemp:null,
-              rr: createData?.respRate !== "0" ? createData?.respRate:null,
-              bsm: createData?.bsm !== "0" ? createData?.bsm:null,
+              bt: createData?.bodyTemp !== "0" ? createData?.bodyTemp : null,
+              rr: createData?.respRate !== "0" ? createData?.respRate : null,
+              bsm: createData?.bsm !== "0" ? createData?.bsm : null,
             },
           });
           const res: any = vitals;
@@ -933,7 +958,7 @@ export const PostVitalsUser = extendType({
 
           if (createData?.categoryValues && createData?.categoryValues?.length !== 0) {
             const result = createData?.categoryValues.map(async (item) => {
-              if(!item?.value) return;
+              if (!item?.value) return;
               const categoryId = await client.vital_category.findFirst({
                 where: {
                   title: item?.title,
@@ -973,18 +998,18 @@ export const PostVitalsUser = extendType({
                 report_id: Number(recordVitals.R_ID),
                 patientID: session?.user?.s_id,
 
-                wt: createData?.weight !== "0" ? createData?.weight:null ,
+                wt: createData?.weight !== "0" ? createData?.weight : null,
                 ht: createData?.height !== "0" ? createData?.height : null,
-                bmi: createData?.bmi !== "0.00" ? createData?.bmi:null,
+                bmi: createData?.bmi !== "0.00" ? createData?.bmi : null,
                 bp1: createData?.bloodPresMM !== "0" ? createData?.bloodPresMM : null,
-                bp2: createData?.bloodPresHG !== "0" ? createData?.bloodPresHG :null,
-                spo2: createData?.oxygen !== "0" ? createData?.oxygen:null,
+                bp2: createData?.bloodPresHG !== "0" ? createData?.bloodPresHG : null,
+                spo2: createData?.oxygen !== "0" ? createData?.oxygen : null,
                 hr: createData?.heartRate !== "0" ? createData?.heartRate : null,
-                bt: createData?.bodyTemp !== "0" ? createData?.bodyTemp:null,
-                rr: createData?.respRate !== "0" ? createData?.respRate:null,
+                bt: createData?.bodyTemp !== "0" ? createData?.bodyTemp : null,
+                rr: createData?.respRate !== "0" ? createData?.respRate : null,
               },
             });
-            console.log(vitals,'VITALSSSSSSS')
+            console.log(vitals, 'VITALSSSSSSS')
             return {
               ...recordVitals,
               ...vitals,
@@ -995,7 +1020,7 @@ export const PostVitalsUser = extendType({
           const res: any = vitalsTransaction;
           return res;
         } catch (e) {
-          console.log(e,'error mo bihhhhhhhhhhhhh');
+          console.log(e, 'error mo bihhhhhhhhhhhhh');
           throw new GraphQLError(e)
         }
       },

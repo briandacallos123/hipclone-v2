@@ -104,10 +104,7 @@ export default function DashboardView() {
       ),
     },
   ];
-
   
-  console.log(user,'_____________________USER__________________')
-
   const renderDesktop = (
     <>
       <Grid xs={12} md={7}>

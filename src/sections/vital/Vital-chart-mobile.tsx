@@ -24,6 +24,7 @@ interface Props extends CardProps {
   subheader: string;
   percent: number;
   dashboardVital?: any;
+  refetch:()=>void;
   chart: {
     colors?: string[];
     series: number[];
@@ -41,6 +42,7 @@ export default function VitalChartMobile({
   chartFull,
   list,
   sx,
+  refetch,
   ...other
 }: Props) {
   const theme = useTheme();
@@ -154,9 +156,10 @@ export default function VitalChartMobile({
           </IconButton>
         </Stack>
       </Box>
-      {dashboard && (
+      {!dashboard && (
         <VitalFullscreen
           title={title}
+         refetch={refetch}
           list={list}
           open={open.value}
           onClose={open.onFalse}

@@ -111,7 +111,7 @@ export default function   ProfileVitalViewDashboard() {
       getDataUser({
         variables: {
           data: {
-            uuid: String(user.uuid),
+            uuid: String(user?.uuid),
           },
         },
       }).then(async (result: any) => {
@@ -124,7 +124,7 @@ export default function   ProfileVitalViewDashboard() {
         }
       });
     }
-  }, [dateResult.data, user?.role, user.uuid]);
+  }, [dateResult.data, user?.role, user?.uuid]);
 
   
   const openVitalCategory = () => {

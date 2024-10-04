@@ -44,7 +44,7 @@ export default function useNotesHooks(payloads: any) {
   const [tableData1, setTableData1] = useState<any>([]);
   const [totalData, setTotalData] = useState(0);
   const [isLoading, setLoading] = useState(true);
-
+  const [clinicData, setClinicData] = useState([])
   const [tableDataEMR, setTableDataEMR] = useState<any>([]);
   const [totalDataEMR, setTotalDataEMR] = useState(0);
   // console.log(payloads, '!!!!!!!!!!##########');
@@ -200,36 +200,41 @@ export default function useNotesHooks(payloads: any) {
   // console.log('EMR GG:', payloads);
   // console.log('EMR GG:', totalDataEMR);
 
-  const { data: userData, loading: patLoad }: any = useQuery(GET_RECORD_BY_PATIENT_USER, {
-    variables: {
-      data: {
-        clinicIds: payloads.clinicIds,
-        skip: payloads.skip,
-        take: payloads.take,
-        orderBy: payloads.orderBy,
-        orderDir: payloads.orderDir,
-        startDate: payloads.startDate,
-        endDate: payloads.endDate,
-        searchKeyword: payloads.searchKeyword,
-      },
-    },
+  const [getRecordOfPatient, patientRecordResult] = useLazyQuery(GET_RECORD_BY_PATIENT_USER,{
     context: {
-      requestTrackerId: 'records[allRecordsbyPatientUser]',
+      requestTrackerId: 'recordPatient[patientRecordResult]',
     },
     notifyOnNetworkStatusChange: true,
-  });
+  })
 
-  // patient;
-  useEffect(() => {
-    if (user?.role === 'patient' && userData) {
-      const { allRecordsbyPatientUser } = userData;
-      // setTable(todaysAPR);
-      setTableData1(allRecordsbyPatientUser?.Records_data);
-      setIds(allRecordsbyPatientUser?.RecordIds);
-      setTotalData(allRecordsbyPatientUser?.total_records);
+  useEffect(()=>{
+    if(user?.role === 'patient'){
+      getRecordOfPatient({
+        variables:{
+          data: {
+            clinicIds: payloads.clinicIds,
+            skip: payloads.skip,
+            take: payloads.take,
+            orderBy: payloads.orderBy,
+            orderDir: payloads.orderDir,
+            startDate: payloads.startDate,
+            endDate: payloads.endDate,
+            noteType:payloads.type,
+            searchKeyword: payloads.searchKeyword,
+            recordType:payloads.recordType
+          }
+        }
+      }).then((data)=>{
+        if(data){
+          const {allRecordsbyPatientUser} = data.data
+          setTableData1(allRecordsbyPatientUser?.Records_data);
+          setIds(allRecordsbyPatientUser?.RecordIds);
+          setTotalData(allRecordsbyPatientUser?.total_records);
+          setClinicData(allRecordsbyPatientUser?.clinic)
+        }
+      })
     }
-  }, [
-    user?.role,
+  },[ user?.role,
     payloads.clinicIds,
     payloads.skip,
     payloads.take,
@@ -237,18 +242,63 @@ export default function useNotesHooks(payloads: any) {
     payloads.orderDir,
     payloads.startDate,
     payloads.endDate,
+    payloads.recordType,
     payloads.searchKeyword,
-    userData,
-    // data,
-    recordPatientResult.data
-  ]);
+    patientRecordResult.data
+  ])
+
+
+  // const { data: userData, loading: patLoad }: any = useQuery(GET_RECORD_BY_PATIENT_USER, {
+  //   variables: {
+  //     data: {
+  //       clinicIds: payloads.clinicIds,
+  //       skip: payloads.skip,
+  //       take: payloads.take,
+  //       orderBy: payloads.orderBy,
+  //       orderDir: payloads.orderDir,
+  //       startDate: payloads.startDate,
+  //       endDate: payloads.endDate,
+  //       noteType:payloads.type,
+  //       searchKeyword: payloads.searchKeyword,
+  //     },
+  //   },
+  //   context: {
+  //     requestTrackerId: 'records[allRecordsbyPatientUser]',
+  //   },
+  //   notifyOnNetworkStatusChange: true,
+  // });
+
+  // patient;
+  // useEffect(() => {
+  //   if (user?.role === 'patient' && userData) {
+  //     const { allRecordsbyPatientUser } = userData;
+  //     // setTable(todaysAPR);
+  //     setTableData1(allRecordsbyPatientUser?.Records_data);
+  //     setIds(allRecordsbyPatientUser?.RecordIds);
+  //     setTotalData(allRecordsbyPatientUser?.total_records);
+  //   }
+  // }, [
+  //   user?.role,
+  //   payloads.clinicIds,
+  //   payloads.skip,
+  //   payloads.take,
+  //   payloads.orderBy,
+  //   payloads.orderDir,
+  //   payloads.startDate,
+  //   payloads.endDate,
+  //   payloads.searchKeyword,
+  //   userData,
+  //   // data,
+  //   recordPatientResult.data
+  // ]);
   // console.log('table1', tableData1);
 
   return {
     isLoading,
+    patientLoading:patientRecordResult.loading,
     data:recordPatientResult,
     loading:recordPatientResult.loading,
-    refetch:recordPatientResult.refetch,
+    refetch:user?.role !== 'patient' ? recordPatientResult.refetch:patientRecordResult.refetch,
     emrRefetch,
     tableData1,
     totalData,
@@ -256,5 +306,6 @@ export default function useNotesHooks(payloads: any) {
     tableDataEMR,
     totalDataEMR,
     isLoadingPatient,
+    clinicData
   };
 }

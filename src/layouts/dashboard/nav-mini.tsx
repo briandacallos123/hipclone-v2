@@ -12,6 +12,8 @@ import { NavSectionMini } from 'src/components/nav-section';
 import { NAV } from '../config-layout';
 import { useNavData } from './config-navigation';
 import { NavToggleButton } from '../_common';
+import Link from 'next/link';
+import { paths } from '@/routes/paths';
 
 // ----------------------------------------------------------------------
 
@@ -46,7 +48,11 @@ export default function NavMini() {
           ...hideScroll.x,
         }}
       >
-        <Logo sx={{ mx: 'auto', my: 2 }} />
+        {/*  */}
+
+        <Link href={paths.dashboard.root}>
+           <Logo sx={{ mx: 'auto', my: 2 }} />
+      </Link>
 
         <NavSectionMini
           data={navData}

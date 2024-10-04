@@ -104,7 +104,7 @@ export default function PrescriptionDetails({link, /*currentItem*/ currentItem, 
           Date issued:
         </Typography>
         <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
-          {currentItem?.DATE && fDateTime(date)}
+          {currentItem?.DATE && currentItem?.DATE}
         </Typography>
       </div>
      
@@ -225,7 +225,7 @@ export default function PrescriptionDetails({link, /*currentItem*/ currentItem, 
                 Date issued:
               </Typography>
               <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
-                {currentItem?.DATE && fDateTime(date)}
+                {currentItem?.DATE && currentItem?.DATE}
               </Typography>
               {user?.role === 'patient' && <Stack>
                  <Stack direction="row" alignItems="center">

@@ -217,12 +217,12 @@ export default function AppointmentHistoryListView() {
   const { getItem } = useSessionStorage();
 
 
-  useEffect(() => {
-    const data = getItem('defaultFilters');
-    if (data?.clinic) {
-      filters.hospital = [Number(data?.clinic?.id)]
-    }
-  }, []);
+  // useEffect(() => {
+  //   const data = getItem('defaultFilters');
+  //   if (data?.clinic) {
+  //     filters.hospital = [Number(data?.clinic?.id)]
+  //   }
+  // }, []);
   // useEffect(() => {
   //   if (getDefaultFilters('clinic')) {
   //     let { clinic }: any = getDefaultFilters('clinic');

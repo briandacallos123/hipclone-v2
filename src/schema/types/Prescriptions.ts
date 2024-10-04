@@ -38,8 +38,28 @@ export const prescriptions = objectType({
     t.nullable.list.field('prescriptions_child', {
       type: prescriptions_child,
     });
+    t.nullable.field('prescription_template',{
+      type:prTemplate,
+      async resolve(t){
+        const data = await client.prescription_template.findFirst({
+          where:{
+            id:Number(t?.template_id)
+          }
+        });
+        return data;
+      }
+    })
   },
 });
+
+const prTemplate = objectType({
+  name:"prTemplate",
+  definition(t) {
+      t.string('name');
+      t.int('created_by');
+
+  },
+})
 
 const Prescription_List = objectType({
   name: 'Prescription_List',
@@ -96,7 +116,7 @@ const Prescription_Mutation_Type = objectType({
   },
 });
 
-const prescriptions_child = objectType({
+export const prescriptions_child = objectType({
   name: 'prescriptions_child',
   definition(t) {
     t.string('MEDICINE');
@@ -106,6 +126,7 @@ const prescriptions_child = objectType({
     t.string('QUANTITY');
     t.string('FREQUENCY');
     t.string('DURATION');
+    t.int('is_favorite')
     t.int('PR_ID');
 
     // t.nullable.list.field('Prescription_data', {
@@ -1213,7 +1234,7 @@ export const PrescriptionUpsertType = inputObjectType({
   name: 'PrescriptionUpsertType',
   definition(t) {
     t.nullable.string('PATIENT');
-    t.nonNull.string('tempId');
+    t.nullable.string('tempId');
     t.nullable.string('PATIENTEMR');
     t.nullable.string('REMARKS');
     t.nullable.int('REPORT_ID');
@@ -1222,6 +1243,9 @@ export const PrescriptionUpsertType = inputObjectType({
     t.nullable.string('DOCTOR');
     t.nullable.string('uuid');
     t.nullable.int('patientID');
+    t.nullable.boolean('isTemplate');
+    t.nullable.string('templateName');
+
     t.nullable.int('emrId');
     t.int('isEmr');
     // t.tree('items');
@@ -1241,6 +1265,7 @@ const Prescription_Child_Inputs = inputObjectType({
     t.nullable.string('FREQUENCY');
     t.nullable.string('DURATION');
     t.nullable.int('PR_ID');
+    t.nullable.int('is_favorite')
   },
 });
 
@@ -1371,6 +1396,9 @@ export const MutationPrescription = extendType({
           delete prescriptionInput.emrId;
           delete prescriptionInput.patientID;
           delete prescriptionInput.isEmr;
+          delete prescriptionInput.templateName;
+          delete prescriptionInput.isTemplate;
+
 
 
           let isExists = true;
@@ -1390,17 +1418,37 @@ export const MutationPrescription = extendType({
             }
           }
 
+         const doctorProfile = await client.employees.findFirst({
+          where:{
+            EMP_EMAIL:session?.user?.email
+          }
+         })
+         console.log(doctorProfile,'hahaha')
+
+         console.log(doctorProfile?.EMP_ID,'awittt')
+         
+          const prTemplate = await client.prescription_template.create({
+            data:{
+              name:args?.data?.templateName,
+              created_by:doctorProfile?.EMP_ID
+            }
+          })
+
           const parent = await client.prescriptions.create({
             data: {
               ...prescriptionInput,
               emrPatientID: isEmr === 2 ? emrId : null,
               patientID: patientId ? patientId?.patientInfo?.S_ID : patientEmrId?.patientID,
               PATIENT: String(patientId?.patientInfo?.IDNO),
-              presCode: VoucherCode
+              presCode: VoucherCode,
+              template_id:args?.data?.isTemplate && prTemplate?.id
             },
           });
 
+     
+
           const child = prescriptionChildInputs?.map(async (item) => {
+            
             const newChild = await client.prescriptions_child.create({
               data: {
                 ...item,
@@ -1408,12 +1456,29 @@ export const MutationPrescription = extendType({
               },
             });
 
+       
+
 
 
             return newChild;
           });
 
           const createdChildren = await Promise.all(child);
+
+       
+
+          // (async()=>{
+          //   if(args?.data?.isTemplate){
+          //     const ids = createdChildren?.map((item)=>item?.ID)
+
+          //     await client.prescription_template.create({
+          //       data:{
+          //         name:args?.data?.templateName,
+          //         pr_ids:JSON.stringify(ids)
+          //       }
+          //     })
+          //   }
+          // })();
 
           const doctorEmployee = await client.employees.findFirst({
             where: {

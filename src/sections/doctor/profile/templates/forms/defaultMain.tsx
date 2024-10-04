@@ -4,6 +4,7 @@ import Image from 'next/image';
 import React, { forwardRef } from 'react'
 import { LogoFull } from 'src/components/logo';
 import { bgGradient } from 'src/theme/css';
+import ImageAvatar from './ImageAvatar';
 
 type MainProps = {
   title: string;
@@ -20,7 +21,7 @@ const DefaultMain = forwardRef((props, ref) => {
 
   const { facebook: arrFb, twitter: arrTt, contact: arrContact, email: arrEmail, name: arrName, specialty: arrSpecialty } = arr;
 
-  console.log(selected,'selectedselectedselectedselected!')
+  console.log(selected, 'selectedselectedselectedselected!')
 
   return (
     <Paper elevation={4} ref={ref} sx={{
@@ -57,13 +58,22 @@ const DefaultMain = forwardRef((props, ref) => {
       </Stack>
 
       <Stack>
-        <Image
+        {/* <Image
           alt="qr image"
           style={{
             borderRadius: '50%'
           }}
           width={isSelected ? 100 : selected ? 80 : 50}
           height={isSelected ? 100 : selected ? 80 : 50}
+          src={photo}
+        /> */}
+        <ImageAvatar
+          width={isSelected ? 100 : selected ? 80 : 50}
+          height={isSelected ? 100 : selected ? 80 : 50}
+          alt="qr image"
+          style={{
+            borderRadius: '50%',
+          }}
           src={photo}
         />
       </Stack>

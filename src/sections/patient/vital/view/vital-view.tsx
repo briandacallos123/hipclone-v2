@@ -204,6 +204,10 @@ export default function PatientVitalView({ items, uuid }: Props) {
     dataResults.refetch()
   }
 
+  const refetchP2 = () => {
+    vitalDataResults.refetch()
+  }
+
   return (
     <>
       <Box>
@@ -217,7 +221,7 @@ export default function PatientVitalView({ items, uuid }: Props) {
           </Button>
         </Stack>
 
-        {chartData && <VitalView refetch={refetch} openSingle={openVitalSingle} items2={chart2Data} items={chartData} loading={dataResults.loading} />}
+        {chartData && <VitalView refetchP2={refetchP2} refetch={refetch} openSingle={openVitalSingle} items2={chart2Data} items={chartData} loading={dataResults.loading} />}
       </Box>
 
       <PatientVitalCreateView

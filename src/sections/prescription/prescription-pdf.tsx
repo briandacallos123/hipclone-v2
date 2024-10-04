@@ -130,7 +130,8 @@ export default function PrescriptionPDF({ item, qrImage }: Props) {
 
   const styles = useStyles();
 
-  const date = new Date(Number(item?.DATE));
+  // const date = new Date(Number(item?.DATE));
+  const date = item?.DATE
 
   const doctorInfo = item.doctorInfo?.DoctorClinics.filter((i: any) => {
     if (i?.clinic_name !== item.clinicInfo?.clinic_name) {
@@ -275,7 +276,7 @@ export default function PrescriptionPDF({ item, qrImage }: Props) {
             <Text style={styles.h4}>Prescription: #{item?.ID}</Text>
           </View>
           <View style={styles.col6}>
-            <Text style={styles.h4}>Date: {fDate(date)} </Text>
+            <Text style={styles.h4}>Date: {item?.date} </Text>
           </View>
           <View>
           <Image source={qrImage}   style={{ height: 70, width: 70}}/>

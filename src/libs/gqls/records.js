@@ -481,6 +481,7 @@ export const GET_RECORD_BY_PATIENT_USER = gql`
         isEMR
         CLINIC
         patientID
+        qrcode
         emrPatientID
         R_DATE
         doctorInfo {

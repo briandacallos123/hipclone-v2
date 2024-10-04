@@ -191,13 +191,13 @@ export default function NoteListView({
     dateError,
   });
 
-  useEffect(() => {
-    //  if(!refIds) return;
-    const data = getItem('defaultFilters');
-    if (data?.clinic) {
-      filters.hospital = [Number(data?.clinic?.id)]
-    }
-  }, []);
+  // default filters
+  // useEffect(() => {
+  //   const data = getItem('defaultFilters');
+  //   if (data?.clinic) {
+  //     filters.hospital = [Number(data?.clinic?.id)]
+  //   }
+  // }, []);
 
   const denseHeight = table.dense ? 56 : 76;
   const [isPatient, setIspatient] = useState<boolean>();
@@ -336,7 +336,7 @@ export default function NoteListView({
   const [noteData, setNoteData] = useState(null)
   const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
 
-  
+  console.log(imgSrc,'imgSrcimgSrc')
 
   const [openNotes, setOpenNotes] = useState(false);
 

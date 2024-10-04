@@ -50,7 +50,7 @@ import CustomPopover, { usePopover } from '@/components/custom-popover';
 import { MenuItem, Stack } from '@mui/material';
 import { isToday } from '@/utils/format-time';
 import { ConfirmDialog } from '@/components/custom-dialog';
-
+import { useAuthContext } from '@/auth/hooks';
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -62,10 +62,11 @@ type Props = {
 
 export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditRow }: any) {
   const view = useBoolean();
+
   const upMd = useResponsive('up', 'md');
   // const { textData, medClearData, medCertData, AbstractData, VaccData } = useNotesHooks(row);
   const confirm = useBoolean();
-
+  const {user } = useAuthContext()
 
   const renderConfirm = (
     <ConfirmDialog
@@ -563,11 +564,16 @@ export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditR
         {renderConfirm}
         <TableCell align="center" sx={{ px: 1 }}>
 
-          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
-            <Iconify icon="eva:more-vertical-fill" />
-          </IconButton>
+        
 
-          <Stack direction="row" justifyContent="flex-end">
+         {user?.role !== 'patient' ? 
+          <>
+          
+          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+           <Iconify icon="eva:more-vertical-fill" />
+         </IconButton>
+         
+         <Stack direction="row" justifyContent="flex-end">
             <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
 
               {isToday(row?.R_DATE) && <MenuItem
@@ -606,12 +612,13 @@ export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditR
 
             </CustomPopover>
           </Stack>
-
-          {/* <Tooltip title="View Details" placement="top" arrow>
+          </>:<Tooltip title="View Details" placement="top" arrow>
             <IconButton onClick={onViewRow}>
               <Iconify icon="solar:clipboard-text-bold" />
             </IconButton>
-          </Tooltip> */}
+          </Tooltip>}
+
+          
         </TableCell>
       </TableRow>
 

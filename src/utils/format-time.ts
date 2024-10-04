@@ -192,3 +192,14 @@ export function isToday(dateStr) {
   // Compare the year, month, and day
   return inputYear === currentYear && inputMonth === currentMonth && inputDay === currentDay;
 }
+
+export function dateForAppt(dateString){
+  const date = new Date(dateString);
+
+// Options for formatting
+const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+
+// Convert to readable format
+const readableDate = date.toLocaleDateString('en-US', options);
+return readableDate;
+}

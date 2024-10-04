@@ -82,7 +82,6 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
     setCollapseDesktop(!collapseDesktop);
   };
 
-  console.log(list,'listtttttttttt')
 
   const renderBtn = (
     <IconButton
@@ -174,7 +173,7 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
       variables:{
         data:{
           vital_id:Number(row?.id),
-          category_delete:row?.category,
+          category_delete:String(row?.category),
           dateCreated:row?.dataDate
         }
       }

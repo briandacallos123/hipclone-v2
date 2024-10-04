@@ -18,6 +18,8 @@ import { NavSectionVertical } from 'src/components/nav-section';
 import { NAV } from '../config-layout';
 import { useNavData } from './config-navigation';
 import { NavToggleButton, NavFooter } from '../_common';
+import Link from 'next/link';
+import { paths } from '@/routes/paths';
 
 // ----------------------------------------------------------------------
 
@@ -54,7 +56,11 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
         },
       }}
     >
-      <LogoFull sx={{ mt: 3, ml: 4, mb: 1 }} />
+
+
+      <Link href={paths.dashboard.root}>
+       <LogoFull sx={{ mt: 3, ml: 4, mb: 1 }} />
+      </Link>
 
       <NavSectionVertical
         data={navData}

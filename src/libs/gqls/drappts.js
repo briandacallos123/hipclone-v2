@@ -677,3 +677,65 @@ export const UpdateAppointmentM = gql`
     }
   }
 `;
+
+export const QueryPatientIncomingAppt = gql`
+  query QueryPatientIncomingAppt($data: QueryPatientIncomingApptTypeInp!) {
+    QueryPatientIncomingAppt(data: $data) {
+      appointments_data {
+        AddRequest
+        Others
+        date
+        doctorID
+        doctor_no
+        e_time
+        hmo
+        time_slot
+        isToday
+        member_id
+        patientID
+        p_ref
+        patientInfo {
+          ACCUPATION
+          AGE
+          userInfo {
+            id
+          }
+          MNAME
+          LNAME
+          FNAME
+        }
+        doctorInfo {
+          CONTACT_NO
+          EMPID
+          FEES
+          EMP_MNAME
+          EMP_TITLE
+          EMP_LNAME
+          EMP_ID
+          EMP_FNAME
+          EMP_ATTACHMENT {
+            filename
+          }
+        }
+        doctorPayment {
+          filename
+          dp_id
+          date
+        }
+        clinic
+        clinicInfo {
+          Province
+          clinicDPInfo {
+            clinic
+            date
+            doctorID
+            filename
+          }
+          clinic_name
+        }
+        id
+      }
+      total_records
+    }
+  }
+`;

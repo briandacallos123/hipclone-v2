@@ -354,13 +354,13 @@ export default function ImagingListView({editData, setEditData, data_slug, actio
     }
   }, [tableData1]);
 
-  useEffect(() => {
-    if(!id) return;
-    const data = getItem('defaultFilters');
-    if (data?.clinic) {
-      filters.clinic = [Number(data?.clinic?.id)]
-    }
-  }, []);
+  // useEffect(() => {
+  //   if(!id) return;
+  //   const data = getItem('defaultFilters');
+  //   if (data?.clinic) {
+  //     filters.clinic = [Number(data?.clinic?.id)]
+  //   }
+  // }, []);
 
   const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
   const [noteData, setNoteData] = useState(null)

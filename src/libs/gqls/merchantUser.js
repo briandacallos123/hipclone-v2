@@ -107,3 +107,68 @@ export const QueryAllMedecineForMerchant = gql`
     }
   }
 `;
+
+
+
+export const QueryAllMedicines = gql`
+  query QueryAllMedicines($data: QueryAllMedicinesInp!) {
+    QueryAllMedicines(data: $data) {
+      medicine_data{
+        GenericName
+        Dose
+        Form
+        ID
+        Price
+      }
+      total_records
+    }
+  }
+`;
+
+
+export const QueryAllFavorites = gql`
+  query QueryAllFavorites($data: QueryAllFavoritesInp!) {
+    QueryAllFavorites(data: $data) {
+      prescription{
+        MEDICINE
+        MED_BRAND
+        DOSE
+        QUANTITY
+        FORM
+        FREQUENCY
+        DURATION
+        is_favorite
+        PR_ID
+      }
+      totalRecords
+    }
+  }
+`;
+
+export const QueryAllTemplates = gql`
+  query QueryAllTemplates($data: QueryAllFavoritesInp!) {
+    QueryAllTemplates(data: $data) {
+      allPrescriptions {
+        ID
+        prescription_child {
+          DOSE
+          DURATION
+          FORM
+          FREQUENCY
+          MED_BRAND
+          QUANTITY
+          MEDICINE
+        }
+        prescription_template {
+          name
+          id
+        }
+      }
+    }
+  }
+`;
+
+
+
+
+

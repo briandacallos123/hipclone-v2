@@ -58,6 +58,7 @@ import { C } from '@fullcalendar/core/internal-common';
 import { useAuthContext } from 'src/auth/hooks';
 import { useContextData } from '../../@view/patient-details-view';
 import { useSessionStorage } from '@/hooks/use-sessionStorage';
+import PrescriptionCreateFull from '../prescription-create-full';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -74,7 +75,7 @@ const defaultFilters = {
   hospital: [],
   startDate: null,
   endDate: null,
-  reset:false
+  reset: false
 };
 
 // ----------------------------------------------------------------------
@@ -89,6 +90,20 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   const table = useTable({ defaultOrderBy: 'date', defaultOrder: 'desc' });
   const { user, getDefaultFilters } = useAuthContext();
   const openCreate = useBoolean();
+  const openCreateFull = useBoolean();
+
+  const [windowObject, setWindowObject] = useState(null);
+
+  useEffect(() => {
+    // Set the window object when the component mounts
+    setWindowObject(window);
+
+    // Optionally, clean up or handle resizing, etc.
+    return () => {
+      setWindowObject(null); // Cleanup if needed
+    };
+  }, []); // 
+
   const { allData, setAllData }: any = useContextData();
   const [fetchAll, setFetchAll] = useState(true);
 
@@ -112,12 +127,13 @@ export default function PatientPrescriptionListView({ slug }: Props) {
 
   const dateError = isDateError(filters.startDate, filters.endDate);
 
- 
+
   const { loading: clinicLoading, data: clinicData } = useQuery(DR_CLINICS);
+  console.log(clinicData,'sa main')
   const containsLetters = (value: any) => /[a-zA-Z]/.test(value);
   const [smartFilters, setSmartFilters]: any = useState(null);
   const { getItem } = useSessionStorage();
-  
+
   const [isLoading, setIsLoading] = useState(true);
 
   const {
@@ -145,7 +161,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
         clinicID: (() => {
           const myArray: any = [];
 
-         
+
 
           filters?.hospital?.map((i: any) => {
             clinicData?.doctorClinics?.map((c: any) => {
@@ -228,7 +244,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   const SubmitClient = (data: any, caller: any) => {
     setOpenEdit(null);
     setEditId(null);
-   
+
     const tempClinicData = clinicData?.doctorClinics?.filter(
       (i) => Number(i?.id) === Number(data?.CLINIC?.id)
     );
@@ -288,10 +304,10 @@ export default function PatientPrescriptionListView({ slug }: Props) {
       .slice(0, rowsPerPage);
 
     setTableData(findSingle);
-  
+
   }
 
-  const removeAdded = () => {};
+  const removeAdded = () => { };
 
   useEffect(() => {
     if (tempData) {
@@ -330,12 +346,12 @@ export default function PatientPrescriptionListView({ slug }: Props) {
     dateError,
   });
 
-  useEffect(() => {
-    const data = getItem('defaultFilters');
-    if (data?.clinic) {
-      filters.hospital = [data?.clinic?.clinic_name]
-    }
-  }, []);
+  // useEffect(() => {
+  //   const data = getItem('defaultFilters');
+  //   if (data?.clinic) {
+  //     filters.hospital = [data?.clinic?.clinic_name]
+  //   }
+  // }, []);
 
   // const loading = false;
 
@@ -380,25 +396,25 @@ export default function PatientPrescriptionListView({ slug }: Props) {
 
   const handleResetFilters = useCallback(() => {
     setFilters({
-      
+
       name: '',
       hospital: [],
       startDate: null,
       endDate: null,
-      reset:false
+      reset: false
 
     });
   }, []);
 
-  const handleDeleteRow = (row:any) => {
+  const handleDeleteRow = (row: any) => {
     createMedFunc({
-      variables:{
-        data:{
-          prescription_id:Number(row?.ID),
-          dateCreated:row?.DATE
+      variables: {
+        data: {
+          prescription_id: Number(row?.ID),
+          dateCreated: row?.DATE
         }
       }
-    }).then((res)=>{
+    }).then((res) => {
       refetch();
     })
   }
@@ -406,17 +422,6 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   return (
     <>
       <Box>
-        {/* <Stack direction="row" alignItems="center" justifyContent="flex-end" sx={{ mb: 3 }}>
-          <Button
-            onClick={openCreate.onTrue}
-            variant="contained"
-            disabled={loading}
-            startIcon={<Iconify icon="mingcute:add-line" />}
-          >
-            New Prescription
-          </Button>
-        </Stack> */}
-
         <Card>
           <PatientPrescriptionTableToolbar
             filters={filters}
@@ -425,43 +430,44 @@ export default function PatientPrescriptionListView({ slug }: Props) {
             action={
               upMd
                 ? (() => {
-                    if (user?.role === 'secretary' || user?.role === 'doctor') {
-                      if (user?.permissions?.lab_result === 1 && user?.role === 'secretary') {
-                        return <></>;
-                      }
-                      if (user?.role === 'doctor') {
-                        return (
-                          <Button
-                            onClick={openCreate.onTrue}
-                            variant="contained"
-                            disabled={loading}
-                            startIcon={<Iconify icon="mingcute:add-line" />}
-                            sx={{ ml: 2, width: 180 }}
-                          >
-                            New Prescription
-                          </Button>
-                        );
-                      }
+                  if (user?.role === 'secretary' || user?.role === 'doctor') {
+                    if (user?.permissions?.lab_result === 1 && user?.role === 'secretary') {
+                      return <></>;
                     }
-                  })()
+                    if (user?.role === 'doctor') {
+                      return (
+                        <Button
+                          // onClick={openCreate.onTrue}
+                          onClick={openCreateFull.onTrue}
+                          variant="contained"
+                          disabled={loading}
+                          startIcon={<Iconify icon="mingcute:add-line" />}
+                          sx={{ ml: 2, width: 180 }}
+                        >
+                          New Prescription
+                        </Button>
+                      );
+                    }
+                  }
+                })()
                 : (() => {
-                    if (user?.role === 'secretary' || user?.role === 'doctor') {
-                      if (user?.permissions?.lab_result === 1 && user?.role === 'secretary') {
-                        return (
-                          <IconButton onClick={openCreate.onTrue}>
-                            <Iconify icon="mingcute:add-line" />
-                          </IconButton>
-                        );
-                      }
-                      if (user?.role === 'doctor') {
-                        return (
-                          <IconButton onClick={openCreate.onTrue}>
-                            <Iconify icon="mingcute:add-line" />
-                          </IconButton>
-                        );
-                      }
+                  if (user?.role === 'secretary' || user?.role === 'doctor') {
+                    if (user?.permissions?.lab_result === 1 && user?.role === 'secretary') {
+                      return (
+                        <IconButton onClick={openCreate.onTrue}>
+                          <Iconify icon="mingcute:add-line" />
+                        </IconButton>
+                      );
                     }
-                  })()
+                    if (user?.role === 'doctor') {
+                      return (
+                        <IconButton onClick={openCreateFull.onTrue}>
+                          <Iconify icon="mingcute:add-line" />
+                        </IconButton>
+                      );
+                    }
+                  }
+                })()
             }
             //
             // hospitalOptions={HOSPITAL_OPTIONS.map((option) => option)}
@@ -505,7 +511,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
                         row={row}
                         onEditRow={() => handleEditRow(row)}
                         onViewRow={() => handleViewRow(row)}
-                        onDeleteRow={()=>handleDeleteRow(row)}
+                        onDeleteRow={() => handleDeleteRow(row)}
                       />
                     ))}
 
@@ -559,12 +565,36 @@ export default function PatientPrescriptionListView({ slug }: Props) {
         }}
         queryData={queryData}
         SubmitClient={SubmitClient}
-      
+
         refetch={refetch}
         runCatch={() => {
           setIsFail(true);
         }}
         tempId={tempId && tempId}
+      />
+
+{/* <PrescriptionNewEditForm
+        clinic={clinicData}
+        currentItem={null}
+        onClose={onClose}
+        queryData={queryData}
+        SubmitClient={SubmitClient}
+        tempId={tempId}
+        onCloseView={() => {
+          console.log('running');
+        }}
+        // setIsRefetch={setIsRefetch}/
+        runCatch={runCatch}
+        refetch={refetch}
+      /> */}
+
+      <PrescriptionCreateFull
+        clinicData={clinicData}
+        open={openCreateFull.value}
+        onClose={openCreateFull.onFalse}
+        window={windowObject}
+        refetch={refetch}
+
       />
       {/*  */}
       <PrescriptionEditView

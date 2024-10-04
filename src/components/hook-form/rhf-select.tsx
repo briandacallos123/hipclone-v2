@@ -53,9 +53,11 @@ export function RHFSelect({
                   ...PaperPropsSx,
                 },
               },
+              disableScrollLock: true, // Add this line
             },
             sx: { textTransform: 'capitalize' },
           }}
+          
           error={!!error}
           helperText={error ? error?.message : helperText}
           {...other}

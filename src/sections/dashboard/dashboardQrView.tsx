@@ -130,12 +130,19 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
                 {/* Sound */}
               </Typography>
               <IconButton
-                edge="start"
-                color="inherit"
-                onClick={handleClose}
-                aria-label="close"
-              >
-                <CloseIcon />
+                      edge="start"
+                      onClick={handleClose}
+                      aria-label="close"
+                      sx={{
+                        p:2,
+                        background:'black',
+                        color:'white',
+                        '&:hover':{
+                          background:'#4c4d4c',
+                        }
+                      }}
+                    >
+                      <CloseIcon />
               </IconButton>
             </Toolbar>
           </AppBar>

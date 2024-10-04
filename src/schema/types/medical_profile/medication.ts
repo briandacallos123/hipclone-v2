@@ -296,16 +296,14 @@ export const view_patient_medication_data = extendType({
             }
           })
 
-          console.log(patientInfo, 'patientInfopatientInfopatientInfo')
-
+       
           const emrPatientId = await client.emr_patient.findFirst({
             where: {
               patientID: Number(patientInfo?.patientInfo?.S_ID)
             }
           })
 
-          console.log(emrPatientId, 'emrPatientIdemrPatientIdemrPatientId')
-
+    
 
 
           // console.log(patientInfo,"@@@@2")

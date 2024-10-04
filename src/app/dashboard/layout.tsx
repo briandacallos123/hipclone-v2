@@ -51,14 +51,15 @@ export default function Layout({ children }: Props) {
 
 
   
-const StyledComponent = styled('div')({
-  background: `url('/assets/background/queue-bg.jpg')`,
-  backgroundSize: 'cover',
-  backgroundRepeat: 'no-repeat',
-  minHeight: '100vh', // Adjust the height as needed 
-  width: '100vw',
-  
-});
+  const StyledComponent = styled('div')({
+    background: `url('/assets/background/queue-bg.jpg')`,
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    backgroundAttachment: 'fixed', // This makes the background fixed
+    minHeight: '100vh',
+    width: '100vw',
+  });
 
   return (
     <AuthGuard>

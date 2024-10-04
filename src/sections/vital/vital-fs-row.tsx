@@ -5,6 +5,7 @@ import { useBoolean } from '@/hooks/use-boolean';
 import { fDateTime } from '@/utils/format-time';
 import { Button, MenuItem, Stack, TableCell, TableRow } from '@mui/material';
 import IconButton from '@mui/material/IconButton';
+import { isToday } from '@/utils/format-time';
 
 import React from 'react'
 
@@ -34,6 +35,7 @@ const VitalFullScreenRow = ({row, handleDelete}:any) => {
         />
       );
     
+      console.log(row,'rowwwwwwwww')
 
   return (
     <TableRow hover>
@@ -71,6 +73,7 @@ const VitalFullScreenRow = ({row, handleDelete}:any) => {
 
         {/* {isToday(row?.R_DATE) && } */}
         <MenuItem
+        disabled={!isToday(row?.dataDate)}
           onClick={() => {
             confirm.onTrue();
             popover.onClose();

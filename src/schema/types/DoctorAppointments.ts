@@ -39,6 +39,7 @@ const DoctorInfoObjectFields = objectType({
     t.nullable.string('EMP_FULLNAME');
     t.nullable.string('EMP_FNAME');
     t.nullable.string('EMP_MNAME');
+    t.nullable.string('EMP_TITLE');
     t.nullable.string('EMP_LNAME');
     t.nullable.string('EMP_SUFFIX');
     t.nullable.string('CONTACT_NO');
@@ -48,8 +49,38 @@ const DoctorInfoObjectFields = objectType({
     t.nullable.string('MEDCERT_FEE'); //  = 1
     t.nullable.string('MEDCLEAR_FEE'); //  = 2
     t.nullable.string('MEDABSTRACT_FEE'); //  = 3
+    t.nullable.field('EMP_ATTACHMENT',{
+      type:EMP_ATTACHMENT,
+      async resolve(t){
+
+        const user = await client.user.findFirst({
+          where:{
+            email:t?.EMP_EMAIL
+          }
+        });
+
+        const attachment = await client.display_picture.findFirst({
+          where:{
+            userID:Number(user?.id)
+          },
+          orderBy:{
+            uploaded:'desc'
+          }
+        });
+
+        return attachment;
+
+      }
+    })
   },
 });
+
+const EMP_ATTACHMENT = objectType({
+  name:"EMP_ATTACHMENT",
+  definition(t) {
+      t.string('filename');
+  },
+})
 
 const ClinicDPObjectFields = objectType({
   name: 'ClinicDPObjectFields',
@@ -2803,6 +2834,111 @@ export const QueryTakenTimeSlot = extendType({
             },
           });
           return result;
+          // console.log('Appointments:', result);
+        } catch (error) {
+          return new GraphQLError(error);
+        }
+      },
+    });
+  },
+});
+
+
+const QueryPatientIncomingApptType = objectType({
+  name:'QueryPatientIncomingApptType',
+  definition(t) {
+    t.nullable.list.field('appointments_data', {
+      type: DoctorAppointments,
+    });
+    t.nullable.int('total_records');
+  },
+})
+
+const QueryPatientIncomingApptTypeInp = inputObjectType({
+  name:"QueryPatientIncomingApptTypeInp",
+  definition(t) {
+      t.nullable.int('take');
+      t.nullable.int('skip');
+  },
+})
+
+export const QueryPatientIncomingAppt = extendType({
+  type: 'Query',
+  definition(t) {
+    t.field('QueryPatientIncomingAppt', {
+      type: QueryPatientIncomingApptType,
+      args:{data:QueryPatientIncomingApptTypeInp},
+      async resolve(_parent, args, ctx) {
+     
+        const {take, skip} = args?.data;
+
+        const currentDateBackward = new Date();
+        currentDateBackward.setHours(23, 59, 59, 59);
+
+        const currentDate = new Date();
+        const formattedDate = currentDate.toISOString().slice(0, 10);
+        const formattedDateAsDate = new Date(formattedDate);
+        
+        const { session } = ctx;
+        await cancelServerQueryRequest(
+          client,
+          session?.user?.id,
+          '`Upcomming`',
+          'PatientUpcomingAppt'
+        );
+        try {
+        
+
+          const result: any = await client.appointments.findMany({
+            take,
+            skip,
+            where: {
+              patientID: session?.user?.s_id,
+              status:1,
+              NOT: [{ time_slot: null }, { patientInfo: null }],
+              clinicInfo: {
+                isDeleted: 0,
+                NOT: [{ clinic_name: null }, { clinic_name: '' }],
+              },
+              date: {
+                gte: formattedDateAsDate,
+
+              },
+            },
+            include: {
+              patientInfo: {
+                include: {
+                  userInfo: true,
+                  patientHmoInfo: {
+                    include: {
+                      hmoInfo: true,
+                    },
+                  },
+                },
+              },
+              clinicInfo: {
+                include: {
+                  clinicDPInfo: {
+                    orderBy: {
+                      id: 'desc',
+                    },
+                  },
+                },
+              },
+              doctorInfo: true,
+              appt_hmo_attachment: true,
+              appt_payment_attachment: true,
+              hmo_claims: true,
+            },
+            orderBy:{
+              add_date:'desc'
+            }
+
+          });
+          return {
+            appointments_data:result,
+            total_records:result?.length
+          };
           // console.log('Appointments:', result);
         } catch (error) {
           return new GraphQLError(error);

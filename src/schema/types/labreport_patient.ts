@@ -504,7 +504,7 @@ export const labreport_patient_data = extendType({
           });
 
           if (emrPatientId && Number(emrPatientId?.link) === 1) {
-            console.log("dito sa unahan")
+          
             const [labreport, _count, count]: any = await client.$transaction([
               client.labreport.findMany({
                 take,
@@ -607,7 +607,6 @@ export const labreport_patient_data = extendType({
               total_records: Number(_total?._count?.id),
               // summary_total: total_summary
             };
-            console.log(response, 'RESPONSE SA unahan')
 
 
             return response;

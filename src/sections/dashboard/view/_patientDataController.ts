@@ -11,6 +11,7 @@ import { useAuthContext } from 'src/auth/hooks';
 
 import { useTable } from 'src/components/table';
 import { useSnackbar } from 'src/components/snackbar';
+import { QueryPatientIncomingAppt } from '@/libs/gqls/drappts';
 
 export default function PatientDataController() {
   const [allData, setAllData] = useState<any[]>([]);
@@ -22,6 +23,8 @@ export default function PatientDataController() {
     },
     notifyOnNetworkStatusChange: true,
   });
+
+
 
   useEffect(() => {
     async function fetchData() {

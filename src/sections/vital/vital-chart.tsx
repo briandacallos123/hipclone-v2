@@ -135,6 +135,8 @@ export default function VitalChart({
           subheader={subheader}
           percent={2.6}
           total={765}
+        refetch={refetch}
+
           chart={{
             series: data,
           }}
@@ -154,7 +156,6 @@ export default function VitalChart({
           }}
         />
       )}
-
       <VitalFullscreen
         title={title}
         open={open.value}

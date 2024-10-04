@@ -59,7 +59,7 @@ export default function PrescriptionTableRow({ row, onViewRow }: Props) {
             secondary={
               <>
                 <Typography variant="caption">{row?.clinicInfo?.clinic_name}</Typography>
-                <Typography variant="caption">{timestampToDate(row?.DATE)}</Typography>
+                <Typography variant="caption">{row?.DATE}</Typography>
               </>
             }
             primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
@@ -163,7 +163,7 @@ export default function PrescriptionTableRow({ row, onViewRow }: Props) {
                   </Label>
             </TableCell>}
 
-      <TableCell>{timestampToDate(row?.DATE)}</TableCell>
+      <TableCell>{row?.DATE}</TableCell>
       {/* <TableCell>{''}</TableCell> */}
 
       <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>

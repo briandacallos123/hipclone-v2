@@ -141,7 +141,7 @@ const LogoFull = forwardRef<HTMLDivElement, LogoFullProps>(
     }
 
     return (
-      <Link component={RouterLink} href="/" sx={{ display: 'contents' }}>
+      <Link  sx={{ display: 'contents' }}>
         {logo}
       </Link>
     );

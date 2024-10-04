@@ -958,9 +958,16 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
 
                     <IconButton
                       edge="start"
-                      color="inherit"
                       onClick={handleClose}
                       aria-label="close"
+                      sx={{
+                        p:2,
+                        background:'black',
+                        color:'white',
+                        '&:hover':{
+                          background:'#4c4d4c',
+                        }
+                      }}
                     >
                       <CloseIcon />
                     </IconButton>

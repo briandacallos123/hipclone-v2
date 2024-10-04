@@ -25,6 +25,8 @@ import { useCheckoutContext } from '@/context/checkout/Checkout';
 import { useOrdersContext } from '@/context/checkout/CreateOrder';
 import HeaderOrders from '../_common/header-order';
 import QueuePopover from '../_common/queue-popover';
+import Link from 'next/link';
+import { paths } from '@/routes/paths';
 
 // ----------------------------------------------------------------------
 
@@ -89,7 +91,9 @@ export default function Header({ onOpenNav }: Props) {
 
   const renderContent = (
     <>
-      {lgUp && isNavHorizontal && <LogoFull sx={{ mr: 2.5 }} />}
+      {lgUp && isNavHorizontal && <Link href={paths.dashboard.root}>
+        <LogoFull sx={{ mr: 2.5 }} />
+      </Link>}
 
       {!lgUp && (
         <IconButton onClick={onOpenNav}>
