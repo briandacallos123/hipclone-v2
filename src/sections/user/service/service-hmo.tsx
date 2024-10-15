@@ -25,7 +25,7 @@ import { v4 as uuidv4 } from 'uuid';
 
 // ----------------------------------------------------------------------
 
-export default function ServiceHmo() {
+export default function ServiceHmo({ tutorialTab, incrementTutsTab }: any) {
   const [user] = useState<IUserService>(_userService);
   const theme = useTheme();
 
@@ -166,67 +166,72 @@ export default function ServiceHmo() {
 
   return (
     <>
-      <Card>
-        <CardHeader
-          title="HMO Accreditations"
-          subheader="HIP is accredited by Cocolife. Updating the accreditation status is between doctor and HMO."
-          action={
-            <Button
-              onClick={openEdit.onTrue}
-              variant="contained"
-              disabled={loading}
-              startIcon={<Iconify icon="solar:pen-2-bold" />}
-            >
-              Configure
-            </Button>
-          }
-        />
+      <div className={tutorialTab && tutorialTab === 10 ? 'service-fee':''}>
+        <Card>
+          <CardHeader
+            title="HMO Accreditations"
+            subheader="HIP is accredited by Cocolife. Updating the accreditation status is between doctor and HMO."
+            action={
+              <Button
+                onClick={openEdit.onTrue}
+                variant="contained"
+                disabled={loading}
+                startIcon={<Iconify icon="solar:pen-2-bold" />}
+              >
+                Configure
+              </Button>
+            }
+          />
 
-        <Box
-          gap={1}
-          display="grid"
-          gridTemplateColumns={{
-            xs: 'repeat(1, 1fr)',
-            sm: 'repeat(3, 1fr)',
-          }}
-          sx={{ p: 3 }}
-        >
-          {tableData?.map((i) => (
-            <Paper
-              key={i.name}
-              sx={{
-                p: 3,
-                width: 1,
-                bgcolor: 'background.neutral',
-                display: 'flex',
-                alignItems: 'center',
-                transition: 'all 2s ease',
-                ...(i.client === 1 && {
-                  bgcolor: 'primary.lighter',
-                  transition: 'all 300ms ease',
-                }),
-              }}
-            >
-              <Image
-                alt={i.name}
-                src={imgReader(Number(i.id))}
-                sx={{ mr: 2, height: 48, width: 48, borderRadius: 1 }}
-              />
+          <Box
+            gap={1}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              sm: 'repeat(3, 1fr)',
+            }}
+            sx={{ p: 3 }}
+          >
+            {tableData?.map((i) => (
+              <Paper
+                key={i.name}
+                sx={{
+                  p: 3,
+                  width: 1,
+                  bgcolor: 'background.neutral',
+                  display: 'flex',
+                  alignItems: 'center',
+                  transition: 'all 2s ease',
+                  ...(i.client === 1 && {
+                    bgcolor: 'primary.lighter',
+                    transition: 'all 300ms ease',
+                  }),
+                }}
+              >
+                <Image
+                  alt={i.name}
+                  src={imgReader(Number(i.id))}
+                  sx={{ mr: 2, height: 48, width: 48, borderRadius: 1 }}
+                />
 
-              <Typography variant="subtitle1">{i.name}</Typography>
-            </Paper>
-          ))}
-        </Box>
-      </Card>
-
-      <ServiceHmoEditForm
+                <Typography variant="subtitle1">{i.name}</Typography>
+              </Paper>
+            ))}
+          </Box>
+        </Card>
+        <ServiceHmoEditForm
         currentItem={data}
         open={openEdit.value}
         refetch={refetch}
         appendData={appendData}
         onClose={openEdit.onFalse}
         onSuccess={onSuccess}
+        incrementTutsTab={incrementTutsTab}
       />
+
+      </div>
+
+     
     </>
   );
 }

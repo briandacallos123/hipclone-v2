@@ -25,6 +25,8 @@ import { useLazyQuery } from '@apollo/client';
 import { useMutation } from '@apollo/client';
 import { mutation_create_sub_account, email_validation, mobile_no_validation } from '@/libs/gqls/sub_accounts';
 import { useAuthContext } from '@/auth/hooks';
+import { useRouter } from 'next/navigation';
+import { paths } from '@/routes/paths';
 
 
 
@@ -41,6 +43,8 @@ type Props = {
 export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsRefetch,refetch }: Props) {
   const { enqueueSnackbar,closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]:any = useState(null);
+
+  const router = useRouter();
 
   const showPass = useBoolean();
   // console.log(refetch,"refetch")
@@ -66,6 +70,7 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
   );
 
 
+  const currentStep = localStorage?.getItem('currentStep')
 
 
 
@@ -160,6 +165,11 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
     lastName: Yup.string().required('LastName is required'),
     middleName: Yup.string().required('MiddleName is required'),
     gender: Yup.string().required('Gender is required'),
+    email: Yup.string()
+    .required('Email is required')
+    .email('Email must be a valid email address')
+    .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email must be a valid email format'),
+
   });
 
 
@@ -228,6 +238,11 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
         enqueueSnackbar('Create Sub Account Successfully!');
         refetch();
         setLoading(false)
+
+        if(currentStep && Number(currentStep) !== 100){
+          localStorage.setItem('currentStep','13');
+          router.push(paths.dashboard.user.manage.login)
+        }
       })
       .catch((error) => { 
         closeSnackbar(snackKey);
@@ -243,36 +258,44 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
       setLoading(true)
 
       try {
-        if (messageMobilePhoneData === "Phone Number Already Taken"){
-          enqueueSnackbar('Mobile number already taken', { variant: 'error' });
-        }
-        else if (messageEmailData === "Email Already Taken"){
-          enqueueSnackbar('Email already taken', { variant: 'error' });
-        }else{
-          const snackbarKey:any = enqueueSnackbar('Creating Sub Account...', {
-            variant: 'info',
-            key: 'UpdatingPhoneNumber',
-            persist: true, // Do not auto-hide
-          });
-          setSnackKey(snackbarKey);
-          onClose();
-        }
 
-        if (!emailValidation && !MobileNoValidation ) {
-          enqueueSnackbar('Email and Phone Number is required', { variant: 'error' });
-        }else if (!emailValidation ){
-          enqueueSnackbar('Email is required', { variant: 'error' });
-        }else if(!MobileNoValidation) {
-          enqueueSnackbar('Phone Number is required', { variant: 'error' });
-        }else {
-          const snackbarKey:any = enqueueSnackbar('Creating Sub Account...', {
-            variant: 'info',
-            key: 'UpdatingPhoneNumber',
-            persist: true, // Do not auto-hide
-          });
-          setSnackKey(snackbarKey);
-          onClose();
-        }
+        const snackbarKey:any = enqueueSnackbar('Creating Sub Account...', {
+          variant: 'info',
+          key: 'UpdatingPhoneNumber',
+          persist: true, // Do not auto-hide
+        });
+        setSnackKey(snackbarKey);
+        onClose();
+        // if (messageMobilePhoneData === "Phone Number Already Taken"){
+        //   enqueueSnackbar('Mobile number already taken', { variant: 'error' });
+        // }
+        // else if (messageEmailData === "Email Already Taken"){
+        //   enqueueSnackbar('Email already taken', { variant: 'error' });
+        // }else{
+        //   const snackbarKey:any = enqueueSnackbar('Creating Sub Account...', {
+        //     variant: 'info',
+        //     key: 'UpdatingPhoneNumber',
+        //     persist: true, // Do not auto-hide
+        //   });
+        //   setSnackKey(snackbarKey);
+        //   onClose();
+        // }
+
+        // if (!emailValidation && !MobileNoValidation ) {
+        //   enqueueSnackbar('Email and Phone Number is required', { variant: 'error' });
+        // }else if (!emailValidation ){
+        //   enqueueSnackbar('Email is required', { variant: 'error' });
+        // }else if(!MobileNoValidation) {
+        //   enqueueSnackbar('Phone Number is required', { variant: 'error' });
+        // }else {
+        //   const snackbarKey:any = enqueueSnackbar('Creating Sub Account...', {
+        //     variant: 'info',
+        //     key: 'UpdatingPhoneNumber',
+        //     persist: true, // Do not auto-hide
+        //   });
+        //   setSnackKey(snackbarKey);
+        //   onClose();
+        // }
       } catch (error) {
         console.error(error);
       }
@@ -322,23 +345,23 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
               name="email"
               type='email'
               label="Email Address"
-              onChange={handleEmailChange}
-              onFocus={handleEmailChange}
-              onKeyDown={handleEmailChange}
-              value={emailValidation}
-              helperText={
-                <>
-                  {emailValidation ?
-                    (statusEmailData === 'Failed' && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
-                      *{messageEmailData}
-                    </Typography>
-                    ) :
-                    (noValueEmail && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
-                      *Email is required
-                    </Typography>)
-                  }
-                </>
-              }
+              // onChange={handleEmailChange}
+              // onFocus={handleEmailChange}
+              // onKeyDown={handleEmailChange}
+              // value={emailValidation}
+              // helperText={
+              //   <>
+              //     {emailValidation ?
+              //       (statusEmailData === 'Failed' && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
+              //         *{messageEmailData}
+              //       </Typography>
+              //       ) :
+              //       (noValueEmail && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
+              //         *Email is required
+              //       </Typography>)
+              //     }
+              //   </>
+              // }
             />
 
             <RHFTextField

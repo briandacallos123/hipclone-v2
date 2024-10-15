@@ -67,6 +67,7 @@ type Props = {
   editData?:any;
   closeTab?:any;
   qrImage?:any;
+  clinicData?:any;
 }
 
 type StyledPaperProps = {
@@ -112,7 +113,7 @@ const TextFieldStyle = styled(TextField)(({ theme }) => ({
     },
   },
 }));
-export default function NoteNewFormLaboratory({qrImage, editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormLaboratory({clinicData, qrImage, editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const { getItem } = useSessionStorage();
@@ -166,24 +167,6 @@ export default function NoteNewFormLaboratory({qrImage, editData, onClose, refId
     // console.log('PAYLOAD', event.target.value);
   };
 
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-  const [clinicData, setclinicData] = useState<any>([]);
-
-  useEffect(() => {
-    drClinicFetch().then((result: any) => {
-      const { data } = result;
-      if (data) {
-        const { doctorClinics } = data;
-        setclinicData(doctorClinics);
-      }
-    });
-    return () => drClinicFetch();
-  }, []);
 
   const isMd = useResponsive('up', 'md');
 
@@ -237,12 +220,12 @@ export default function NoteNewFormLaboratory({qrImage, editData, onClose, refId
  
   const values = watch();
 
-  useEffect(() => {
-    const data = getItem('defaultFilters');
-    if (data?.clinic) {
-      setValue('hospitalId', Number(data?.clinic?.id));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const data = getItem('defaultFilters');
+  //   if (data?.clinic) {
+  //     setValue('hospitalId', Number(data?.clinic?.id));
+  //   }
+  // }, []);
 
   // console.log('data: ', values);
 

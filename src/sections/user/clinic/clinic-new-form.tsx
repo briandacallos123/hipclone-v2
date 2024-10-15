@@ -80,6 +80,14 @@ export default function ClinicNewForm({
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
+
+  const [limitReq, setLimitReq] = useState(false);
+
+  const isLimitReq = limitReq && {
+    limitValue:Yup.string().required('Patient Limit is required'),
+  }
+
+
   const CreateUserSchema = Yup.object().shape({
     clinic_name: Yup.string().required('Clinic name is required'),
     number: Yup.number().required('Number is required').typeError('Number must be a number'),
@@ -88,8 +96,10 @@ export default function ClinicNewForm({
     // avatarUrl: '',
     type: Yup.array().required('Type is required').min(1, 'At least one type is required'),
     days: Yup.array().required('Days are required').min(1, 'At least one day is required'),
-
+    start_time:Yup.string().required('Start time is required'),
+    end_time:Yup.string().required('End time is required'),
     time_interval: Yup.string().required('Time interval is required'),
+    ...isLimitReq
   });
   // const UpdateUserSchema = Yup.object().shape({
   //   password: Yup.string().required('New Password is required').min(6, 'Password must be at least 6 characters'),
@@ -129,12 +139,30 @@ export default function ClinicNewForm({
   } = methods;
   const values = watch();
 
+  useEffect(()=>{
+    if(values.time_interval === '10'){
+      setLimitReq(true)
+    }
+  },[values.time_interval])
+
+  console.log(limitReq,'limit')
+
+  useEffect(()=>{
+    if(!values.limitValue && values.time_interval === '10'){
+      setLimitReq(true)
+    }
+  },[values.limitValue, values.time_interval])
+
+  console.log(values.limitValue,'ano valuee')
+
+  const currentStep = localStorage?.getItem('currentStep')
+
   const [createClinic] = useMutation(CLINIC_POST);
   const [snackKey, setSnackKey] = useState(null);
 
   const handleSubmitValue = useCallback(
-    async (model: NexusGenInputs['ClinicInsertPayload']) => {
-      const data: NexusGenInputs['ClinicInsertPayload'] = {
+    async (model: any) => {
+      const data: any = {
         clinic_name: model.clinic_name,
         location: model.location,
         number: model.number,
@@ -145,6 +173,7 @@ export default function ClinicNewForm({
         end_time: formatDateToTime(model.end_time),
         time_interval: model.time_interval,
         uuid: model.uuid,
+        limitValue:model?.limitValue
       };
       createClinic({
         variables: {
@@ -160,11 +189,19 @@ export default function ClinicNewForm({
           enqueueSnackbar('Create success!');
           refetch();
           reset();
+          onClose()
+          if(currentStep && Number(currentStep) !== 100){
+            localStorage.setItem('currentStep','7')
+          }
+         
+
         })
         .catch((error) => {
           console.log(error, 'ano error?');
           closeSnackbar(snackKey);
           setSnackKey(null);
+      onClose();
+
           enqueueSnackbar('Something went wrong', { variant: 'error' });
         });
     },
@@ -186,7 +223,7 @@ export default function ClinicNewForm({
   const onSubmit = useCallback(async (data: NexusGenInputs['ClinicInsertPayload']) => {
     try {
       appendDataClient(data);
-
+     
       const snackbarKey = enqueueSnackbar('Saving Data...', {
         variant: 'info',
         key: 'savingEducation',
@@ -194,14 +231,11 @@ export default function ClinicNewForm({
       });
       setSnackKey(snackbarKey);
 
-      onClose();
-
       // await handleSubmitValue({
       //   ...data,
       //   uuid,
       // });
       // reset();
-      // onClose();
       // enqueueSnackbar('Saving data...!');
       // console.info('DATA', data);
     } catch (error) {
@@ -369,7 +403,16 @@ export default function ClinicNewForm({
                 <MenuItem value="45">45 Mins</MenuItem>
                 <MenuItem value="60">1 Hour</MenuItem>
                 <MenuItem value="0">No Limit</MenuItem>
+                <MenuItem value="10">Limited</MenuItem>
+
               </RHFSelect>
+              {values.time_interval === '10' && <RHFTextField label="Allowed Patient" name="limitValue" type="number">
+              </RHFTextField>
+                }
+
+              
+
+            
             </Box>
           </Stack>
         </FormProvider>

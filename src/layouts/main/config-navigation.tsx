@@ -8,11 +8,14 @@ export const navConfig = [
     title: 'Find Your Doctor',
     icon: <Iconify icon="solar:magnifer-bold-duotone" />,
     path: '#finddoctor',
+    role:['patient']
   },
   {
     title: 'Benefits of Signing Up',
     icon: <Iconify icon="solar:medal-ribbon-bold-duotone" />,
     path: '#benefits',
+    role:['patient']
+
   },
   // {
   //   title: 'How to Consult Your Doctor',
@@ -23,5 +26,7 @@ export const navConfig = [
     title: 'About Us',
     icon: <Iconify icon="solar:user-bold-duotone" />,
     path: '#aboutus',
+    role:['patient']
+
   },
 ];

@@ -207,8 +207,8 @@ export default function ClinicTableRow({
     return (
       <>
         <TableMobileRow
-          selected={selected}
-          onSelectRow={onSelectRow}
+          // selected={selected}
+          // onSelectRow={onSelectRow}
           menu={[
             {
               label: 'Edit Clinic',
@@ -221,6 +221,11 @@ export default function ClinicTableRow({
               func: viewSchedule.onTrue,
             },
             {
+              label: ' Add Schedule',
+              icon: 'mingcute:add-line',
+              func: onAddSchedule,
+            },
+            {
               label: 'Delete',
               icon: 'solar:trash-bin-trash-bold',
               func: confirm.onTrue,
@@ -229,7 +234,20 @@ export default function ClinicTableRow({
           ]}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {row?.clinicDPInfo[0] ? (
+          {row?.clinicDPInfo?.length && row?.clinicDPInfo[0] ? (
+            <Avatar
+              alt={row?.patientInfo?.FNAME}
+              src={row?.clinicDPInfo[0]?.filename}
+              sx={{ mr: 2 }}
+            >
+              {row?.clinic_name.charAt(0).toUpperCase()}
+            </Avatar>
+          ) : (
+            <Avatar alt={row?.clinic_name} sx={{ mr: 2 }}>
+              {row?.clinic_name.charAt(0).toUpperCase()}
+            </Avatar>
+          )}
+            {/* {row?.clinicDPInfo[0] ? (
               <Avatar
                 alt={row?.patientInfo?.FNAME}
                 src={row?.clinicDPInfo[0].filename.split('public')[1]}
@@ -241,7 +259,7 @@ export default function ClinicTableRow({
               <Avatar alt={row?.clinic_name} sx={{ mr: 2 }}>
                 {row?.clinic_name.charAt(0).toUpperCase()}
               </Avatar>
-            )}
+            )} */}
             {/* <Avatar alt={row?.clinic_name} sx={{ mr: 2 }}>
               {row?.clinic_name.charAt(0).toUpperCase()}
             </Avatar> */}
@@ -482,6 +500,10 @@ function ScheduleCard({
 
     return `${formattedHour}:${formattedMin} ${AMPM}`;
   };
+
+
+  console.log(data?.time_interval,'await')
+
   return (
     <>
       <Card
@@ -552,7 +574,7 @@ function ScheduleCard({
             }}
           >
             Duration: &nbsp;
-            <span>{`${data?.time_interval} mins`}</span>
+            <span>{`${Number(data?.time_interval) === 0 ? 'not declared':`${data?.time_interval} mins`}`}</span>
           </Typography>
         </Stack>
       </Card>

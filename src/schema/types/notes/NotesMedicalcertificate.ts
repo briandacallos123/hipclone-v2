@@ -328,13 +328,20 @@ export const PostNotesCert = extendType({
             }
           }
 
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordCert = await trx.records.create({
               data: {
                 CLINIC: Number(createData.clinic),
                 patientID: Number(createData.patientID),
                 R_TYPE: String(createData.R_TYPE), // 9
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(0),
                 qrcode:VoucherCode
 
@@ -354,7 +361,7 @@ export const PostNotesCert = extendType({
                 barring: String(createData.barring),
                 remarks: String(createData.remarks),
 
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
 
                 report_id: Number(recordCert.R_ID),
 
@@ -400,7 +407,11 @@ export const UpdateNotesCert = extendType({
             // const notesChildInput = notesInput.NoteTxtChildInputType;
             // const uuid = notesInput.tempId;
   
-           
+            let doctorDetails = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL: session?.user?.email
+              }
+            })
   
             const notesTransaction = await client.$transaction(async (trx) => {
               const recordCert = await trx.records.update({
@@ -408,7 +419,7 @@ export const UpdateNotesCert = extendType({
                   CLINIC: Number(createData.clinic),
                   patientID: Number(createData.patientID),
                   R_TYPE: String(createData.R_TYPE), // 9
-                  doctorID: Number(session?.user?.id),
+                  doctorID:doctorDetails?.EMP_ID,
                   isEMR: Number(0)
                 },
                 where:{
@@ -429,7 +440,7 @@ export const UpdateNotesCert = extendType({
                   barring: String(createData.barring),
                   remarks: String(createData.remarks),
   
-                  doctorID: Number(session?.user?.id),
+                  doctorID: doctorDetails?.EMP_ID,
   
                   report_id: Number(recordCert.R_ID),
   
@@ -457,7 +468,7 @@ export const UpdateNotesCert = extendType({
             console.log(e);
           }
         }else{
-          throw new GraphQLError('Unabled to delete');
+          throw new GraphQLError('Unabled to update');
 
         }
       },

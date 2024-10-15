@@ -128,7 +128,7 @@ export function useNavData() {
             roles: ['patient'],
           },
           {
-            title: t('medecines'),
+            title: t('medicines'),
             path: paths.dashboard.medecine.root,
             icon: ICONS.medecine,
             roles: ['patient'],

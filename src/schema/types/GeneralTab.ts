@@ -124,12 +124,21 @@ export const GeneralTabMutation = extendType({
           let response: any;
 
           if (targetTable === 'employees') {
+            
             const empData = assignEmployees(args?.data);
+          
+
+            const doctorID = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL:session?.user?.email
+              }
+            })
+
 
             response = await client.employees
               .update({
                 where: {
-                  EMP_ID: session?.user?.id,
+                  EMP_ID: doctorID?.EMP_ID,
                 },
                 data: empData,
               })

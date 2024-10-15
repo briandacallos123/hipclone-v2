@@ -605,8 +605,6 @@ export const QueryAllRecord = extendType({
         const skip: Number | any = args?.data!.skip ? args?.data!.skip : 0;
         let orderConditions: any;
 
-        console.log('519');
-
         let order: any;
         switch (args?.data!.orderBy) {
           case 'name':
@@ -681,15 +679,25 @@ export const QueryAllRecord = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`records`', '`allRecords`');
 
-        const checkUser = (() => {
+        const checkUser = await(async() => {
           if (session?.user?.role === 'secretary')
             return {
               doctorID: session?.user?.permissions?.doctorID,
             };
+
+          const doctorEmp = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+
           return {
-            doctorID: session?.user?.id,
+            doctorID: Number(doctorEmp?.EMP_ID)
           };
         })();
+
+        console.log(session?.user,'userrrrrrrr')
+        console.log(checkUser,'checkUser')
 
         try {
           const [
@@ -1400,14 +1408,20 @@ export const QueryOneRecordProfile = extendType({
           });
           // console.log(emrPatientId, 'emrPatientId INFO@@#@@@');
 
-          const checkUser = (() => {
+          const checkUser = await(async() => {
             if (session?.user?.role === 'secretary')
               return {
                 doctorID: session?.user?.permissions?.doctorID,
               };
-            return {
-              doctorID: session?.user?.id,
-            };
+              const doctorEmp = await client.employees.findFirst({
+                where:{
+                  EMP_EMAIL:session?.user?.email
+                }
+              })
+    
+              return {
+                doctorID: Number(doctorEmp?.EMP_ID)
+              };
           })();
           // console.log(checkUser, 'checkUser checkUsercheckUsercheckUsercheckUser@@#@@@');
 
@@ -2528,16 +2542,22 @@ const customFuncPatient = async (
 
   const currentEndDate = new Date(endDate);
 
+  const doctorDetails = await client.employees.findFirst({
+    where:{
+      EMP_EMAIL:session?.user?.email
+    }
+  });
   // const formattedEndDate = currentEndDate.toISOString().slice(0, 10);
   // const formattedEndDateAsDate = new Date(formattedEndDate);
 
-  const checkUser = (() => {
+  const checkUser = await(async() => {
     if (session?.user?.role === 'secretary')
       return {
         doctorID: session?.user?.permissions?.doctorID,
       };
+       
     return {
-      doctorID: session?.user?.id,
+      doctorID: doctorDetails?.EMP_ID
     };
   })();
 

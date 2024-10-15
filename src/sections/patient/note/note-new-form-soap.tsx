@@ -34,33 +34,19 @@ type Props = {
   refIds: any;
   refetch: any;
   editData:any;
+  clinicData:any;
 };
 
-export default function NoteNewFormSoap({editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormSoap({editData, clinicData, onClose, refIds, refetch: onRefetch }: Props) {
   // const { enqueueSnackbar } = useSnackbar();
   const { fetchCover, setfetchCover }: any = useContextData();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { getItem } = useSessionStorage();
   const [snackKey, setSnackKey]: any = useState(null);
   const { id } = useParams();
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-  const [clinicData, setclinicData] = useState<any>([]);
 
-  useEffect(() => {
-    drClinicFetch().then((result: any) => {
-      const { data } = result;
-      if (data) {
-        const { doctorClinics } = data;
-        setclinicData(doctorClinics);
-      }
-    });
-    return () => drClinicFetch();
-  }, []);
+
+ 
 
   const NewNoteSchema = Yup.object().shape({
     hospitalId: Yup.number().required('Hospital ID is required'),
@@ -230,12 +216,12 @@ export default function NoteNewFormSoap({editData, onClose, refIds, refetch: onR
 
   const values = watch();
 
-  useEffect(() => {
-    const data = getItem('defaultFilters');
-    if (data?.clinic) {
-      setValue('hospitalId', Number(data?.clinic?.id));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const data = getItem('defaultFilters');
+  //   if (data?.clinic) {
+  //     setValue('hospitalId', Number(data?.clinic?.id));
+  //   }
+  // }, []);
 
   // console.log('data Soap:', values);
 

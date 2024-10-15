@@ -65,7 +65,7 @@ const Default5 = forwardRef((props, ref) => {
                     }}>
 
                      
-
+                    
                         {(arrContact || isSelected) && contact &&
                             <Stack direction="row" alignItems="center" gap={1}>
                                 <Avatar

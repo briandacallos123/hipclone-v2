@@ -9,12 +9,15 @@ import { useAuthContext } from '@/auth/hooks';
 import { MutationPrescription } from '@/libs/gqls/prescription';
 import { useMutation } from '@apollo/client';
 import { useParams } from 'next/navigation';
-import { useSnackbar } from 'src/components/snackbar';
 import { Icon } from '@iconify/react'
 import CustomPopover, { usePopover } from '@/components/custom-popover';
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
 import Image from '@/components/image';
+import { styled, alpha, useTheme } from '@mui/material/styles';
+import { useResponsive } from '@/hooks/use-responsive';
+import { bgBlur } from '@/theme/css';
+import { useSnackbar } from 'src/components/snackbar';
 
 
 const PrescriptionCreateForm = ({
@@ -27,11 +30,12 @@ const PrescriptionCreateForm = ({
     handleClose
 }: any) => {
     const [currentItem, setCurrentItem] = useState([])
-
-    console.log(currentItem, 'wew')
+    const theme = useTheme();
+    const upMd = useResponsive('up', 'md');
 
     useEffect(() => {
         if (myCurrent.length) {
+
             setCurrentItem([...currentItem, ...myCurrent])
         }
     }, [myCurrent])
@@ -56,12 +60,13 @@ const PrescriptionCreateForm = ({
     const [isTemplateR, setTemplareR] = useState(false)
 
     const isTemplateRequired = {
-        templateName:Yup.string().required('Template Name'),
+        templateName: Yup.string().required('Template Name'),
     }
 
-    const ewan = isTemplateR && {...isTemplateRequired}
 
-    console.log(ewan,'ewannnn')
+    const ewan = isTemplateR && { ...isTemplateRequired }
+
+
     const NewPrescriptionSchema = Yup.object().shape({
         items: Yup.array().of(
             Yup.object().shape({
@@ -113,13 +118,13 @@ const PrescriptionCreateForm = ({
     });
 
 
-    useEffect(()=>{
-        if(values?.isTheme){
+    useEffect(() => {
+        if (values?.isTheme) {
             setTemplareR(true)
-        }else{
+        } else {
             setTemplareR(false)
         }
-    },[values.isTheme])
+    }, [values.isTheme])
 
 
 
@@ -149,56 +154,95 @@ const PrescriptionCreateForm = ({
         }
     }, [currentItem, append, remove, prevCurrentItem]);
 
+    const resetAll = useCallback(() => {
+
+        setCurrentItem([])
+        handleClose()
+    }, [])
+
+
+    const [myData, setMyData]: any = useState(null);
+    const [snackKey, setSnackKey]: any = useState(null);
+
+
+    const handleSubmitValue = useCallback(async (model) => {
+
+        const data: any = {
+            CLINIC: Number(model.hospitalId),
+            DOCTOR: model.DOCTOR,
+            doctorID: Number(model.doctorID),
+            uuid: uuid,
+            emrId: Number(model?.emrId),
+            PATIENT: model?.PATIENT,
+            patientID: Number(model?.patientID),
+            isEmr: Number(model.isEmr),
+            tempId: model.tempId,
+            templateName: model?.templateName,
+            isTemplate: model?.isTheme,
+            Prescription_Child_Inputs: model?.items?.map((item) => {
+                delete item.id;
+
+                if (item?.is_favorite) {
+                    return {
+                        ...item,
+                        is_favorite: 1
+                    }
+                } else {
+                    return {
+                        ...item,
+                        is_favorite: 0
+                    }
+                }
+            }),
+        };
+        createEmr({
+            variables: {
+                data,
+            },
+        })
+            .then(async (res) => {
+                const { data } = res;
+                reset();
+                clearItem()
+                enqueueSnackbar('Created successfully!');
+                refetch()
+                setCurrentItem([])
+                closeSnackbar(snackKey);
+                handleClose()
+            })
+            .catch((error) => {
+                enqueueSnackbar('Something went wrong', { variant: 'error' });
+                closeSnackbar(snackKey);
+
+
+            });
+
+    }, [snackKey]);
+
+    useEffect(() => {
+        if (snackKey) {
+            (async () => {
+                await handleSubmitValue({ ...myData });
+            })();
+        }
+    }, [snackKey, myData]);
+
+
     const onSubmit = useCallback(
         async (model: any) => {
             // return;
 
-            const data: any = {
-                CLINIC: Number(model.hospitalId),
-                DOCTOR: model.DOCTOR,
-                doctorID: Number(model.doctorID),
-                uuid: uuid,
-                emrId: Number(model?.emrId),
-                PATIENT: model?.PATIENT,
-                patientID: Number(model?.patientID),
-                isEmr: Number(model.isEmr),
-                tempId: model.tempId,
-                templateName:model?.templateName,
-                isTemplate:model?.isTheme,
-                Prescription_Child_Inputs: model?.items?.map((item) => {
-                    delete item.id;
 
-                    if (item?.is_favorite) {
-                        return {
-                            ...item,
-                            is_favorite: 1
-                        }
-                    } else {
-                        return {
-                            ...item,
-                            is_favorite: 0
-                        }
-                    }
-                }),
-            };
-            createEmr({
-                variables: {
-                    data,
-                },
-            })
-                .then(async (res) => {
-                    const { data } = res;
-                    reset();
-                    clearItem()
-                    enqueueSnackbar('Created successfully!');
-                    refetch()
-                })
-                .catch((error) => {
-                    enqueueSnackbar('Something went wrong', { variant: 'error' });
+            const snackbarKey: any = enqueueSnackbar('Saving Data...', {
+                variant: 'info',
+                key: 'savingEducation',
+                persist: true, // Do not auto-hide
+            });
+            setSnackKey(snackbarKey);
+            setMyData(model)
 
-                });
         },
-        [uuid]
+        [uuid, refetch]
     );
 
     const handleRemove = (index: number) => {
@@ -243,11 +287,7 @@ const PrescriptionCreateForm = ({
 
     }, [fields])
 
-    const resetAll = useCallback(() => {
 
-        setCurrentItem([])
-        handleClose()
-    }, [])
 
     useEffect(() => {
         if (closeCreate) {
@@ -272,62 +312,49 @@ const PrescriptionCreateForm = ({
 
         // });
     }
-
-    console.log(values.isTheme,'????huh')
+    const PRIMARY_MAIN = theme.palette.background.default
 
     return (
-        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-            <Stack spacing={3} sx={{ pt: 1, height: '100%' }}>
+        <Box sx={{
+            height: '100%',
+            pt: !upMd ? 5:10
+        }}>
 
 
-                <Stack direction='row' justifyContent={values?.isTheme ? 'space-between':'flex-end'} sx={{width:'100%'}}>
+
+            <Box spacing={3} sx={{ pt: 1, height: '100%', display: 'flex', flexDirection: 'column' }}>
 
 
-                 {values.isTheme && <RHFTextField sx={{
-                    maxWidth:{lg:400},
-                 }} size="small" name={`templateName`} label="Template Name" />}
 
-                    <RHFSwitch
-                        sx={{
-                            flex: 1
-                        }}
-                        name="isTheme"
-                        label="Set this as new template"
-                    />
-                    
+                <Stack sx={{ width: '100%' }}>
+
+
+
+
                 </Stack>
 
-                <RHFAutocomplete
-                    name="hospitalId"
-                    label="Hospital/Clinic"
-                    options={clinic?.doctorClinics?.map((hospital: any) => hospital?.id) || []}
-                    getOptionLabel={(option) =>
-                        clinic?.doctorClinics?.find((hospital: any) => hospital.id === option)?.clinic_name
-                    }
-                />
-
-            
 
                 {currentItem?.length === 0 && !fields?.length &&
                     <Box rowGap={2} sx={{
                         position: 'absolute',
                         top: '50%',
                         left: '50%',
-                        transform: 'translate(-0%, -50%)',
+                        transform: `translate(${upMd ? '0%' : '-50%'}, -50%)`,
                         display: 'flex',
                         justifyContent: 'center',
                         flexDirection: 'column',
-                        alignItems: 'center'
+                        alignItems: 'center',
+                        width: !upMd ? '100%' : 'auto'
                     }}>
                         <Image
                             src={'/assets/no-data.svg'}
                             sx={{
-                                width: 150,
-                                height: 150
+                                width: !upMd ? 80 : 150,
+                                height: !upMd ? 80 : 150
                             }}
                             alt="no data"
                         />
-                        <Typography variant="h4" sx={{
+                        <Typography variant={!upMd ? 'h6' : 'h4'} sx={{
                             color: 'gray'
                         }}>
                             No prescription selected!
@@ -337,33 +364,124 @@ const PrescriptionCreateForm = ({
                     </Box>
                 }
 
-                <Stack spacing={2}>
-                    {(currentItem?.length !== 0 || fields?.length !== 0) && fields.map((item, index) => (
-                        <PrescriptionItems item={item} index={index}
-                            onFavorite={() => {
-                                handleFavorite(item, index)
-                            }} handleDelete={() => {
-                                handleDelete(item, index)
-                            }} />
-                    ))}
-                </Stack>
+
+                {/* <Stack spacing={2} sx={{
+                    mb: { xs: 15, lg: 15 },
+                    display: 'flex',
+                    alignItems: 'flex-end',
+                    background: 'red',
+                    flex: 1
+                }}> */}
+
+                <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
 
 
-                <Box gap={3} sx={{
-                     position: 'relative', // Changed to relative
-                     display: 'flex',
-                     justifyContent: 'center',
-                     flexDirection: 'column',
-                     alignItems: 'center',
-                     height: '100%', // Ensure it takes full height for centering
+                    <Box sx={{ height: '100%',  display: 'flex', flexDirection: 'column' }}>
 
-                }}>
-                    <Button onClick={resetAll} variant="outlined" type="submit">Cancel</Button>
-                    <Button disabled={!currentItem?.length} variant="contained" type="submit">Create Prescription</Button>
+                        {upMd ? <Stack sx={{ mb: 5 }} direction='row' justifyContent={values?.isTheme ? 'space-between' : 'flex-end'} >
+                            {values.isTheme && <RHFTextField sx={{
+                                maxWidth: { lg: 400 },
+                            }} size="small" name={`templateName`} label="Template Name" />}
 
-                </Box>
-            </Stack>
-        </FormProvider>
+                            <RHFSwitch
+                                sx={{
+                                    flex: 1
+                                }}
+                                name="isTheme"
+                                label="Set this as new template"
+                            />
+                        </Stack> :
+                            <Stack sx={{
+                                mb:1
+                            }} gap={2} direction='column' justifyContent={values?.isTheme ? 'space-between' : 'flex-end'} >
+                                <RHFSwitch
+                                    sx={{
+                                        flex: 1
+                                    }}
+                                    name="isTheme"
+                                    label="Set this as new template"
+                                />
+
+                                {values.isTheme && <RHFTextField sx={{
+                                    maxWidth: { lg: 400 },
+                                }} size="small" name={`templateName`} label="Template Name" />}
+
+
+                            </Stack>
+
+                        }
+
+
+                        <Box >
+                            <RHFAutocomplete
+                                name="hospitalId"
+                                label="Hospital/Clinic"
+                                options={clinic?.map((hospital: any) => hospital?.id) || []}
+                                getOptionLabel={(option) =>
+                                    clinic?.find((hospital: any) => hospital.id === option)?.clinic_name
+                                }
+                            />
+                        </Box>
+
+                        <Stack rowGap={1} sx={{
+                            flex: 2,
+                            maxHeight: !upMd ? 400:550,
+                            overflowY: 'scroll',
+                            mt: 2
+                        }}>
+
+                            {(currentItem?.length !== 0 || fields?.length !== 0) && fields.map((item, index) => (
+                                <PrescriptionItems item={item} index={index}
+                                    onFavorite={() => {
+                                        handleFavorite(item, index)
+                                    }} handleDelete={() => {
+                                        handleDelete(item, index)
+                                    }} />
+                            ))}
+                        </Stack>
+
+                        <Box sx={{
+                            width: "100%",
+
+                            p: 2
+                        }}>
+                            {currentItem?.length !== 0 && fields?.length !== 0 && <Button sx={{
+                                maxWidth: 200,
+                                p: 1
+                            }} onClick={handleCreate} variant="outlined">Add Prescription</Button>}
+                        </Box>
+
+
+                    </Box>
+
+
+
+
+                    <Stack justifyContent='flex-end' flexDirection='row' gap={3} sx={{
+                        position: 'fixed',
+                        bottom: 0,
+                        right: 0,
+                        left: { xs: 0, lg: 100 },
+                        px: 5,
+                        py: 3,
+
+                        background: PRIMARY_MAIN,
+
+                    }}>
+                        <Button onClick={resetAll} variant="outlined" type="submit">Cancel</Button>
+                        <Button variant="contained" disabled={!currentItem?.length} type="submit">Create Prescription</Button>
+
+                    </Stack>
+                </FormProvider >
+
+
+
+
+                {/* </Stack> */}
+
+
+            </Box>
+        </Box>
     );
 };
 
@@ -412,19 +530,19 @@ const PrescriptionItems = ({ item, index, handleDelete, onFavorite }: any) => {
                 left: 10
             }}>
                 <IconButton onClick={onFavorite}>
-                     {item?.is_favorite ? <Iconify icon="material-symbols:favorite" /> : <Iconify icon="carbon:favorite" />}
+                    {item?.is_favorite ? <Iconify icon="material-symbols:favorite" /> : <Iconify icon="carbon:favorite" />}
                 </IconButton>
 
-            
+
 
 
             </Box>
             <Stack gap={2} flexDirection="row" alignItems="center" sx={{
-                pl:{lg:5}
+                pl: { lg: 5 }
             }}>
                 <Iconify icon="healthicons:rx-outline" height={68} width={68} />
 
-                <Box gap={2} display="grid" gridTemplateColumns={{ xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }}>
+                <Box gap={1} display="grid" gridTemplateColumns={{ xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }}>
                     <RHFTextField size="small" name={`items[${index}].is_favorite`} sx={{ display: 'none' }} label="Generic Name" />
 
                     <RHFTextField size="small" name={`items[${index}].MEDICINE`} label="Generic Name" />
@@ -435,20 +553,20 @@ const PrescriptionItems = ({ item, index, handleDelete, onFavorite }: any) => {
                     <RHFTextField size="small" type="text" name={`items[${index}].FREQUENCY`} label="Frequency (per day)" placeholder="0" />
                     <RHFTextField size="small" type="text" name={`items[${index}].DURATION`} label="Duration (in days)" placeholder="0" />
                 </Box>
-                
+
             </Stack>
 
             <Stack direction="row" justifyContent="flex-end">
-            <Stack direction="row" justifyContent="flex-end" alignItems="flex-end">
-                        <Button
-                          size="small"
-                          color="error"
-                          startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
-                          onClick={() => handleDelete(index)}
-                        >
-                          Remove
-                        </Button>
-                      </Stack>
+                <Stack direction="row" justifyContent="flex-end" alignItems="flex-end">
+                    <Button
+                        size="small"
+                        color="error"
+                        startIcon={<Iconify icon="solar:trash-bin-trash-bold" />}
+                        onClick={() => handleDelete(index)}
+                    >
+                        Remove
+                    </Button>
+                </Stack>
                 {/* <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
                     <Iconify icon="eva:more-vertical-fill" />
                 </IconButton> */}

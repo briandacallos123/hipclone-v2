@@ -19,6 +19,8 @@ export default function MainLayout({ children }: Props) {
 
   const isHome = pathname === '/';
 
+  console.log(pathname,'pathhhh')
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', height: 1, maxWidth:'100%' }}>
       <Header />
@@ -35,7 +37,8 @@ export default function MainLayout({ children }: Props) {
         {children}
       </Box>
 
-      <Footer />
+        {(pathname === '/find-doctor/register/' || pathname === '/find-doctor/login/') && <Footer />}
+      
     </Box>
   );
 }

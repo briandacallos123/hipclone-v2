@@ -185,9 +185,20 @@ export default function PatientProfileFamily({ data, clientside, loading1: loadi
           justifyContent: 'center',
           alignItems: 'center',
           height: '100px',
+        flexDirection:'column',
+
         }}
       >
-        <Typography variant="body2">No Family History available</Typography>
+        <Typography sx={{
+        mb:1
+      }} variant="body2">No Family History available</Typography>
+        <Button size={!upMd?'small':'medium'} onClick={openCreate.onTrue} variant="contained">
+        Create
+        <Iconify width={15} sx={{
+          ml:1,
+          
+        }} icon="mingcute:add-line" />
+      </Button>
       </div>
     );
   };

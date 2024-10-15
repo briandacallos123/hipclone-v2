@@ -87,7 +87,7 @@ export default function DashboardCover({
 
     try {
       await navigator.clipboard.writeText(linkToCopy);
-      setCopy('Link Copied');
+      setCopy('Copied');
       setTimeout(() => {
         setCopy('Copy Link');
       }, 3000);
@@ -112,32 +112,80 @@ export default function DashboardCover({
     notifyOnNetworkStatusChange: true,
   });
 
+  function cleanPath(value) {
+    // Remove 'public/' or '../' at the start
+    const cleaned = value.replace(/^public\/|^\.\.\//, '');
+
+    // Ensure the path starts with 'uploads/' only once
+    if (!cleaned.startsWith('uploads/')) {
+      return 'uploads/' + cleaned;
+    }
+
+    return cleaned;
+  }
+
   useEffect(() => {
     (async () => {
-      const response = await fetch('/api/getImage', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          image: user?.photoURL
-        }),
-      });
 
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
+      let imageData: any;
+
+      let hasImg = true;
+
+      let storageFile = user?.photoURL.includes('storage.apgitsolutions');
+
+      if (!(user?.photoURL.includes('storage.apgitsolutions'))) {
+        console.log("runnn")
+        let fileStore = `${cleanPath(user?.photoURL)}`
+
+
+
+
+        let hasImage = await fetch(`/api/checkFile?filename=public/${fileStore}`);
+
+        let result = await hasImage.json();
+
+
+        if (result?.exists) {
+          console.log(fileStore, 'FILESTOREEEE');
+
+          imageData = `localhost:9092/${fileStore}`;
+        } else {
+          hasImg = false
+        }
       }
 
-      const blob = await response.blob();
-      const objectUrl = URL.createObjectURL(blob);
-      setImgSrc(objectUrl);
+      console.log(imageData, 'imageData');
 
-      // Clean up object URL on component unmount
-      return () => {
-        URL.revokeObjectURL(objectUrl);
-      };
+      if (hasImg || storageFile) {
+
+        const response = await fetch('/api/getImage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: imageData || user?.photoURL
+          }),
+        });
+
+        if (!response?.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        setImgSrc(objectUrl);
+
+        // Clean up object URL on component unmount
+        return () => {
+          URL.revokeObjectURL(objectUrl);
+        };
+      }
+
+
     })()
   }, [user?.id])
+
 
   useEffect(() => {
     if (user?.role === 'patient') {
@@ -208,215 +256,217 @@ export default function DashboardCover({
 
   const isDashboard = true;
   return (
-    <Card sx={{ height: { xs: (isDoctor || isSecretary) ? 170 : 100, md: 200 } }}>
-      <Box
+    <Card sx={{ height: { xs: (isDoctor || isSecretary) ? 190 : 100, md: 200 } }}>
+    <Box
+      sx={{
+        ...bgGradient({
+
+        }),
+        background: 'url(/assets/background/bg-blueee.jpg)',
+        backgroundSize: 'cover',
+        backgroundRepeat: 'no-repeat',
+        height: '100%',
+        color: 'common.white',
+        display: 'flex',
+        justifyContent: 'space-between',
+        pb:5
+      }}
+    >
+      {/* <Box>
+          <BackgroundPalette/>
+      </Box> */}
+      <Stack
+        direction="row"
         sx={{
-          ...bgGradient({
-       
-          }),
-          background: 'url(/assets/background/bg-blueee.jpg)',
-          backgroundSize: 'cover',
-          backgroundRepeat: 'no-repeat',
-          height: '100%',
-          color: 'common.white',
-          display: 'flex',
-          justifyContent: 'space-between'
+          left: 24,
+          bottom: { md: 20 },
+          zIndex: { md: 10 },
+          pt: { xs: 2, md: 0 },
+          position: 'absolute',
         }}
       >
-        {/* <Box>
-            <BackgroundPalette/>
-        </Box> */}
-        <Stack
-          direction="row"
+        <Avatar
+          src={avatarUrl}
+          alt={name}
           sx={{
-            left: 24,
-            bottom: { md: 20 },
-            zIndex: { md: 10 },
-            pt: { xs: 2, md: 0 },
-            position: 'absolute',
+            mt: (isDoctor || isSecretary) ? 4 : 8,
+            mx: 'auto',
+            width: { xs: 60, md: 128 },
+            height: { xs: 60, md: 128 },
+            border: `solid 2px ${theme.palette.common.white}`,
           }}
-        >
-          <Avatar
-            src={avatarUrl}
-            alt={name}
+        />
+
+        {(isDoctor || isSecretary) ? (
+          <ListItemText
             sx={{
-              mt: (isDoctor || isSecretary) ? 4 : 8,
-              mx: 'auto',
-              width: { xs: 60, md: 128 },
-              height: { xs: 60, md: 128 },
-              border: `solid 2px ${theme.palette.common.white}`,
+              mt: { md: 3 },
+              ml: { xs: 1.5, md: 3 },
+              
+            }}
+            primary={`${`${name.charAt(0).toUpperCase()}${name.slice(1)}`} - ${title}`}
+            secondary={
+              <Stack direction="column">
+                <Typography variant={upMd ? 'body2' : 'caption'}>{job}</Typography>
+                <Typography variant={upMd ? 'body2' : 'caption'}>{email}</Typography>
+                <Typography
+                  variant={upMd ? 'body2' : 'caption'}
+                >{`Specialty: ${specialty}`}</Typography>
+                <Typography
+                  variant={upMd ? 'body2' : 'caption'}
+                >{`Link: ${linkData}/find-doctor/${uname}/`}</Typography>
+                <Stack direction="row" sx={{ mt: 1 }} alignItems="center" gap={2}>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    sx={{ p: 0.5, width: 80, background: 'black', color: 'white' }}
+                    onClick={() => handleCopyClick()}
+
+                  >
+                    {copy}
+                  </Button>
+                  <Tooltip title="View QR" sx={{
+                    cursor: 'pointer'
+                  }}>
+                    <Image
+                      sx={{
+                        cursor: 'pointer',
+                        width: 30,
+                        height: 30,
+                        transition: 'transform 0.3s ease', // Smooth transition effect
+                        '&:hover': {
+                          transform: 'scale(1.2)', // Enlarge the image to 120% of its original size
+                        },
+                      }}
+                      onClick={openQRView.onTrue}
+                      alt="image"
+                      src={'/assets/scannerWhite.svg'}
+                    />
+                  </Tooltip>
+                </Stack>
+              </Stack>
+            }
+            primaryTypographyProps={{
+              typography: { xs: 'body2', md: 'h4' },
+            }}
+            secondaryTypographyProps={{
+              mt: 0.5,
+              color: 'common.white',
+              sx: { opacity: 0.78 },
             }}
           />
-
-          {(isDoctor || isSecretary) ? (
-            <ListItemText
-              sx={{
-                mt: { md: 3 },
-                ml: { xs: 1.5, md: 3 },
-              }}
-              primary={`${name} - ${title}`}
-              secondary={
-                <Stack direction="column">
-                  <Typography variant={upMd ? 'body2' : 'caption'}>{job}</Typography>
-                  <Typography variant={upMd ? 'body2' : 'caption'}>{email}</Typography>
-                  <Typography
-                    variant={upMd ? 'body2' : 'caption'}
-                  >{`Specialty: ${specialty}`}</Typography>
-                  <Typography
-                    variant={upMd ? 'body2' : 'caption'}
-                  >{`Link: ${linkData}/find-doctor/${uname}/`}</Typography>
-                  <Stack direction="row" sx={{ mt: 1 }} alignItems="center" gap={2}>
+        ) : (
+          <ListItemText
+            sx={{
+              mt: { md: 13 },
+              ml: { xs: 1.5, md: 3 },
+              pr: 5,
+            }}
+            primary={`${name} ${(isDoctor || isSecretary) ? '-' : ''} ${isDoctor ? title : ''}`}
+            secondary={
+              <Stack direction="column">
+                {(isDoctor || isSecretary) && <Typography variant={upMd ? 'body2' : 'caption'}>{job}</Typography>}
+                <Typography variant={upMd ? 'body2' : 'caption'}>{email}</Typography>
+                {(isDoctor || isSecretary) && (
+                  <>
+                    <Typography
+                      variant={upMd ? 'body2' : 'caption'}
+                    >{`Specialty: ${specialty}`}</Typography>
+                    <Typography
+                      variant={upMd ? 'body2' : 'caption'}
+                    >{`Link: ${linkData}/find-doctor/${uname}/`}</Typography>
                     <Button
                       variant="contained"
                       size="small"
-                      sx={{ p: 0.5, width: 80, background: 'black', color: 'white' }}
+                      color="error"
+                      sx={{ p: 0.5, width: 80 }}
                       onClick={() => handleCopyClick()}
-
                     >
                       {copy}
                     </Button>
-                    <Tooltip title="View QR" sx={{
-                      cursor: 'pointer'
-                    }}>
-                      <Image
-                        sx={{
-                          cursor: 'pointer',
-                          width: 30,
-                          height: 30,
-                          transition: 'transform 0.3s ease', // Smooth transition effect
-                          '&:hover': {
-                            transform: 'scale(1.2)', // Enlarge the image to 120% of its original size
-                          },
-                        }}
-                        onClick={openQRView.onTrue}
-                        alt="image"
-                        src={'/assets/scannerWhite.svg'}
-                      />
-                    </Tooltip>
-                  </Stack>
-                </Stack>
-              }
-              primaryTypographyProps={{
-                typography: { xs: 'body2', md: 'h4' },
-              }}
-              secondaryTypographyProps={{
-                mt: 0.5,
-                color: 'common.white',
-                sx: { opacity: 0.78 },
-              }}
-            />
-          ) : (
-            <ListItemText
+                  </>
+                )}
+              </Stack>
+            }
+            primaryTypographyProps={{
+              typography: { xs: 'body2', md: 'h4' },
+            }}
+            secondaryTypographyProps={{
+              mt: 0.5,
+              color: 'common.white',
+              sx: { opacity: 0.78 },
+            }}
+          />
+        )}
+
+        {/* <Box sx={{ bgcolor: 'blue' }}>test</Box> */}
+
+
+      </Stack>
+      {/* <Stack direction="row" sx={{
+        position: 'absolute',
+        right: 20,
+        height: '100%',
+        width: { lg: 500 },
+      }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            height: '100%',
+            width: '100%'
+          }}>
+          {user?.qrProfile ?
+            <Image
+              src={user?.qrProfile}
               sx={{
-                mt: { md: 13 },
-                ml: { xs: 1.5, md: 3 },
-                pr: 5,
+                width: '85%',
+                height: '90%'
               }}
-              primary={`${name} ${(isDoctor || isSecretary) ? '-' : ''} ${isDoctor ? title : ''}`}
-              secondary={
-                <Stack direction="column">
-                  {(isDoctor || isSecretary) && <Typography variant={upMd ? 'body2' : 'caption'}>{job}</Typography>}
-                  <Typography variant={upMd ? 'body2' : 'caption'}>{email}</Typography>
-                  {(isDoctor || isSecretary) && (
-                    <>
-                      <Typography
-                        variant={upMd ? 'body2' : 'caption'}
-                      >{`Specialty: ${specialty}`}</Typography>
-                      <Typography
-                        variant={upMd ? 'body2' : 'caption'}
-                      >{`Link: ${linkData}/find-doctor/${uname}/`}</Typography>
-                      <Button
-                        variant="contained"
-                        size="small"
-                        color="error"
-                        sx={{ p: 0.5, width: 80 }}
-                        onClick={() => handleCopyClick()}
-                      >
-                        {copy}
-                      </Button>
-                    </>
-                  )}
-                </Stack>
-              }
-              primaryTypographyProps={{
-                typography: { xs: 'body2', md: 'h4' },
-              }}
-              secondaryTypographyProps={{
-                mt: 0.5,
-                color: 'common.white',
-                sx: { opacity: 0.78 },
-              }}
+              onClick={openCarousel.onTrue}
+              alt="qr image"
+              ref={componentRef}
             />
-          )}
+            :
+            <img
+              src={qrImage}
+              width={200}
+              height={120}
+              alt="qr image"
+            />
+          }
+        </Box>
+        <Stack
+          direction="column" justifyContent="center" alignItems="flex-start" gap={1}>
+          <Button onClick={openModal.onTrue} variant="outlined">
+            Generate
+          </Button>
 
-          {/* <Box sx={{ bgcolor: 'blue' }}>test</Box> */}
-
-
-        </Stack>
-        {/* <Stack direction="row" sx={{
-          position: 'absolute',
-          right: 20,
-          height: '100%',
-          width: { lg: 500 },
-        }}>
-          <Box
-            sx={{
+          <Stack>
+            <Button sx={{
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              width: '100%'
-            }}>
-            {user?.qrProfile ?
-              <Image
-                src={user?.qrProfile}
-                sx={{
-                  width: '85%',
-                  height: '90%'
-                }}
-                onClick={openCarousel.onTrue}
-                alt="qr image"
-                ref={componentRef}
-              />
-              :
-              <img
-                src={qrImage}
-                width={200}
-                height={120}
-                alt="qr image"
-              />
-            }
-          </Box>
-          <Stack
-            direction="column" justifyContent="center" alignItems="flex-start" gap={1}>
-            <Button onClick={openModal.onTrue} variant="outlined">
-              Generate
+              gap: 1
+            }} onClick={downloadQr} variant="outlined">
+              Download
+              <Tooltip title="Download">
+                <img style={{
+                  cursor: 'pointer',
+                  width: '25px'
+                }} src='/assets/download-white.svg' />
+
+              </Tooltip>
             </Button>
-
-            <Stack>
-              <Button sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1
-              }} onClick={downloadQr} variant="outlined">
-                Download
-                <Tooltip title="Download">
-                  <img style={{
-                    cursor: 'pointer',
-                    width: '25px'
-                  }} src='/assets/download-white.svg' />
-
-                </Tooltip>
-              </Button>
-            </Stack>
           </Stack>
-        </Stack> */}
+        </Stack>
+      </Stack> */}
 
-        <DashboardQrView link={qrImage} generate={openModal.onTrue} open={openQRView.value} onClose={openQRView.onFalse} />
-        <DashboardCarousel open={openCarousel.value} onClose={openCarousel.onFalse} imageData={user?.qrProfile} />
-        <FullScreenDialog userImg={imgSrc} reInitialize={reInitialize} links={links} user={user} link={qrImage} open={openModal.value} onClose={openModal.onFalse} />
-      </Box>
-    </Card>
+      <DashboardQrView link={qrImage} generate={openModal.onTrue} open={openQRView.value} onClose={openQRView.onFalse} />
+      <DashboardCarousel open={openCarousel.value} onClose={openCarousel.onFalse} imageData={user?.qrProfile} />
+      <FullScreenDialog userImg={imgSrc} reInitialize={reInitialize} links={links} user={user} link={qrImage} open={openModal.value} onClose={openModal.onFalse} />
+    </Box>
+  </Card>
   );
 }
 
@@ -478,6 +528,8 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
   const componentRef = useRef();
 
   const [prevTemplate, setPrevTemplate] = useState(null);
+
+
 
   const [socialsAcc, setSocialsAcc] = useState({ facebook: "", twitter: "" });
   // const {facebook, twitter} = user?.employee_card && JSON.parse(user?.employee_card?.social);
@@ -567,7 +619,12 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
     if (user?.employee_card) {
       (() => {
 
-        setPrevTemplate(user?.employee_card?.template_id)
+        if (user?.employee_card?.template_id) {
+          setPrevTemplate(user?.employee_card?.template_id)
+
+        } else {
+          setPrevTemplate(1)
+        }
 
         if (user?.employee_card?.social) {
           const { facebook, twitter } = JSON.parse(user?.employee_card?.social);
@@ -587,7 +644,7 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
           setValue('twitter', twitter || '');
 
         }
-     
+
 
       })()
     }
@@ -596,6 +653,7 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
 
   const [imgSrc, setImgSrc]: any = useState(null);
 
+  const upMd = useResponsive('up', 'md');
 
 
   function base64ToFile(base64String, filename) {
@@ -752,12 +810,16 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
 
   const RenderContentMain = (
     <Box sx={{
-      px: { xs: 1, lg: 3 },
-      py: 1
+      px: { xs: 1, lg: 2 },
+      py: 2
     }}>
-      <Stack sx={{ mb: 5 }} direction="row" justifyContent="space-between">
+      <Stack sx={{ mb: 5, width:'100%'}} direction="row" justifyContent="space-between">
         <Typography>2. Personalize Details</Typography>
-        <Button onClick={handleSubmitGenerate} variant="contained">Generate</Button>
+        <Stack gap={2} direction="row" alignItems="center">
+          <Button onClick={handleClose} variant="outlined">Close</Button>
+
+          <Button onClick={handleSubmitGenerate} variant="contained">Generate</Button>
+        </Stack>
 
         {/* <Button ref={submitBtn} sx={{ display: 'none' }} type="submit">Submit</Button> */}
       </Stack>
@@ -956,21 +1018,22 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
                   <div style={{ position: 'fixed', top: 20, right: 20 }}>
 
 
-                    <IconButton
+                    {!upMd && <Button onClick={handleClose} variant="contained">Close</Button>}
+                    {/* <IconButton
                       edge="start"
                       onClick={handleClose}
                       aria-label="close"
                       sx={{
-                        p:2,
-                        background:'black',
-                        color:'white',
-                        '&:hover':{
-                          background:'#4c4d4c',
+                        p: 2,
+                        background: 'black',
+                        color: 'white',
+                        '&:hover': {
+                          background: '#4c4d4c',
                         }
                       }}
                     >
                       <CloseIcon />
-                    </IconButton>
+                    </IconButton> */}
                   </div>
 
                 </Toolbar>
@@ -979,14 +1042,18 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
               <Box sx={{
                 width: { xs: '100%', lg: 1600 },
                 margin: '0 auto',
-                py: { xs: 5, lg: 2 },
-                px: { xs: 1, lg: 8 },
-                marginTop: { lg: 10 }
+                py: { xs: 10, lg: 4 },
+                px: { xs: 0, lg: 8 },
+                marginTop: { lg: 10 },
+                display: 'flex',
+                justifyContent: 'center',
+
+
               }}>
                 <Grid container justifyContent="space-around" spacing={2} sx={{
                   width: '100%',
-                  height:'auto',
-                  p: 3
+                  height: 'auto',
+                  // background:'red'
                 }}>
                   <Grid sx={{
                     pt: 7
@@ -1051,34 +1118,34 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
                             />
                           </Box>
                         </Stack>}
-                          {active && <Stack alignItems="center" justifyContent="center" sx={{
-                            width: '100%',
-                            height: '100%'
-                          }} >
-                            {
-                              renderComponents?.filter((item) => Number(item?.id) === Number(active))?.map(({ component: Component, id }) => {
-                                return (
-                                  <Box sx={{
-                                    width: { lg: "80%" },
-                                    height: { lg: '100%' },
-                                  }}>
-                                    <Component
-                                      arr={checkedValues}
-                                      facebook={values?.facebook}
-                                      twitter={values?.twitter}
-                                      ref={id === active ? componentRef : null}
-                                      email={values?.email}
-                                      selected={true}
-                                      contact={values?.contact}
-                                      address={values?.address}
-                                      forDownload={generated == id} photo={typeof values?.avatarUrl === 'string' ? values?.avatarUrl : values?.avatarUrl?.preview} link={link} title={"test"} name={values?.name} specialty={values?.specialty}
-                                    />
-                                  </Box>
-                                )
-                              })
-                            }
-                          </Stack>}
-                        
+                        {active && <Stack alignItems="center" justifyContent="center" sx={{
+                          width: '100%',
+                          height: '100%'
+                        }} >
+                          {
+                            renderComponents?.filter((item) => Number(item?.id) === Number(active))?.map(({ component: Component, id }) => {
+                              return (
+                                <Box sx={{
+                                  width: { lg: "80%" },
+                                  height: { lg: '100%' },
+                                }}>
+                                  <Component
+                                    arr={checkedValues}
+                                    facebook={values?.facebook}
+                                    twitter={values?.twitter}
+                                    ref={id === active ? componentRef : null}
+                                    email={values?.email}
+                                    selected={true}
+                                    contact={values?.contact}
+                                    address={values?.address}
+                                    forDownload={generated == id} photo={typeof values?.avatarUrl === 'string' ? values?.avatarUrl : values?.avatarUrl?.preview} link={link} title={"test"} name={values?.name} specialty={values?.specialty}
+                                  />
+                                </Box>
+                              )
+                            })
+                          }
+                        </Stack>}
+
                       </Stack>
 
 
@@ -1089,12 +1156,12 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
                         <Typography sx={{ mb: 2, ml: 4 }} variant="body2" color="gray">*Choose template</Typography>
                         <Grid container gap={2} justifyContent={{ xs: 'center', lg: 'flex-start' }}>
 
-                          {renderComponents?.filter((item) => Number(item.id) !== (()=>{
-                            let target:any;
+                          {renderComponents?.filter((item) => Number(item.id) !== (() => {
+                            let target: any;
 
-                            if(active){
-                               target = active
-                            }else if(prevTemplate){
+                            if (active) {
+                              target = active
+                            } else if (prevTemplate) {
                               target = prevTemplate
                             }
                             return target;
@@ -1129,7 +1196,7 @@ function FullScreenDialog({ userImg, reInitialize, links, open, onClose, link, u
 
 
                   </Grid>
-                  <Grid item xs={12} lg={3} sx={{
+                  <Grid item xs={12} lg={4} sx={{
                     pt: 7
                   }}>
                     <Paper elevation={12} sx={{

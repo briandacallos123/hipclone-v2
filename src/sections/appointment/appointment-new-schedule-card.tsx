@@ -50,7 +50,19 @@ export default function AppointmentNewScheduleCard({ data, checked, onChange, is
       {isProfile && (
         <Box sx={{ p: 3, position: 'center' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {data?.clinicDPInfo?.[0] ? (
+            {data?.clinicDPInfo?.length ? 
+             <Avatar
+             sx={{ mr: 2 }}
+             alt={data?.clinic_name}
+             src={data?.clinicDPInfo?.[0]?.filename}
+             />
+            :
+            <Avatar alt={data?.clinic_name} sx={{ mr: 2 }}>
+            {data?.clinic_name?.charAt(0).toUpperCase()}
+          </Avatar>
+            }
+           
+            {/* {data?.clinicDPInfo?.[0] ? (
               <Avatar
                 alt={data?.clinic_name}
                 src={data?.clinicDPInfo?.[0]?.filename.split('public')[1]}
@@ -62,7 +74,7 @@ export default function AppointmentNewScheduleCard({ data, checked, onChange, is
               <Avatar alt={data?.clinic_name} sx={{ mr: 2 }}>
                 {data?.clinic_name?.charAt(0).toUpperCase()}
               </Avatar>
-            )}
+            )} */}
 
             <ListItemText
               primary={data?.clinic_name}

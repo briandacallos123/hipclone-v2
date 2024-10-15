@@ -115,13 +115,20 @@ export const DoctorClinicsHistory = extendType({
 
         // console.log(args?.data, 'args@');
         const { session } = ctx;
-        const checkUser = (() => {
+
+        const checkUser = await(async() => {
           if (session?.user?.role === 'secretary')
             return {
               doctorID: session?.user?.permissions?.doctorID,
             };
+
+            const doctorId = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL:session?.user?.email
+              }
+            })
           return {
-            doctorID: session?.user?.id,
+            doctorID: doctorId?.EMP_ID
           };
         })();
 

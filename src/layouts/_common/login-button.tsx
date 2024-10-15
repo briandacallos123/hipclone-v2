@@ -8,6 +8,7 @@ import { RouterLink } from 'src/routes/components';
 import { useBoolean } from 'src/hooks/use-boolean';
 //
 import { NextAuthLoginView } from 'src/sections/auth';
+import { useEffect, useState } from 'react';
 
 // ----------------------------------------------------------------------
 
@@ -20,6 +21,15 @@ type Props = {
 
 export default function LoginButton({ setLoggedIn, isLoggedIn, sx, id }: Props) {
   const open = useBoolean();
+  const [isDoctor, setDoctor] = useState(false);
+
+
+  useEffect(()=>{
+    const role = localStorage.getItem('userRole');
+    if(role === 'doctor'){
+      setDoctor(true)
+    }
+  },[])
 
   return (
     <>
@@ -31,10 +41,11 @@ export default function LoginButton({ setLoggedIn, isLoggedIn, sx, id }: Props) 
         color="primary"
         sx={{ mr: 1, ...sx }}
       >
-        Registered user? Login
+        Registered {isDoctor ? 'Doctor':'Patient'}? Login
       </Button>
 
       <NextAuthLoginView
+        isDoctor={isDoctor}
         isLoggedIn={isLoggedIn}
         setLoggedIn={setLoggedIn}
         open={open.value}

@@ -47,12 +47,11 @@ export default function ChatMessageInput({
     'https://api-dev-minimal-v5.vercel.app/assets/images/cover/cover_5.pdf', */
   ]);
 
-  useEffect(() => {
-    if (currentConversationId && !isNotif) {
-      router.push(`${paths.dashboard.chat}?id=${currentConversationId}`);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentConversationId]);
+  // useEffect(() => {
+  //   if (currentConversationId && !isNotif) {
+  //     router.push(`${paths.dashboard.chat}?id=${currentConversationId}`);
+  //   }
+  // }, [currentConversationId]);
 
   const fileRef = useRef<HTMLInputElement>(null);
 

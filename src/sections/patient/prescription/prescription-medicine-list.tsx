@@ -35,7 +35,7 @@ const PrescriptionMedicineList = ({favorites, medecineData, fetchMoreData, handl
 
  
     return (
-        <Box sx={{ position: 'relative', zIndex: 10000, height: '100%', display: 'flex', flexDirection: 'column', }}>
+        <Box sx={{ position: 'relative', width:'100%', zIndex: 10000, height: '100%', display: 'flex', flexDirection: 'column', }}>
             {/* favorites */}
             {/* <Box ref={listRef} sx={{ mt: 1, p: 2, w: '100%', overflowY: 'auto'}}>
                 <Typography variant="body2">Favorites</Typography>
@@ -44,8 +44,8 @@ const PrescriptionMedicineList = ({favorites, medecineData, fetchMoreData, handl
                 ))}
             </Box> */}
 
-            <Box ref={listRef} sx={{ p: 2, pb: 10, w: '100%', overflowY: 'auto', height: '100%', flex: 1 }}>
-                <Typography variant="body2">Medicines Available</Typography>
+            <Box ref={listRef} sx={{  pb: 10, p:1, w: '100%', overflowY: 'auto', height: '100%', flex: 1 }}>
+                {/* <Typography variant="body2">Medicines Available</Typography> */}
                 <List>
                     {medecineData?.tableData.map((item, index) => (
                         <PrescriptionMedicine key={index} item={item} onAdd={() => handleAddPrescription(item)} />

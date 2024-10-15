@@ -114,8 +114,8 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
         TransitionComponent={Transition}
       >
         <Box sx={{
-          width:'100%',
-          height:'100vh',
+          width: '100%',
+          height: '100vh',
           background: `url('/assets/background/queue-bg.jpg')`,
           backgroundSize: 'cover',
           backgroundRepeat: 'no-repeat',
@@ -129,21 +129,7 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
               <Typography sx={{ ml: 2, flex: 1 }} variant="h6" component="div">
                 {/* Sound */}
               </Typography>
-              <IconButton
-                      edge="start"
-                      onClick={handleClose}
-                      aria-label="close"
-                      sx={{
-                        p:2,
-                        background:'black',
-                        color:'white',
-                        '&:hover':{
-                          background:'#4c4d4c',
-                        }
-                      }}
-                    >
-                      <CloseIcon />
-              </IconButton>
+              {/* */}
             </Toolbar>
           </AppBar>
 
@@ -158,23 +144,39 @@ export default function DashboardQrView({ open, link, onClose, generate }: any) 
               lg: 5
             },
           }} elevation={12}>
-            <Stack justifyContent="flex-end" direction="row" gap={2} sx={{
+            <Stack justifyContent="space-between" direction="row" sx={{
               width: '100%',
               mb: 5,
-              pr:2
+              px:{xs:2,lg:6}
             }}>
-              <Button sx={{}} onClick={generate} variant="outlined">
-                Generate
-              </Button>
-              <Button sx={{}} variant="contained" onClick={handleDownload}>
-                Download
-              </Button>
+              <Box>
+                <Button  onClick={handleClose} variant="outlined">Close</Button>
+                {/* <IconButton
+                  edge="start"
+                  onClick={handleClose}
+                  aria-label="close"
+                  sx={{
+                    p: 2,
+                  }}
+                >
+                  Close
+                </IconButton> */}
+              </Box>
+
+              <Stack direction="row" alignItems='center' gap={2}>
+                <Button sx={{}} onClick={generate} variant="outlined">
+                  Generate
+                </Button>
+                <Button sx={{}} variant="contained" onClick={handleDownload}>
+                  Download
+                </Button>
+              </Stack>
             </Stack>
 
             <Paper elevation={12}
               sx={{
                 width: { xs: '100%', lg: 700 },
-                p: { xs:1, lg: 3 },
+                p: { xs: 2, lg: 3 },
                 margin: '0 auto'
               }}>
               <Box sx={{

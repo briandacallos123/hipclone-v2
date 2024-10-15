@@ -3,6 +3,8 @@ import { unserialize, serialize } from 'php-serialize';
 import { GraphQLError } from 'graphql/error/GraphQLError';
 import client from '../../../prisma/prismaClient';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import fs from 'fs';
+import path from 'path';
 
 /* SchedName	longtext	latin1_swedish_ci		Yes	NULL			Change Change	Drop Drop	
     5	days	longtext	latin1_swedish_ci		Yes	NULL			Change Change	Drop Drop	
@@ -165,9 +167,67 @@ const userObj4FYD = objectType({
           orderBy: {
             id: 'desc',
           },
+          include:{
+            user:true
+          }
         });
 
-        return result;
+        let emptyResult:any = [{}];
+
+        if (result?.length && !(result[0]?.filename?.includes('storage'))) {
+          const dataPath = result[0]?.filename.replace(/^.*?(uploads)/, '$1');
+          const filePath = path.join(process.cwd(), '', `public/${dataPath}` as string);
+
+          try {
+            fs.accessSync(filePath, fs.constants.R_OK);
+            result[0].filename = `/${dataPath}`
+          } catch (error) {
+            const employee = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL:result[0]?.user?.email
+              }
+            })
+            if(Number(employee?.EMP_SEX) === 1){
+              result[0].filename = '/assets/illustrations/doctorMale.png'
+
+            }else if(Number(employee?.EMP_SEX) === 2){
+             result[0].filename = '/assets/illustrations/doctorFemale.png'
+
+            }else{
+              result[0].filename = '/assets/illustrations/doctorMale.png'
+            }
+          }
+        }else{
+
+          const userDetails = await client.user.findFirst({
+            where:{
+              uuid:root.uuid
+            }
+          })
+
+          const employee:any = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:userDetails?.email
+            }
+          })
+          if(employee?.EMP_SEX === 1){
+            emptyResult[0].filename = '/assets/illustrations/doctorMale.png'
+          }else if(employee?.EMP_SEX === 2){
+            emptyResult[0].filename = '/assets/illustrations/doctorMale.png'
+          }else{
+            emptyResult[0].filename = '/assets/illustrations/doctorMale.png'
+          }
+
+        }
+        console.log(emptyResult,'emptyResultemptyResult')
+
+        
+
+        if(result?.length){
+          return result;
+        }else{
+          return emptyResult;
+        }
       },
     });
   },
@@ -224,7 +284,7 @@ export const QueryFYD = extendType({
         };
         const whereconditions = filters(args);
 
-      /*   console.log(whereconditions, 'WHERE'); */
+        /*   console.log(whereconditions, 'WHERE'); */
 
         // console.log(serialize(args?.data!.hmoIds), 'Filter@');
 
@@ -236,11 +296,12 @@ export const QueryFYD = extendType({
 
         let result;
         let _count;
-        
-   
+
+
+
 
         try {
-          if(!myDoctorOnly){
+          if (!myDoctorOnly) {
             let [result1, _count1]: any = await client.$transaction([
               client.employees.findMany({
                 orderBy: {
@@ -250,7 +311,7 @@ export const QueryFYD = extendType({
                 take,
                 where: {
                   isDeleted: 0,
-                  ...whereconditions, 
+                  ...whereconditions,
                 },
                 include: {
                   user: true,
@@ -260,9 +321,9 @@ export const QueryFYD = extendType({
                       NOT: [{ clinic_name: '' }, { clinic_name: null }, { isDeleted: 1 }],
                     },
                     include: {
-                      clinicDPInfo:{
-                        orderBy:{
-                          id:'desc'
+                      clinicDPInfo: {
+                        orderBy: {
+                          id: 'desc'
                         }
                       },
                       ClinicSchedInfo: {
@@ -272,7 +333,7 @@ export const QueryFYD = extendType({
                       },
                     },
                   },
-  
+
                   SpecializationInfo: true,
                 },
               }),
@@ -293,19 +354,21 @@ export const QueryFYD = extendType({
             ]);
             result = result1;
             _count = _count1;
-          }else{
+          } else {
             const patientDoctors = await client.records.findMany({
-              where:{
-                patientID:Number(session?.user?.s_id),
-                APPID:{
-                  not:null
+              where: {
+                patientID: Number(session?.user?.s_id),
+                APPID: {
+                  not: null
                 }
               },
-              select:{
-                doctorID:true
+              select: {
+                doctorID: true
               }
             })
 
+           
+
             let [result1, _count1]: any = await client.$transaction([
               client.employees.findMany({
                 orderBy: {
@@ -315,9 +378,9 @@ export const QueryFYD = extendType({
                 take,
                 where: {
                   isDeleted: 0,
-                  ...whereconditions, 
-                  EMP_ID:{
-                    in:patientDoctors?.map((item)=>Number(item?.doctorID))
+                  ...whereconditions,
+                  EMP_ID: {
+                    in: patientDoctors?.map((item) => Number(item?.doctorID))
                   }
                 },
                 include: {
@@ -325,22 +388,37 @@ export const QueryFYD = extendType({
                   clinicInfo: {
                     where: {
                       isDeleted: 0,
-                      NOT: [{ clinic_name: '' }, { clinic_name: null }, { isDeleted: 1 }],
+                      NOT: [{ clinic_name: ''}, { clinic_name: null }, { isDeleted: 1 }],
                     },
                     include: {
-                      clinicDPInfo:{
-                        orderBy:{
-                          id:'desc'
+                      clinicDPInfo: {
+                        orderBy: {
+                          id: 'desc'
                         }
                       },
                       ClinicSchedInfo: {
                         where: {
                           isDeleted: 0,
+                          NOT:[
+                            {
+                              number_patient:0
+                            }
+                            // {
+                            //   AND:[
+                            //     {
+                            //       isLimited:1
+                            //     },
+                            //     {
+                            //       number_patient:0
+                            //     }
+                            //   ]
+                            // }
+                          ]
                         },
                       },
                     },
                   },
-  
+
                   SpecializationInfo: true,
                 },
               }),
@@ -353,8 +431,8 @@ export const QueryFYD = extendType({
                       isDeleted: 0,
                     },
                   },
-                  EMP_ID:{
-                    in:patientDoctors?.map((item)=>Number(item?.doctorID))
+                  EMP_ID: {
+                    in: patientDoctors?.map((item) => Number(item?.doctorID))
                   }
 
                 },
@@ -366,10 +444,10 @@ export const QueryFYD = extendType({
             result = result1;
             _count = _count1;
 
-         
+
 
           }
-         
+
           const _result: any = result;
           const _total: any = _count;
           const response: any = {
@@ -437,30 +515,30 @@ const filters = (args: any) => {
     };
   }
   if (args?.data!.searchSpecial) {
-    whereSpecSearch = {      
-        SpecializationInfo: {
-          name: {
-            contains: args?.data!.searchSpecial,
-          },
-        },     
+    whereSpecSearch = {
+      SpecializationInfo: {
+        name: {
+          contains: args?.data!.searchSpecial,
+        },
+      },
     };
   }
 
-  let HMHSearch : any = {
-  }  
-  if(args?.data?.hmoIds?.length){
-    let hV :any = [];
+  let HMHSearch: any = {
+  }
+  if (args?.data?.hmoIds?.length) {
+    let hV: any = [];
 
-    args?.data?.hmoIds.map((v:any) =>{   
-        const stL = String(v).length  
-        hV.push({       
-            HMO:{
-              contains:`s:${stL}:"${v}"`
-            }        
-        })
+    args?.data?.hmoIds.map((v: any) => {
+      const stL = String(v).length
+      hV.push({
+        HMO: {
+          contains: `s:${stL}:"${v}"`
+        }
+      })
     })
     HMHSearch = {
-      OR:[
+      OR: [
         ...hV
       ]
     }

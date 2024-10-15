@@ -119,7 +119,7 @@ export default function NoteListView({
   totalData,
   Ids,
   notesRecordResult,
-  clinicData,
+  clinicData:oldClinicData,
   patientLoading,
   updateRow,
   clearData,
@@ -136,7 +136,7 @@ export default function NoteListView({
   const [filters, setFilters] = useState(defaultFilters);
   const { getItem } = useSessionStorage();
   const [isClinic, setIsClinic] = useState(0);
-
+  const [clinicData, setClinicData] = useState([])
   // console.log(clinicData,'clinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicDataclinicData')
   useEffect(() => {
     setPayloads({
@@ -190,6 +190,18 @@ export default function NoteListView({
     filters,
     dateError,
   });
+
+
+
+ 
+  useEffect(()=>{
+    if(drClinicData && user?.role !== 'patient'){
+      setClinicData(drClinicData?.DoctorClinicsHistory)
+    }
+    if(user?.role === 'patient' && oldClinicData?.length){
+      setClinicData(oldClinicData)
+    }
+  },[drClinicData, oldClinicData])
 
   // default filters
   // useEffect(() => {

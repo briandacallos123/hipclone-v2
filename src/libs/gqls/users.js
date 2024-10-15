@@ -158,3 +158,12 @@ mutation generateCard($data: generateCardInp!) {
   }
 }
 `;
+
+
+export const registerEmployee = gql`
+mutation registerEmployee($data: registerEmployeeInp!) {
+  registerEmployee(data: $data) {
+    message
+  }
+}
+`;

@@ -90,7 +90,12 @@ export const mutation_create_family_history = extendType({
           family_history_data: []
         };
         try {
-          const doctorID = Number(session?.user.id);
+          const doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+          const doctorID = Number(doctorDetails?.EMP_ID);
           const doctor = String(session?.user.doctorId);
 
           await Promise.all(family_history?.map(async (i: any, index: number) => {

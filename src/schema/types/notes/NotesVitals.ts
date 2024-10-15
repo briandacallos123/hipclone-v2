@@ -520,6 +520,12 @@ const customFuncVitalPatient = async (
 ) => {
   let vitals_data: any;
 
+  let doctorDetails = await client.employees.findFirst({
+    where:{
+      EMP_EMAIL:session?.user?.email
+    }
+  })
+
   const checkUser = (() => {
     if (session?.user?.role === 'secretary') {
       // console.log("secretary______________")
@@ -528,7 +534,7 @@ const customFuncVitalPatient = async (
       };
     }
     return {
-      doctorID: session?.user?.id,
+      doctorID: doctorDetails?.EMP_ID
     };
   })();
 
@@ -774,7 +780,15 @@ export const PostVitals = extendType({
               patientInfo: true
             }
           })
-          console.log(patientData,'TANGGGGGGGGGGGGGGGGGGGGGGGGGGGG')
+          let doctorData:any;
+
+          if(session?.user?.role === 'doctor'){
+            doctorData = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL:session?.user?.email
+              }
+            })
+          }
 
 
           if (createData?.categoryValues && createData?.categoryValues?.length !== 0) {
@@ -791,12 +805,11 @@ export const PostVitals = extendType({
               const vitalData = await client.vital_data.create({
                 data: {
                   patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
-                  doctorId: Number(session?.user?.id),
+                  doctorId: Number(doctorData?.EMP_ID),
                   categoryId: Number(categoryId?.id),
                   value: item?.value,
                 }
               })
-              console.log(vitalData, "vitalData")
 
               return vitalData
             })
@@ -807,10 +820,10 @@ export const PostVitals = extendType({
 
           const vitals = await client.notes_vitals.create({
             data: {
-              clinic: createData?.clinicID,
+              // clinic: createData?.clinicID,
               report_id: createData?.recordID,
               patientID: patientData?.patientInfo?.S_ID || createData?.patientID,
-              doctorID: session?.user?.id,
+              doctorID: Number(doctorData?.EMP_ID),
 
               wt: createData?.weight !== "0" ? createData?.weight : null,
               ht: createData?.height !== "0" ? createData?.height : null,

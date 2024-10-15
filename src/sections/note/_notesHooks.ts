@@ -86,6 +86,7 @@ export default function useNotesHooks(payloads: any) {
         setIds(allRecordsbyPatientNew?.RecordIds);
         setTotalData(allRecordsbyPatientNew?.total_records);
         setIsLoadingPatient(false);
+        setClinicData(allRecordsbyPatientNew?.clinic)
       })
     }
   },[recordPatientResult.data,

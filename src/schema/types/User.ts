@@ -1,4 +1,5 @@
-import { GraphQLError, assertWrappingType } from "graphql";
+import { GraphQLError } from 'graphql/error/GraphQLError';
+
 import { extendType, objectType, inputObjectType } from "nexus";
 import client from "../../../prisma/prismaClient";
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
@@ -321,6 +322,7 @@ export const UserProfileUpsertType = inputObjectType({
     t.nonNull.string("phoneNumber");
     t.nullable.float('latitude');
     t.nullable.float('longitude');
+    t.nonNull.string('birthDate');
 
 
 
@@ -342,7 +344,8 @@ export const mutationRegisterUser = extendType({
           password: args.data!.password,
           email: args.data!.email,
           address: args?.data!.address,
-          mobile_number: args?.data?.phoneNumber
+          mobile_number: args?.data?.phoneNumber,
+
         };
 
         const userCheck = await client.user.findUnique({
@@ -392,7 +395,8 @@ export const mutationRegisterUser = extendType({
               CLINIC: 1,
               LONGITUDE: args.data?.longitude,
               LATITUDE: args.data?.latitude,
-              IDNO: Number(lastPatient?.IDNO + 1)
+              IDNO: Number(lastPatient?.IDNO + 1),
+              BDAY:args?.data?.birthDate
             }
           }).then(() => {
             return rr;
@@ -1072,6 +1076,95 @@ export const generateCard = extendType({
           }
         } catch (error) {
           console.log(error);
+          throw new GraphQLError(error)
+        }
+      }
+    })
+  }
+})
+
+
+const registerEmployeeType = objectType({
+  name:'registerEmployeeType',
+  definition(t) {
+      t.string('message')
+  },
+})
+
+export const registerEmployeeInp = inputObjectType({
+  name: "registerEmployeeInp",
+  definition(t) {
+    t.nonNull.string("lastName");
+    t.nonNull.string("firstName");
+    t.nullable.string("middleName");
+    t.nullable.string("address");
+    t.nonNull.string("email");
+    t.nonNull.int("specialization");
+    t.nonNull.string("phoneNumber");
+    t.nonNull.string("password");
+    t.nullable.string('birthDate')
+  },
+});
+
+export const registerEmployee = extendType({
+  type: "Mutation",
+  definition(t) {
+    t.nonNull.field("registerEmployee", {
+      type: registerEmployeeType,
+      args: {
+        data:registerEmployeeInp
+      },
+      async resolve(_, args, ctx) {
+        const { session } = ctx;
+        const {lastName,middleName, firstName, address, email ,specialization, phoneNumber, password, birthDate} = args?.data;
+
+        const fullName = middleName ? `${firstName} ${middleName}${lastName}` : `${firstName} ${lastName}`;
+
+        try {
+
+          const isExists = await client.user.findUnique({
+            where:{
+              email
+            }
+          })
+          if(isExists){
+            throw new GraphQLError('Email already used');
+            
+          }
+
+          // creating user
+          const userDetails = await client.user.create({
+            data:{
+              email,
+              password,
+              userType:2,
+              register_date:new Date(),
+              uname:`${firstName}-${lastName}`
+            }
+          })
+
+          await client.employees.create({
+            data:{
+              userType:2,
+              EMP_EMAIL:userDetails?.email,
+              EMP_FULLNAME:fullName,
+              EMP_FNAME:firstName,
+              EMP_MNAME:middleName ? middleName:null,
+              EMP_LNAME:lastName,
+              CONTACT_NO:phoneNumber,
+              EMP_ADDRESS:address? address:null,
+              EMP_DOB:birthDate ? birthDate:null,
+              SPECIALIZATION:specialization,
+              isDeleted:0
+            }
+          })
+
+          return {
+            message:"Created successfully"
+          }
+       
+        } catch (error) {
+          console.log(error,'errorr moo');
           throw new GraphQLError(error)
         }
       }

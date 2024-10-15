@@ -324,6 +324,7 @@ export default function ProductDetailsSummary({
 
 
 
+
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
       <Stack sx={{ ml: {lg:10}, p:{xs:1, lg:3}, boxShadow:'3px 3px 40px #e6e6e6' }} spacing={3}  {...other}>
@@ -333,9 +334,7 @@ export default function ProductDetailsSummary({
 
           <Stack sx={{width:'100%'}} direction="row" justifyContent="space-between" alignItems="flex-start">
             <Stack direction="row" gap={2}>
-              <Avatar src={userData?.attachment && (() => {
-                return `https://hip.apgitsolutions.com/${userData?.attachment?.filename?.split('/').splice(1).join('/')}`
-              })()} />
+              <Avatar src={userData?.attachment?.filename} />
               <Box>
                 <Typography variant="body1">{fullName}</Typography>
 

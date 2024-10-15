@@ -26,6 +26,8 @@ import NoteNewFormCertificate from '../note-new-form-certificate';
 import NoteNewFormClearance from '../note-new-form-clearance';
 import NoteNewFormAbstract from '../note-new-form-abstract';
 import NoteNewFormVaccine from '../note-new-form-vaccine';
+import { DoctorClinicsHistory } from '@/libs/gqls/drprofile';
+import { useQuery } from '@apollo/client';
 
 // ----------------------------------------------------------------------
 
@@ -99,9 +101,23 @@ const FORMS = [
 
 export default function PatientNoteCreateView({ editData, open, onClose, refIds, refetch }: Props) {
   const [type, setType] = useState<string | null>(null);
+  const [clinicData, setclinicData] = useState<any>([]);
 
   const openForm = useBoolean();
   // console.log('heyd', refIds?.patientInfo);
+  const {
+    data: drClinicData,
+    error: drClinicError,
+    loading: drClinicLoad,
+    refetch: drClinicFetch,
+  }: any = useQuery(DoctorClinicsHistory);
+
+  useEffect(()=>{
+    if(drClinicData){
+      setclinicData(drClinicData?.DoctorClinicsHistory)
+    }
+  },[drClinicData])
+
   const upMd = useResponsive('up', 'md');
   const reader = () => (
     <>
@@ -225,6 +241,7 @@ export default function PatientNoteCreateView({ editData, open, onClose, refIds,
             refIds={refIds?.patientInfo}
             refetch={refetch}
             editData={editData}
+            clinicData={clinicData}
 
           />
         )}
@@ -238,6 +255,7 @@ export default function PatientNoteCreateView({ editData, open, onClose, refIds,
             editData={editData}
             refIds={refIds}
             refetch={refetch}
+            clinicData={clinicData}
           />
         )}
 
@@ -250,6 +268,7 @@ export default function PatientNoteCreateView({ editData, open, onClose, refIds,
             refIds={refIds?.patientInfo}
             refetch={refetch}
             editData={editData}
+            clinicData={clinicData}
 
           />
         )}
@@ -263,6 +282,7 @@ export default function PatientNoteCreateView({ editData, open, onClose, refIds,
             refIds={refIds?.patientInfo}
             refetch={refetch}
             editData={editData}
+            clinicData={clinicData}
           />
         )}
 
@@ -275,6 +295,7 @@ export default function PatientNoteCreateView({ editData, open, onClose, refIds,
             refIds={refIds?.patientInfo}
             refetch={refetch}
             editData={editData}
+            clinicData={clinicData}
           />
         )}
 
@@ -287,6 +308,7 @@ export default function PatientNoteCreateView({ editData, open, onClose, refIds,
             refIds={refIds?.patientInfo}
             refetch={refetch}
             editData={editData}
+            clinicData={clinicData}
 
           />
         )}
@@ -300,6 +322,7 @@ export default function PatientNoteCreateView({ editData, open, onClose, refIds,
             refetch={refetch}
             refIds={refIds?.patientInfo}
             editData={editData}
+            clinicData={clinicData}
 
           />
         )}

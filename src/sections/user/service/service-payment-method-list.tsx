@@ -56,12 +56,12 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Method' },
   { id: 'accountNumber', label: 'Account Number' },
   { id: 'instruction', label: 'Instruction' },
-  { id: '' },
+  { id: '', label:'Action' },
 ];
 
 // ----------------------------------------------------------------------
 
-export default function ServicePaymentMethodList() {
+export default function ServicePaymentMethodList({tutorialTab, incrementTutsTab}:any) {
   const upMd = useResponsive('up', 'md');
 
   const table = useTable({ defaultOrderBy: 'accountNumber' });
@@ -366,7 +366,8 @@ export default function ServicePaymentMethodList() {
 
   return (
     <>
-      <Card>
+     <div className={tutorialTab && !openCreate.value && tutorialTab === 11 ? 'service-fee':''}>
+     <Card>
         <CardHeader
           title="Payment Method"
           action={
@@ -416,12 +417,12 @@ export default function ServicePaymentMethodList() {
                   rowCount={servicesData?.length}
                   numSelected={table.selected.length}
                   onSort={table.onSort}
-                  onSelectAllRows={(checked) =>
-                    table.onSelectAllRows(
-                      checked,
-                      servicesData.map((row: any) => row?.id)
-                    )
-                  }
+                  // onSelectAllRows={(checked) =>
+                  //   table.onSelectAllRows(
+                  //     checked,
+                  //     servicesData.map((row: any) => row?.id)
+                  //   )
+                  // }
                 />
               )}
 
@@ -496,6 +497,7 @@ export default function ServicePaymentMethodList() {
 
         <ServicePaymentMethodCreate
           refetch={refetch}
+          isTuts={tutorialTab && tutorialTab === 11 ? true:false}
           open={openCreate.value}
           onClose={openCreate.onFalse}
           appendData={appendData}
@@ -504,6 +506,7 @@ export default function ServicePaymentMethodList() {
             setServerData(d);
             setTempId(uuidv4());
           }}
+          incrementTutsTab={incrementTutsTab}
         />
 
         <ServicePaymentMethodEdit
@@ -557,6 +560,7 @@ export default function ServicePaymentMethodList() {
           </Button>
         }
       />
+     </div>
     </>
   );
 }

@@ -25,7 +25,7 @@ import { USER_UPDATE_PASSWORD } from '@/libs/gqls/users';
 
 type FormValuesProps = { oldPassword: string; newPassword: string; confirmPassword: string };
 
-export default function LoginPassword() {
+export default function LoginPassword({recheck}:any) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const [isloading, setLoading]: any = useState(false);
@@ -33,6 +33,7 @@ export default function LoginPassword() {
   const showOldPass = useBoolean();
 
   const showNewPass = useBoolean();
+  const currentStep = localStorage?.getItem('currentStep')
 
   const showConfirmPass = useBoolean();
 
@@ -108,7 +109,12 @@ export default function LoginPassword() {
           }else{
             enqueueSnackbar('Update Password Successfully!');
             setLoading(false)
+            if(currentStep && Number(currentStep) !== 100){
+              localStorage.setItem('currentStep','14')
+              recheck();
+            }
           }
+         
         })
         .catch((error) => {
           closeSnackbar(snackKey);

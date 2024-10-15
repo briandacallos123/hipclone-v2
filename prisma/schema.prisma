@@ -288,6 +288,7 @@ model clinic_schedule {
   clinic         Int?
   clinic_id      Int?
   doctor_idno    Int?
+  isLimited      Int?       @default(0)
   SchedName      String?    @db.LongText
   days           String?    @db.LongText
   type           String?    @db.LongText
@@ -1579,6 +1580,7 @@ model user {
   patientInfo                                   patient?
   sessions                                      Session[]
   subAccountInfo                                sub_account[]
+  is_new                                        Int?                @default(1)
 
   @@unique([email, userType], map: "unique_user_email_userType")
   @@index([email, userType], map: "idx_user_email_userType")

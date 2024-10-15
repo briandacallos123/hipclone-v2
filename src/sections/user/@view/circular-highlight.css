@@ -1,0 +1,28 @@
+
+
+.circular-highlight {
+    position: relative;
+    display: inline-block;
+    z-index: 99999;
+}
+.circular-highlight::before {
+    content: '➔'; /* You can replace this with an arrow icon */
+    position: absolute;
+    top: 0%; /* Adjust as needed to position the arrow */
+    left: -20%;
+    transform: translateX(-50%);
+    font-size: 24px; /* Adjust the size of the arrow */
+    animation: scale .7s infinite alternate; /* Animation for scaling */
+    color: white; /* Adjust color */
+}
+
+
+
+@keyframes scale {
+    0% {
+        transform: translateX(-50%) scale(1);
+    }
+    100% {
+        transform: translateX(-50%) scale(1.5); /* Scale up */
+    }
+}

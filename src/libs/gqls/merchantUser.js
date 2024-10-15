@@ -140,7 +140,7 @@ export const QueryAllFavorites = gql`
         is_favorite
         PR_ID
       }
-      totalRecords
+      
     }
   }
 `;

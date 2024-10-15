@@ -24,12 +24,12 @@ import CustomPopover, { usePopover } from 'src/components/custom-popover';
 const OPTIONS = [
   {
     label: 'Manage Profile',
-    linkTo: paths.dashboard.user.account,
+    linkTo: paths.dashboard.user.manage.profile,
   },
-  {
-    label: 'Manage Log-in',
-    linkTo: paths.dashboard.user.login,
-  },
+  // {
+  //   label: 'Manage Log-in',
+  //   linkTo: paths.dashboard.user.login,
+  // },
 ];
 
 const OPTIONS_MERCHANT = [
@@ -46,24 +46,24 @@ const OPTIONS_MERCHANT = [
 const DOCTOR_OPTIONS = [
    {
     label: 'Manage Profile',
-    linkTo: paths.dashboard.user.account,
+    linkTo: paths.dashboard.user.manage.profile,
   },
-  {
-    label: 'Manage Log-in',
-    linkTo: paths.dashboard.user.login,
-  },
-  {
-    label: 'Manage Clinic',
-    linkTo: paths.dashboard.user.clinic,
-  },
-  {
-    label: 'Manage Service',
-    linkTo: paths.dashboard.user.service,
-  },
-  {
-    label: 'Manage Sub-account',
-    linkTo: paths.dashboard.user.subaccount,
-  },
+  // {
+  //   label: 'Manage Log-in',
+  //   linkTo: paths.dashboard.user.login,
+  // },
+  // {
+  //   label: 'Manage Clinic',
+  //   linkTo: paths.dashboard.user.clinic,
+  // },
+  // {
+  //   label: 'Manage Service',
+  //   linkTo: paths.dashboard.user.service,
+  // },
+  // {
+  //   label: 'Manage Sub-account',
+  //   linkTo: paths.dashboard.user.subaccount,
+  // },
 ];
 
 // ----------------------------------------------------------------------
@@ -149,14 +149,7 @@ export default function AccountPopover() {
                   {option.label}
                 </MenuItem>
               ))}
-        {/* {user?.role === 'patient' &&  <Stack sx={{ p: 1 }}>
-              {OPTIONS.map((option) => (
-                <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Stack>} */}
-
+              
             {user?.role === 'merchant' &&  <Stack sx={{ p: 1 }}>
               {OPTIONS_MERCHANT.map((option) => (
                 <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
@@ -173,29 +166,6 @@ export default function AccountPopover() {
                 ))}
               </Stack>}
 
-        {/* {user?.role !== 'admin' &&
-          <> */}
-            {/* <Stack sx={{ p: 1 }}>
-              {OPTIONS.map((option) => (
-                <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
-                  {option.label}
-                </MenuItem>
-              ))}
-            </Stack> */}
-
-{/* 
-            {user?.role === 'doctor' && (
-              <Stack sx={{ p: 1 }}>
-                {DOCTOR_OPTIONS.map((option) => (
-                  <MenuItem key={option.label} onClick={() => handleClickItem(option.linkTo)}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Stack>
-            )}
-          </>
-
-        } */}
         <Divider sx={{ borderStyle: 'dashed' }} />
 
         <MenuItem

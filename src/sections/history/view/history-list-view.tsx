@@ -134,20 +134,42 @@ export default function AppointmentHistoryListView() {
   const [clinicTake, setClinicTake] = useState(5);
   const [isClinic, setIsClinic] = useState(0);
 
+   
   const {
     data: drClinicData,
     error: drClinicError,
     loading: drClinicLoad,
     refetch: drClinicFetch,
-  }: any = useQuery(GET_ALL_PATIENT_APPOINTMENTS_CLINIC,{
-    variables:{
-      data:{
-        uuid:id
-      }
-    }
-  });
+  }: any = useQuery(DoctorClinicsHistory);
+
 
   const [clinicData, setclinicData] = useState<any>([]);
+
+
+  useEffect(()=>{
+    if(drClinicData){
+
+      setclinicData(drClinicData?.DoctorClinicsHistory)
+    }
+  },[drClinicData])
+
+  console.log(clinicData,'awitttttttttttt')
+
+
+  // const {
+  //   data: drClinicData,
+  //   error: drClinicError,
+  //   loading: drClinicLoad,
+  //   refetch: drClinicFetch,
+  // }: any = useQuery(GET_ALL_PATIENT_APPOINTMENTS_CLINIC,{
+  //   variables:{
+  //     data:{
+  //       uuid:id
+  //     }
+  //   }
+  // });
+
+  // const [clinicData, setclinicData] = useState<any>([]);
 
 
   const containsLetters = (value: any) => /[a-zA-Z]/.test(value);
@@ -284,13 +306,13 @@ export default function AppointmentHistoryListView() {
   ]);
 
 
-  useEffect(() => {
-    if ((drClinicData && user?.role === 'doctor') || user?.role === 'secretary') {
-      // setclinicData(drClinicData?.DoctorClinicsHistory);
-      setclinicData(drClinicData?.GET_ALL_PATIENT_APPOINTMENTS_CLINIC?.clinic)
-      // console.log(drClinicData,'drClinicDatadrClinicDatadrClinicDatadrClinicDatadrClinicData')
-    }
-  }, [drClinicData]);
+  // useEffect(() => {
+  //   if ((drClinicData && user?.role === 'doctor') || user?.role === 'secretary') {
+  //     // setclinicData(drClinicData?.DoctorClinicsHistory);
+  //     setclinicData(drClinicData?.GET_ALL_PATIENT_APPOINTMENTS_CLINIC?.clinic)
+  //     // console.log(drClinicData,'drClinicDatadrClinicDatadrClinicDatadrClinicDatadrClinicData')
+  //   }
+  // }, [drClinicData]);
 
   // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
   const [clinicPayload, setClinicPayload] = useState<any>([]);

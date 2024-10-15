@@ -95,20 +95,24 @@ export const MutationESign = extendType({
 
         try {
           const sFile = await args?.file;
-
+          const doctorId = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
           let uploadResult: any;
 
           if (sFile) {
             uploadResult = await useGoogleStorage(
               sFile,
-              Number(session?.user?.id),
+              Number(doctorId?.EMP_ID),
               'userDisplayEsign'
               );
 
             await client.esig_dp.create({
                 data: {
                   type: args?.data?.type,
-                  doctorID: Number(session?.user?.id),
+                  doctorID: Number(doctorId?.EMP_ID),
                   filename: String(uploadResult.path),
                 },
               });

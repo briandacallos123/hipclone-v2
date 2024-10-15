@@ -1024,8 +1024,11 @@ export const NotifacationQueryFinal = extendType({
                 }
             })
 
+            
+
             const finalData = await Promise.all(fData)
 
+            console.log(finalData,'finalData')
             
 
            

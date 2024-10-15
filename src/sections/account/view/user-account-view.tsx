@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 // @mui
 import { styled } from '@mui/material/styles';
 import Box from '@mui/material/Box';
@@ -72,6 +72,20 @@ export default function UserAccountView() {
   const handleChangeTab = useCallback((event: React.SyntheticEvent, newValue: string) => {
     setCurrentTab(newValue);
   }, []);
+
+
+  useEffect(()=>{
+    let hasStep = localStorage?.getItem('currentStep');
+    if(hasStep && hasStep === '4'){
+      setCurrentTab('license')
+    }else if(hasStep && hasStep === '5'){
+      setCurrentTab('education')
+    }
+  },[])
+
+  const handleChangeTabTuts = () => {
+    
+  }
 
   const TABS = [
     {
@@ -174,7 +188,7 @@ export default function UserAccountView() {
         ))}
       </Tabs>
 
-      {currentTab === 'general' && <AccountGeneral />}
+      {currentTab === 'general' && <AccountGeneral handleChangeTabTuts={handleChangeTabTuts} />}
 
       {/* {currentTab === 'portfolio' && <AccountPortfolio />} */}
 

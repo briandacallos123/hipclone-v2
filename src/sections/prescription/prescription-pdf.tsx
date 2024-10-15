@@ -100,6 +100,7 @@ const useStyles = () =>
 type Props = {
   item?: any;
   qrImage?:any
+  isMobile?:any
 };
 
 const calculateColumns = (length) => {
@@ -113,7 +114,7 @@ const calculateColumns = (length) => {
 };
 
 
-export default function PrescriptionPDF({ item, qrImage }: Props) {
+export default function PrescriptionPDF({isMobile, item, qrImage }: Props) {
   const { clinicInfo, patient, prescriptions_child } = item;
 
   // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
@@ -203,7 +204,7 @@ export default function PrescriptionPDF({ item, qrImage }: Props) {
 
   return (
     <Document>
-      <Page size="A4" style={styles.page}>
+      <Page size="A5" style={styles.page}>
         {/* Document Header */}
         <View style={styles.mb20}>
           <View style={[styles.mb8, { justifyContent: 'center', textAlign: 'center' }]}>

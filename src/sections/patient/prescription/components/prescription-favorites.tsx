@@ -6,14 +6,14 @@ import React from 'react'
 
 const PrescriptionFavoriteList = ({
     onAdd,
-    row
+    row,index
 }:any) => {
 
 
     return (
         <ListItem disablePadding>
             <ListItemButton onClick={onAdd}>
-                <ListItemText primary={`${row?.MEDICINE} ${row?.FORM} ${row?.DOSE}`} />
+                <ListItemText primary={`${index + 1}: ${row?.MEDICINE} ${row?.FORM} ${row?.DOSE}`} />
             </ListItemButton>
         </ListItem>
     )

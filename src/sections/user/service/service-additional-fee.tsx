@@ -34,7 +34,7 @@ type FormValuesProps = {
   isViewable: boolean;
 };
 
-export default function ServiceAdditionalFee() {
+export default function ServiceAdditionalFee({tutorialTab, incrementTutsTab}:any) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [user] = useState<IUserService>(_userService);
   const [snackKey, setSnackKey] = useState(null);
@@ -48,6 +48,7 @@ export default function ServiceAdditionalFee() {
 
   const { data, loading, refetch } = useQuery(GetFees);
   // const { abstract, certificate, clearance } = data?.GetFees;
+  let currentStep = localStorage?.getItem('currentStep')
 
   const handleSubmitValue = useCallback(
     async (model: NexusGenInputs['UpdateFeeInputs']) => {
@@ -67,6 +68,10 @@ export default function ServiceAdditionalFee() {
           closeSnackbar(snackKey);
           refetch();
           enqueueSnackbar('Updated sucessfully');
+          if(currentStep && Number(currentStep) !== 100){
+            localStorage.setItem('currentStep','9')
+            incrementTutsTab();
+          }
         })
         .catch((error) => {
           closeSnackbar(snackKey);
@@ -178,7 +183,8 @@ export default function ServiceAdditionalFee() {
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Card>
+     <div className={tutorialTab && tutorialTab === 8 ? 'service-fee':''}>
+     <Card>
         <CardHeader title="Additional Request Fee (for Telemedicine only)" />
 
         <Stack spacing={3} sx={{ p: 3 }}>
@@ -303,6 +309,7 @@ export default function ServiceAdditionalFee() {
           </Stack>
         </Stack>
       </Card>
+     </div>
     </FormProvider>
   );
 }

@@ -62,6 +62,11 @@ export const paths: any = {
     logs:`${ROOTS.MERCHANT}/dashboard/logs`,
 
   },
+  doctor:{
+    register:'/find-doctor/register/',
+    login:'/find-doctor/login/'
+
+  },
   // DASHBOARD
   dashboard: {
     root: ROOTS.DASHBOARD,
@@ -79,6 +84,14 @@ export const paths: any = {
       clinic: `${ROOTS.DASHBOARD}/user/clinic`,
       service: `${ROOTS.DASHBOARD}/user/service`,
       subaccount: `${ROOTS.DASHBOARD}/user/subaccount`,
+      manage:{
+        profile: `${ROOTS.DASHBOARD}/user/manage/account`,
+        account: `${ROOTS.DASHBOARD}/user/manage/account`,
+        login: `${ROOTS.DASHBOARD}/user/manage/login`,
+        clinic: `${ROOTS.DASHBOARD}/user/manage/clinic`,
+        service: `${ROOTS.DASHBOARD}/user/manage/service`,
+        subaccount: `${ROOTS.DASHBOARD}/user/manage/subaccount`,
+      }
     },
     medecine:{
       root:`${ROOTS.DASHBOARD}/medecine`,

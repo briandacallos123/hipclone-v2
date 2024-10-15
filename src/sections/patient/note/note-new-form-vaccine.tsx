@@ -61,9 +61,10 @@ type Props = {
   refIds: any;
   refetch: any;
   editData?:any;
+  clinicData?:any;
 };
 
-export default function NoteNewFormVaccine({editData:editRow, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormVaccine({clinicData, editData:editRow, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const [editData, setEditData] = useState(editRow)
@@ -91,24 +92,7 @@ export default function NoteNewFormVaccine({editData:editRow, onClose, refIds, r
     option: Yup.string().required('Option is required'),
   });
 
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-  const [clinicData, setclinicData] = useState<any>([]);
 
-  useEffect(() => {
-    drClinicFetch().then((result: any) => {
-      const { data } = result;
-      if (data) {
-        const { doctorClinics } = data;
-        setclinicData(doctorClinics);
-      }
-    });
-    return () => drClinicFetch();
-  }, []);
 
   const defaultValues = useMemo(
     () => ({
@@ -150,12 +134,12 @@ export default function NoteNewFormVaccine({editData:editRow, onClose, refIds, r
     // option: editData?.eval || '0',
   }
   
-  useEffect(() => {
-    const data = getItem('defaultFilters');
-    if (data?.clinic) {
-      setValue('hospitalId', Number(data?.clinic?.id));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const data = getItem('defaultFilters');
+  //   if (data?.clinic) {
+  //     setValue('hospitalId', Number(data?.clinic?.id));
+  //   }
+  // }, []);
 
   const [createNoteVacc] = useMutation(POST_NOTE_VACC);
   const [updateNoteVacc] = useMutation(UpdateNotesVacc);

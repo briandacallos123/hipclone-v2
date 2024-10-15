@@ -649,6 +649,7 @@ export const UpdateAppointment = extendType({
         const { session } = ctx;
 
         let message: any = {};
+        let doctorId:any;
 
         try {
           if (session.user.role === 'patient') {
@@ -664,6 +665,8 @@ export const UpdateAppointment = extendType({
                 id: id,
               },
             });
+
+           
 
             const patient_findfirst = await client.patient.findFirst({
               where: {
@@ -786,7 +789,7 @@ export const UpdateAppointment = extendType({
               const smslogs_create = await client.smslogs.create({
                 data: {
                   patientID: Number(patient_findfirst?.S_ID),
-                  doctorID: Number(session.user?.id) || null,
+                  doctorID: Number(doctor_findfirst?.EMP_ID) || null,
                   user_id: null,
                   doctor_name: `${doctor_findfirst?.EMP_FNAME} ${doctor_findfirst?.EMP_MNAME} ${doctor_findfirst?.EMP_LNAME}`,
                   doctor_contact: String(patient_findfirst?.CONTACT_NO),

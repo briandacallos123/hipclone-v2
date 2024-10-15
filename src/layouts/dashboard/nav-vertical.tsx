@@ -31,6 +31,8 @@ type Props = {
 export default function NavVertical({ openNav, onCloseNav }: Props) {
   const { user } = useAuthContext();
 
+
+
   const pathname = usePathname();
 
   const lgUp = useResponsive('up', 'lg');

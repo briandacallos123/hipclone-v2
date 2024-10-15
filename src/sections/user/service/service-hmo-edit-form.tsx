@@ -41,6 +41,7 @@ type Props = {
   currentItem?: any;
   appendData?: any;
   onSuccess?: any;
+  incrementTutsTab?:()=>void;
 };
 
 export default function ServiceHmoEditForm({
@@ -50,6 +51,7 @@ export default function ServiceHmoEditForm({
   open,
   onClose,
   onSuccess,
+  incrementTutsTab,
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const upMd = useResponsive('up', 'md');
@@ -93,6 +95,8 @@ export default function ServiceHmoEditForm({
     formState: { isSubmitting },
   } = methods;
 
+const currentStep = localStorage.getItem('currentStep');
+
   const handleSubmitValue = useCallback(
     async (model: NexusGenInputs['HmoMutationInput']) => {
       const data: NexusGenInputs['HmoMutationInput'] = {
@@ -112,6 +116,10 @@ export default function ServiceHmoEditForm({
             closeSnackbar(snackKey);
             enqueueSnackbar('Updated Successfully');
             setToggleUpdate(false);
+            if(currentStep && Number(currentStep) !== 100){
+              localStorage.setItem('currentStep','11');
+              incrementTutsTab()
+            }
             // refetch();
           }
         })

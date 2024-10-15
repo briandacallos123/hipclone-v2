@@ -114,10 +114,10 @@ export default function AppointmentTableRow({
                     {row?.type === 1 ? 'telemedicine' : 'face-to-face'}
                   </Label>
                   <Label
-                    color={(row?.payment_status && 'success') || 'error'}
+                    color={(row?.payment_status ||row?.pendingPayment && 'success') || 'error'}
                     sx={{ textTransform: 'capitalize' }}
                   >
-                    {row?.payment_status ? 'paid' : 'unpaid'}
+                    {row?.pendingPayment === 1 && 'Payment: For Approval' || row?.payment_status ? 'paid' : 'unpaid'}
                   </Label>
                 </Stack>
               </>

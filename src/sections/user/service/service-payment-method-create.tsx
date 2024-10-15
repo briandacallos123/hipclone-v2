@@ -14,6 +14,8 @@ type Props = {
   appendData: any;
   tempId: any;
   resolveData: any;
+  isTuts?:any
+  incrementTutsTab?:any
 };
 
 // ----------------------------------------------------------------------
@@ -25,6 +27,8 @@ export default function ServicePaymentMethodCreate({
   open,
   resolveData,
   onClose,
+  isTuts,
+  incrementTutsTab
 }: Props) {
   const upMd = useResponsive('up', 'md');
   return (
@@ -39,7 +43,9 @@ export default function ServicePaymentMethodCreate({
       }}
     >
       <ServicePaymentMethodNewEditForm
+      isTuts={isTuts}
         appendData={appendData}
+        incrementTutsTab={incrementTutsTab}
         refetch={refetch}
         resolveData={resolveData}
         onClose={onClose}

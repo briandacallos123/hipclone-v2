@@ -51,7 +51,13 @@ import ClinicTableRowSkeleton from '../clinic/clinic-table-row-skeleton';
 import ClinicTableToolbar from '../clinic/clinic-table-toolbar';
 import uuidv4 from '@/utils/uuidv4';
 import { useSnackbar } from 'src/components/snackbar';
-
+import { Box } from '@mui/material';
+import { paths } from '@/routes/paths';
+import { useRouter } from 'next/navigation';
+import './circular-highlight.css'; // Import your CSS file
+import { m } from 'framer-motion';
+import { MotionContainer, varFade } from 'src/components/animate';
+import Image from '@/components/image';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [{ id: 'name', label: 'Clinic & Schedules' }];
@@ -60,6 +66,7 @@ const defaultFilters = {
   name: '',
   status: -1,
 };
+
 
 // ----------------------------------------------------------------------
 
@@ -70,6 +77,8 @@ export default function UserClinicListView() {
 
   const settings = useSettingsContext();
 
+  const router = useRouter();
+  
   const table = useTable({
     defaultOrder: 'desc',
   });
@@ -94,6 +103,9 @@ export default function UserClinicListView() {
   const [totaltm, setTotaltm] = useState(0);
   const [filters, setFilters] = useState(defaultFilters);
   const [provinces, setProvinces] = useState([]);
+
+  const currentStep = localStorage?.getItem('currentStep')
+
   // console.log(schedData, 'SCHED DATA');
   // const [getData, { data, loading, error, refetch }] = useQuery(CLINIC_SCHEDLIST, {
   //   context: {
@@ -482,25 +494,302 @@ export default function UserClinicListView() {
     [handleFilters]
   );
 
+
+  const PRIMARY_MAIN = theme.palette.primary.main;
+  const [step, setSteps] = useState(1);
+
+  const incrementStep = () => setSteps((prev) => prev + 1)
+
+  const firstStep = (
+    <m.div>
+
+      <Typography
+
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+       Please ensure you fill in all required clinic management fields. 🏥✅
+      </Typography>
+    </m.div>
+  )
+
+  const secondStep = (
+    <m.div>
+
+      <Typography
+
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        Accurate clinic information is crucial! 🏥 Patients won't be able to find you if your clinic isn't listed. 📍
+      </Typography>
+    </m.div>
+  )
+
+  const successStep1 = (
+    <m.div>
+      <Typography
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize',
+          },
+        }}
+      >
+        <span>Congratulations! 🎉</span>  <br/>
+        <br/>
+        Your new clinic has been successfully created!
+      </Typography>
+    </m.div>
+  )
+
+  const successStep2 = (
+    <m.div>
+      <Typography
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        Patients will now be able to find and visit your clinic for their healthcare needs! 🌟🏥
+      </Typography>
+    </m.div>
+  )
+
+  const renderFifthTutorial = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+    }}>
+
+
+      <>
+        <Box sx={{
+          background: PRIMARY_MAIN,
+          opacity: .4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9991
+        }}>
+
+        </Box>
+
+        <Box sx={{
+          zIndex: 99999,
+          position: 'absolute',
+          bottom: 0,
+        }}>
+          {/* message */}
+          <m.div variants={varFade().inUp}>
+            <Box sx={{
+              background: theme.palette.background.default,
+              height: 'auto',
+              width: 'auto',
+              maxWidth:250,
+              left: 10,
+              borderRadius: 2,
+              zIndex: 99999,
+              position: 'absolute',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              p: 3
+            }}>
+              {step === 1 && firstStep}
+              {step === 2 && secondStep}
+
+
+              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
+              </Box>
+            </Box>
+          </m.div>
+
+          <Image
+            sx={{
+              width: 350,
+              height: 450,
+              position: 'relative',
+              bottom: -100,
+              right: -120,
+
+            }}
+            src={'/assets/tutorial-doctor/nurse-tutor.png'}
+
+          />
+        </Box>
+      </>
+
+    </Box>
+  )
+
+  const addHighlight = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+    }}>
+      <Box sx={{
+        background: PRIMARY_MAIN,
+        opacity: .4,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9991
+      }}>
+
+      </Box>
+    </Box>
+  )
+
+  const [successStep, setScsStep] = useState(1);
+
+  const incrementScsStep = () => setScsStep(successStep +1);
+
+  useEffect(()=>{
+    if(Number(successStep) === 3){
+      router.push(paths.dashboard.user.manage.service)
+    }
+  },[successStep])
+
+  const successClinic = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9998,
+    }}>
+      <Box sx={{
+        background: PRIMARY_MAIN,
+        opacity: .4,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 9991
+      }}>
+
+
+      </Box>
+
+      <Box sx={{
+        zIndex: 99999,
+        position: 'absolute',
+        bottom: 0,
+      }}>
+        {/* message */}
+        <m.div variants={varFade().inUp}>
+          <Box sx={{
+            background: theme.palette.background.default,
+            height: 'auto',
+            width: 'auto',
+            maxWidth:250,
+            left: 10,
+            borderRadius: 2,
+            zIndex: 99999,
+            position: 'absolute',
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            p:3
+          }}>
+            {successStep === 1 && successStep1}
+            {successStep === 2 && successStep2}
+            
+
+
+            <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Button onClick={incrementScsStep} variant="contained" size={'small'}>Continue</Button>
+            </Box>
+          </Box>
+        </m.div>
+
+        <Image
+          sx={{
+            width: 350,
+            height: 450,
+            position: 'relative',
+            bottom: -100,
+            right: -120,
+
+          }}
+          src={'/assets/tutorial-doctor/nurse-tutor.png'}
+
+        />
+      </Box>
+    </Box>
+  )
+
+
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+        {Number(currentStep) === 6 && step !== 3 && renderFifthTutorial}
+        {Number(currentStep) === 6 && step === 3 && !openCreate.value && addHighlight}
+        {Number(currentStep) === 7 && successStep !== 3 && successClinic}
+
         <Stack
           direction="row"
           alignItems="center"
           justifyContent="space-between"
           sx={{
             mb: { xs: 3, md: 5 },
+            position: 'relative'
           }}
         >
           <Typography variant="h5">Manage Clinic</Typography>
-          <Button
-            onClick={openCreate.onTrue}
-            variant="contained"
-            startIcon={<Iconify icon="mingcute:add-line" />}
-          >
-            New Clinic
-          </Button>
+          <div className={`${currentStep && Number(currentStep) === 6 && step === 3 && !openCreate.value && 'circular-highlight'}`}>
+            <Button
+              onClick={openCreate.onTrue}
+              variant="contained"
+              startIcon={<Iconify icon="mingcute:add-line" />}
+            >
+              New Clinic
+            </Button>
+          </div>
         </Stack>
 
         <Card>
@@ -573,53 +862,36 @@ export default function UserClinicListView() {
                   />
                 )}
 
-                <TableBody>
-                  {/* {dataFiltered
-                    .slice(
-                      table.page * table.rowsPerPage,
-                      table.page * table.rowsPerPage + table.rowsPerPage
-                    )
-                    .map((row) => {
-                      if (loading) return <ClinicTableRowSkeleton key={row.id} />;
 
-                      return (
-                        <ClinicTableRow
+                  <TableBody>
+                    {loading &&
+                      [...Array(rowsPerPage)].map((_, i) => <ClinicTableRowSkeleton key={i} />)}
+                    {!loading &&
+                      schedData?.map((row: any, index: number) => (
+                       
+                          <ClinicTableRow
                           key={row.id}
+                          isHideSched={isHideSched}
                           row={row}
+                          setHideSched={setHideSched}
                           selected={table.selected.includes(row.id)}
                           onSelectRow={() => table.onSelectRow(row.id)}
-                          onEditRow={() => handleEditRow(row.id)}
+                          onEditRow={(CreatePayment) => handleEditRow(row)}
                           onDeleteRow={() => handleDeleteRow(row.id)}
-                          onAddSchedule={openAddSchedule.onTrue}
+                          onAddSchedule={() => handleAddSched(row)}
+                          refetch={() => refetch()}
+                          onDeleteSched={handleDeleteSched}
                         />
-                      );
-                    })} */}
-                  {loading &&
-                    [...Array(rowsPerPage)].map((_, i) => <ClinicTableRowSkeleton key={i} />)}
-                  {!loading &&
-                    schedData?.map((row: any, index: number) => (
-                      <ClinicTableRow
-                        key={row.id}
-                        isHideSched={isHideSched}
-                        row={row}
-                        setHideSched={setHideSched}
-                        selected={table.selected.includes(row.id)}
-                        onSelectRow={() => table.onSelectRow(row.id)}
-                        onEditRow={(CreatePayment) => handleEditRow(row)}
-                        onDeleteRow={() => handleDeleteRow(row.id)}
-                        onAddSchedule={() => handleAddSched(row)}
-                        refetch={() => refetch()}
-                        onDeleteSched={handleDeleteSched}
-                      />
-                    ))}
+                      ))}
 
-                  <TableEmptyRows
-                    height={denseHeight}
-                    emptyRows={emptyRows(table.page, table.rowsPerPage, totalData)}
-                  />
+                    <TableEmptyRows
+                      height={denseHeight}
+                      emptyRows={emptyRows(table.page, table.rowsPerPage, totalData)}
+                    />
 
-                  <TableNoData notFound={notFound && !loading} />
-                </TableBody>
+                    <TableNoData notFound={notFound && !loading} />
+                  </TableBody>
+             
               </Table>
             </Scrollbar>
           </TableContainer>

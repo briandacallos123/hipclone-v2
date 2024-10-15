@@ -74,6 +74,15 @@ export const QueryDoctorPatientContact = extendType({
             async resolve(_root, args, ctx) {
 
                 const { session } = ctx;
+                let doctorDetails:any;
+
+                if(session?.user?.role === 'doctor'){
+                    doctorDetails = await client.employees.findFirst({
+                        where:{
+                            EMP_EMAIL:session?.user?.email
+                        }
+                    })
+                }
                 try {
                     let patientID = null;
                     if (session?.user?.role === 'patient') {
@@ -87,10 +96,11 @@ export const QueryDoctorPatientContact = extendType({
                         })
                         patientID = query?.S_ID;
                     }
+                   
                     const res = session?.user?.role === 'doctor' ? await client.appointments.findMany({
                         where: {
                             isDeleted: 0,
-                            doctorID: session?.user?.id
+                            doctorID: doctorDetails?.EMP_ID
                         },
                         include: {
                             patientInfo: {
@@ -130,7 +140,7 @@ export const QueryDoctorPatientContact = extendType({
 
                                 subAccountDoctorInfo: {
                                     some: {
-                                        doctorID: session?.user?.id
+                                        doctorID: doctorDetails?.EMP_ID
                                     }
                                 }
                             },

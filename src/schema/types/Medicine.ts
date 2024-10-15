@@ -1010,6 +1010,8 @@ export const QueryAllMedicines = extendType({
                 const { session } = ctx;
                 const { take, skip, search }: any = args?.data;
 
+                await cancelServerQueryRequest(client, session?.user?.id, '`medicne`', 'QueryAllMedicine');
+
                 let toSearch = (() => {
                     if (search) {
                         return {
@@ -1052,7 +1054,7 @@ const QueryAllFavoritesObj = objectType({
     name: "QueryAllFavoritesObj",
     definition(t) {
          t.list.field('prescription', {
-            type: prescriptions
+            type: prescriptions_child
         })
     }
 })
@@ -1076,7 +1078,8 @@ export const QueryAllFavorites = extendType({
                 const { session } = ctx;
                 const { take, skip, search } = args?.data
 
-
+                await cancelServerQueryRequest(client, session?.user?.id, '`favorite`', 'QueryAllFavor');
+                
                 const isSearch = (() => {
                     if (search) {
                         return {
@@ -1098,20 +1101,17 @@ export const QueryAllFavorites = extendType({
 
 
                     const [prescription]: any = await client.$transaction([
-                        client.prescriptions.findMany({
+                        client.prescriptions_child.findMany({
                             where:{
                                 doctorID:Number(doctorInfo?.EMP_ID),
-                                template_id:{
-                                    not:null
-                                }
-                            },
-                            include:{
-                                prescription_template:true
+                                is_favorite:1
                             }
                         })
                     ]);
 
-                    console.log(prescription,'yawaaaaaaa')
+                    console.log(prescription,'huh?')
+
+               
 
                     return {
                         prescription
@@ -1169,12 +1169,15 @@ export const QueryAllTemplates = extendType({
                 const { session } = ctx;
                 const { take, skip, search } = args?.data
 
+                await cancelServerQueryRequest(client, session?.user?.id, '`templates`', 'QueryAllTemplates');
 
                 const isSearch = (() => {
                     if (search) {
                         return {
-                            MEDICINE: {
-                                contains: search
+                            prescription_template:{
+                                name:{
+                                    contains:search
+                                }
                             }
                         }
                     }
@@ -1194,7 +1197,8 @@ export const QueryAllTemplates = extendType({
                                 template_id:{
                                     not:null
                                 },
-                                doctorID:Number(doctorInfo?.EMP_ID)
+                                doctorID:Number(doctorInfo?.EMP_ID),
+                                ...isSearch
                             },
                             include:{
                                 prescription_template:true
@@ -1207,7 +1211,7 @@ export const QueryAllTemplates = extendType({
                     let allPrescriptions = prescription.map(async(item)=>{
                         const result = await client.prescriptions_child.findMany({
                             where:{
-                                ID:Number(item?.ID)
+                                PR_ID:Number(item?.ID)
                             }
                         });
 

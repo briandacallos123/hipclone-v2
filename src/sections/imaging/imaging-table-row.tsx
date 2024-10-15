@@ -236,9 +236,9 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
         text = (
           <>
             <Badge
-              badgeContent={
-                !isEMR ? row.labreport_attachments.length : row.labreport_attachments.length
-              }
+              // badgeContent={
+              //   !isEMR ? row.labreport_attachments.length : row.labreport_attachments.length
+              // }
               color="primary"
             >
               <IconButton onClick={handleView}>
@@ -262,9 +262,9 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
         text = (
           <>
             <Badge
-              badgeContent={
-                !isEMR ? row.labreport_attachments.length : row.labreport_attachments.length
-              }
+              // badgeContent={
+              //   !isEMR ? row.labreport_attachments.length : row.labreport_attachments.length
+              // }
               color="primary"
             >
               <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
@@ -273,13 +273,13 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
               <Stack direction="row" justifyContent="flex-end">
                 <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
 
-                  {isToday(row?.dateCreated) && <MenuItem
+                  {/* {isToday(row?.dateCreated) && <MenuItem
                     onClick={handleUpdate}
                     sx={{ color: 'success.main' }}
                   >
                     <Iconify icon="mdi:pencil" />
                     Edit
-                  </MenuItem>}
+                  </MenuItem>} */}
 
                   <MenuItem
                     onClick={handleView}
@@ -304,9 +304,9 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
         text = (
           <>
             <Badge
-              badgeContent={
-                !isEMR ? row.labreport_attachments.length : row.labreport_attachments.length
-              }
+              // badgeContent={
+              //   !isEMR ? row.labreport_attachments.length : row.labreport_attachments.length
+              // }
               color="primary"
             >
               <IconButton onClick={handleView}>

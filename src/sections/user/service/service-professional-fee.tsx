@@ -24,11 +24,12 @@ import { UpdateProfFees, GetProfFees } from '@/libs/gqls/services';
 import { useMutation, useQuery } from '@apollo/client';
 import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
+import './styles/service.css';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = { price: number; isViewable: boolean };
 
-export default function ServiceProfessionalFee() {
+export default function ServiceProfessionalFee({ tutorialTab, incrementTutsTab }: any) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const { data, loading, refetch } = useQuery(GetProfFees);
@@ -43,6 +44,7 @@ export default function ServiceProfessionalFee() {
   });
 
   // const { abstract, certificate, clearance } = data?.GetFees;
+  let currentStep = localStorage?.getItem('currentStep')
 
   const handleSubmitValue = useCallback(
     async (model: NexusGenInputs['UpdateFeeInputsProf']) => {
@@ -60,6 +62,10 @@ export default function ServiceProfessionalFee() {
           closeSnackbar(snackKey);
           refetch();
           enqueueSnackbar('Updated sucessfully');
+          if(currentStep && Number(currentStep) !== 100){
+            localStorage.setItem('currentStep','8')
+            incrementTutsTab();
+          }
         })
         .catch((error) => {
           closeSnackbar(snackKey);
@@ -80,9 +86,9 @@ export default function ServiceProfessionalFee() {
   const UpdateUserSchema = Yup.object().shape({
     FEES: Yup.number()
       .typeError('Professional Fee must be a number')
-      .required('Professional Fee is required'),
+      .required('Professional Fee is required')
+      .min(0, 'Professional Fee must be at least 0'),
   });
-
   const defaultValues = useMemo(
     () => ({
       FEES: null,
@@ -154,41 +160,48 @@ export default function ServiceProfessionalFee() {
     [enqueueSnackbar, reset]
   );
 
-  console.log('lOADING: ', loading);
+  console.log('tutorialTab: ', tutorialTab);
+
+  const tutorialTabDesign = {
+    zIndex: 99999,
+
+  }
+
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Card>
-        <CardHeader title="Professional Fee (for Telemedicine only)" />
+      <div className={tutorialTab && tutorialTab === 7 ? 'service-fee':''}>
+        <Card>
+          <CardHeader title="Professional Fee (for Telemedicine only)" />
 
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Box
-            gap={1}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              sm: '1fr 3fr',
-            }}
-          >
-            <Typography variant="overline" gutterBottom>
-              Professional Fee
-            </Typography>
-
-            <RHFTextField
-              name="FEES"
-              placeholder="0.00"
-              type="number"
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Box component="span" sx={{ color: 'text.disabled' }}>
-                      ₱
-                    </Box>
-                  </InputAdornment>
-                ),
+          <Stack spacing={3} sx={{ p: 3 }}>
+            <Box
+              gap={1}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: '1fr 3fr',
               }}
-            />
-            {/* {loading ? (
+            >
+              <Typography variant="overline" gutterBottom>
+                Professional Fee
+              </Typography>
+
+              <RHFTextField
+                name="FEES"
+                placeholder="0.00"
+                type="number"
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box component="span" sx={{ color: 'text.disabled' }}>
+                        ₱
+                      </Box>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              {/* {loading ? (
               <TableCell>
                 <Skeleton
                   height={40}
@@ -203,28 +216,29 @@ export default function ServiceProfessionalFee() {
             ) : (
              
             )} */}
-          </Box>
+            </Box>
 
-          <Stack spacing={3} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between">
-            <RHFSwitch
-              name="isViewable"
-              label="Can patients view fee prior to booking?"
-              sx={{ color: 'text.disabled' }}
-            />
+            <Stack spacing={3} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between">
+              <RHFSwitch
+                name="isViewable"
+                label="Can patients view fee prior to booking?"
+                sx={{ color: 'text.disabled' }}
+              />
 
-            <Stack spacing={3} alignItems="flex-end">
-              <LoadingButton
-                type="submit"
-                variant="contained"
-                disabled={loading}
-                loading={isSubmitting}
-              >
-                Save Changes
-              </LoadingButton>
+              <Stack spacing={3} alignItems="flex-end">
+                <LoadingButton
+                  type="submit"
+                  variant="contained"
+                  disabled={loading}
+                  loading={isSubmitting}
+                >
+                  Save Changes
+                </LoadingButton>
+              </Stack>
             </Stack>
           </Stack>
-        </Stack>
-      </Card>
+        </Card>
+      </div>
     </FormProvider>
   );
 }

@@ -3,6 +3,8 @@ import { unserialize, serialize } from 'php-serialize';
 import client from '../../../prisma/prismaClient';
 // import { notEqual } from 'assert';
 import { cancelServerQueryRequest } from '../../utils/cancel-pending-query';
+import path from 'path';
+import fs from 'fs';
 
 /* SchedName	longtext	latin1_swedish_ci		Yes	NULL			Change Change	Drop Drop	
     5	days	longtext	latin1_swedish_ci		Yes	NULL			Change Change	Drop Drop	
@@ -141,32 +143,41 @@ export const FindHmo = objectType({
     t.nullable.string('HMO');
 
     t.nullable.list.field('hmo', {
-      type: HMOObj || [],
+      type: HMOObj,
       async resolve(parent) {
-        const arg: any = parent;
-        // console.log(args, 'args@@@@@@@@@');
-        // return arg;
-        const symptoms: any = arg?.hmo?.HMO;
-        // console.log('symptoms', symptoms);
+        if(parent.hmo){
+          console.log("may hmo")
 
-        let res: any = [];
-        let myHmo: any = [];
-
-        if (symptoms === undefined) {
+          const arg: any = parent;
+          // console.log(args, 'args@@@@@@@@@');
+          // return arg;
+          const symptoms: any = arg?.hmo?.HMO;
+          // console.log('symptoms', symptoms);
+  
+          
+  
+          let res: any = [];
+          let myHmo: any = [];
+  
+          if (symptoms === undefined) {
+            return [];
+          }
+          res = unserialize(symptoms);
+  
+          if (!!symptoms) {
+            res = unserialize(symptoms);
+          }
+  
+          res &&
+            res?.map((i) => {
+              myHmo.push(getHmo(i));
+            });
+  
+          return myHmo;
+        }else{
+          console.log("Walang hmo")
           return [];
         }
-        res = unserialize(symptoms);
-
-        if (!!symptoms) {
-          res = unserialize(symptoms);
-        }
-
-        res &&
-          res?.map((i) => {
-            myHmo.push(getHmo(i));
-          });
-
-        return myHmo;
       },
     });
   },
@@ -207,13 +218,20 @@ export const Hmo = extendType({
       async resolve(_root, args, _ctx) {
         const { session } = _ctx;
 
+        const doctorD = await client.employees.findFirst({
+          where:{
+            EMP_EMAIL:session?.user?.email
+          }
+        })
+
+
         try {
           const result: any = await client.employees.findFirst({
             select: {
               HMO: true,
             },
             where: {
-              EMP_ID: session?.user?.id,
+              EMP_ID:doctorD?.EMP_ID,
               HMO: {
                 not: '',
               },
@@ -225,6 +243,8 @@ export const Hmo = extendType({
           const response = {
             hmo: result,
             HmoList,
+            totalRecords:null,
+            HMO:''
           };
           // console.log(response, 'yey?');
 
@@ -302,13 +322,20 @@ export const CreateHMO = extendType({
           'CreateMutation'
         );
 
+        const empDetails = await client.employees.findFirst({
+          where:{
+            EMP_EMAIL:session?.user?.email
+          }
+        })
+        console.log(empDetails,'empDetails')
+
         // first, we have to get all the ids before mutation
         const getHmo: any = await client.employees.findFirst({
           select: {
             HMO: true,
           },
           where: {
-            EMP_ID: session?.user?.id,
+            EMP_ID: empDetails?.EMP_ID,
             HMO: {
               not: '',
             },
@@ -316,7 +343,11 @@ export const CreateHMO = extendType({
         });
 
         // this is the ids that are not yet mutated
-        const hmoIDs = unserialize(getHmo?.HMO).map((i) => Number(i));
+        console.log(getHmo,'getHmo')
+
+        const hmoIDs = getHmo && unserialize(getHmo?.HMO).map((i) => Number(i));
+        console.log(hmoIDs,'hmoIDs')
+       
         const payloadIds = args?.data?.id?.map((i) => Number(i));
         const addeddId: any = [];
 
@@ -328,16 +359,22 @@ export const CreateHMO = extendType({
 
         const argsId = args?.data?.id?.map((i) => String(i));
 
+        console.log(argsId,'awittt')
+        console.log(empDetails,'empDetails')
+
+        
         const serializedIds = serialize(argsId);
         try {
            await client.employees.update({
             where: {
-              EMP_ID: session?.user?.id,
+              EMP_ID: empDetails?.EMP_ID,
             },
             data: {
               HMO: serializedIds,
+              isDeleted:1
             },
           });
+          
           return {
             id: addeddId,
           };
@@ -385,6 +422,7 @@ const DoctorInfoObj4HMO = objectType({
             email: String(root?.EMP_EMAIL),
           },
         });
+
         if (!userID) return '';
 
         const pic = await client.display_picture.findMany({
@@ -396,7 +434,60 @@ const DoctorInfoObj4HMO = objectType({
           },
         });
 
-        return pic[0]?.filename;
+        let fileName:any;
+
+        if(pic?.length && !(pic[0]?.filename?.includes('storage')) ){
+          const dataPath = pic[0]?.filename.replace(/^.*?(uploads)/, '$1');
+          const filePath = path.join(process.cwd(), '', `public/${dataPath}` as string);
+
+
+          try {
+            fs.accessSync(filePath, fs.constants.R_OK);
+            pic[0].filename = `/${dataPath}`
+            
+          } catch (error) {
+            const employee = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL:userID?.email
+              }
+            })
+            if(Number(employee?.EMP_SEX) === 1){
+              fileName = '/assets/illustrations/doctorMale.png'
+
+            }else if(Number(employee?.EMP_SEX) === 2){
+              fileName ='/assets/illustrations/doctorFemale.png'
+
+            }else{
+              fileName ='/assets/illustrations/doctorMale.png'
+            }
+          }
+
+
+        }else if(pic[0]?.filename?.includes('storage')){
+          fileName = pic[0]?.filename
+        }
+        else{
+          const employee = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:userID?.email
+            }
+          })
+          if(Number(employee?.EMP_SEX) === 1){
+            fileName = '/assets/illustrations/doctorMale.png'
+
+          }else if(Number(employee?.EMP_SEX) === 2){
+            fileName= '/assets/illustrations/doctorFemale.png'
+
+          }else{
+            fileName= '/assets/illustrations/doctorMale.png'
+          }
+        }
+        
+
+        // may pic tapos hindi clode storage ang laman
+        
+        return fileName;
+       
       },
     });
 

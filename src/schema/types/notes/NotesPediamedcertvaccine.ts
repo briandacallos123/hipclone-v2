@@ -297,7 +297,12 @@ export const PostNotesVacc = extendType({
             }
           }
 
-          console.log(VoucherCode,'VOUCHER CODEEEEEEEEEE')
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
 
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordVacc = await trx.records.create({
@@ -305,7 +310,7 @@ export const PostNotesVacc = extendType({
                 CLINIC: Number(createData.clinic),
                 patientID: Number(createData.patientID),
                 R_TYPE: String(createData.R_TYPE), // 9
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(0),
                 qrcode:VoucherCode
               },
@@ -322,7 +327,7 @@ export const PostNotesVacc = extendType({
                 diagnosis: String(createData.diagnosis),
                 eval: String(createData.eval),
 
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 report_id: Number(recordVacc.R_ID),
 
                 // InOutPatient
@@ -363,6 +368,11 @@ export const UpdateNotesVacc = extendType({
         if(isToday(createData?.dateCreated)){
           try {
         
+            let doctorDetails = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL: session?.user?.email
+              }
+            })
           
 
             const notesTransaction = await client.$transaction(async (trx) => {
@@ -371,7 +381,7 @@ export const UpdateNotesVacc = extendType({
                   CLINIC: Number(createData.clinic),
                   patientID: Number(createData.patientID),
                   R_TYPE: String(createData.R_TYPE), // 9
-                  doctorID: Number(session?.user?.id),
+                  doctorID: doctorDetails?.EMP_ID,
                   isEMR: Number(0)
                 },
                 where:{
@@ -390,7 +400,7 @@ export const UpdateNotesVacc = extendType({
                   diagnosis: String(createData.diagnosis),
                   eval: String(createData.eval),
   
-                  doctorID: Number(session?.user?.id),
+                  doctorID:  doctorDetails?.EMP_ID,
                   report_id: Number(recordVacc.R_ID),
   
                   // InOutPatient

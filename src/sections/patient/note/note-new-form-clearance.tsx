@@ -41,32 +41,16 @@ type Props = {
   refIds: any;
   refetch: any;
   editData?:any;
+  clinicData?:any
 };
 
-export default function NoteNewFormClearance({editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormClearance({clinicData, editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const [isEdit, setIsEdit] = useState(editData);
 
   const {getItem} = useSessionStorage()
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-  const [clinicData, setclinicData] = useState<any>([]);
 
-  useEffect(() => {
-    drClinicFetch().then((result: any) => {
-      const { data } = result;
-      if (data) {
-        const { doctorClinics } = data;
-        setclinicData(doctorClinics);
-      }
-    });
-    return () => drClinicFetch();
-  }, []);
 
   const params = useParams();
 
@@ -111,12 +95,12 @@ export default function NoteNewFormClearance({editData, onClose, refIds, refetch
     formState: { isSubmitting },
   } = methods;
 
-  useEffect(()=>{
-    const data = getItem('defaultFilters');
-   if(data?.clinic){
-     setValue('hospitalId',Number(data?.clinic?.id))
-   }
-   },[])
+  // useEffect(()=>{
+  //   const data = getItem('defaultFilters');
+  //  if(data?.clinic){
+  //    setValue('hospitalId',Number(data?.clinic?.id))
+  //  }
+  //  },[])
 
 
   const [createNotesText] = useMutation(POST_MED_CLER);

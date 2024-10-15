@@ -56,9 +56,15 @@ export const LicenseMutation = extendType({
 
         const formattedDate = `${year}-${month}-${day}`;
         try {
+          const doctorID = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
           const response = await client.employees.update({
             where: {
-              EMP_ID: session?.user?.id,
+              EMP_ID: doctorID?.EMP_ID,
             },
 
             data: {

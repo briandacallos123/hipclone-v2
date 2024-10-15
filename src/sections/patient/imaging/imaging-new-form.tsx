@@ -83,6 +83,7 @@ type Props = {
   setLoading?: any;
   isLoading?: any;
   editData?:any;
+  clinicData?:any;
 };
 
 export default function PatientImagingNewForm({
@@ -91,30 +92,19 @@ export default function PatientImagingNewForm({
   isLoading,
   onClose,
   data: data1,
+  clinicData,
   editData
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const {getItem} = useSessionStorage()
   // console.log(data1,'data1wowwwwww_____________')
+  const [isEdit, setEdit] = useState(false)
 
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-  const [clinicData, setclinicData] = useState<any>([]);
-
-  useEffect(() => {
-    drClinicFetch().then((result: any) => {
-      const { data } = result;
-      if (data) {
-        const { doctorClinics } = data;
-        setclinicData(doctorClinics);
-      }
-    });
-    return () => drClinicFetch();
-  }, []);
+  useEffect(()=>{
+    if(editData){
+      setEdit(true)
+    }
+  },[editData])
 
   const NewImagingSchema = Yup.object().shape({
     hospitalId: Yup.number().required(),
@@ -208,7 +198,7 @@ export default function PatientImagingNewForm({
         remarks: model.remarks,
         labreport_id: editData && Number(editData?.id)
       };
-      (editData?updateData:uploadData)({
+      uploadData({
         variables: {
           data,
           file: model?.attachment,
@@ -230,26 +220,80 @@ export default function PatientImagingNewForm({
     [snackKey]
   );
 
+  const handleSubmitUpdate= useCallback(
+    async (model: NexusGenInputs['lab_report_request']) => {
+      const data: NexusGenInputs['lab_report_request'] = {
+        // email: model.email,
+        patientID: Number(data1?.patientInfo?.S_ID) || null,
+        doctorID: Number(data1?.clinicInfo?.doctorID) || null,
+        isEMR: 0,
+        patient: String(data1?.patientInfo?.IDNO) || null,
+        doctor: String(data1?.clinicInfo?.doctor_idno) || null,
+        clinic: model.clinic,
+        type: String(model.type),
+        resultDate: YMD(model.resultDate),
+        labName: model.labName,
+        remarks: model.remarks,
+        labreport_id: editData && Number(editData?.id)
+      };
+      updateData({
+        variables: {
+          data,
+          file: model?.attachment,
+        },
+      })
+        .then(async (res) => {
+          const { data } = res;
+          closeSnackbar(snackKey);
+          enqueueSnackbar('Create Lab Report successfully!');
+          setLoading(false);
+          setRefetch(true);
+          setEdit(false)
+        })
+        .catch((error) => {
+          closeSnackbar(snackKey);
+          enqueueSnackbar('Something went wrong', { variant: 'error' });
+          setLoading(false);
+        });
+    },
+    [snackKey]
+  );
+
   const values = watch();
 
-  console.log(values);
+  console.log(editData,'????');
+
+
 
   useEffect(() => {
-    // console.log(values, 'YAWA@#');
     if (snackKey) {
       (async () => {
-        await handleSubmitValue({
-          ...values,
-          type: String(values?.type),
-          clinic: values?.hospitalId,
-          resultDate: YMD(values?.resultdate),
-          labName: values?.labName,
-          remarks: values?.remark,
-        });
+        console.log(isEdit,'isEditisEdit')
+        if(!isEdit){
+
+          await handleSubmitValue({
+            ...values,
+            type: String(values?.type),
+            clinic: values?.hospitalId,
+            resultDate: YMD(values?.resultdate),
+            labName: values?.labName,
+            remarks: values?.remark,
+          })
+        }else{
+          await handleSubmitUpdate({
+            ...values,
+            type: String(values?.type),
+            clinic: values?.hospitalId,
+            resultDate: YMD(values?.resultdate),
+            labName: values?.labName,
+            remarks: values?.remark,
+          });
+        }
         // setSnackKey(null);
       })();
     }
-  }, [snackKey]);
+
+  }, [snackKey, isEdit]);
 
   const onSubmit = useCallback(
     async (data: FormValuesProps) => {
@@ -546,7 +590,7 @@ export default function PatientImagingNewForm({
           // loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          Create
+          {isEdit ? 'Update':'Create'}
         </LoadingButton>
       </DialogActions>
     </>

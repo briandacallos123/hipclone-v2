@@ -115,13 +115,20 @@ export default function ServicePaymentMethodTableRow({
     return (
       <>
         <TableMobileRow
-          selected={selected}
-          onSelectRow={onSelectRow}
+          // selected={selected}
+          // onSelectRow={onSelectRow}
           menu={[
+            {
+              label: 'View',
+              icon: 'mdi:eye',
+              func: onViewRow,
+              color:'success',
+            },
             {
               label: 'Edit',
               icon: 'solar:pen-bold',
               func: onEditRow,
+              // color:'info'
             },
             {
               label: 'Delete',
@@ -129,6 +136,7 @@ export default function ServicePaymentMethodTableRow({
               func: confirm.onTrue,
               color: 'error',
             },
+       
           ]}
         >
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -153,9 +161,9 @@ export default function ServicePaymentMethodTableRow({
   return (
     <>
       <StyledTableRow hover isPending={row?.client === 1}>
-        <TableCell padding="checkbox">
+        {/* <TableCell padding="checkbox">
           <Checkbox checked={selected} onClick={onSelectRow} />
-        </TableCell>
+        </TableCell> */}
 
         <TableCell>
           <div style={{ display: 'flex', alignItems: 'center' }}>
@@ -174,7 +182,7 @@ export default function ServicePaymentMethodTableRow({
 
         <TableCell sx={{ typography: 'caption' }}>{instruction}</TableCell>
 
-        <TableCell align="right" sx={{ px: 1 }}>
+        <TableCell align="left" sx={{ px: 1 }}>
           <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
             <Iconify icon="eva:more-vertical-fill" />
           </IconButton>

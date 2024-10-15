@@ -1,0 +1,1 @@
+export {default as ManageProfile} from './manage-profile'

@@ -46,9 +46,10 @@ type Props = {
   refIds: any;
   refetch: any;
   editData: any;
+  clinicData?:any
 };
 
-export default function NoteNewFormCertificate({ editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormCertificate({clinicData, editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const { getItem } = useSessionStorage();
@@ -87,24 +88,6 @@ export default function NoteNewFormCertificate({ editData, onClose, refIds, refe
 
     recommendation: Yup.string().required('Recommendation is required'),
   });
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-  const [clinicData, setclinicData] = useState<any>([]);
-
-  useEffect(() => {
-    drClinicFetch().then((result: any) => {
-      const { data } = result;
-      if (data) {
-        const { doctorClinics } = data;
-        setclinicData(doctorClinics);
-      }
-    });
-    return () => drClinicFetch();
-  }, []);
 
   const defaultValues = useMemo(
     () => ({
@@ -136,12 +119,12 @@ export default function NoteNewFormCertificate({ editData, onClose, refIds, refe
 
   const values = watch();
 
-  useEffect(() => {
-    const data = getItem('defaultFilters');
-    if (data?.clinic) {
-      setValue('hospitalId', Number(data?.clinic?.id));
-    }
-  }, []);
+  // useEffect(() => {
+  //   const data = getItem('defaultFilters');
+  //   if (data?.clinic) {
+  //     setValue('hospitalId', Number(data?.clinic?.id));
+  //   }
+  // }, []);
 
   // console.log(values);
   const [createMedCert] = useMutation(POST_MED_CERT);

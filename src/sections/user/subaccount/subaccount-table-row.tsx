@@ -77,8 +77,8 @@ export default function SubaccountTableRow({
     return (
       <>
         <TableMobileRow
-          selected={selected}
-          onSelectRow={onSelectRow}
+          // selected={selected}
+          // onSelectRow={onSelectRow}
           menu={[
             {
               label: 'View',

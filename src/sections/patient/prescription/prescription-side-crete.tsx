@@ -3,8 +3,9 @@ import * as Yup from 'yup';
 import { useForm, useFieldArray } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import FormProvider, { RHFAutocomplete, RHFSelect, RHFTextField } from 'src/components/hook-form';
-import { Autocomplete, Box, Button, MenuItem, Stack, TextField } from '@mui/material';
+import { Autocomplete, Box, Button, FormControl, InputLabel, MenuItem, Select, Stack, TextField } from '@mui/material';
 import { medicineFormOptions } from '@/utils/constants';
+import { useResponsive } from '@/hooks/use-responsive';
 
 const PrescriptionSideCreate = ({
     data,
@@ -13,15 +14,16 @@ const PrescriptionSideCreate = ({
     refetch
 }: any) => {
 
-    const [value, setValue] = React.useState(medicineFormOptions[0]);
+    const upMd = useResponsive('up', 'md');
+
     const [inputValue, setInputValue] = React.useState('');
 
     const NewPrescriptionSchema = Yup.object().shape({
         dose: Yup.string().required('Dose is required'),
         name: Yup.string().required('name is required'),
         quantity: Yup.number().required('quantity is required'),
-        frequency: Yup.number().required('frequency is required'),
-        duration: Yup.number().required('duration is required'),
+        frequency: Yup.string(),
+        duration: Yup.string(),
         form: Yup.string()
             .required('Form is required')
             .test('is-valid-form', 'Form is not valid', value =>
@@ -40,17 +42,21 @@ const PrescriptionSideCreate = ({
         duration: data?.duration || '',
         form: data?.Form.trim() || '',
         id: data?.ID,
-        isFavorite:data?.isFavorite || '',
-        brand:data?.brand || ''
+        isFavorite: data?.isFavorite || '',
+        brand: data?.brand || ''
     }), [data]);
 
     const methods = useForm({
         resolver: yupResolver(NewPrescriptionSchema),
         defaultValues,
     });
-    console.log(data,'datadata')
-    console.log(defaultValues,'defaultValues')
-    const { control, handleSubmit, reset } = methods;
+
+
+    const { control, handleSubmit, reset, watch, setValue } = methods;
+
+    const values = watch();
+
+    console.log(values,'valuesss')
 
     const onSubmit = useCallback(async (data) => {
         try {
@@ -60,23 +66,57 @@ const PrescriptionSideCreate = ({
         }
     }, [])
 
+    const [age, setAge] = React.useState('');
+
+    const handleChange = (event) => {
+      setAge(event.target.value);
+    };
+  
+
+    const handleChangeSelect = (e) => {
+        setValue('form',e.target.value)
+    }
+
     return (
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
             <Stack sx={{ mb: 2 }} gap={2}>
                 <RHFTextField name="name" label="Medicine Name" />
                 <RHFTextField name="dose" label="Dose" />
                 <RHFTextField name="quantity" label="Quantity" />
-                <RHFTextField type="number" name="frequency" label="Frequency" />
-                <RHFTextField type="number" name="duration" label="Duration" />
+                <RHFTextField type="text" name="frequency" label="Frequency" />
+                <RHFTextField type="text" name="duration" label="Duration" />
                 <RHFTextField type="string" name="brand" label="Medical Brand" />
 
-                <RHFSelect name="form" label="Form">
+
+
+                {!upMd ? 
+                <select defaultValue={defaultValues.form ? defaultValues.form:''} onChange={(e)=>handleChangeSelect(e)} style={{
+                    padding:'10px',
+                    background:'#ededee',
+                    border:'1px solid #e1e3e5'
+                }}>
+                   
                    {medicineFormOptions?.map((item) => (
-                        <MenuItem value={item?.value} key={item?.id} sx={{
-                            textTransform: 'capitalize'
-                        }}>{item?.label}</MenuItem>
-                    ))} 
-                </RHFSelect>
+                            <option value={item?.value} key={item?.id} style={{
+                                textTransform: 'capitalize',
+                                zIndex: 9999,
+                                border:'none'
+                            }}>{item?.label}</option>
+                        ))}
+                </select>   
+                :
+                    <RHFSelect sx={{
+                        zIndex: 9999,
+                    }}
+                        name="form" label="Form">
+                        {medicineFormOptions?.map((item) => (
+                            <MenuItem value={item?.value} key={item?.id} sx={{
+                                textTransform: 'capitalize',
+                                zIndex: 9999,
+                            }}>{item?.label}</MenuItem>
+                        ))}
+                    </RHFSelect>
+                }
             </Stack>
 
             <Stack gap={2}>

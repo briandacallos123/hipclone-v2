@@ -12,7 +12,7 @@ export const PrescriptionController = (payloads: any) => {
         tableData: [],
     });
 
-    const [favorites, setFavorites] = useState({
+    const [favorites, setFavorites]:any = useState({
         tableData: [],
         totalFavorites: 0
     })
@@ -38,7 +38,7 @@ export const PrescriptionController = (payloads: any) => {
 
     const [getAllTemplates, templateResults] = useLazyQuery(QueryAllTemplates, {
         context: {
-            requestTrackerId: 'medicne[QueryAllMedicine]',
+            requestTrackerId: 'templates[QueryAllTemplates]',
         },
         notifyOnNetworkStatusChange: true,
     });
@@ -53,56 +53,46 @@ export const PrescriptionController = (payloads: any) => {
     });
 
     useEffect(()=>{
-        if(payloads?.target === 3 || initiator?.temp === 1){
-            getAllTemplates({
-                variables: {
-                    data: {
-                        take: payloads?.takeFavorites,
-                        skip: payloads?.skipFavorites,
-                        search:payloads?.search
-                    }
+        getAllTemplates({
+            variables: {
+                data: {
+                    take: payloads?.takeFavorites,
+                    skip: payloads?.skipFavorites,
+                    search:payloads?.searchTem
                 }
-            }).then((res) => {
-                const { QueryAllTemplates } = res?.data
-    
-                    console.log(QueryAllTemplates?.allPrescriptions,'result sa templateeee')
-
-                setTemplates({
-                    tableData: [...QueryAllTemplates?.allPrescriptions]
-                })
-                setInitiator({
-                    ...initiator,
-                    temp:initiator.temp + 1
-                })
-            }).catch((err)=>{
-                console.log(err,'errorrr')
+            }
+        }).then((res) => {
+            const { QueryAllTemplates } = res?.data
+            setTemplates({
+                tableData: [...QueryAllTemplates?.allPrescriptions]
             })
-        }
-    },[templateResults.data, payloads?.takeTemplates, payloads?.skipTemplates, payloads.target, payloads?.search])
+            setInitiator({
+                ...initiator,
+                temp:initiator.temp + 1
+            })
+        }).catch((err)=>{
+            console.log(err,'errorrr')
+        })
+    },[templateResults.data, payloads?.takeTemplates, payloads?.skipTemplates, payloads?.searchTem])
 
     useEffect(() => {
-      if(payloads.target === 2 || initiator?.fav ===1){
-
+      
         try {
             getAllFavorites({
                 variables: {
                     data: {
                         take: payloads?.takeFavorites,
                         skip: payloads?.skipFavorites,
-                        search:payloads?.search
+                        search:payloads?.searchFav
                     }
                 }
             }).then((res) => {
                 const { QueryAllFavorites } = res?.data
 
                 setFavorites({
-                    tableData: QueryAllFavorites?.prescription,
-                    totalFavorites: QueryAllFavorites?.totalRecords
+                    tableData: [...QueryAllFavorites?.prescription]
                 })
-                setInitiator({
-                    ...initiator,
-                    fav:initiator.fav + 1
-                })
+              
             }).catch((err)=>{
                 console.log(err,'errorrr')
             })
@@ -110,17 +100,15 @@ export const PrescriptionController = (payloads: any) => {
         } catch (error) {
             console.log(error)
         }
-      }
-    }, [allFavorites.data, payloads?.takeFavorites, payloads?.skipFavorites, payloads.target, payloads?.search])
+      
+    }, [allFavorites.data, payloads?.takeFavorites, payloads?.skipFavorites, payloads?.searchFav])
 
 
 
-    const { data } = getFavorites({
-        doctorId: user?.doctorId
-    })
+
 
     useEffect(() => {
-        if (payloads?.target === 1 || initiator?.med) {
+      
 
             getAllMedicines({
                 variables: {
@@ -146,9 +134,9 @@ export const PrescriptionController = (payloads: any) => {
                     med:initiator.med + 1
                 })
             })
-        }
+     
 
-    }, [payloads?.take, payloads?.skip, payloads.search, payloads?.target])
+    }, [payloads?.take, payloads?.skip, payloads.search])
 
     return {
         medicineData,
@@ -157,6 +145,7 @@ export const PrescriptionController = (payloads: any) => {
         setMedicineData,
         favorites,
         allFavorites,
+        templateResults,
         templates
     }
 }

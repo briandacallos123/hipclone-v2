@@ -171,7 +171,7 @@ export default function PatientProfileMedication({ data, clientside, loading1 }:
   const renderDataOrSkeletons = () => {
     if (loading1) {
       return [...Array(5)].map((_, index) => <Skeleton key={index} variant="text" />);
-    // eslint-disable-next-line no-else-return
+      // eslint-disable-next-line no-else-return
     } else if (!loading1 && tableData1?.length > 0) {
       return tableData1.map((item: any) => (
         <Typography key={item.id} variant="body2">
@@ -195,17 +195,28 @@ export default function PatientProfileMedication({ data, clientside, loading1 }:
   };
 
   const nodatatext = () => (
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          height: '100px',
-        }}
-      >
-        <Typography variant="body2">No medication available</Typography>
-      </div>
-    );
+    <div
+      style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100px',
+        flexDirection:'column',
+
+      }}
+    >
+      <Typography sx={{
+        mb:1
+      }} variant="body2">No medication available</Typography>
+      <Button size={!upMd?'small':'medium'} onClick={openCreate.onTrue} variant="contained">
+        Create
+        <Iconify width={15} sx={{
+          ml:1,
+          
+        }} icon="mingcute:add-line" />
+      </Button>
+    </div>
+  );
 
   return (
     <>
@@ -327,7 +338,7 @@ export default function PatientProfileMedication({ data, clientside, loading1 }:
                     emptyRows={emptyRows(table.page, table.rowsPerPage, totalRecords)}
                   />
 
-                <TableNoData notFound={notFound12 && !loading} />
+                  <TableNoData notFound={notFound12 && !loading} />
                 </TableBody>
               </Table>
             </Scrollbar>

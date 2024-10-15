@@ -107,7 +107,7 @@ export default function DashboardView() {
   
   const renderDesktop = (
     <>
-      <Grid xs={12} md={7}>
+      <Grid xs={12}  md={7}>
         {/* <FeedsView /> */}
         {!isPatient ? (
           <DashboardAppointmentList
@@ -194,27 +194,27 @@ export default function DashboardView() {
   );
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-      <Grid justifyContent={{xs:"center", lg:'flex-start'}} container>
-        {(isDoctor || isSecretary) && (
-          <Grid xs={12}>
-            <DashboardCover
-              uname={user?.username}
-              specialty={user?.occupation}
-              title={user?.title}
-              name={user?.displayName}
-              job={user?.occupation}
-              email={user?.email}
-              avatarUrl={user?.photoURL}
-              coverUrl={user?.coverURL}
-            />
-          </Grid>
-        )}
-        {upMd && (isDoctor || isSecretary) ? renderDesktop : null}
+    <Grid container spacing={3}>
+      {(isDoctor || isSecretary) && (
+        <Grid xs={12}>
+          <DashboardCover
+            uname={user?.username}
+            specialty={user?.occupation}
+            title={user?.title}
+            name={user?.displayName}
+            job={user?.occupation}
+            email={user?.email}
+            avatarUrl={user?.photoURL}
+            coverUrl={user?.coverURL}
+          />
+        </Grid>
+      )}
+      {upMd && (isDoctor || isSecretary) ? renderDesktop : null}
 
-        {!upMd && (isDoctor || isSecretary) ? renderMobile : null}
+      {!upMd && (isDoctor || isSecretary) ? renderMobile : null}
 
-        {!isDoctor && !isSecretary && <DashboardPatientView />}
-      </Grid>
-    </Container>
+      {!isDoctor && !isSecretary && <DashboardPatientView />}
+    </Grid>
+  </Container>
   );
 }

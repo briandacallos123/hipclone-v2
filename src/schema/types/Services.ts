@@ -129,12 +129,18 @@ export const GetPaymentMethod = extendType({
         const { take, skip }: any = args?.data;
 
         try {
+          const doctorD = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+
           let results = await client.doctor_payment.findMany({
             take,
             skip,
 
             where: {
-              doctorID: session.user?.id,
+              doctorID: doctorD?.EMP_ID,
               isDeleted: 0,
             },
           });
@@ -156,7 +162,7 @@ export const GetPaymentMethod = extendType({
           const _count = await client.doctor_payment.count({
             where: {
               isDeleted: 0,
-              doctorID: session.user?.id,
+              doctorID: doctorD?.EMP_ID,
             },
           });
 
@@ -225,6 +231,13 @@ export const CreatePayment = extendType({
           '`Prescription_Mutation_Type`',
           'MutationPrescription'
         );
+
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+
         try {
           let result: any;
 
@@ -248,7 +261,7 @@ export const CreatePayment = extendType({
             result = await client.doctor_payment.create({
               data: {
                 ...args.data,
-                doctorID: session.user.id,
+                doctorID:doctorDetails?.EMP_ID
               },
             });
             const sFile = await args?.file;
@@ -268,8 +281,8 @@ export const CreatePayment = extendType({
               await client.doctor_payment_dp.create({
                 data: {
                   filename: String(res!.path),
-                  doctorID: Number(session?.user?.id),
-                  doctor:String(session?.user?.doctorId),
+                  doctorID: Number(doctorDetails?.EMP_ID),
+                  doctor:String(doctorDetails?.EMP_ID),
                   dp_id:String(result?.id)
                 },
               });
@@ -359,6 +372,13 @@ export const GetFees = extendType({
           // for create
           let result: any;
 
+          const doctorD = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+
+
           result = await client.employees.findFirst({
             select: {
               MEDCERT_FEE: true,
@@ -367,10 +387,9 @@ export const GetFees = extendType({
               isAddReqFeeShow: true,
             },
             where: {
-              EMP_ID: session.user.id,
+              EMP_ID:doctorD?.EMP_ID
             },
           });
-          console.log(result, '@@@@@@@@@');
 
           //  t.nullable.int('abstract');
           //  t.nullable.int('certificate');
@@ -406,7 +425,7 @@ export const UpdateFee = extendType({
 
           let d = await client.employees.findFirst({
             where: {
-              EMP_ID: session.user.id,
+              EMP_EMAIL: session.user.email,
             },
           });
 
@@ -414,7 +433,7 @@ export const UpdateFee = extendType({
 
           result = await client.employees.update({
             where: {
-              EMP_ID: session.user.id,
+              EMP_ID: Number(d?.EMP_ID),
             },
             data: {
               ...d,
@@ -457,6 +476,12 @@ export const GetProfFee = extendType({
         try {
           // for create
           let result: any;
+          let d = await client.employees.findFirst({
+            where: {
+              EMP_EMAIL: session?.user?.email,
+            },
+          });
+
 
           result = await client.employees.findFirst({
             select: {
@@ -464,7 +489,7 @@ export const GetProfFee = extendType({
               isFeeShow: true,
             },
             where: {
-              EMP_ID: session.user.id,
+              EMP_ID: d?.EMP_ID
             },
           });
 
@@ -498,13 +523,13 @@ export const UpdateProfFee = extendType({
 
           let d = await client.employees.findFirst({
             where: {
-              EMP_ID: session.user.id,
+              EMP_EMAIL: session.user.email,
             },
           });
 
           result = await client.employees.update({
             where: {
-              EMP_ID: session.user.id,
+              EMP_ID: d?.EMP_ID,
             },
             data: {
               ...d,
@@ -547,6 +572,12 @@ export const GetPaymentSched = extendType({
 
         // console.log('YAWA@!');
         try {
+          let d = await client.employees.findFirst({
+            where: {
+              EMP_EMAIL: session?.user?.email,
+            },
+          });
+
           // for create
           let result: any;
 
@@ -555,7 +586,7 @@ export const GetPaymentSched = extendType({
               isPaySchedShow: true,
             },
             where: {
-              EMP_ID: session.user.id,
+              EMP_ID: d?.EMP_ID
             },
           });
 
@@ -585,13 +616,13 @@ export const UpdatePaymentSched = extendType({
 
           let d = await client.employees.findFirst({
             where: {
-              EMP_ID: session.user.id,
+              EMP_EMAIL: session?.user?.email,
             },
           });
 
           result = await client.employees.update({
             where: {
-              EMP_ID: session.user.id,
+              EMP_ID: d?.EMP_ID
             },
             data: {
               ...d,

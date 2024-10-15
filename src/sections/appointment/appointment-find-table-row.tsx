@@ -34,11 +34,11 @@ type Props = {
   onBookRow: VoidFunction;
   disableBtn: any;
   isDoctor?: Boolean;
-  isCol?:Boolean;
-  isRow?:Boolean
+  isCol?: Boolean;
+  isRow?: Boolean
 };
 
-export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onBookRow,isCol, isRow}: Props) {
+export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onBookRow, isCol, isRow }: Props) {
   const upMd = useResponsive('up', 'md');
   const [isLoading, setLoading] = useState(false);
   const fullName = `${row?.EMP_FNAME} ${row?.EMP_LNAME}, ${row?.EMP_TITLE}`;
@@ -47,6 +47,11 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
     setLoading(true);
     onBookRow();
   };
+
+  let img = row?.user?.display_picture?.[0]?.filename?.includes('storage') ? String(row?.user?.display_picture?.[0]?.filename) : row?.user?.display_picture?.[0]?.filename;
+  img = encodeURI(img);
+
+
 
   if (!upMd) {
     return (
@@ -60,7 +65,12 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
       >
         <Stack spacing={2} sx={{ pt: 2.5 }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {row?.user?.display_picture?.[0] ? (
+            <Avatar src={img} sx={{
+              width: 80,
+              height: 80,
+              mr:2
+            }} />
+            {/* {row?.user?.display_picture?.[0] ? (
               <Avatar
                 alt={fullName}
                 src={row?.user?.display_picture?.[0]?.filename.split('public')[1]}
@@ -72,7 +82,7 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
               <Avatar alt={fullName} sx={{ mr: 2 }}>
                 {fullName.charAt(0).toUpperCase()}
               </Avatar>
-            )}
+            )} */}
 
             {/* <Avatar alt={fullName} src={''} sx={{ mr: 2 }}>
               {fullName.charAt(0).toUpperCase()}
@@ -133,8 +143,9 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
   }
 
   const doctorImg = () => {
-    const baseUrl = row?.user?.display_picture?.[0]?.filename.split('public')[1]
-    return baseUrl
+    return row?.user?.display_picture?.[0]?.filename;
+    // const baseUrl = row?.user?.display_picture?.[0]?.filename.split('public')[1]
+    // return baseUrl
   }
 
   const ExpandMore = styled((props: any) => {
@@ -155,14 +166,25 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
   };
 
 
-  if(isCol){
-    return(
-      <Card>
-        {row?.user?.display_picture?.[0] ? 
+  if (isCol) {
+    return (
+      <Card sx={{
+        justifyContent: 'center',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        p: 2
+      }}>
+        <Avatar src={img} sx={{
+          width: 100,
+          height: 100,
+          mr:2
+        }} />
+        {/* {row?.user?.display_picture?.[0] ? 
           <CardMedia
             component="img"
             height="194"
-            image={doctorImg()}
+            image={img}
             alt="Paella dish"
           />:
           <Box
@@ -171,168 +193,157 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
             sx={{ height:194, width:'100%', textAlign:'center', backgroundPosition:'center',backgroundSize:'cover', mt:2 }}
           />
             
-        }
+        } */}
 
-           <Stack direction="row" alignItems="flex-start" sx={{my:2, px:4}}>
-           <ListItemText
-              primary={fullName}
-           
-              secondary={
-                <>
-                  <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-                    Specialty: {row?.SpecializationInfo?.name}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'text.disabled' }}>
-                    Sub-specialty: {row?.SUBSPECIALTY}
-                  </Typography>
-                  <Typography variant="caption">Response rate:&nbsp; 100%</Typography>
-                  {row?.HMOInfo?.length > 0 && (
-                    <Stack alignItems="flex-start">
-                      <Typography variant="overline" color="text.disabled">
-                        HMO Accreditation
-                      </Typography>
+        <Stack direction="row" alignItems="flex-start" sx={{ my: 2, px: 4 }}>
+          <ListItemText
+            primary={fullName}
 
-                      <Stack direction="row" flexWrap="wrap" columnGap={3} rowGap={1}>
-                        {row?.HMOInfo.map((item: any, idx: number) => (
-                          <Stack
-                            direction="row"
-                            key={idx}
-                            justifyContent="center"
-                            alignItems="center"
-                          >
-                            <Avatar
-                              alt={item.id}
-                              src={imgReader(Number(item.id))}
-                              sx={{ mr: 1, height: '25px', width: '25px' }}
-                            />
-
-                            <Typography variant="caption"> {item?.name}</Typography>
-                          </Stack>
-                        ))}
-                      </Stack>
-                    </Stack>
-                  )}
-                </>
-              }
-              primaryTypographyProps={{ typography: 'h6' }}
-            />
-
-              <Tooltip title="Book Appointment" placement="top" arrow>
-                {!isLoading ?  <>
-                  <Button
-                    disabled={disableBtn}
-                    variant="outlined"
-                    sx={{ bgcolor: 'primary.light', minWidth: '1px', width: '1px' }}
-                    onClick={() => toggleBook()}
-                  >
-                    <Stack direction="column">
-                      <Iconify
-                        icon="material-symbols:bookmark-add-rounded"
-                        color={`${!disableBtn && 'common.white'}`}
-                      />
-                      <Typography
-                        variant="caption"
-                        sx={{
-                          writingMode: 'vertical-lr',
-                          textOrientation: 'upright',
-                          color: 'common.white',
-                        }}
-                      >
-                        Book Now
-                      </Typography>
-                    </Stack>
-                  </Button>
-                </> : (
-                  <LoadingButton loading={isLoading} />
-                )}
-              </Tooltip>
-
-            </Stack>
-
-            {/* actions */}
-
-            <CardActions disableSpacing>
-            
-            <ExpandMore
-              expand={expanded}
-              onClick={handleExpandClick}
-              aria-expanded={expanded}
-              aria-label="show more"
-            >
-              <ExpandMoreIcon />
-            </ExpandMore>
-            </CardActions>
-
-            {/* content */}
-
-            <Collapse in={expanded} timeout="auto" unmountOnExit>
-              <CardContent>
-              <div>
-                <Typography variant="overline" color="text.disabled" gutterBottom>
-                  Clinics & Schedules
+            secondary={
+              <>
+                <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                  Specialty: {row?.SpecializationInfo?.name}
                 </Typography>
+                <Typography variant="body2" sx={{ color: 'text.disabled' }}>
+                  Sub-specialty: {row?.SUBSPECIALTY}
+                </Typography>
+                <Typography variant="caption">Response rate:&nbsp; 100%</Typography>
+                {row?.HMOInfo?.length > 0 && (
+                  <Stack alignItems="flex-start">
+                    <Typography variant="overline" color="text.disabled">
+                      HMO Accreditation
+                    </Typography>
 
-                <Box
-                  rowGap={1}
-                  columnGap={2}
-                  display="grid"
-                  gridTemplateColumns={
-                    (isCol ? {
-                      xs: 'repeat(1, 1fr)'
-                    } : 
+                    <Stack direction="row" flexWrap="wrap" columnGap={3} rowGap={1}>
+                      {row?.HMOInfo.map((item: any, idx: number) => (
+                        <Stack
+                          direction="row"
+                          key={idx}
+                          justifyContent="center"
+                          alignItems="center"
+                        >
+                          <Avatar
+                            alt={item.id}
+                            src={imgReader(Number(item.id))}
+                            sx={{ mr: 1, height: '25px', width: '25px' }}
+                          />
+
+                          <Typography variant="caption"> {item?.name}</Typography>
+                        </Stack>
+                      ))}
+                    </Stack>
+                  </Stack>
+                )}
+              </>
+            }
+            primaryTypographyProps={{ typography: 'h6' }}
+          />
+
+          <Tooltip title="Book Appointment" placement="top" arrow>
+            {!isLoading ? <>
+              <Button
+                disabled={disableBtn}
+                variant="outlined"
+                sx={{ bgcolor: 'primary.light', minWidth: '1px', width: '1px' }}
+                onClick={() => toggleBook()}
+              >
+                <Stack direction="column">
+                  <Iconify
+                    icon="material-symbols:bookmark-add-rounded"
+                    color={`${!disableBtn && 'common.white'}`}
+                  />
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      writingMode: 'vertical-lr',
+                      textOrientation: 'upright',
+                      color: 'common.white',
+                    }}
+                  >
+                    Book Now
+                  </Typography>
+                </Stack>
+              </Button>
+            </> : (
+              <LoadingButton loading={isLoading} />
+            )}
+          </Tooltip>
+
+        </Stack>
+
+        {/* actions */}
+
+        <CardActions disableSpacing>
+
+          <ExpandMore
+            expand={expanded}
+            onClick={handleExpandClick}
+            aria-expanded={expanded}
+            aria-label="show more"
+          >
+            <ExpandMoreIcon />
+          </ExpandMore>
+        </CardActions>
+
+        {/* content */}
+
+        <Collapse in={expanded} timeout="auto" unmountOnExit>
+          <CardContent>
+            <div>
+              <Typography variant="overline" color="text.disabled" gutterBottom>
+                Clinics & Schedules
+              </Typography>
+
+              <Box
+                rowGap={1}
+                columnGap={2}
+                display="grid"
+                gridTemplateColumns={
+                  (isCol ? {
+                    xs: 'repeat(1, 1fr)'
+                  } :
                     {
                       xs: 'repeat(1, 1fr)',
                       sm: 'repeat(2, 1fr)',
                     }
-                    )
-                  }
-                >
-                  {row?.clinicInfo?.map((item: any, idx: number) => (
-                    <ScheduleCard key={idx} data={item} />
-                  ))}
-                </Box>
-              </div>
-              </CardContent>
-            </Collapse>
+                  )
+                }
+              >
+                {row?.clinicInfo?.map((item: any, idx: number) => (
+                  <ScheduleCard key={idx} data={item} />
+                ))}
+              </Box>
+            </div>
+          </CardContent>
+        </Collapse>
       </Card>
     )
   }
 
+
+
+
   return (
     <TableRow hover sx={{
-      border:'.5px solid #ededed',
-      borderRadius:"20px",
+      border: '.5px solid #ededed',
+      borderRadius: "20px",
       padding: "10px",
-      boxShadow:"0px 7px #f7f7f7, 0px -7px #f7f7f7",
-      marginBottom:'10px'
+      boxShadow: "0px 7px #f7f7f7, 0px -7px #f7f7f7",
+      marginBottom: '10px'
     }}>
       <TableCell>
         <Stack spacing={2}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {row?.user?.display_picture?.[0] ? (
-              // <Avatar
-              //   alt={fullName}
-              //   src={row?.user?.display_picture?.[0]?.filename.split('public')[1]}
-              //   sx={{ mr: 2 }}
-              // >
-              //   {fullName.charAt(0).toUpperCase()}
-              // </Avatar>
-
+            <Avatar sx={{
+              width: 100,
+              height: 100,
+              mr: 2
+            }} src={img} alt={fullName} />
+            {/* {row?.user?.display_picture?.[0] ? (
+             
               <Box
                 sx={{
-                  backgroundImage: `url(${`${(() => {
-                    const baseUrl = row?.user?.display_picture?.[0]?.filename.split('public')[1];
-
-                    //if (!baseUrl) return false;
-
-                    //if (!hmoData.attachment?.includes('public')) return hmoData.attachment;
-
-                    //const path = hmoData?.attachment.split('public');
-
-                    //const publicPart = path[1];
-
-                    return `${baseUrl}`;
-                  })()}`})`,
+                  backgroundImage: `url(${img})`,
                   backgroundSize: 'cover', // You can customize this as needed
                   backgroundRepeat: 'no-repeat', // You can customize this as needed
 
@@ -347,10 +358,8 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
               <Avatar alt={fullName} sx={{ mr: 2 }}>
                 {fullName.charAt(0).toUpperCase()}
               </Avatar>
-            )}
-            {/* <Avatar alt={fullName} src="" sx={{ mr: 2 }}>
-              {fullName.charAt(0).toUpperCase()}
-            </Avatar> */}
+            )} */}
+
 
             <ListItemText
               primary={fullName}
@@ -407,11 +416,11 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
               gridTemplateColumns={
                 (isCol ? {
                   xs: 'repeat(1, 1fr)'
-                } : 
-                {
-                  xs: 'repeat(1, 1fr)',
-                  sm: 'repeat(2, 1fr)',
-                }
+                } :
+                  {
+                    xs: 'repeat(1, 1fr)',
+                    sm: 'repeat(2, 1fr)',
+                  }
                 )
               }
             >
@@ -425,8 +434,8 @@ export default function AppointmentFindTableRow({ isDoctor, disableBtn, row, onB
 
       <TableCell align="right" sx={{ px: 1 }}>
         <Tooltip title="Book Appointment" placement="top" arrow>
-          {!isLoading ?  <>
-             <Button
+          {!isLoading ? <>
+            <Button
               disabled={disableBtn}
               variant="outlined"
               sx={{ bgcolor: 'primary.light', minWidth: '1px', width: '1px' }}
@@ -484,10 +493,10 @@ function ScheduleCard({ data }: CardProps | any) {
         {data?.clinicDPInfo?.[0] ? (
           <Avatar
             alt={data?.clinic_name}
-            src={data?.clinicDPInfo?.[0]?.filename.split('public')[1]}
+            src={data?.clinicDPInfo?.[0]?.filename}
             sx={{ mr: 2 }}
           >
-            {data?.clinic_name?.charAt(0).toUpperCase()}
+            
           </Avatar>
         ) : (
           <Avatar alt={data?.clinic_name} sx={{ mr: 2 }}>

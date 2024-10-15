@@ -11,7 +11,6 @@ export const GET_ALL_HMO = gql`
         name
         id
       }
-      totalRecords
     }
   }
 `;

@@ -204,10 +204,22 @@ export const mutation_patient_payment = extendType({
             }
           })
 
+          const doctorUserId = await client.employees.findFirst({
+            where:{
+              EMP_ID:Number(doctorID)
+            }
+          })
+
+          const userDoctor = await client.user.findFirst({
+            where:{
+              email:doctorUserId?.EMP_EMAIL
+            }
+          })
+
           await client.notification.create({
             data: {
               user_id: Number(session?.user?.id),
-              notifiable_id: Number(doctorID),
+              notifiable_id:Number(userDoctor?.id),
               notification_type_id: 8,
               notification_content_id: Number(notifContent?.id),
               appt_id: Number(appt_id),

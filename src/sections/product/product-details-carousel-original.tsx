@@ -75,8 +75,10 @@ export default function ProductDetailsCarousel({onCloseParent, isSlice, product,
 
 
   const slides = product.attachmentData.map((img) => ({
-    src:!isSlice ? img?.imageData :`/${img?.imagePath?.split('/').splice(1).join('/')}`
+    src:!isSlice ? img?.imagePath :img?.imagePath
   }));
+
+
 
   const lightbox = useLightBox(slides);
 

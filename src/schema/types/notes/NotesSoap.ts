@@ -568,6 +568,13 @@ export const PostNotesSoap = extendType({
             }
           }
 
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
+
 
           const remarksData0 = serialize(createData.remarks0);
           const remarksData1 = serialize(createData.remarks1);
@@ -578,7 +585,7 @@ export const PostNotesSoap = extendType({
                 CLINIC: Number(createData.clinic),
                 patientID: Number(createData.patientID),
                 R_TYPE: String(createData.R_TYPE), // 1
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(0),
                 qrcode:VoucherCode
               },
@@ -589,7 +596,7 @@ export const PostNotesSoap = extendType({
                 patientID: Number(recordSoap.patientID),
                 // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
                 isEMR: Number(0),
-                doctorID: Number(session?.user?.id),
+                doctorID:doctorDetails?.EMP_ID,
                 report_id: Number(recordSoap.R_ID),
                 // sunjective
                 complaint: String(createData.complaint),
@@ -620,7 +627,7 @@ export const PostNotesSoap = extendType({
                 patientID: Number(recordSoap.patientID),
                 // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
                 isEMR: Number(0),
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 report_id: String(recordSoap.R_ID),
 
                 // physical Exam
@@ -667,7 +674,7 @@ export const PostNotesSoap = extendType({
               data: {
                 CLINIC: createData?.clinic,
                 patientID,
-                doctorID: session?.user?.id,
+                doctorID: doctorDetails?.EMP_ID,
               },
             });
 
@@ -1053,6 +1060,13 @@ export const PostNotesSoapEMR = extendType({
             }
           }
 
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordSoap = await trx.records.create({
               data: {
@@ -1060,7 +1074,7 @@ export const PostNotesSoapEMR = extendType({
                 patientID: createData.isLinked === 1 ? Number(createData.patientID) : null,
                 emrPatientID: Number(createData.emrPatientID),
                 R_TYPE: String(createData.R_TYPE), // 1
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(1),
                 qrcode:VoucherCode
               },
@@ -1071,7 +1085,7 @@ export const PostNotesSoapEMR = extendType({
                 patientID: createData.isLinked === 1 ? Number(createData.patientID) : null,
                 emrPatientID: Number(createData.emrPatientID),
                 isEMR: Number(1),
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 report_id: Number(recordSoap.R_ID),
                 // sunjective
                 complaint: String(createData.complaint),
@@ -1102,7 +1116,7 @@ export const PostNotesSoapEMR = extendType({
                 patientID: createData.isLinked === 1 ? Number(createData.patientID) : null,
                 emrPatientID: Number(createData.emrPatientID),
                 isEMR: Number(0),
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 report_id: String(recordSoap.R_ID),
 
                 // physical Exam
@@ -1147,7 +1161,7 @@ export const PostNotesSoapEMR = extendType({
               data: {
                 CLINIC: createData?.clinic,
                 patientID,
-                doctorID: session?.user?.id,
+                doctorID: doctorDetails?.EMP_ID,
               },
             });
 

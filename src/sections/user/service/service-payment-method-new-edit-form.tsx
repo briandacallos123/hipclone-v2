@@ -19,7 +19,9 @@ import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import Image from '@/components/image';
 import { borderRadius } from '@mui/system';
-
+import './styles/service.css';
+import { useRouter } from 'next/navigation';
+import { paths } from '@/routes/paths';
 // ----------------------------------------------------------------------
 
 type IUserPaymentItem = {
@@ -38,7 +40,9 @@ type Props = {
   resolveData?: any;
   updateData?: any;
   onSuccess?: any;
+  isTuts?: any;
   isView?: boolean;
+  incrementTutsTab?:()=>void;
 };
 
 export default function ServicePaymentMethodNewEditForm({
@@ -50,9 +54,13 @@ export default function ServicePaymentMethodNewEditForm({
   resolveData,
   updateData,
   onSuccess,
-  isView
+  isView,
+  isTuts,
+  incrementTutsTab
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const router = useRouter();
 
   // console.log('Current Item: ', currentItem);
   const [createEmr] = useMutation(CreatePayment, {
@@ -62,10 +70,14 @@ export default function ServicePaymentMethodNewEditForm({
     notifyOnNetworkStatusChange: true,
   });
 
+  let currentStep = localStorage?.getItem('currentStep');
+
   const NewUserSchema = Yup.object().shape({
-    // name: Yup.string().required('First name is required'),
-    // accountNumber: Yup.string().required('Last name is required'),
-    // instruction: Yup.string().required('Instruction is required'),
+    name: Yup.string().required('First name is required'),
+    accountNumber: Yup.string().required('Last name is required'),
+    instruction: Yup.string().required('Instruction is required'),
+    // attachment: Yup.string() // Require at least one attachment
+    // .required('Attachments are required'),
   });
   const [snackKey, setSnackKey]: any = useState(null);
 
@@ -97,6 +109,8 @@ export default function ServicePaymentMethodNewEditForm({
 
 
 
+
+
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: any = {
@@ -122,8 +136,15 @@ export default function ServicePaymentMethodNewEditForm({
           // setIsRefetch(data?.MutationPrescription);
           reset();
           refetch();
+         
           enqueueSnackbar(currentItem ? 'Updated sucessfully' : 'Created Successfully');
+          if(currentStep && Number(currentStep) !== 100){
+            localStorage.setItem('currentStep','12');
+            router.push(paths.dashboard.user.manage.subaccount);
+            incrementTutsTab()
+          }
         })
+        
         .catch((error) => {
           closeSnackbar(snackKey);
           console.log(error, 'ERRORD DAW@');
@@ -224,87 +245,91 @@ export default function ServicePaymentMethodNewEditForm({
     setValue('attachment', null)
   }, [setValue]);
 
+  console.log(isTuts, 'istusss')
+
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <DialogTitle>
-        <Typography variant="h6">Payment Method</Typography>
-        <Typography variant="body2" color="text.disabled">
-          Fill-in details for patients to know how to pay with varities of options.
-        </Typography>
-      </DialogTitle>
+      <div className={'service-fee'}>
+        <DialogTitle>
+          <Typography variant="h6">Payment Method</Typography>
+          <Typography variant="body2" color="text.disabled">
+            Fill-in details for patients to know how to pay with varities of options.
+          </Typography>
+        </DialogTitle>
 
-      <DialogContent>
-        <Box
-          rowGap={3}
-          columnGap={2}
-          display="grid"
-          gridTemplateColumns={{
-            xs: 'repeat(1, 1fr)',
-            sm: 'repeat(2, 1fr)',
-          }}
-          sx={{ pt: 1 }}
-        >
-          <RHFSelect InputProps={{
-            readOnly: isView,
-          }} name="name" label="Payment Method">
-            <MenuItem value="BDO">BDO</MenuItem>
-            <MenuItem value="BPI">BPI</MenuItem>
-            <MenuItem value="Philam">Philam</MenuItem>
-            <MenuItem value="G-Cash">G-Cash</MenuItem>
-            <MenuItem value="PayMaya">PayMaya</MenuItem>
-          </RHFSelect>
+        <DialogContent>
+          <Box
+            rowGap={3}
+            columnGap={2}
+            display="grid"
+            gridTemplateColumns={{
+              xs: 'repeat(1, 1fr)',
+              sm: 'repeat(2, 1fr)',
+            }}
+            sx={{ pt: 1 }}
+          >
+            <RHFSelect InputProps={{
+              readOnly: isView,
+            }} name="name" label="Payment Method">
+              <MenuItem value="BDO">BDO</MenuItem>
+              <MenuItem value="BPI">BPI</MenuItem>
+              <MenuItem value="Philam">Philam</MenuItem>
+              <MenuItem value="G-Cash">G-Cash</MenuItem>
+              <MenuItem value="PayMaya">PayMaya</MenuItem>
+            </RHFSelect>
+
+            <RHFTextField InputProps={{
+              readOnly: isView,
+            }} name="accountNumber" label="Account Number" />
+          </Box>
 
           <RHFTextField InputProps={{
             readOnly: isView,
-          }} name="accountNumber" label="Account Number" />
+          }} name="instruction" label="Instruction" multiline rows={3} sx={{ my: 3 }} />
+
+
+        </DialogContent>
+        <Box sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          width: '100%',
+        }}>
+          {isView ? <Image
+            alt="image"
+            src={values?.attachment}
+            sx={{
+              borderRadius: 5,
+              width: 400,
+              height: 400
+
+            }}
+          /> : <RHFUpload
+            disabled={isView}
+            thumbnail
+            name="attachment"
+            maxSize={3145728}
+            onDrop={handleDrop}
+            onRemove={handleRemoveFile}
+            onRemoveAll={handleRemoveAllFiles}
+          />}
         </Box>
 
-        <RHFTextField InputProps={{
-            readOnly: isView,
-          }} name="instruction" label="Instruction" multiline rows={3} sx={{ my: 3 }} />
-       
+        <DialogActions>
+          <Button variant="outlined" onClick={onClose}>
+            Cancel
+          </Button>
 
-      </DialogContent>
-      <Box sx={{
-        display:'flex',
-        justifyContent:'center',
-        alignItems:'center',
-        width:'100%',
-      }}>
-      {isView ? <Image
-        alt="image"
-        src={values?.attachment}
-        sx={{
-          borderRadius:5,
-          width:400,
-          height:400
-          
-        }}
-        />: <RHFUpload
-          disabled={isView}
-          thumbnail
-          name="attachment"
-          maxSize={3145728}
-          onDrop={handleDrop}
-          onRemove={handleRemoveFile}
-          onRemoveAll={handleRemoveAllFiles}
-        />}
-      </Box>
-
-      <DialogActions>
-        <Button variant="outlined" onClick={onClose}>
-          Cancel
-        </Button>
-
-        <LoadingButton
-          type="submit"
-          variant="contained"
-          loading={isSubmitting}
-          onClick={handleSubmit(onSubmit)}
-        >
-          {currentItem ? 'Update' : 'Create'}
-        </LoadingButton>
-      </DialogActions>
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            loading={isSubmitting}
+            onClick={handleSubmit(onSubmit)}
+          >
+            {currentItem ? 'Update' : 'Create'}
+          </LoadingButton>
+        </DialogActions>
+      </div>
     </FormProvider>
   );
 }

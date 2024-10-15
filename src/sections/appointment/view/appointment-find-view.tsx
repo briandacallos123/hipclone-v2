@@ -375,7 +375,7 @@ export default function AppointmentFindView() {
               <Iconify width={16} icon="mingcute:video-fill" />
             </StyledToggleButton>
           )} */}
-          <AppointmentFindSteps setDType={setDType} dType={dType} view={view} handleChange={handleChange}/>
+          {path !== '/find-doctor/' && <AppointmentFindSteps setDType={setDType} dType={dType} view={view} handleChange={handleChange}/>}
           <Card
             sx={{
               mt: 3,

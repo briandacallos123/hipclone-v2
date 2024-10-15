@@ -147,7 +147,9 @@ export default function NavItem({
           cursor: 'default',
         }),
         display:'flex',
-        alignItems:'center'
+        alignItems:'center',
+        
+
       }}
     >
       {renderContent}

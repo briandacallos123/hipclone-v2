@@ -162,11 +162,7 @@ export default function PatientListView() {
     }
   }, [data]);
 
-  useEffect(() => {
-    if (id) {
-      console.log('ID: ', id);
-    }
-  }, [id]);
+ 
 
   const dataFiltered = applyFilter({
     inputData: tableItem1,

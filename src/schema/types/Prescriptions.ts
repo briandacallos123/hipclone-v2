@@ -514,13 +514,19 @@ const PrescriptionLinked = async (
   // const formattedEndDateAsDate = new Date(formattedEndDate);
   // console.log(filter, 'args');
 
+  const doctorD = await client.employees.findFirst({
+    where:{
+      EMP_EMAIL:session?.user?.email
+    }
+  })
+
   const checkUser = (() => {
     if (session?.user?.role === 'secretary')
       return {
         doctorID: session?.user?.permissions?.doctorID,
       };
     return {
-      doctorID: session?.user?.id,
+      doctorID: doctorD?.EMP_ID,
     };
   })();
 
@@ -1384,13 +1390,20 @@ export const MutationPrescription = extendType({
               message: 'your not authorize',
             };
           }
+          const doctorProfile = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+           })
 
           const prescriptionInput = { ...args.data };
           const uuid = prescriptionInput.tempId;
           const emrId = prescriptionInput?.emrId;
+          
           const isEmr = prescriptionInput?.isEmr;
           const prescriptionChildInputs = prescriptionInput.Prescription_Child_Inputs || [];
           delete prescriptionInput.Prescription_Child_Inputs;
+          delete prescriptionInput.doctorID;
           delete prescriptionInput.tempId;
           delete prescriptionInput.uuid;
           delete prescriptionInput.emrId;
@@ -1418,25 +1431,29 @@ export const MutationPrescription = extendType({
             }
           }
 
-         const doctorProfile = await client.employees.findFirst({
-          where:{
-            EMP_EMAIL:session?.user?.email
-          }
-         })
+         
          console.log(doctorProfile,'hahaha')
 
          console.log(doctorProfile?.EMP_ID,'awittt')
          
-          const prTemplate = await client.prescription_template.create({
-            data:{
-              name:args?.data?.templateName,
-              created_by:doctorProfile?.EMP_ID
-            }
-          })
+          const prTemplate = await (async()=>{
+            if(!args?.data?.templateName) return;
+            
+           const data = await client.prescription_template.create({
+              data:{
+                name:args?.data?.templateName,
+                created_by:doctorProfile?.EMP_ID
+              }
+            });
+            return data;
+          })();
+
+          console.log(prTemplate,'awittt')
 
           const parent = await client.prescriptions.create({
             data: {
               ...prescriptionInput,
+              doctorID:doctorProfile?.EMP_ID,
               emrPatientID: isEmr === 2 ? emrId : null,
               patientID: patientId ? patientId?.patientInfo?.S_ID : patientEmrId?.patientID,
               PATIENT: String(patientId?.patientInfo?.IDNO),
@@ -1449,10 +1466,13 @@ export const MutationPrescription = extendType({
 
           const child = prescriptionChildInputs?.map(async (item) => {
             
+
+
             const newChild = await client.prescriptions_child.create({
               data: {
                 ...item,
                 PR_ID: parent?.ID,
+                doctorID:doctorProfile && doctorProfile?.EMP_ID
               },
             });
 

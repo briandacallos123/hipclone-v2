@@ -332,7 +332,13 @@ export const sub_account_doctor_data = extendType({
           args: { data: sub_account_requests! },
           async resolve(_root, args, ctx) {
             const { take, skip, orderBy, orderDir }: any = args.data;
+            const {session} = ctx;
 
+            const doctorD = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL:session.user.email
+              }
+            })
             // ORDER BY
             let order: any;
             switch (args?.data?.orderBy) {
@@ -376,7 +382,6 @@ export const sub_account_doctor_data = extendType({
                 // },
               };
             })();
-            const { session } = ctx;
             await cancelServerQueryRequest(client, session?.user?.id, "`sub_account_doctor`", "sub_account_doctor_data");   
             try {
               // const [sub_account_doctor, _count, count,active_count,inactive_count]: any = await client.$transaction([
@@ -386,7 +391,7 @@ export const sub_account_doctor_data = extendType({
                     take,
                     skip,
                     where: {
-                      doctorID: session?.user?.id,
+                      doctorID: doctorD?.EMP_ID,
                       ...status,
                       ...whereconditions,
                     },
@@ -427,7 +432,7 @@ export const sub_account_doctor_data = extendType({
                   }),
                   client.sub_account_doctor.aggregate({
                     where: {
-                      doctorID:session?.user?.id,
+                      doctorID:doctorD?.EMP_ID,
                       ...status,
                       ...whereconditions,
                     },
@@ -437,7 +442,7 @@ export const sub_account_doctor_data = extendType({
                   }), 
                   client.sub_account_doctor.count({
                     where: {
-                      doctorID: session?.user?.id,
+                      doctorID: doctorD?.EMP_ID,
                       ...whereconditions,
                     },
                   }),
@@ -446,14 +451,14 @@ export const sub_account_doctor_data = extendType({
                     ? client.sub_account_doctor.count({
                         where: {
                           status: 1,
-                          doctorID: session?.user?.id,
+                          doctorID: doctorD?.EMP_ID,
                           ...whereconditions,
                         },
                       })
                     : client.sub_account_doctor.count({ // Use Prisma Client promise here
                         where: {
                           status: 1,
-                          doctorID: session?.user?.id,
+                          doctorID: doctorD?.EMP_ID,
                           ...whereconditions,
                         },
                       }),
@@ -461,7 +466,7 @@ export const sub_account_doctor_data = extendType({
                   client.sub_account_doctor.count({
                     where: {
                       status: 0,
-                      doctorID: session?.user?.id,
+                      doctorID: doctorD?.EMP_ID,
                       ...whereconditions,
                     },
                   }),
@@ -832,6 +837,12 @@ export const sub_account_object = objectType({
                     email,
                   },
                 });
+
+                const doctorD = await client.employees.findFirst({
+                  where:{
+                    EMP_EMAIL:session?.user?.email
+                  }
+                })
       
                 if (existingUserEmail) {
                   res = {
@@ -919,11 +930,13 @@ export const sub_account_object = objectType({
                 });
                 // SUB ACCOUNT
 
+
+
                 
 
                 //DOCTOR SUB ACCOUNT
                 const secretaryID = create_sub_account.id;
-                const doctorID = Number(session?.user.id);  
+                const doctorID = Number(doctorD?.EMP_ID);  
                 const status = 1; 
                 const appt_all = 0;
                 const appt_approve = 0;

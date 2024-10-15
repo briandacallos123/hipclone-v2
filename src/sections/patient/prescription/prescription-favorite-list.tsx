@@ -3,6 +3,7 @@ import React, { useEffect, useRef } from 'react';
 import PrescriptionMedicine from './prescription-medicine';
 import { Icon } from '@iconify/react';
 import PrescriptionFavoriteList from './components/prescription-favorites';
+import Image from '@/components/image';
 
 const PrescriptionFavoriteListComponent = ({favorites,  handleAddPrescription }: any) => {
     const listRef = useRef<HTMLDivElement>(null);
@@ -33,14 +34,33 @@ const PrescriptionFavoriteListComponent = ({favorites,  handleAddPrescription }:
         };
     }, []);
 
+    const noFavorite = !favorites?.tableData.length;
  
     return (
         <Box sx={{ position: 'relative', zIndex: 10000, height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* favorites */}
-            <Box ref={listRef} sx={{ mt: 1, p: 2, w: '100%', overflowY: 'auto'}}>
-                <Typography variant="body2">Favorites</Typography>
-                {favorites?.tableData?.map((item)=>(
-                    <PrescriptionFavoriteList onAdd={() => handleAddPrescription(item)} row={item} key={item?.id}/>
+            <Box ref={listRef} sx={{ mt: 1, p: 1, w: '100%', overflowY: 'auto', flex: 1}}>
+                {/* {noFavorite && <Typography variant="body1">Empty Favorite List!</Typography>} */}
+                {noFavorite && <Box rowGap={2} sx={{
+                    display:'flex',
+                    justifyContent:'center',
+                    alignItems:'center',
+                    flexDirection:'column'
+                }}>
+                    <Image
+                        src={'/assets/icons/empty/ic_content.svg'}
+                        sx={{
+                            width: 150,
+                            height: 150
+                        }}
+                    />
+                    <Typography variant="h6" color="gray">Empty Favorite List.</Typography>
+
+                </Box>}
+                
+                
+                {favorites?.tableData?.map((item, index)=>(
+                    <PrescriptionFavoriteList index={index} onAdd={() => handleAddPrescription(item)} row={item} key={item?.id}/>
                 ))}
             </Box>
 

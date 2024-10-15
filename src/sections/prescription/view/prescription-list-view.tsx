@@ -185,14 +185,12 @@ export default function PrescriptionListView() {
     filters?.hospital,
     filters?.name,
     filters.startDate,
-    getPrecsciption,
     order,
     orderBy,
     page,
     rowsPerPage,
   ]);
 
-  console.log(filters,'TRY MOTO_________________')
 
   const notFound = !tableData.length && !getPrecsciptionResult.loading;
 

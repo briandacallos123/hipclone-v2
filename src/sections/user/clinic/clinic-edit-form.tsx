@@ -69,9 +69,9 @@ export default function ClinicEditForm({
   const getImage = () => {
     if (clientSide?.clinicDPInfo[0]?.filename) {
       const url = clientSide?.clinicDPInfo[0]?.filename;
-      const parts = url?.split('public');
-      const publicPart = parts && parts[1];
-      return publicPart;
+      // const parts = url?.split('public');
+      // const publicPart = parts && parts[1];
+      return url;
     }
   };
 

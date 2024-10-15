@@ -12,11 +12,17 @@ import { styled } from '@mui/material/styles';
 import { useSearch } from '@/auth/context/Search';
 import beamsClient from '@/utils/beamClient';
 import activeUser from '@/utils/activeUser';
+import { Box } from '@mui/material';
+import Image from '@/components/image';
+import prisma from '../../../prisma/prismaClient'
+import ChangesWatcher from '@/context/changes-watcher';
+import Tutorialstep from '@/context/tut-step';
 // ----------------------------------------------------------------------
 
 type Props = {
   children: React.ReactNode;
 };
+
 
 export default function Layout({ children }: Props) {
 
@@ -50,7 +56,7 @@ export default function Layout({ children }: Props) {
   // }, [pathname]);
 
 
-  
+
   const StyledComponent = styled('div')({
     background: `url('/assets/background/queue-bg.jpg')`,
     backgroundSize: 'cover',
@@ -61,10 +67,19 @@ export default function Layout({ children }: Props) {
     width: '100vw',
   });
 
+
   return (
     <AuthGuard>
       <StyledComponent>
-        <DashboardLayout>{children}</DashboardLayout>
+        <DashboardLayout>
+          <ChangesWatcher>
+            <Tutorialstep>
+             {children}
+
+            </Tutorialstep>
+
+          </ChangesWatcher>
+        </DashboardLayout>
       </StyledComponent>
     </AuthGuard>
   );

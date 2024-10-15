@@ -15,6 +15,8 @@ import { IAppointmentBookCover } from 'src/types/appointment';
 // theme
 import { bgGradient } from 'src/theme/css';
 import { Skeleton } from '@mui/material';
+import Image from '@/components/image';
+import { useResponsive } from '@/hooks/use-responsive';
 
 // ----------------------------------------------------------------------
 
@@ -29,6 +31,8 @@ export default function AppointmentBookCover({
   setLoading,
 }: any) {
   const theme = useTheme();
+
+  const upMd = useResponsive()
 
   // const EmployeeImg = () => {
   //   if (!hmoData?.attachment) return false;
@@ -56,39 +60,6 @@ export default function AppointmentBookCover({
   //   }
   // };
 
-  const [isFound, setFound] = useState(null);
-
-  console.log(isFound, '!!!!!!!!!');
-  useEffect(() => {
-    (async () => {
-      if (hmoData?.attachment) {
-        console.log("true")
-        const checkFileExistence = async (filename: string) => {
-          try {
-            const response = await fetch(
-              `/api/checkFile?filename=${encodeURIComponent(hmoData.attachment)}`
-            );
-
-            const data = await response.json();
-
-            return data;
-          } catch (error) {
-            console.error('Error checking file existence:', error);
-            return false;
-          }
-        };
-
-        const fileExists = await checkFileExistence(hmoData.attachment);
-
-        if (fileExists.exists) {
-          setFound(true);
-          return true;
-        }
-        setFound(false);
-        return true;
-      }
-    })();
-  }, [hmoData?.attachment]);
 
   const EmployeeImg = async () => {
     // if (!hmoData?.attachment) return <UserAvatar />;
@@ -106,10 +77,16 @@ export default function AppointmentBookCover({
 
   return (
     <Card sx={{
-      position:'sticky',
-      top:100
+      position: 'sticky',
+      top: 100,
+      display: 'flex',
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
+      pt: 4
     }}>
-      <Card
+
+      {/* <Card
         sx={{ height: { xs: 220, md: 400 }, backgroundImage: 'url(assets/illustrations/user.svg)' }}
       >
         {!isFound ? (
@@ -137,7 +114,16 @@ export default function AppointmentBookCover({
             }}
           />
         )}
-      </Card>
+      </Card> */}
+      <Image
+        src={
+          hmoData?.attachment
+        }
+        sx={{
+          height: upMd ? 400 : 200,
+          width: upMd ? 400 : 200,
+        }}
+      />
       <Box>
         <ListItemText
           sx={{
@@ -154,10 +140,10 @@ export default function AppointmentBookCover({
           })()}
           secondary={
             <>
-              <Typography variant="body2">
+              {/* <Typography variant="body2">
                 {job ? job : <Skeleton sx={{ width: 1, height: 12 }} />}
               </Typography>
-              {/* <Typography variant="body2">
+              <Typography variant="body2">
                 {email ? email : <Skeleton sx={{ width: 1, height: 12 }} />}
               </Typography> */}
             </>
@@ -168,7 +154,6 @@ export default function AppointmentBookCover({
           }}
           secondaryTypographyProps={{
             mt: 0.5,
-            color: 'common.white',
             component: 'span',
             sx: { opacity: 0.78 },
             textAlign: 'center',

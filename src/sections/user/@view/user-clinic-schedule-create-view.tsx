@@ -29,6 +29,9 @@ export default function UserClinicScheduleCreateView({
   setHideSched,
   id,
 }: Props) {
+
+  console.log(id,'nagalittt')
+
   const isEdit = false;
   const upMd = useResponsive('up', 'md');
   return (

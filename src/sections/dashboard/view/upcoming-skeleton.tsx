@@ -68,7 +68,7 @@ const UpcomingSkeleton = () => {
                     </Stack>
                 </Stack>
             </Grid>
-            <Grid item>
+            <Grid item md={4}>
                 <Skeleton animation="wave" variant="rectangular" width={200} height={200} />
 
             </Grid>

@@ -25,13 +25,13 @@ import { Tooltip } from '@mui/material';
 
 type Props = {
   currentItem?: any;
-  qr?:any;
-  link?:string;
+  qr?: any;
+  link?: string;
 };
 
 // ----------------------------------------------------------------------
 
-export default function PrescriptionDetails({link, /*currentItem*/ currentItem, qr }: Props) {
+export default function PrescriptionDetails({ link, /*currentItem*/ currentItem, qr }: Props) {
   // const keyHospital = _hospitals?.filter((_) => _.currentItem === currentItem?.hospitalcurrentItem)[0];
   const { user } = useAuthContext();
   const date = new Date(Number(currentItem?.DATE));
@@ -42,74 +42,6 @@ export default function PrescriptionDetails({link, /*currentItem*/ currentItem, 
   // eslint-disable-next-line no-unsafe-optional-chaining
   let childPres = currentItem?.prescriptions_child || [];
 
- 
-  // console.log(childPres, 'HEHE@@@');
-  const mobileDetails = (
-    <Box
-      rowGap={{ md: 3, xs: 1 }}
-      columnGap={2}
-      display="grid"
-      gridTemplateColumns={{
-        xs: 'repeat(2, 1fr)',
-      }}
-    >
-      <div>
-        <Typography variant="overline" color="text.disabled">
-          Name: 
-        </Typography>
-        <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
-          {(() => {
-            let text: any;
-
-            if (currentItem?.patient?.LNAME || currentItem?.patient?.FNAME) {
-              if (currentItem?.patient?.MNAME) {
-                text = `${currentItem?.patient?.FNAME} ${currentItem?.patient?.MNAME} ${currentItem?.patient?.LNAME}`;
-              } else {
-                text = `${currentItem?.patient?.FNAME} ${currentItem?.patient?.LNAME}`;
-              }
-            } else {
-              if (currentItem?.patient?.mname) {
-                text = `${currentItem?.patient?.fname} ${currentItem?.patient?.mname} ${currentItem?.patient?.lname}`;
-              } else {
-                text = `${currentItem?.patient?.fname} ${currentItem?.patient?.lname}`;
-              }
-            }
-
-            return text;
-          })()}
-        </Typography>
-
-        <Typography variant="overline" color="text.disabled">
-          Phone:
-        </Typography>
-        <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
-          {currentItem?.patient?.CONTACT_NO || 'Not specified'}
-        </Typography>
-        <Typography variant="overline" color="text.disabled">
-          Gender:
-        </Typography>
-        <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
-          {currentItem?.patient?.SEX === 1 ? 'Male' : 'Female'}
-        </Typography>
-      </div>
-      <div>
-        <Typography sx={{ mb: 1 }} variant="overline" color="text.disabled">
-          Hospital/Clinic:
-        </Typography>
-        <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
-          {currentItem?.clinicInfo?.clinic_name}
-        </Typography>
-
-        <Typography variant="overline" color="text.disabled">
-          Date issued:
-        </Typography>
-        <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
-          {currentItem?.DATE && currentItem?.DATE}
-        </Typography>
-      </div>
-     
-    </Box>
-  );
 
   const downloadQr = () => {
     const link = document.createElement('a');
@@ -122,11 +54,113 @@ export default function PrescriptionDetails({link, /*currentItem*/ currentItem, 
     document.body.removeChild(link);
   }
 
-  const navigateLink= () => {
-    if(link){
-      window.open(link,'_blank')
+  const navigateLink = () => {
+    if (link) {
+      window.open(link, '_blank')
     }
   }
+  // console.log(childPres, 'HEHE@@@');
+  const mobileDetails = (
+    <Box
+    rowGap={{ md: 3, xs: 2 }}
+    columnGap={2}
+    display="grid"
+    gridTemplateColumns={{
+      xs: 'repeat(2, 1fr)',
+    }}
+  >
+    <div>
+      <Typography variant="overline" color="text.disabled">
+        Name:
+      </Typography>
+      <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
+        {(() => {
+          let text: any;
+  
+          if (currentItem?.patient?.LNAME || currentItem?.patient?.FNAME) {
+            if (currentItem?.patient?.MNAME) {
+              text = `${currentItem?.patient?.FNAME} ${currentItem?.patient?.MNAME} ${currentItem?.patient?.LNAME}`;
+            } else {
+              text = `${currentItem?.patient?.FNAME} ${currentItem?.patient?.LNAME}`;
+            }
+          } else {
+            if (currentItem?.patient?.mname) {
+              text = `${currentItem?.patient?.fname} ${currentItem?.patient?.mname} ${currentItem?.patient?.lname}`;
+            } else {
+              text = `${currentItem?.patient?.fname} ${currentItem?.patient?.lname}`;
+            }
+          }
+  
+          return text;
+        })()}
+      </Typography>
+  
+      <Typography variant="overline" color="text.disabled">
+        Phone:
+      </Typography>
+      <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
+        {currentItem?.patient?.CONTACT_NO || 'Not specified'}
+      </Typography>
+      <Typography variant="overline" color="text.disabled">
+        Gender:
+      </Typography>
+      <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
+        {currentItem?.patient?.SEX === 1 ? 'Male' : 'Female'}
+      </Typography>
+    </div>
+    
+    <div>
+      <Typography sx={{ mb: 1 }} variant="overline" color="text.disabled">
+        Hospital/Clinic:
+      </Typography>
+      <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
+        {currentItem?.clinicInfo?.clinic_name}
+      </Typography>
+  
+      <Typography variant="overline" color="text.disabled">
+        Date issued:
+      </Typography>
+      <Typography variant={!upMd ? 'body2' : 'subtitle1'}>
+        {currentItem?.DATE}
+      </Typography>
+    </div>
+  
+    <Box sx={{ display: 'flex', flexDirection: 'column', gridColumn: 'span 2', width: '100%' }}>
+      <Typography sx={{ mb: 1 }} variant="overline" color="text.disabled">
+        Qr Code:
+      </Typography>
+      {user?.role === 'patient' && (
+        <Stack direction="row" justifyContent="space-between" alignItems='center' sx={{ flexGrow: 1, width: '100%' }}>
+          <Box sx={{ flexGrow: 1 }}>
+            <Typography variant="body2">Code: {currentItem?.presCode}</Typography>
+            <Typography variant="body2">
+              Unable to scan? 
+              <Typography 
+                onClick={navigateLink} 
+                variant="body2" 
+                sx={{ textDecoration: 'underline', color: 'primary.main', cursor: 'pointer' }}>
+                click here to preview
+              </Typography>
+            </Typography>
+          </Box>
+          <Stack direction="column" alignItems="center" sx={{ width: '100%', justifyContent: 'center' }}>
+            <img src={qr} style={{width:100}} />
+            <Tooltip sx={{ mt: 1 }} title="Download">
+              <img 
+                style={{ cursor: 'pointer' }} 
+                onClick={downloadQr} 
+                src='/assets/download.svg' 
+              />
+            </Tooltip>
+          </Stack>
+        </Stack>
+      )}
+    </Box>
+  </Box>
+  
+
+  );
+
 
   return (
     <DialogContent sx={{ gap: 3, display: 'flex', flexDirection: 'column' }}>
@@ -228,17 +262,17 @@ export default function PrescriptionDetails({link, /*currentItem*/ currentItem, 
                 {currentItem?.DATE && currentItem?.DATE}
               </Typography>
               {user?.role === 'patient' && <Stack>
-                 <Stack direction="row" alignItems="center">
-                  <img src={qr} width="50%" height="50%"/>
-                  <Tooltip sx={{mt:1}} title="Download">
+                <Stack direction="row" alignItems="center">
+                  <img src={qr} width="50%" height="50%" />
+                  <Tooltip sx={{ mt: 1 }} title="Download">
                     <img style={{
-                      cursor:'pointer'
-                    }} onClick={downloadQr} src='/assets/download.svg'/>
+                      cursor: 'pointer'
+                    }} onClick={downloadQr} src='/assets/download.svg' />
                   </Tooltip>
-                 </Stack>
+                </Stack>
                 <Box>
                   <Typography variant="body2">Code: {currentItem?.presCode}</Typography>
-                  <Typography variant="body2">Unable to scan? <Typography onClick={navigateLink}  variant="body2" sx={{textDecoration:'underline', color:'primary.main', cursor:'pointer'}}>click here to preview</Typography></Typography>
+                  <Typography variant="body2">Unable to scan? <Typography onClick={navigateLink} variant="body2" sx={{ textDecoration: 'underline', color: 'primary.main', cursor: 'pointer' }}>click here to preview</Typography></Typography>
                 </Box>
               </Stack>}
               {/* {generateQR(``)}https://hip.apgitsolutions.com/dashboard/patient/qrcode/${currentItem?.ID} */}

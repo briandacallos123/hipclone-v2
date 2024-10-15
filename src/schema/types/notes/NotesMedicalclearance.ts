@@ -314,13 +314,19 @@ export const PostNotesCler = extendType({
             }
           }
 
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordCler = await trx.records.create({
               data: {
                 CLINIC: Number(createData.clinic),
                 patientID: Number(createData.patientID),
                 R_TYPE: String(createData.R_TYPE), // 10
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(0),
                 qrcode:VoucherCode
 
@@ -330,7 +336,7 @@ export const PostNotesCler = extendType({
               data: {
                 clinic: Number(recordCler.CLINIC),
                 patientID: Number(recordCler.patientID),
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(0),
                 report_id: Number(recordCler.R_ID),
 
@@ -372,7 +378,11 @@ export const UpdateNotesCler = extendType({
             // const notesChildInput = notesInput.NoteTxtChildInputType;
             // const uuid = notesInput.tempId;
   
-           
+            let doctorDetails = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL: session?.user?.email
+              }
+            })
   
             const notesTransaction = await client.$transaction(async (trx) => {
               const recordCler = await trx.records.update({
@@ -380,7 +390,7 @@ export const UpdateNotesCler = extendType({
                   CLINIC: Number(createData.clinic),
                   patientID: Number(createData.patientID),
                   R_TYPE: String(createData.R_TYPE), // 10
-                  doctorID: Number(session?.user?.id),
+                  doctorID: doctorDetails?.EMP_ID,
                   isEMR: Number(0),
                 },
                 where:{
@@ -391,7 +401,7 @@ export const UpdateNotesCler = extendType({
                 data: {
                   clinic: Number(recordCler.CLINIC),
                   patientID: Number(recordCler.patientID),
-                  doctorID: Number(session?.user?.id),
+                  doctorID: doctorDetails?.EMP_ID,
                   isEMR: Number(0),
                   report_id: Number(recordCler.R_ID),
   

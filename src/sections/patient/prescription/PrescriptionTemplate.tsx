@@ -4,8 +4,9 @@ import PrescriptionMedicine from './prescription-medicine';
 import { Icon } from '@iconify/react';
 import PrescriptionFavoriteList from './components/prescription-favorites';
 import PrescriptionTemplateList from './components/prescription-template-list';
+import Image from '@/components/image';
 
-const PrescriptionTemplate = ({templates,addDirectPrescriptions,  handleAddPrescription }: any) => {
+const PrescriptionTemplate = ({ templates, addDirectPrescriptions, handleAddPrescription }: any) => {
     const listRef = useRef<HTMLDivElement>(null);
 
     // Function to check if the user has scrolled to the bottom
@@ -34,18 +35,35 @@ const PrescriptionTemplate = ({templates,addDirectPrescriptions,  handleAddPresc
         };
     }, []);
 
- 
+    const noTemplate = !templates?.tableData.length;
+
     return (
         <Box sx={{ position: 'relative', zIndex: 10000, height: '100%', display: 'flex', flexDirection: 'column' }}>
             {/* favorites */}
-            <Box ref={listRef} sx={{ mt: 1, p: 2, w: '100%', overflowY: 'auto'}}>
-                {/* <Typography variant="body2">Your Templates</Typography> */}
-                {templates?.tableData?.map((item)=>(
-                    <PrescriptionTemplateList onAdd={() => addDirectPrescriptions(item)} row={item} key={item?.id}/>
+            <Box ref={listRef} sx={{ mt: 1, p: 1, w: '100%', overflowY: 'auto' }}>
+                {noTemplate && <Box rowGap={2} sx={{
+                    display:'flex',
+                    justifyContent:'center',
+                    alignItems:'center',
+                    flexDirection:'column'
+                }}>
+                    <Image
+                        src={'/assets/icons/empty/ic_content.svg'}
+                        sx={{
+                            width: 150,
+                            height: 150
+                        }}
+                    />
+                    <Typography variant="h6" color="gray">Empty Template List.</Typography>
+
+                </Box>}
+
+                {templates?.tableData?.map((item, index) => (
+                    <PrescriptionTemplateList index={index} onAdd={() => addDirectPrescriptions(item)} row={item} key={item?.id} />
                 ))}
             </Box>
 
-         
+
         </Box>
     );
 };

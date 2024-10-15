@@ -405,6 +405,13 @@ export const PostNotesLabReq = extendType({
             }
           }
 
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
+
 
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordLabReq = await trx.records.create({
@@ -412,7 +419,7 @@ export const PostNotesLabReq = extendType({
                 CLINIC: Number(createData.clinic),
                 patientID: Number(createData.patientID),
                 R_TYPE: String(createData.R_TYPE), // 5
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(0),
                 qrcode:VoucherCode
               },
@@ -422,7 +429,7 @@ export const PostNotesLabReq = extendType({
                 clinic: Number(recordLabReq.CLINIC),
                 patientID: Number(recordLabReq.patientID),
                 // emrPatientID: Number(createData.NoteTxtChildInputType.emrPatientID),
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 record_id: Number(recordLabReq.R_ID),
                 isEMR: Number(0),
 

@@ -84,9 +84,10 @@ type Props = {
   action?: React.ReactNode;
   editData?:any;
   setEditData?:any;
+  clinicData?:any;
 };
 
-export default function ImagingListView({editData, setEditData, data_slug, action, isRefetch, setRefetch }: Props) {
+export default function ImagingListView({editData,clinicData, setEditData, data_slug, action, isRefetch, setRefetch }: Props) {
   const params = useParams();
   const { id }: any = params;
   const [isPatient, setIspatient] = useState<boolean>(true);
@@ -104,6 +105,10 @@ export default function ImagingListView({editData, setEditData, data_slug, actio
       notifyOnNetworkStatusChange: true,
     }
   );
+
+    const [clinicDataPatient, setClinicDataPatient] = useState([]);
+
+
 
 
 
@@ -191,18 +196,11 @@ export default function ImagingListView({editData, setEditData, data_slug, actio
     [table]
   );
 
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(labreport_clinic_data,{
-    variables: {
-      data: {
-        uuid: id,
-      },
-    },
-  });
+
+
+
+
+
 
 
   useEffect(() => {
@@ -210,7 +208,7 @@ export default function ImagingListView({editData, setEditData, data_slug, actio
       labRefetch().then(() => {
         setRefetch(false);
       });
-      drClinicFetch()
+      // drClinicFetch()
 
     }
   }, [isRefetch]);
@@ -260,7 +258,7 @@ export default function ImagingListView({editData, setEditData, data_slug, actio
     },
   });
 
-  const [clinicData, setclinicData] = useState<any>([]);
+ 
 
 
   useEffect(() => {
@@ -270,6 +268,8 @@ export default function ImagingListView({editData, setEditData, data_slug, actio
         setTableData1(labreport_patient_data?.labreport_patient);
         setTotal(labreport_patient_data?.total_records);
         setIsClinic(isClinic + 1);
+        setClinicDataPatient(labreport_patient_data?.clinic?.filter((item)=>item))
+
         // setclinicData(labreport_patient_data?.clinic)
       } else {
         const { emr_labreport_patient_data } = data;
@@ -287,16 +287,6 @@ export default function ImagingListView({editData, setEditData, data_slug, actio
 
   //////////////////////////////////////////////////////////////////////////
  
-  useEffect(() => {
-    if (user?.role !== 'patient' && drClinicData) {
-      // console.log(drClinicData)
-      const {queryLabreportClinics} = drClinicData
-      setclinicData(queryLabreportClinics?.clinicData)
-      // console.log(drClinicData,'AWITTTTTTTTTTTTTTTTTTTTTTTTT___________')
-      // const { DoctorClinicsHistory } = drClinicData;
-      // setclinicData(DoctorClinicsHistory);
-    }
-  }, [drClinicData, user?.role]);
 
 
   // useEffect(() => {
@@ -437,7 +427,7 @@ const renderView = (
         onFilters={handleFilters}
         action={action}
         //
-        hospitalOptions={clinicData}
+        hospitalOptions={clinicData || clinicDataPatient}
         // hospitalOptions={HOSPITAL_OPTIONS.map((option) => option)}
       />
 

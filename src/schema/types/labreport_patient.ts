@@ -27,7 +27,7 @@ export const labreport = objectType({
     t.nullable.date('resultDate');
     t.nullable.string('remarks');
     t.nullable.int('isDeleted');
-    t.list.field('labreport_attachments', {
+    t.nullable.list.field('labreport_attachments', {
       type: labreport_attachments,
     });
     t.nullable.field('doctorInfo', {
@@ -61,9 +61,9 @@ export const labreport = objectType({
 const patient_emr_patientInfoObjectType = objectType({
   name: 'patient_emr_patientInfoObjectType',
   definition(t) {
-    t.id('id');
+    t.nullable.id('id');
     t.nullable.int('patientID');
-    t.field('patientRelation', {
+    t.nullable.field('patientRelation', {
       type: patient_emr_patient_object,
       // async resolve(root, _arg, _ctx) {
       //   const result: any = await client.patient.findMany({
@@ -146,7 +146,7 @@ export const labreport_attachments = objectType({
 const doctorInfoObjectType = objectType({
   name: 'doctorInfoObjectType',
   definition(t) {
-    t.id('EMPID');
+    t.nullable.id('EMPID');
     t.nullable.string('EMP_FULLNAME');
     t.nullable.string('EMP_FNAME');
     t.nullable.string('EMP_MNAME');
@@ -163,7 +163,7 @@ const doctorInfoObjectType = objectType({
 const clinicInfoObjetType = objectType({
   name: 'clinicInfoObjetType',
   definition(t) {
-    t.id('id');
+    t.nullable.id('id');
     t.nullable.string('doctor_idno');
     t.nullable.string('clinic_name');
     t.nullable.string('schedule');
@@ -173,7 +173,7 @@ const clinicInfoObjetType = objectType({
     t.nullable.string('number');
     t.nullable.string('Province');
     t.nullable.dateTime('date');
-    t.list.field('clinicDPInfo', {
+    t.nullable.list.field('clinicDPInfo', {
       type: lab_clinicDPInfos,
     });
   },
@@ -205,7 +205,7 @@ const patientInfoObjectType = objectType({
     t.nullable.string('BPLACE');
     t.nullable.int('BLOOD_TYPE');
     // t.nullable.int('AGE');
-    t.field('AGE', {
+    t.nullable.field('AGE', {
       type: 'Int',
       resolve: (parent) => {
         if (parent.BDAY) {
@@ -231,7 +231,7 @@ const patientInfoObjectType = objectType({
     });
     t.nullable.string('HOME_ADD');
     t.nullable.string('EMAIL');
-    t.list.field('userInfo', {
+    t.nullable.list.field('userInfo', {
       type: lab_user_object,
       async resolve(root, _arg, _ctx) {
         const result: any = await client.user.findMany({
@@ -407,7 +407,7 @@ export const labreport_p = objectType({
     t.nullable.list.field('labreport_patient', {
       type: labreport,
     });
-    t.int('total_records');
+    t.nullable.int('total_records');
     t.nullable.list.field('clinic', {
       type: Clinics
     });
@@ -995,7 +995,7 @@ export const mutation_lab_report = extendType({
                         doctorID,
                         isEMR,
                         patient,
-                        doctor,
+                        doctor:String(doctorID),
                         clinic,
                         labreport_id: labReportID,
                         file_name: String(v.path),
@@ -1076,7 +1076,7 @@ export const mutation_lab_report = extendType({
                         doctorID,
                         isEMR,
                         patient,
-                        doctor,
+                        doctor:String(doctorID),
                         clinic,
                         labreport_id: labReportID,
                         file_name: String(v.path),
@@ -1140,7 +1140,7 @@ export const mutation_lab_report = extendType({
                       doctorID,
                       isEMR,
                       patient: patientID,
-                      doctor,
+                      doctor:String(doctorID),
                       clinic,
                       labreport_id: labReportID,
                       file_name: String(v.path),
@@ -1191,7 +1191,7 @@ export const mutation_lab_report = extendType({
                       doctorID,
                       isEMR,
                       patient,
-                      doctor,
+                      doctor:String(doctorID),
                       clinic,
                       labreport_id: labReportID,
                       file_name: String(v.path),
@@ -1567,6 +1567,13 @@ export const queryLabreportClinics = extendType({
               uuid: args?.data?.uuid
             }
           })
+
+          const employee = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+
           const patient = await client.patient.findFirst({
             where: {
               EMAIL: user?.email
@@ -1577,7 +1584,7 @@ export const queryLabreportClinics = extendType({
 
           const clinics = await client.labreport.findMany({
             where: {
-              doctorID: Number(session?.user?.id),
+              doctorID: employee?.EMP_ID,
               patientID: Number(patient?.S_ID),
               isDeleted: 0
             },

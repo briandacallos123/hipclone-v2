@@ -21,8 +21,13 @@ import { NexusGenInputs } from 'generated/nexus-typegen';
 import { EducationMutation } from '../../libs/gqls/education';
 import { useAuthContext } from 'src/auth/hooks';
 import { GetEducations } from '../../libs/gqls/education';
-// import
-
+import { m } from 'framer-motion';
+import { MotionContainer, varFade } from 'src/components/animate';
+import { useTheme } from '@mui/material/styles';
+import Image from '@/components/image';
+import { Button, Typography } from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { paths } from '@/routes/paths';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = IUserProfileEducation;
@@ -31,12 +36,13 @@ export default function AccountEducation() {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { user, reInitialize } = useAuthContext();
   const upMd = useResponsive('up', 'md');
-  console.log(reInitialize);
+ const router = useRouter();
   // const [user] = useState<IUserProfileEducation>(_userProfileEducation);
   const [updateEducation] = useMutation(EducationMutation);
   const { data: queryData, error, loading, refetch }: any = useQuery(GetEducations);
   const [userData, setUserData] = useState({});
   // console.log('QUERY: ', queryData);
+  const currentStep = localStorage?.getItem('currentStep')
 
   // useEffect(() => {
   //   if (queryData) {
@@ -65,6 +71,11 @@ export default function AccountEducation() {
             closeSnackbar(snackKey);
             enqueueSnackbar('Updated Successfully');
             refetch();
+
+            if(currentStep && Number(currentStep) !== 100){
+              localStorage.setItem('currentStep', '6')
+              router.push(paths.dashboard.user.manage.clinic)
+            }
           }
         })
         .catch((error) => {
@@ -171,8 +182,142 @@ export default function AccountEducation() {
     },
   ];
 
+  const theme = useTheme();
+
+  const PRIMARY_MAIN = theme.palette.primary.main;
+  const [step, setSteps] = useState(1);
+
+  const incrementStep = () => setSteps((prev) => prev + 1)
+
+
+  const firstStep = (
+    <m.div>
+     
+      <Typography
+
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        Please ensure that all education-related fields are completed. 🎓
+      </Typography>
+    </m.div>
+  )
+
+
+  const secondStep = (
+    <m.div>
+     
+      <Typography
+
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+       Accurately providing your educational background is essential for verifying your qualifications and credentials. 📚🔍
+      </Typography>
+    </m.div>
+  )
+
+
+  // 
+
+  const renderFourthTutorial = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+    }}>
+
+
+      <>
+        <Box sx={{
+          background: PRIMARY_MAIN,
+          opacity: .4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9991
+        }}>
+
+        </Box>
+
+        <Box sx={{
+          zIndex: 99999,
+          position: 'absolute',
+          bottom: 0,
+        }}>
+          {/* message */}
+          <m.div variants={varFade().inUp}>
+            <Box sx={{
+              background: theme.palette.background.default,
+              height: 'auto',
+              width: 'auto',
+              maxWidth:250,
+              left: 10,
+              borderRadius: 2,
+              zIndex: 99999,
+              position: 'absolute',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+                p:3
+            }}>
+              {step === 1 && firstStep}
+              {step === 2 && secondStep}
+
+              
+              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
+              </Box>
+            </Box>
+          </m.div>
+
+          <Image
+            sx={{
+              width: 350,
+              height: 450,
+              position: 'relative',
+              bottom: -100,
+              right: -120,
+
+            }}
+            src={'/assets/tutorial-doctor/nurse-tutor.png'}
+
+          />
+        </Box>
+      </>
+
+    </Box>
+  )
+
+
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+      {Number(currentStep) === 5 && step !== 3 && renderFourthTutorial}
+
+      
+     
       <Stack component={Card} spacing={{ md: 3, xs: 1 }} sx={{ p: 3 }}>
         {Object.keys(values)?.map((item, index) => (
           <Grid key={item} container spacing={{ md: 3, xs: 1 }}>

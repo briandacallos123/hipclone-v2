@@ -34,7 +34,7 @@ import Scrollbar from 'src/components/scrollbar';
 import { ConfirmDialog } from 'src/components/custom-dialog';
 import { useQuery, useLazyQuery, useMutation } from '@apollo/client';
 import { DR_APPTS, UpdateAppointmentM } from 'src/libs/gqls/drappts';
-import { DR_CLINICS } from 'src/libs/gqls/drprofile';
+import { DoctorClinicsHistory, DR_CLINICS } from 'src/libs/gqls/drprofile';
 import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
 
 import { isDateError } from 'src/components/custom-date-range-picker';
@@ -77,8 +77,8 @@ const defaultFilters = {
   name: '',
   status: -1,
   hospital: [],
-  startDate: new Date(),
-  endDate: undefined,
+  startDate: null,
+  endDate: null,
   type: -1,
 };
 
@@ -86,8 +86,8 @@ const resetFilters = {
   name: '',
   status: -1,
   hospital: [],
-  startDate: undefined,
-  endDate: undefined,
+  startDate: null,
+  endDate: null,
   type: -1,
 };
 
@@ -121,7 +121,14 @@ export default function DashboardAppointmentList({
 
   const [tableData, setTableData] = useState<any>([]);
   const [totalRecords, setTotalRecords] = useState(0);
-  const [filters, setFilters] = useState(defaultFilters);
+  const [filters, setFilters] = useState({
+    name: '',
+    status: -1,
+    hospital: [],
+    startDate: new Date(),
+    endDate: null,
+    type: -1,
+  });
 
   const dateError = isDateError(filters.startDate, filters.endDate);
 
@@ -199,7 +206,7 @@ export default function DashboardAppointmentList({
 
   useEffect(()=>{
     if(socket?.connected){
-      console.log("connected____________________________________________________________________________________________")
+     
       socket.on('appointmentStatus',async(r:any)=>{
         console.log(r, "socket payload")
         if(Number(r?.recepient) === Number(user?.id) && Number(r?.notification_type) === 1){
@@ -261,19 +268,6 @@ export default function DashboardAppointmentList({
     [snackKey]
   );
 
-  // const openView = useBoolean();
-  // const [viewId, setViewId] = useState<any>([]);
-  // const handleViewRow = useCallback(
-  //   (data: any) => {
-  //     setViewId(data);
-  //     openView.onTrue();
-  //   },
-  //   [openView]
-  // );
-
-  // const handleResetFilters = useCallback(() => {
-  //   setFilters(defaultFilters);
-  // }, []);
 
   useEffect(() => {
     if (appt_data) {
@@ -298,107 +292,24 @@ export default function DashboardAppointmentList({
 
   const [lastFilterString, setLastFilterString] = useState<string>('');
   const [checkSearchHistory, setSearchHistory] = useState<Boolean>(true);
-  // first data load when component is rendered
-  // useEffect(() => {
-  //   if (checkSearchHistory) {
-  //     getData({
-  //       variables: {
-  //         data: {
-  //           status: 0,
-  //           typeStatus: filters.type,
-  //           skip: page * rowsPerPage,
-  //           take: rowsPerPage,
-  //           orderBy,
-  //           orderDir: order,
-  //           searchKeyword: filters?.name,
-  //           clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //           startDate: filters?.startDate,
-  //           endDate: filters?.endDate,
-  //           isDashboard: 1,
-  //         },
-  //       },
-  //     }).then(async (result: any) => {
-  //       const { data } = result;
-  //       if (data) {
-  //         const { allAppointments } = data;
-  //         setTableData(allAppointments?.appointments_data);
-  //         setTotalRecords(allAppointments?.total_records);
-  //       }
-  //     });
-  //   }
-  // }, [filters.status, checkSearchHistory, filters?.startDate, filters?.endDate, filters.type, filters?.name, filters?.hospital, page, rowsPerPage, orderBy, order]);
-
-  // filter hooks
-  // useEffect(() => {
-  //   const checkFilteredHistory: any = (str: string, total: any) => {
-  //     if (total === 0) {
-  //       return lastFilterString.length >= str.length;
-  //     }
-  //     return !!total;
-  //   };
-
-  //   const fetch: any = checkFilteredHistory(filters?.name, totalRecords);
-  //   setSearchHistory(Boolean(fetch));
-
-  //   if (totalRecords !== 0) {
-  //     getData({
-  //       variables: {
-  //         data: {
-  //           status: 0,
-  //           typeStatus: filters.type,
-  //           skip: page * rowsPerPage,
-  //           take: rowsPerPage,
-  //           orderBy,
-  //           orderDir: order,
-  //           searchKeyword: filters?.name,
-  //           clinicIds: filters?.hospital.map((v: any) => Number(v)),
-  //           startDate: filters?.startDate,
-  //           endDate: filters?.endDate,
-  //         },
-  //       },
-  //     }).then(async (result: any) => {
-  //       const { data } = result;
-  //       if (data) {
-  //         const { allAppointments } = data;
-  //         setTableData(allAppointments?.appointments_data);
-  //         setTotalRecords(allAppointments?.total_records);
-  //         if (allAppointments?.total_records !== 0) {
-  //           setLastFilterString(filters?.name);
-  //         }
-  //       }
-  //     });
-  //   }
-  // }, [
-  //   lastFilterString,
-  //   totalRecords,
-  //   page,
-  //   rowsPerPage,
-  //   order,
-  //   orderBy,
-  //   filters?.endDate,
-  //   filters?.startDate,
-  //   filters?.hospital,
-  //   filters?.name,
-  //   filters.type,
-  // ]);
-
+  
   const {
     data: drClinicData,
     error: drClinicError,
     loading: drClinicLoad,
     refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
+  }: any = useQuery(DoctorClinicsHistory);
+
+
   const [clinicData, setclinicData] = useState<any>([]);
 
-  useEffect(() => {
-    if (user?.role === 'doctor' && drClinicData) {
-      const { doctorClinics } = drClinicData;
-      setclinicData(doctorClinics);
-    }
-  }, [drClinicData, user?.role]);
 
-  // =========
-  // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
+  useEffect(()=>{
+    if(drClinicData){
+      setclinicData(drClinicData?.DoctorClinicsHistory)
+    }
+  },[drClinicData])
+
   const {
     data: userClinicData,
     error: userClinicError,
@@ -412,6 +323,7 @@ export default function DashboardAppointmentList({
     },
   });
   console.log('@@awitttt', clinicData);
+
   useEffect(() => {
     if (user?.role === 'patient' && userClinicData) {
       const { AllClinicUser } = userClinicData;

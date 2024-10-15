@@ -93,7 +93,7 @@ export default function PatientCarousel({ data, loading }: Props) {
 
 
   const carousel = useCarousel({
-    slidesToShow: 4,
+    slidesToShow: data?.length === 1 && 1 || data?.length === 2 && 2 || data?.length === 3 && 3 || 4,
     slidesToScroll: 1,
     rtl: Boolean(theme.direction === 'rtl'),
     initialSlide: currentIndex,
@@ -131,6 +131,8 @@ export default function PatientCarousel({ data, loading }: Props) {
     },
     [data, router]
   );
+
+  console.log(data,'datadatadatadata')
 
   return (
     <Box
@@ -192,7 +194,7 @@ export default function PatientCarousel({ data, loading }: Props) {
         (!loading ? (
           <Carousel ref={carouselRef} {...carousel.carouselSettings}>
             {data?.map((item: any) => (
-              <Box key={item.S_ID} sx={{ px: 1 }}>
+              <Box key={item.S_ID} sx={{ px: 1}}>
                 <CarouselItem
                   key={item.S_ID}
                   item={item}
@@ -232,6 +234,7 @@ function CarouselItem({ isActive, item, sx }: CarouselItemProps) {
   const theme = useTheme();
   const router = useRouter();
 
+
  
   const fullName = `${item?.patientInfo?.FNAME} ${item?.patientInfo?.LNAME}`;
 
@@ -255,7 +258,7 @@ function CarouselItem({ isActive, item, sx }: CarouselItemProps) {
       {item?.patientInfo?.userInfo?.display_picture[0] ? (
         <Avatar
           alt={item?.patientInfo?.FNAME}
-          src={item?.patientInfo?.userInfo?.display_picture[0].filename.split('public')[1]}
+          src={item?.patientInfo?.userInfo?.display_picture[0].filename}
           sx={{ mr: 1 }}
         >
           {item?.patientInfo?.FNAME.charAt(0).toUpperCase()}

@@ -30,31 +30,14 @@ type Props = {
   refIds: any;
   refetch: any;
   editData:any;
+  clinicData:any;
 };
 
-export default function NoteNewFormText({editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormText({clinicData, editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const { getItem } = useSessionStorage();
   // console.log('refIds', refIds.patientInfo?.S_ID);
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-  const [clinicData, setclinicData] = useState<any>([]);
-
-  useEffect(() => {
-    drClinicFetch().then((result: any) => {
-      const { data } = result;
-      if (data) {
-        const { doctorClinics } = data;
-        setclinicData(doctorClinics);
-      }
-    });
-    return () => drClinicFetch();
-  }, []);
 
   const NewNoteSchema = Yup.object().shape({
     hospitalId: Yup.number().nullable().required('Hospital ID is required'),

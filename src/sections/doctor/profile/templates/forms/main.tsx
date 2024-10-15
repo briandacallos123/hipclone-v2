@@ -4,6 +4,7 @@ import Image from 'next/image';
 import React, { forwardRef, useEffect, useState } from 'react';
 import { LogoFull } from 'src/components/logo';
 import { bgGradient } from 'src/theme/css';
+import ImageAvatar from './ImageAvatar';
 
 type MainProps = {
   title: string;
@@ -68,9 +69,9 @@ const Main = forwardRef<HTMLDivElement, MainProps>((props, ref) => {
           {specialty}
         </Typography>
       </Stack>
-
       <Stack>
-        <Image
+
+        <ImageAvatar
           alt="qr image"
           src={photo}  // Use the state variable for the src
           width={isSelected ? 100 : selected ? 80 : 50}

@@ -185,6 +185,7 @@ export const QueryClinics = extendType({
         const skip: Number | any = args?.data!.skip ? args?.data!.skip : 0;
         let orderConditions: any;
         let order: any;
+
         switch (args?.data!.orderBy) {
           case 'name':
             order = [
@@ -212,14 +213,25 @@ export const QueryClinics = extendType({
 
         const filter_sched_type: any = Number(args?.data!.sched_type);
         let fSchedObj: any = {};
+
         if (filter_sched_type === 1) {
           fSchedObj = {
             ClinicSchedInfo: {
               some: {
+                OR: [
+                  {
+                    type: {
+                      contains: 'i:0;i:1;',
+                    }
+                  },
+                  {
+                    type: {
+                      contains: 'i:1;i:1;',
+                    }
+                  }
+
+                ],
                 isDeleted: 0,
-                type: {
-                  contains: 'i:0;i:1;',
-                },
               },
             },
           };
@@ -227,10 +239,21 @@ export const QueryClinics = extendType({
           fSchedObj = {
             ClinicSchedInfo: {
               some: {
-                isDeleted: 0,
-                type: {
-                  contains: 'i:0;i:2;',
+                OR: [
+                {
+                  type: {
+                    contains: 'i:0;i:2;',
+                  }
                 },
+                {
+                  type: {
+                    contains: 'i:1;i:2;',
+                  }
+                }
+
+              ],
+                isDeleted: 0,
+
               },
             },
           };
@@ -243,8 +266,14 @@ export const QueryClinics = extendType({
             },
           };
         }
-        // console.log('whereconditions@@: ', whereconditions);
-        // console.log('fSchedObj@@: ', fSchedObj);
+
+        const doctorD = await client.employees.findFirst({
+          where: {
+            EMP_EMAIL: session?.user?.email
+          }
+        });
+
+        console.log(whereconditions, 'wherec')
 
         try {
           const [clinic, f2f, tm, total]: any = await client.$transaction([
@@ -252,7 +281,7 @@ export const QueryClinics = extendType({
               take,
               skip,
               where: {
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(doctorD?.EMP_ID),
                 isDeleted: 0,
 
                 ...fSchedObj,
@@ -274,15 +303,25 @@ export const QueryClinics = extendType({
               where: {
                 isDeleted: 0,
                 NOT: [{ isDeleted: 1 }, { clinic_name: '' }],
-                doctorID: Number(session?.user?.id),
-             
+                doctorID: Number(Number(doctorD?.EMP_ID)),
+
                 ClinicSchedInfo: {
                   some: {
-                    type: {
-                      contains: 'i:0;i:2;',
+                    OR: [
+                    {
+                      type: {
+                        contains: 'i:0;i:2;',
+                      }
                     },
+                    {
+                      type: {
+                        contains: 'i:1;i:2;',
+                      }
+                    }
+
+                  ],
                     isDeleted: 0,
-                    
+
                   },
                 },
                 ...whereconditions,
@@ -303,13 +342,23 @@ export const QueryClinics = extendType({
                 NOT: [{ isDeleted: 1 }, { clinic_name: '' }],
                 ClinicSchedInfo: {
                   some: {
-                    type: {
-                      contains: 'i:0;i:1;',
-                    },
+                    OR: [
+                      {
+                        type: {
+                          contains: 'i:0;i:1;',
+                        }
+                      },
+                      {
+                        type: {
+                          contains: 'i:1;i:1;',
+                        }
+                      }
+
+                    ],
                     isDeleted: 0,
                   },
                 },
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(Number(doctorD?.EMP_ID)),
                 // ...fSchedObj,
 
                 ...whereconditions,
@@ -327,7 +376,7 @@ export const QueryClinics = extendType({
 
             client.clinic.findMany({
               where: {
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(doctorD?.EMP_ID),
                 isDeleted: 0,
 
                 ...fSchedObj,
@@ -411,6 +460,7 @@ export const ClinicInsertPayload = inputObjectType({
     t.nullable.JSON('days');
     t.nullable.string('uuid');
     t.nullable.JSON('type');
+    t.nullable.int('limitValue');
   },
 });
 export const DeleteClinicInputs = inputObjectType({
@@ -437,6 +487,11 @@ export const PostClinic = extendType({
           const daysJson = serialize(serialize(createData.days));
           const typeJson = serialize(serialize(createData.type));
 
+          const doctorD = await client.employees.findFirst({
+            where: {
+              EMP_EMAIL: session?.user?.email
+            }
+          })
           // console.log
 
           const clinic = await client.clinic.create({
@@ -445,20 +500,22 @@ export const PostClinic = extendType({
               location: String(createData.location),
               number: String(createData.number),
               Province: String(createData.Province),
-              doctorID: session?.user?.id,
+              doctorID: doctorD?.EMP_ID
             },
           });
           const clinicSched = await client.clinic_schedule.create({
             data: {
               start_time: createData.start_time,
               end_time: createData.end_time,
-              time_interval: createData.time_interval,
-              doctorID: Number(session?.user?.id),
+              time_interval:createData?.limitValue ? '0': createData.time_interval,
+              doctorID: Number(doctorD?.EMP_ID),
               SchedName: String('schedule'),
               days: daysJson,
               type: typeJson,
               clinic_id: clinic?.id,
               clinic: clinic?.id,
+              isLimited:createData?.limitValue ? 1 : 0,
+              number_patient:createData?.limitValue ? createData?.limitValue:null
               // clinicInfo: {
               //   connect: { id: Number(createData.refId) },
               // },
@@ -470,16 +527,16 @@ export const PostClinic = extendType({
           const sFile = await args?.file;
           if (sFile) {
             const uploadResult = await useUpload(sFile, 'public/documents/');
-            
+
             const res: any = await useGoogleStorage(
               sFile,
               Number(session?.user?.id),
               'userDisplayProfile'
             );
-            
+
             await client.clinicdp.create({
               data: {
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(doctorD?.EMP_ID),
                 doctor: String(session?.user?.doctorId),
                 clinic: clinicSchedID,
                 filename: String(res.path),
@@ -540,10 +597,16 @@ export const PostClinicSched = extendType({
           const daysJson = serialize(serialize(createData.days));
           const typeJson = serialize(serialize(createData.type));
 
+          const doctorId = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+
           const clinicSched = await client.clinic_schedule.create({
             data: {
               // doctorID: Number(session?.user?.id),
-              doctorInfo: { connect: { EMP_ID: Number(session?.user?.id) } },
+              doctorInfo: { connect: { EMP_ID: Number(doctorId?.EMP_ID) } },
               start_time: createData.start_time,
               end_time: createData.end_time,
               time_interval: createData.time_interval,
@@ -601,18 +664,23 @@ export const UpdateClinic = extendType({
             const uploadResult: any = await useGoogleStorage(
               sFile,
               session?.user?.id,
-              'feeds'
+              'clinic-update'
             );
-
-            // const uploadResult = await useUpload(sFile, 'public/documents/');
-            uploadResult.map(async (v: any) => {
-              await client.clinicdp.create({
-                data: {
-                  clinic: clinicSchedID,
-                  filename: String(v.path),
-                },
-              });
+            await client.clinicdp.create({
+              data: {
+                clinic: clinicSchedID,
+                filename: String(uploadResult.path),
+              },
             });
+            // const uploadResult = await useUpload(sFile, 'public/documents/');
+            // uploadResult.map(async (v: any) => {
+            //   await client.clinicdp.create({
+            //     data: {
+            //       clinic: clinicSchedID,
+            //       filename: String(v.path),
+            //     },
+            //   });
+            // });
           }
 
           const res: any = clinic;
@@ -728,7 +796,7 @@ export const UpdateClinicSched = extendType({
               time_interval: createData.time_interval,
               days: daysJson,
               type: typeJson,
-              number_patient:createData?.numberPatient
+              number_patient: createData?.numberPatient
             },
           });
 

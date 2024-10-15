@@ -24,10 +24,11 @@ import { NexusGenInputs } from 'generated/nexus-typegen';
 
 type FormValuesProps = IUserService;
 
-export default function ServicePaymentSchedule() {
+export default function ServicePaymentSchedule({tutorialTab, incrementTutsTab}:any) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const [user] = useState<IUserService>(_userService);
+  let currentStep = localStorage?.getItem('currentStep')
 
   const { data, loading, refetch } = useQuery(GetPaymentSched);
   const [updateSched] = useMutation(UpdatePaymentSched, {
@@ -53,6 +54,10 @@ export default function ServicePaymentSchedule() {
           closeSnackbar(snackKey);
           refetch();
           enqueueSnackbar('Updated sucessfully');
+          if(currentStep && Number(currentStep) !== 100){
+            localStorage.setItem('currentStep','10')
+            incrementTutsTab();
+          }
         })
         .catch((error) => {
           closeSnackbar(snackKey);
@@ -138,6 +143,7 @@ export default function ServicePaymentSchedule() {
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+      <div className={tutorialTab && tutorialTab === 9 ?'service-fee':''}>
       <Card>
         <CardHeader title="Payment Schedule (for Telemedicine only)" />
 
@@ -165,6 +171,7 @@ export default function ServicePaymentSchedule() {
           </Stack>
         </Stack>
       </Card>
+      </div>
     </FormProvider>
   );
 }

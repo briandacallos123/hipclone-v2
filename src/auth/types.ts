@@ -58,7 +58,7 @@ export type NextAuthContextType = CanRemove & {
   loading: boolean;
   authenticated: boolean;
   unauthenticated: boolean;
-  login: (username: string, password: string, type?:string) => Promise<void>;
+  login: (username: string, password: string, type?:string, path?:string) => Promise<void>;
   logout: () => Promise<void>;
   reInitialize: () => Promise<void>;
   loginVoucher:(voucherCode:string)=>Promise<void>

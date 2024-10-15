@@ -48,7 +48,10 @@ import SubaccountTableToolbar from '../subaccount/subaccount-table-toolbar';
 import { useQuery } from '@apollo/client';
 import { sub_account_doctor_data } from '@/libs/gqls/sub_accounts';
 import LoadingButton from '@mui/lab/LoadingButton';
-
+import { Box } from '@mui/material';
+import { m } from 'framer-motion';
+import { MotionContainer, varFade } from 'src/components/animate';
+import Image from '@/components/image';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -102,7 +105,7 @@ export default function UserSubaccountListView() {
   ////////////////////////////////////////////////////
   // const ids = tableData.map((entry):any => entry?.subAccountInfo?.id);
 
-  function getIdByIndex(index:any) {
+  function getIdByIndex(index: any) {
     if (index >= 0 && index < tableData.length) {
       const selectedEntry = tableData[index];
       return selectedEntry?.subAccountInfo?.id;
@@ -110,10 +113,10 @@ export default function UserSubaccountListView() {
       return null; // Kung ang index ay hindi wasto
     }
   }
-  
+
   // Piliin ang id gamit ang index 1 (second entry)
   const selectedId123 = getIdByIndex(1);
-  
+
   // console.log(selectedId123,"selectedIdselectedIdselectedIdselectedIdselectedIdselectedId");
   // console.log(selectedEntry,'tableData?.subAccountInfo?.idtableData?.subAccountInfo?.id'); 
 
@@ -278,8 +281,137 @@ export default function UserSubaccountListView() {
     [handleFilters]
   );
 
+  const PRIMARY_MAIN = theme.palette.primary.main;
+  const [step, setSteps] = useState(1);
+  const incrementStep = () => setSteps((prev) => prev + 1)
+  const currentStep = localStorage?.getItem('currentStep')
+
+  const firstStep = (
+    <m.div>
+
+      <Typography
+
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        <span>Manage Your Team! 🌟</span><br/><br/>
+        As a doctor, you can now create sub-accounts for your assistants. 
+      </Typography>
+    </m.div>
+  )
+
+  const secondStep = (
+    <m.div>
+
+      <Typography
+
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        <span>Manage Your Team! 🌟</span><br/><br/>
+        This feature allows you to delegate tasks and enhance your practice's efficiency.
+      </Typography>
+    </m.div>
+  )
+ 
+
+  const renderTwelveTutorial = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+    }}>
+
+
+      <>
+        <Box sx={{
+          background: PRIMARY_MAIN,
+          opacity: .4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9991
+        }}>
+
+        </Box>
+
+        <Box sx={{
+          zIndex: 99999,
+          position: 'absolute',
+          bottom: 0,
+        }}>
+          {/* message */}
+          <m.div variants={varFade().inUp}>
+            <Box sx={{
+              background: theme.palette.background.default,
+              height: 'auto',
+              width: 'auto',
+              maxWidth:250,
+              left: 10,
+              borderRadius: 2,
+              zIndex: 99999,
+              position: 'absolute',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              p:3
+            }}>
+              {step === 1 && firstStep}
+              {step === 2 && secondStep}
+
+
+              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
+              </Box>
+            </Box>
+          </m.div>
+
+          <Image
+            sx={{
+              width: 350,
+              height: 450,
+              position: 'relative',
+              bottom: -100,
+              right: -120,
+
+            }}
+            src={'/assets/tutorial-doctor/nurse-tutor.png'}
+
+          />
+        </Box>
+      </>
+
+    </Box>
+  )
+
+
   return (
     <>
+
+      {Number(currentStep) === 12 && step !== 3 && renderTwelveTutorial}
+
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <Stack
           direction="row"
@@ -297,7 +429,7 @@ export default function UserSubaccountListView() {
             loading={isLoading}
             startIcon={<Iconify icon="mingcute:add-line" />}
           >
-            New Sub-account
+            {!upMd ? "New account":"New Sub-account"}
           </LoadingButton>
         </Stack>
 
@@ -361,13 +493,13 @@ export default function UserSubaccountListView() {
                     headLabel={TABLE_HEAD}
                     rowCount={tableData?.length}
                     numSelected={table.selected.length}
-                    // onSort={table.onSort}
-                    // onSelectAllRows={(checked) =>
-                    //   table.onSelectAllRows(
-                    //     checked,
-                    //     tableData?.map((row: any) => row.id)
-                    //   )
-                    // }
+                  // onSort={table.onSort}
+                  // onSelectAllRows={(checked) =>
+                  //   table.onSelectAllRows(
+                  //     checked,
+                  //     tableData?.map((row: any) => row.id)
+                  //   )
+                  // }
                   />
                 )}
 
@@ -384,7 +516,7 @@ export default function UserSubaccountListView() {
                         onViewRow={() => handleViewRow(row)}
                         onEditRow={() => handleEditRow(row)}
                         onDeleteRow={() => handleDeleteRow(row.id)}
-                        isLoading={isLoading} 
+                        isLoading={isLoading}
                         setLoading={setLoading}
                       />
                     ))}
@@ -438,7 +570,7 @@ export default function UserSubaccountListView() {
         open={openCreate.value}
         onClose={openCreate.onFalse}
         refetch={refetch}
-        isLoading={isLoading} 
+        isLoading={isLoading}
         setLoading={setLoading}
       />
 
@@ -450,11 +582,11 @@ export default function UserSubaccountListView() {
           openEdit.onFalse();
         }}
         id={selectedEditId}
-        isLoading={isLoading} 
+        isLoading={isLoading}
         setLoading={setLoading}
       />
 
-      <UserSubaccountDetailsView open={openView.value} onClose={openView.onFalse} id={selectedId} idlist={selectedIdList}/>
+      <UserSubaccountDetailsView open={openView.value} onClose={openView.onFalse} id={selectedId} idlist={selectedIdList} />
 
       {/* <ConfirmDialog
         open={confirm.value}

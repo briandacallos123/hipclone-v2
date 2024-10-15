@@ -1,0 +1,1 @@
+export {default as RegisterDoctor} from './@view/find-doctor-view'

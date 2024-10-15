@@ -162,16 +162,12 @@ export const GetEducations = extendType({
         const { session } = _ctx;
 
 
-        const doctorId = (()=>{
-          let id:any;
-
-          if(args?.data?.doctorId){
-            id = args?.data?.doctorId
-          }else{
-            id = session?.user?.id
+        const doctor = await client.employees.findFirst({
+          where:{
+            EMP_EMAIL:session?.user?.email
           }
-          return id;
-        })()
+        })
+
         try {
           const result = await client.employees.findFirst({
             select: {
@@ -185,7 +181,7 @@ export const GetEducations = extendType({
               FSHIP_TR1_COMPLETED: true,
             },
             where: {
-              EMP_ID: doctorId,
+              EMP_ID: doctor?.EMP_ID,
             },
           });
 
@@ -244,10 +240,15 @@ export const EducationMutation = extendType({
         // const { validity, PRC, PTR, practicing_since, s2_number } = args?.data;
 
         try {
+          const empId = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
           const actualData = payload(args?.data);
           const response = await client.employees.update({
             where: {
-              EMP_ID: session?.user?.id,
+              EMP_ID: empId?.EMP_ID
             },
             data: actualData,
           });

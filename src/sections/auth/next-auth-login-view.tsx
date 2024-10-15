@@ -31,6 +31,8 @@ import Iconify from 'src/components/iconify';
 import FormProvider, { RHFTextField } from 'src/components/hook-form';
 import { Divider } from '@mui/material';
 import { signIn } from 'next-auth/react';
+import { useSnackbar } from 'src/components/snackbar';
+
 //
 import NextAuthRegisterView from './next-auth-register-view';
 
@@ -47,13 +49,15 @@ type Props = {
   id?: string;
   isLoggedIn?: any;
   setLoggedIn?: any;
+  isDoctor?: boolean;
 };
 
 // ----------------------------------------------------------------------
 
-export default function NextAuthLoginView({ setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
+export default function NextAuthLoginView({ isDoctor, setLoggedIn, isLoggedIn, open, onClose, id }: Props) {
   const { login, user } = useAuthContext();
   const path = usePathname();
+  // const pathname = usePath
 
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -94,33 +98,70 @@ export default function NextAuthLoginView({ setLoggedIn, isLoggedIn, open, onClo
 
   //  console.log(user, 'HAAAAAAAAAAAAAAAAAAAAAAAAAAAA?');
 
+  const [loadingBtn, setLoadingBtn] = useState(false)
+
+  const [myData, setMyData]: any = useState(null);
+  const [snackKey, setSnackKey]: any = useState(null);
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const handleSubmitValue = useCallback(async (fData) => {
+    try {
+      await login?.(fData.email, fData.password, isDoctor ? 'doctor' : 'patient', path);
+      closeSnackbar(snackKey);
+      enqueueSnackbar('Login Successfully')
+      
+      window.location.href =
+        returnTo ||
+        (id && path === `/find-doctor/${id}/`
+          ? (() => {
+            if (user?.role !== 'doctor') {
+              return paths.dashboard.appointment.book(id);
+            }
+          })()
+          : PATH_AFTER_LOGIN);
+      reset();
+
+
+
+    } catch (error) {
+      setLoadingBtn(false)
+      closeSnackbar(snackKey);
+      enqueueSnackbar(error.message, { variant: 'error' })
+
+      reset();
+      setErrorMsg(typeof error === 'string' ? error : error.message);
+
+    }
+  }, [snackKey])
+
+  useEffect(() => {
+    if (snackKey) {
+      (async () => {
+        await handleSubmitValue({ ...myData });
+      })();
+    }
+  }, [snackKey, myData]);
+
+
   const onSubmit = useCallback(
     async (data: FormValuesProps) => {
+      console.log(isDoctor, 'doctor kaba')
       try {
-        /* signIn('credentials',{
-          username:data?.email,
-          password:data?.password
-         }).then(()=>{
-          window.location.href = returnTo || PATH_AFTER_LOGIN;
-         }); */
-        await login?.(data.email, data.password);
-        // setLoggedIn((isLoggedIn = true));
-        window.location.href =
-          returnTo ||
-          (id && path === `/find-doctor/${id}/`
-            ? (() => {
-                if (user?.role !== 'doctor') {
-                  return paths.dashboard.appointment.book(id);
-                }
-              })()
-            : PATH_AFTER_LOGIN);
+        setLoadingBtn(true)
+
+        const snackbarKey: any = enqueueSnackbar('Saving Data...', {
+          variant: 'info',
+          key: 'savingEducation',
+          persist: true, // Do not auto-hide
+        });
+        setSnackKey(snackbarKey);
+        setMyData(data)
+
       } catch (error) {
-        console.error(error);
-        reset();
-        setErrorMsg(typeof error === 'string' ? error : error.message);
+
       }
     },
-    [id, login, path, reset, returnTo, user]
+    [id, login, path, reset, returnTo, user, isDoctor]
   );
 
   // const renderHead = (

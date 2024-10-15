@@ -26,6 +26,7 @@ import NavDesktop from './nav/desktop';
 import { SettingsButton, HeaderShadow, LoginButton, SignupButton, GotoDashboard, MerchantButton } from '../_common';
 import { useAuthContext } from '@/auth/hooks';
 import QueueButton from '../_common/queue-view-button';
+import { useEffect, useState } from 'react';
 
 // ----------------------------------------------------------------------
 
@@ -33,10 +34,25 @@ export default function Header() {
   const theme = useTheme();
 
   const mdUp = useResponsive('up', 'md');
+  const [isDoctor, setDoctor] = useState();
+  const [newNav, setNewNav] = useState([]);
 
   const { user }  = useAuthContext();
 
   const offsetTop = useOffSetTop(HEADER.H_DESKTOP);
+
+  useEffect(()=>{
+    const role = localStorage.getItem('userRole');
+    
+    if(role === 'doctor'){
+      setDoctor(true)
+      const newNavConfig = navConfig?.filter((item)=>item.role?.includes('doctor'));
+      setNewNav(newNavConfig)
+    }else{
+      setNewNav(navConfig)
+
+    }
+  },[])
 
   return (
     <AppBar>
@@ -83,18 +99,22 @@ export default function Header() {
               </Link>
             }
           >
-            {mdUp ? <LogoFull /> : <Logo />}
+           <Link href={paths.home}>
+             {mdUp ? <LogoFull /> : <Logo />}
+           </Link>
           </Badge>
 
           <Box sx={{ flexGrow: 1 }} />
 
-          {mdUp && <NavDesktop offsetTop={offsetTop} data={navConfig} />}
+          {mdUp && <NavDesktop offsetTop={offsetTop} data={newNav} />}
 
           <Stack alignItems="center" direction={{ xs: 'row', md: 'row-reverse' }}>
             {mdUp && (
               <>
-               {!user && (<><SignupButton /><LoginButton /> <QueueButton/></>)}
+               {!user && (<>{!isDoctor && <SignupButton />}<LoginButton /> {isDoctor && <QueueButton/>}</>)}
                {user && (<><GotoDashboard /> <QueueButton/></>)}
+
+               
               </>
             )}
 

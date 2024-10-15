@@ -230,7 +230,7 @@ export const NoteAbstInputType = inputObjectType({
     t.nullable.string('complications');
     t.nullable.string('procedures');
     t.nullable.string('treatplan');
-    t.nullable.dateTime('dateCreated')
+    t.nullable.string('dateCreated')
   },
 });
 
@@ -313,13 +313,19 @@ export const PostNotesAbs = extendType({
             }
           }
 
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordAbs = await trx.records.create({
               data: {
                 CLINIC: Number(createData.clinic),
                 patientID: Number(createData.patientID),
                 R_TYPE: String(createData.R_TYPE), // 10
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(0),
                 qrcode: VoucherCode
               },
@@ -329,7 +335,7 @@ export const PostNotesAbs = extendType({
                 clinic: Number(recordAbs.CLINIC),
                 patientID: Number(recordAbs.patientID),
                 isEMR: Number(0),
-                doctorID: Number(session?.user?.id),
+                doctorID:doctorDetails?.EMP_ID,
                 report_id: Number(recordAbs.R_ID),
 
                 complaint: String(createData.complaint),
@@ -379,7 +385,12 @@ export const UpdateNotesAbs = extendType({
             // const notesChildInput = notesInput.NoteTxtChildInputType;
             // const uuid = notesInput.tempId;
 
-
+            let doctorDetails = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL: session?.user?.email
+              }
+            })
+  
 
 
             const notesTransaction = await client.$transaction(async (trx) => {
@@ -388,7 +399,7 @@ export const UpdateNotesAbs = extendType({
                   CLINIC: Number(createData.clinic),
                   patientID: Number(createData.patientID),
                   R_TYPE: String(createData.R_TYPE), // 10
-                  doctorID: Number(session?.user?.id),
+                  doctorID: doctorDetails?.EMP_ID,
                   isEMR: Number(0)
                 },
                 where: {
@@ -400,7 +411,7 @@ export const UpdateNotesAbs = extendType({
                   clinic: Number(recordAbs.CLINIC),
                   patientID: Number(recordAbs.patientID),
                   isEMR: Number(0),
-                  doctorID: Number(session?.user?.id),
+                  doctorID:doctorDetails?.EMP_ID,
                   report_id: Number(recordAbs.R_ID),
 
                   complaint: String(createData.complaint),
@@ -433,7 +444,7 @@ export const UpdateNotesAbs = extendType({
 
           }
         } else {
-          throw new GraphQLError("Unable to delete")
+          throw new GraphQLError("Unable to Update")
 
         }
       },

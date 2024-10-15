@@ -16,7 +16,7 @@ import MailIcon from '@mui/icons-material/Mail';
 import MenuIcon from '@mui/icons-material/Menu';
 import Toolbar from '@mui/material/Toolbar';
 import Typography from '@mui/material/Typography';
-import { Button, Dialog, FormControl, Grid, InputAdornment, InputBase, InputLabel, MenuItem, Paper, Select, Stack, TextField } from '@mui/material';
+import { Button, Chip, Dialog, FormControl, Grid, InputAdornment, InputBase, InputLabel, MenuItem, Paper, Select, Stack, TextField } from '@mui/material';
 import { LogoFull } from '@/components/logo';
 import CloseIcon from '@mui/icons-material/Close';
 import { RHFTextField } from '@/components/hook-form';
@@ -40,6 +40,8 @@ import TabList from '@mui/lab/TabList';
 import TabPanel from '@mui/lab/TabPanel';
 import PrescriptionFavoriteListComponent from './prescription-favorite-list';
 import PrescriptionTemplate from './PrescriptionTemplate';
+import { bgBlur } from '@/theme/css';
+import { useTheme } from '@mui/material/styles';
 
 const drawerWidth = 300;
 
@@ -67,7 +69,10 @@ function PrescriptionCreateFull(props) {
 
     const [take, setTake] = React.useState(20);
     const [skip, setSkip] = React.useState(0);
+
     const [search, setSearch] = React.useState('');
+    const [searchFav, setSearchFav] = React.useState('');
+    const [searchTem, setSearchTemp] = React.useState('');
 
 
 
@@ -76,14 +81,16 @@ function PrescriptionCreateFull(props) {
         take,
         skip,
         search,
+        searchFav,
+        searchTem,
         takeFavorites: 20,
         skipFavorites: 0,
-        takeTemplates:20,
-        skipTemplates:0,
+        takeTemplates: 20,
+        skipTemplates: 0,
         target: 1
     })
 
-    const { medicineData, getAllMedicineResult, setMedicineData, favorites, allFavorites, templates } = PrescriptionController(payloads)
+    const { medicineData, getAllMedicineResult, setMedicineData, favorites, allFavorites, templates, templateResults } = PrescriptionController(payloads)
 
     console.log(payloads, 'payloadspayloads')
     const handleRemovePresc = (indexData: number) => {
@@ -101,9 +108,6 @@ function PrescriptionCreateFull(props) {
         setMobileOpen(false);
     };
 
-    const favoritesRefetch = () => {
-        allFavorites.refetch();
-    }
 
     const handleDrawerTransitionEnd = () => {
         setIsClosing(false);
@@ -123,32 +127,54 @@ function PrescriptionCreateFull(props) {
         })
     }, [])
 
+
     const [tabValue, setTabValue] = React.useState('1');
+    console.log(tabValue, 'tabValue')
+
+    const favoritesRefetch = React.useCallback(() => {
+
+        allFavorites.refetch();
+        templateResults.refetch();
+        setPrescriptions([]);
+
+    }, [tabValue])
 
 
     const handleSearch = React.useCallback((value) => {
+        const key = (() => {
+            if (Number(tabValue) === 1) {
+                return 'search'
+            } else if (Number(tabValue) === 2) {
+                return 'searchFav'
+
+            } else {
+                return 'searchTem'
+            }
+        })();
         setPayloads({
             ...payloads,
-            search: value,
+            [`${key}`]: value
+        })
+    }, [payloads?.search, payloads, tabValue, payloads?.searchFav, payloads?.searchTem])
+
+    const handleSearchReset = React.useCallback(() => {
+
+        setPayloads({
+            ...payloads,
+            search: '',
+            searchFav: '',
+            searchTem: '',
             target: Number(tabValue)
         })
     }, [payloads?.search, payloads, tabValue])
 
-    const handleSearchReset = React.useCallback(()=>{
-        setPayloads({
-            ...payloads,
-            search: '',
-            target: Number(tabValue)
-        })
-    },[payloads?.search, payloads, tabValue])
+    console.log(showSideP, 'showSidePshowSideP')
 
-    console.log(showSideP,'showSidePshowSideP')
-       
 
 
     const handleAddPrescription = (item) => {
-        console.log(item,'itemmmmmmmm')
-        
+        console.log(item, 'itemmmmmmmm')
+
         if (!item?.is_favorite && !item?.prescription_template) {
             console.log("dito sa una")
             setShowSideP({
@@ -275,12 +301,15 @@ function PrescriptionCreateFull(props) {
         }
     }, [showSideP?.data])
 
+    console.log(prescriptions, 'prescriptions')
 
 
     const handleAddPFinal = React.useCallback((dataItem) => {
         const isExists = prescriptions?.find((item) => Number(item?.ID) === Number(dataItem?.id))
 
         const newData: any = { ...dataItem }
+
+        console.log(newData, 'new dataaaaaaa')
 
         if (!isExists) {
             setPrescriptions((prev) => {
@@ -306,8 +335,8 @@ function PrescriptionCreateFull(props) {
     }, [toAddData.name, toAddData.dose, toAddData.quantity, toAddData.frequency, toAddData.duration, toAddData.form])
 
 
-    const addDirectPrescriptions = (row:any) => {
-        const dataRes = row?.prescription_child?.map((items)=>{
+    const addDirectPrescriptions = (row: any) => {
+        const dataRes = row?.prescription_child?.map((items) => {
             return {
                 dose: items?.DOSE,
                 form: items?.FORM?.toLowerCase(),
@@ -333,6 +362,9 @@ function PrescriptionCreateFull(props) {
 
     const handleSubmitSide = React.useCallback((data) => {
         handleAddPFinal(data)
+        // dito bro
+        setMobileOpen(false);
+
     }, [])
 
     const CreateMedicine = () => {
@@ -344,95 +376,6 @@ function PrescriptionCreateFull(props) {
                     handleBack={handleBack}
                 />
             </Stack>
-            // <Stack sx={{ mt: 1, p: 2, w: '100%', pb: 10 }} gap={3}>
-
-            //     <TextField
-            //         id="outlined-password-input"
-            //         label="Generic Name"
-            //         type="text"
-            //         onChange={(e) => toAddHandler('name', e.target.value)}
-            //         defaultValue={toAddData.name}
-            //     />
-
-
-            //     <Grid container gap={2} justifyContent="space-between">
-            //         <Grid item xs={12} lg={5}>
-            //             <TextField
-            //                 fullWidth
-            //                 id="outlined-password-input"
-            //                 label="Dose"
-            //                 type="text"
-            //                 onChange={(e) => toAddHandler('dose', e.target.value)}
-            //                 value={showSideP?.data?.Dose}
-
-
-
-            //             />
-
-            //         </Grid>
-            //         <Grid item xs={12} lg={5}>
-            //             <TextField
-            //                 fullWidth
-            //                 onChange={(e) => toAddHandler('quantity', e.target.value)}
-            //                 value={toAddData?.quantity}
-            //                 id="outlined-password-input"
-            //                 label="Quantity"
-
-
-            //             />
-            //         </Grid>
-            //         <Grid item xs={12} >
-            //             <TextField
-            //                 fullWidth
-            //                 id="outlined-password-input"
-            //                 label="Frequecy (in days)"
-            //                 onChange={(e) => toAddHandler('frequency', e.target.value)}
-            //                 value={toAddData?.frequency}
-            //                 type="number"
-
-            //             />
-
-            //         </Grid>
-            //         <Grid item xs={12} >
-            //             <TextField
-            //                 fullWidth
-            //                 onChange={(e) => toAddHandler('duration', e.target.value)}
-            //                 id="outlined-password-input"
-            //                 label="Duration (in days)"
-            //                 type="number"
-            //                 value={toAddData?.duration}
-
-            //             />
-            //         </Grid>
-            //     </Grid>
-            //     <FormControl fullWidth>
-            //         <InputLabel id="demo-simple-select-label">Form</InputLabel>
-            //         <Select
-            //             onChange={(e) => toAddHandler('form', e.target.value)}
-
-            //             labelId="demo-simple-select-label"
-            //             id="demo-simple-select"
-            //             value={toAddData.form}
-            //             label="Age"
-            //             sx={{
-            //                 textTransform:'capitalize'
-            //             }}
-
-            //         >
-            //             {medicineFormOptions?.map((item)=>(
-            //                 <MenuItem value={item?.value} key={item?.id} sx={{
-            //                     textTransform:'capitalize'
-            //                 }}>{item?.label}</MenuItem>
-            //             ))}
-            //         </Select>
-            //     </FormControl>
-            //     <Button fullWidth onClick={handleAddPFinal} variant="contained">
-            //         Add
-            //     </Button>
-            //     <Button fullWidth onClick={handleBack} variant="outlined">
-            //         Go Back
-            //     </Button>
-            // </Stack>
         )
     }
 
@@ -448,6 +391,8 @@ function PrescriptionCreateFull(props) {
         setPayloads({
             ...payloads,
             search: '',
+            searchFav: '',
+            searchTem: '',
             target: Number(newValue)
         })
     }, [tabValue, payloads?.search, payloads])
@@ -458,36 +403,51 @@ function PrescriptionCreateFull(props) {
             position: 'relative',
             height: '100%',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            overflow:'hidden'
         }}>
             <Box>
                 <Toolbar>
                     <LogoFull />
                 </Toolbar>
                 <Divider />
-                <Paper
-                    component="form"
+                <Box
                     sx={{
-                        p: '2px 4px', mt: 1, display: 'flex', alignItems: 'center', width: '100%',
+                        mt: 1,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '100%',
+                        px: {xs:0,lg:2},
                     }}
                 >
 
                     <InputBase
-                        sx={{ ml: 1, flex: 1, p: 1, background: '#ededed' }}
+                        fullWidth
+                        sx={{ ml: 1, flex: 1, p: 1, background: '#fff',  border:'1px solid gray', borderRadius:1 }}
                         placeholder="Search medicine"
-                        value={payloads?.search}
+                        value={(() => {
+                            if (tabValue === '1') {
+                                return payloads?.search
+                            } else if (tabValue === '2') {
+                                return payloads?.searchFav
+                            } else {
+                                return payloads?.searchTem
+                            }
+                        })()}
                         endAdornment={
                             <InputAdornment position="end">
-                                <IconButton
+                                {(payloads?.search || payloads?.searchFav || payloads?.searchTem) && <IconButton
                                     aria-label="toggle password visibility"
                                     onClick={handleSearchReset}
                                     edge="end"
-                                    sx={{
+                                    sx={{ 
                                         pr: 1
                                     }}
                                 >
                                     <Iconify icon="carbon:close-filled" />
-                                </IconButton>
+                                </IconButton>}
                             </InputAdornment>
                         }
                         inputProps={{ 'aria-label': 'search google maps' }}
@@ -496,21 +456,39 @@ function PrescriptionCreateFull(props) {
                         }}
                     />
 
-                    {/* <IconButton type="button" sx={{ p: 1 }} aria-label="search">
-                      
-                    </IconButton> */}
+                    {(payloads?.search || payloads?.searchFav || payloads?.searchTem) &&
+                        <Box sx={{ typography: 'body2', mt: 2 }}>
+                            {/* <strong> */}
+                               
+
+                                <Chip
+                                  
+                                    label={payloads?.search && medicineData?.totalRecords ||
+                                        payloads?.searchFav && favorites?.tableData?.length ||
+                                        payloads?.searchTem && templates?.tableData?.length}
+                                    size="small"
+                                  
+                                />
+                            {/* </strong> */}
+                            <Box component="span" sx={{ color: 'text.secondary', ml: 1 }}>
+                                results found
+                            </Box>
+                        </Box>
+                    }
+
+
+
                     <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
 
-                </Paper>
+                </Box>
             </Box>
             <Box sx={{
                 overflowY: 'scroll',
                 flex: 1,
-                height: '100%'
-                // zIndex: 99999
+                height: '100%',
             }}>
                 <TabContext value={tabValue}>
-                    <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 2, py: 1 }}>
+                    <Box sx={{ borderBottom: 1, borderColor: 'divider', py: 1, px:1}}>
                         <TabList onChange={handleChange} aria-label="lab API tabs example">
                             <Tab label="Medicine List" value="1" />
                             <Tab label="Favorites" value="2" />
@@ -518,14 +496,20 @@ function PrescriptionCreateFull(props) {
 
                         </TabList>
                     </Box>
-                    <TabPanel value="1">
+                    <TabPanel sx={{
+                        p:1
+                    }} value="1">
                         {!showSideP.isShow ? <MedicineList /> : <CreateMedicine />}
                     </TabPanel>
-                    <TabPanel value="2">
+                    <TabPanel sx={{
+                        p:1
+                    }}  value="2">
                         {!showSideP.isShow && !showSideP?.isFavorite ? <PrescriptionFavoriteListComponent favorites={favorites} handleAddPrescription={handleAddPrescription} /> : <CreateMedicine />}
                     </TabPanel>
-                    <TabPanel value="3">
-                        {<PrescriptionTemplate addDirectPrescriptions={addDirectPrescriptions} templates={templates}/> }
+                    <TabPanel sx={{
+                        p:1
+                    }}  value="3">
+                        {<PrescriptionTemplate addDirectPrescriptions={addDirectPrescriptions} templates={templates} />}
                     </TabPanel>
                 </TabContext>
                 {/* {!showSideP.isShow ?  : } */}
@@ -570,12 +554,18 @@ function PrescriptionCreateFull(props) {
     const handleClose = () => {
         onClose();
         setCloseCreate(true)
-        setPrescriptions([])
     }
+    const theme = useTheme();
 
     return (
         <Dialog fullScreen open={open}>
-            <Box sx={{ display: 'flex', height: '100%', position: 'relative' }}>
+            <Box sx={{
+                ...bgBlur({
+                    color: theme.palette.background.default,
+                }),
+
+                display: 'flex', height: '100%', position: 'relative'
+            }}>
                 <CssBaseline />
                 <AppBar
                     position="fixed"
@@ -655,17 +645,23 @@ function PrescriptionCreateFull(props) {
                 </Box>
                 <Box
                     component="main"
-                    sx={{ flexGrow: 1, p: 3, height: '100%', width: { sm: `calc(100% - ${drawerWidth}px)` } }}
+                    sx={{ flexGrow: 1, p: 3,height:'100%', width: { sm: `calc(100% - ${drawerWidth}px)` }}}
                 >
-                    <Toolbar />
+                    {/* <Toolbar /> */}
                     {/* main */}
                     <Box sx={{
-                        mt: 5,
                         ml: { lg: 10 },
+                        height:'100%'
                     }}>
-                        <Typography sx={{ mb: 2 }} variant="body1">Prescription</Typography>
-                        <Stack gap={2}>
-                            <PrescriptionCreateForm closeCreate={closeCreate} refetch={favoritesRefetch} handleClose={handleClose} clearItem={clearItem} removeItem={handleRemovePresc} currentItem={prescriptions} clinicData={clinicData} />
+                      
+                        <Stack sx={{
+                            height:'100%',
+                            overflow:'hidden'
+                        }}>
+                            <PrescriptionCreateForm closeCreate={closeCreate} refetch={()=>{
+                                favoritesRefetch()
+                                refetch()
+                            }} handleClose={handleClose} clearItem={clearItem} removeItem={handleRemovePresc} currentItem={prescriptions} clinicData={clinicData} />
                         </Stack>
                     </Box>
                 </Box>

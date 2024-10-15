@@ -92,8 +92,13 @@ export const mutation_create_medication = extendType({
           create_medication_data: []
         };
         try {
+          const doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
 
-          const doctorID = Number(session?.user.id);
+          const doctorID = Number(doctorDetails?.EMP_ID);
           const doctor = String(session?.user.doctorId);
 
           await Promise.all(medication?.map(async (i: any, index: number) => {

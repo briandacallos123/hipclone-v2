@@ -160,13 +160,14 @@ function NextAuthProvider({ children }: Props) {
   };
 
   // LOGIN
-  const login = useCallback(async (username: string, password: string, type?:string) => {
-    // console.log('PATHHHHHHH: ', path);
+  const login = useCallback(async (username: string, password: string, type?:string, path?:string) => {
+
     const result = await signIn('credentials', {
       redirect: false,
       username,
       password,
-      type
+      type,
+      path
     });
 
 

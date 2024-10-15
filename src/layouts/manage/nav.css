@@ -1,0 +1,29 @@
+.nav-toggle {
+    position: absolute;
+    display: inline-block;
+    z-index: 99999;
+    top:20%
+    
+}
+.nav-toggle::before {
+    content: '➔'; /* You can replace this with an arrow icon */
+    position: absolute;
+    transform: translateY(50%);
+    font-size: 34px; /* Adjust the size of the arrow */
+    animation: scale .7s infinite alternate; /* Animation for scaling */
+    color: white; /* Adjust color */
+    /* bottom:-10%; */
+    left:20%
+    
+}
+
+
+
+@keyframes scale {
+    0% {
+        transform: translateX(-50%) scale(1);
+    }
+    100% {
+        transform: translateX(-50%) scale(1.5); /* Scale up */
+    }
+}

@@ -40,6 +40,11 @@ export const QueueReadCountPage = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`appointments`', 'TodaysDone');
 
+        let doctorDetails = await client.employees.findFirst({
+          where:{
+            EMP_EMAIL: session?.user?.email
+          }
+        })
         // for done
         const checkUser = (() => {
           if (args?.data!.userType === 'secretary')
@@ -47,7 +52,7 @@ export const QueueReadCountPage = extendType({
               doctorID: session?.user?.permissions?.doctorID,
             };
           return {
-            doctorID: session?.user?.id,
+            doctorID: doctorDetails?.EMP_ID
           };
         })();
 
@@ -59,7 +64,7 @@ export const QueueReadCountPage = extendType({
           const [queueAll, queueDone, queueCancelled]: any = await client.$transaction([
             client.appointments.findMany({
               where: {
-                doctorID: session?.user?.id,
+                doctorID: doctorDetails?.EMP_ID,
                 NOT: [{ time_slot: null }, { patientInfo: null }],
 
                 status: 1,

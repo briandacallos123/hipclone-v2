@@ -509,13 +509,21 @@ export const PostNotesTxt = extendType({
             }
           }
 
+          
+          let doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL: session?.user?.email
+            }
+          })
+
+
           const notesTransaction = await client.$transaction(async (trx) => {
             const recordNotes = await trx.records.create({
               data: {
                 CLINIC: Number(createData.CLINIC),
                 patientID: Number(createData.patientID),
                 R_TYPE: String(createData.R_TYPE),
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 isEMR: Number(0),
                 qrcode:VoucherCode
               },
@@ -528,7 +536,7 @@ export const PostNotesTxt = extendType({
                 dateCreated: String(createData.dateCreated),
                 title: String(createData.title),
                 text_data: String(createData.text_data),
-                doctorID: Number(session?.user?.id),
+                doctorID: doctorDetails?.EMP_ID,
                 report_id: Number(recordNotes.R_ID),
               },
             });
@@ -544,7 +552,7 @@ export const PostNotesTxt = extendType({
                 await client.notes_text_attachments.create({
                   data: {
                     patientID: Number(recordNotes.patientID),
-                    doctorID: Number(session?.user?.id),
+                    doctorID: doctorDetails?.EMP_ID,
                     clinic: Number(recordNotes.CLINIC),
                     notes_text_id:Number(newChild?.id),
                     file_name: String(v!.path),

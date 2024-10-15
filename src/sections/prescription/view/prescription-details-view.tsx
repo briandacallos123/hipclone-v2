@@ -24,6 +24,9 @@ import PrescriptionEditView from './prescription-edit-view';
 import { useLazyQuery } from '@apollo/client';
 import { ViewPrescription } from '@/libs/gqls/prescription';
 import QRCode from 'qrcode'
+import PdfTest from '../pdf-test';
+
+
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -102,6 +105,9 @@ export default function PrescriptionDetailsView({
       await generateQR(link)
     })()
   },[currentItem?.ID])
+
+
+
   
   return (
     <>
@@ -140,7 +146,7 @@ export default function PrescriptionDetailsView({
           )}
         </DialogTitle>
 
-        {qrImage && <PrescriptionDetails link={link} qr={qrImage} currentItem={currentItem} />}
+        {qrImage && <PrescriptionDetails  link={link} qr={qrImage} currentItem={currentItem} />}
 
         <DialogActions>
           <Button variant="outlined" onClick={onClose}>
@@ -181,7 +187,8 @@ export default function PrescriptionDetailsView({
 
           <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
             <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-              <PrescriptionPDF qrImage={qrImage} item={currentItem} />
+          
+              <PrescriptionPDF isMobile={true} qrImage={qrImage} item={currentItem} />
             </PDFViewer>
           </Box>
         </Box>

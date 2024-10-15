@@ -36,6 +36,8 @@ type Props = {
   conversations: IChatConversationsState;
   onClickConversation: (id: string) => void;
   handleMessageView: any
+  handleStartConvo:()=>void;
+  startConvo?:any;
 };
 
 export default function ChatNav({
@@ -44,7 +46,9 @@ export default function ChatNav({
   conversations,
   onClickConversation,
   currentConversationId,
-  handleMessageView
+  handleMessageView,
+  handleStartConvo,
+  startConvo
 }: Props) {
   const theme = useTheme();
 
@@ -89,9 +93,11 @@ export default function ChatNav({
       onCloseDrawer();
     }
     handleMessageView(false,[],[],null)
-    router.push(paths.dashboard.chat);
+    // router.push(paths.dashboard.chat);
+   
+    handleStartConvo()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mdUp]);
+  }, [mdUp, startConvo]);
 
   const handleSearchContact = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {

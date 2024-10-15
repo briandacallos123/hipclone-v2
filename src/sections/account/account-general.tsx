@@ -1,9 +1,14 @@
-/* eslint-disable @next/next/no-img-element */
+'use client';
+
 import * as Yup from 'yup';
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { useForm, Controller, CustomRenderInterface, FieldValues } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
+import isEqual from 'lodash/isEqual';
+import { m } from 'framer-motion';
+import { MotionContainer, varFade } from 'src/components/animate';
+
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import LoadingButton from '@mui/lab/LoadingButton';
 import Box from '@mui/material/Box';
@@ -37,23 +42,32 @@ import { Button, CardHeader, Dialog, DialogContent, DialogTitle } from '@mui/mat
 import { useBoolean } from 'src/hooks/use-boolean';
 import AccountGeneralSig from './account-general-dialog';
 import Iconify from '@/components/iconify';
+import Image from '@/components/image';
+import { useTheme } from '@mui/material/styles';
+import { useUnsavedChanges } from '@/context/changes-watcher';
+import { useRouter } from 'next/navigation';
+import { paths } from '@/routes/paths';
+
 // ----------------------------------------------------------------------
 
 interface FormValuesProps extends Omit<IUserProfile, 'avatarUrl'> {
   avatarUrl: CustomFile | string | null;
 }
 
-export default function AccountGeneral() {
+export default function AccountGeneral({handleChangeTabTuts}:any) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const upMd = useResponsive('up', 'md');
   const { user, reInitialize } = useAuthContext();
   const mySig = useRef();
-
   // const [user] = useState<IUserProfile>(_userProfile);
-
+  const router = useRouter();
   const useNotSec = user?.role !== 'secretary' && {
     address: Yup.string().required('Address is required'),
   };
+
+  // Inside your component
+  const { isDirty, setIsDirty }:any = useUnsavedChanges();
+
 
   const UpdateUserSchema = Yup.object().shape({
     fname: Yup.string().required('First Name is required'),
@@ -78,7 +92,7 @@ export default function AccountGeneral() {
       suffix: user?.suffix || '',
       gender: user?.sex,
       defaultESig: null,
-      birthDate: new Date(user?.birthDate)|| new Date(),
+      birthDate: new Date(user?.birthDate) || new Date(),
       nationality: user?.nationality || '',
       address: user?.address || '',
       avatarUrl: user?.photoURL || null,
@@ -116,6 +130,10 @@ export default function AccountGeneral() {
     getValues,
     formState: { isSubmitting },
   } = methods;
+ 
+  // Warn on page unload
+
+
 
   const [uploadData] = useMutation(GeneralTabMutation, {
     context: {
@@ -131,8 +149,13 @@ export default function AccountGeneral() {
   });
   const [snackKey, setSnackKey]: any = useState(null);
   const [snackKey2, setSnackKey2]: any = useState(null);
+
+  const currentStep = localStorage?.getItem('currentStep')
+  const esigCalled = localStorage?.getItem('esigCalled')
+
+
   const handleSubmitValue = useCallback(
-    async (model:any) => {
+    async (model: any) => {
       const data: any = {
         // email: model.email,
         fname: model.fname,
@@ -143,7 +166,7 @@ export default function AccountGeneral() {
         suffix: model.suffix,
         address: model.address,
         contact: model.contact,
-        birthDate:model.birthDate
+        birthDate: model.birthDate
       };
       uploadData({
         variables: {
@@ -156,6 +179,9 @@ export default function AccountGeneral() {
           closeSnackbar(snackKey);
           enqueueSnackbar('Updated successfully!');
           reInitialize();
+          if(currentStep && Number(currentStep) !== 100){
+            localStorage.setItem('currentStep', '4');
+          }
         })
         .catch((error) => {
           closeSnackbar(snackKey);
@@ -186,6 +212,7 @@ export default function AccountGeneral() {
           setSnackKey2(null);
           enqueueSnackbar('Updated successfully!');
           reInitialize();
+          setIsDirty(false);
         })
         .catch((error) => {
           closeSnackbar(snackKey2);
@@ -199,6 +226,12 @@ export default function AccountGeneral() {
   );
 
   const values = watch();
+
+
+  useEffect(()=>{
+  },[values, defaultValues])
+
+
 
   useEffect(() => {
     console.log(values.signaturePad, 'signaturePadsignaturePadsignaturePadsignaturePad   ');
@@ -319,8 +352,137 @@ export default function AccountGeneral() {
     }
   }, [user]);
 
+  const [step, setSteps] = useState(1);
+  const theme = useTheme();
+
+  console.log(currentStep, 'steeppp')
+  const PRIMARY_MAIN = theme.palette.primary.main;
+
+  const incrementStep = () => setSteps((prev) => prev + 1)
+
+
+  const firstStep = (
+    <m.div>
+      <Typography sx={{
+        mb: 1
+      }} variant={'h5'}>Welcome! 🎉</Typography>
+
+      <Typography
+
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        Before you start using the system, we need to set up your medical profile, including images and other important information.
+      </Typography>
+    </m.div>
+  )
+
+  const secondStep = (
+    <m.div>
+      <Typography
+        sx={{
+          fontSize: 15,
+          mb: 2,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        After updating all your needs, don’t forget to save the changes! 💾✍️
+      </Typography>
+    </m.div>
+  )
+
+  const renderSecondTutorial = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+    }}>
+
+
+      <>
+        <Box sx={{
+          background: PRIMARY_MAIN,
+          opacity: .4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9991
+        }}>
+
+        </Box>
+
+        <Box sx={{
+          zIndex: 99999,
+          position: 'absolute',
+          bottom: 0,
+        }}>
+          {/* message */}
+          <m.div variants={varFade().inUp}>
+            <Box sx={{
+              background: theme.palette.background.default,
+              height: 'auto',
+              width: 'auto',
+              maxWidth:250,
+              left: 10,
+              borderRadius: 2,
+              zIndex: 99999,
+              position: 'absolute',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              p:3
+            }}>
+              {step === 1 && firstStep}
+              {step === 2 && secondStep}
+
+              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
+                {/* <Button onClick={decrementStep} variant="contained" size={'small'}>Back</Button> */}
+              </Box>
+            </Box>
+          </m.div>
+
+          <Image
+            sx={{
+              width: 350,
+              height: 450,
+              position: 'relative',
+              bottom: -100,
+              right: -120,
+
+            }}
+            src={'/assets/tutorial-doctor/nurse-tutor.png'}
+
+          />
+        </Box>
+      </>
+
+    </Box>
+  )
+
   return (
     <Box>
+      {Number(currentStep) === 3 && step !== 3 && !esigCalled && renderSecondTutorial}
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
           <Grid xs={12} md={4} spacing={3}>
@@ -359,14 +521,16 @@ export default function AccountGeneral() {
                       right: 10,
                       top: 5,
                       fontSize: '11px',
-                      width: '25px',
+                      width: '30px',
                       height: '25px',
                     }}
                     startIcon={
                       <Iconify icon="tabler:edit" sx={{ width: '15px', height: '15px' }} />
                     }
                   >
-                    Edit
+                    {user?.esig?.filename ? 'Edit' : 'Create'}
+
+
                   </Button>
                   <Stack direction="column">
                     <span
@@ -379,50 +543,62 @@ export default function AccountGeneral() {
                     >
                       E-Signature Preview
                     </span>
-                    <Box sx={{ width: '135%', height: '58px' }}>
-                      {user?.esig?.filename && (
-                        <img
-                          alt=" "
-                          style={{ width: '25%', height: '115%' }}
-                          src={
-                            (() => {
-                              const url = user?.esig?.filename;
-                              const parts = url?.split('public');
-                              const publicPart = parts ? parts[1] : null;
+                    <Box sx={{ width: '100%', height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      {user?.esig?.filename ? (
+                        <Image
+                          src={user?.esig?.filename}
+                          sx={{
+                            width: 150,
+                            height: 150,
 
-                              console.log(publicPart, '@@@@@@@');
-
-                              return publicPart;
-                            })() || null
-                          }
+                          }}
+                          alt="best"
                         />
-                      )}
+
+                      ) :
+                        <Box>
+                          <Image
+                            src={'/assets/icons/empty/ic_content.svg'}
+                            sx={{
+                              width: 150,
+                              height: 150
+                            }}
+                          />
+                          <Typography variant="h6" color="gray">No signature created.</Typography>
+
+                        </Box>
+                      }
                     </Box>
 
-                    <Stack direction="column" alignSelf="flex-end">
-                      <Typography variant="subtitle2" sx={{ textAlign: 'left' }}>
+                    {user?.esig?.filename && <Stack sx={{
+                      width: '100%',
+                      textAlign: 'center'
+
+                    }} direction="column" alignSelf="flex-end">
+                      <Typography variant="subtitle2">
                         {user?.middleName
                           ? `${user?.firstName} ${user?.middleName} ${user?.lastName}, ${user?.title}`
                           : `${user?.firstName} ${user?.lastName},  ${user?.title}`}
                       </Typography>
 
                       {getValues('prcNumber') && (
-                        <Typography sx={{ fontSize: 11, textAlign: 'left' }}>
+                        <Typography sx={{ fontSize: 11 }}>
                           License No: {getValues('prcNumber')}
                         </Typography>
                       )}
 
                       {getValues('ptrNumber') && (
-                        <Typography sx={{ fontSize: 11, textAlign: 'left' }}>
+                        <Typography sx={{ fontSize: 11 }}>
                           PTR No: {getValues('ptrNumber')}
                         </Typography>
                       )}
                       {getValues('s2Number') && (
-                        <Typography sx={{ fontSize: 11, textAlign: 'left' }}>
+                        <Typography sx={{ fontSize: 11 }}>
                           S2 No: {getValues('s2Number')}
                         </Typography>
                       )}
-                    </Stack>
+                    </Stack>}
+
                   </Stack>
                 </Stack>
               </Card>
@@ -453,7 +629,7 @@ export default function AccountGeneral() {
                 <RHFSelect name="gender" label="Gender">
                   <MenuItem value="1">Male</MenuItem>
                   <MenuItem value="2">Female</MenuItem>
-                  
+
                 </RHFSelect>
 
                 <Controller
@@ -505,17 +681,17 @@ export default function AccountGeneral() {
         reset={() => setRefetch(true)}
         isOpen={openPay.value}
         onClose={() => openPay.onFalse()}
-        // setImageResult={(res: any) => {
-        //   setImgName(res?.MutationESign?.message);
-        // }}
-        // setImage={(res) => {
-        //   const currentImg = defaultValues?.signatureUrl.split('/')[2];
+      // setImageResult={(res: any) => {
+      //   setImgName(res?.MutationESign?.message);
+      // }}
+      // setImage={(res) => {
+      //   const currentImg = defaultValues?.signatureUrl.split('/')[2];
 
-        //   if (imgName !== currentImg) {
-        //     setValue('signatureUrl', res);
-        //   }
+      //   if (imgName !== currentImg) {
+      //     setValue('signatureUrl', res);
+      //   }
 
-        // }}
+      // }}
       />
     </Box>
   );

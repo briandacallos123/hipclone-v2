@@ -60,6 +60,8 @@ const TabStyle = styled(Box, {
 export default function UserProfileView() {
   const settings = useSettingsContext();
   const upMd = useResponsive('up', 'md');
+  
+  
 
   // const { user } = useAuthContext();
 

@@ -235,8 +235,8 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
         .catch((error) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          // console.log(error, 'ano error?');
-          enqueueSnackbar('Something went wrong', { variant: 'error' });
+          console.log(error, 'ano error?');
+          enqueueSnackbar(error?.message, { variant: 'error' });
         });
     },
     [bookAppt, currentItem?.EMP_ID, enqueueSnackbar, snackKey]

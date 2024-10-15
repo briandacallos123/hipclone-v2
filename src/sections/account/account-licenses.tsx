@@ -21,6 +21,11 @@ import { useAuthContext } from '@/auth/hooks';
 import { useMutation } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { LicensesUpdate } from '../../libs/gqls/licenses';
+import { m } from 'framer-motion';
+import { MotionContainer, varFade } from 'src/components/animate';
+import Image from '@/components/image';
+import { useTheme } from '@mui/material/styles';
+import { Button } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -36,6 +41,7 @@ export default function AccountLicenses() {
   const { user, reInitialize } = useAuthContext();
 
   const [updateLicenses] = useMutation(LicensesUpdate);
+  const currentStep = localStorage?.getItem('currentStep')
 
   const UpdateUserSchema = Yup.object().shape({
     prcNumber: Yup.string().required('PRC Number is required'),
@@ -70,6 +76,11 @@ export default function AccountLicenses() {
           closeSnackbar(snackKey);
           enqueueSnackbar('Updated successfully!');
           reInitialize();
+
+          if(currentStep && Number(currentStep) !== 100){
+            localStorage.setItem('currentStep', '5')
+          }
+
         })
         .catch((error) => {
           closeSnackbar(snackKey);
@@ -82,10 +93,10 @@ export default function AccountLicenses() {
 
   const defaultValues = {
     prcNumber: user?.PRC ?? '',
-    prcExpiry: new Date(user?.validity),
+    prcExpiry: new Date(user?.validity) || null,
     ptrNumber: user?.PTR ?? '',
     s2Number: user?.s2_number || '',
-    since: user?.practicing_since || '',
+    since: user?.practicing_since || null,
   };
 
   const methods = useForm<FieldValues>({
@@ -149,9 +160,138 @@ export default function AccountLicenses() {
     },
     [enqueueSnackbar]
   );
+  const theme = useTheme();
+
+  const PRIMARY_MAIN = theme.palette.primary.main;
+  const [step, setSteps] = useState(1);
+
+  const incrementStep = () => setSteps((prev) => prev + 1)
+
+  
+  const firstStep = (
+    <m.div>
+     
+      <Typography
+
+        sx={{
+          fontSize: 15,
+         
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+       Great! 🎉 Please ensure that all required license fields are filled out completely. ✅
+      </Typography>
+    </m.div>
+  )
+
+  const secondStep = (
+    <m.div>
+     
+      <Typography
+
+        sx={{
+          
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        It is important for maintaining compliance and ensuring proper documentation of your credentials. 📜✨ Don't forget to save your changes! 💾
+      </Typography>
+    </m.div>
+  )
+
+  const renderThirdTutorial = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+    }}>
+
+
+      <>
+        <Box sx={{
+          background: PRIMARY_MAIN,
+          opacity: .4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9991
+        }}>
+
+        </Box>
+
+        <Box sx={{
+          zIndex: 99999,
+          position: 'absolute',
+          bottom: 0,
+        }}>
+          {/* message */}
+          <m.div variants={varFade().inUp}>
+            <Box sx={{
+              background: theme.palette.background.default,
+              height: 'auto',
+              width: 'auto',
+              maxWidth:250,
+              left: 10,
+              borderRadius: 2,
+              zIndex: 99999,
+              position: 'absolute',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              p:3
+            }}>
+              {step === 1 && firstStep}
+              {step === 2 && secondStep}
+
+              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+                <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
+              </Box>
+            </Box>
+          </m.div>
+
+          <Image
+            sx={{
+              width: 350,
+              height: 450,
+              position: 'relative',
+              bottom: -100,
+              right: -120,
+
+            }}
+            src={'/assets/tutorial-doctor/nurse-tutor.png'}
+
+          />
+        </Box>
+      </>
+
+    </Box>
+  )
+
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+
+      {Number(currentStep) === 4 && step !== 3 && renderThirdTutorial}
+
       <Card sx={{ p: 3 }}>
         <Typography variant={upMd ? 'body2' : 'body2'} sx={{ mb: 3, color: 'text.disabled' }}>
           PRC Number, S2 License, or PTR Number will only appear in your prescriptions.

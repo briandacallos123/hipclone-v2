@@ -89,7 +89,12 @@ export const mutation_create_medical_history = extendType({
         };
         try {
 
-          const doctorID = Number(session?.user.id);
+          const doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+          const doctorID = Number(doctorDetails?.EMP_ID);
           const doctor = String(session?.user.doctorId);
 
           await Promise.all(medhistory?.map(async (i: any, index: number) => {

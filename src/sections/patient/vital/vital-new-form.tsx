@@ -78,7 +78,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
   })();
 
   const NewVitalSchema = Yup.object().shape({
-    hospitalId: Yup.number().nullable().required('Hospital ID is required'),
+    // hospitalId: Yup.number().nullable().required('Hospital ID is required'),
     weight: !condition
       ? Yup.number().default(0)
       : Yup.number().moreThan(0, 'Weight must be greater than 0').required('Weight is required'),
@@ -123,7 +123,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
+      // hospitalId: null,
       weight: 0,
       height: 0,
       bodyMass: 0,
@@ -213,7 +213,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['notesVitalInputType'] = {
-        clinicID: model.hospitalId,
+        // clinicID: model.hospitalId,
         recordID: Number(items?.R_ID),
         patientID: Number(items?.patientInfo?.S_ID),
 
@@ -324,7 +324,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
     <>
       <DialogContent>
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-          <RHFAutocomplete
+          {/* <RHFAutocomplete
             name="hospitalId"
             label="Hospital/Clinic"
             options={clinicData.map((hospital: any) => hospital.id)}
@@ -348,14 +348,14 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
               );
             }}
             sx={{ pt: 1 }}
-          />
+          /> */}
 
           <Box
             rowGap={3}
             columnGap={2}
             display="grid"
             gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
+              xs: 'repeat(1, 2fr)',
               sm: 'repeat(3, 1fr)',
             }}
             sx={{ mt: 3 }}

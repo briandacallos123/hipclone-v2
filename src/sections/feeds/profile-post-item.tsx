@@ -140,17 +140,19 @@ export default function ProfilePostItem({ data: unused }: Props) {
 
   const isDoctor = user?.role === 'doctor';
 
+  const fullNameTitle = data?.userData?.EMP_MNAME ? `${data?.userData?.EMP_FNAME} ${data?.userData?.EMP_MNAME} ${data?.userData?.EMP_LNAME}`:`${data?.userData?.EMP_FNAME} ${data?.userData?.EMP_LNAME}`;
+
+
   const renderHead = (
     <>
       <CardHeader
         disableTypography
         avatar={
-          <Avatar alt="person.name">{data?.userData?.EMP_FNAME.charAt(0).toUpperCase()}.</Avatar>
+          <Avatar src={data?.userData?.attachment?.filename} alt="person.name">{data?.userData?.EMP_FNAME.charAt(0).toUpperCase()}.</Avatar>
         }
         title={
           <Link color="inherit" variant="subtitle1">
-            {`${data?.userData?.EMP_FNAME} ${data?.userData?.EMP_MNAME.charAt(0).toUpperCase()}. ${data?.userData?.EMP_LNAME
-              } - ${data?.userData?.EMP_TITLE}`}
+            {`${fullNameTitle} - ${data?.userData?.EMP_TITLE}`}
           </Link>
         }
         subheader={
@@ -231,8 +233,10 @@ export default function ProfilePostItem({ data: unused }: Props) {
     const url = item?.imagePath;
     const parts = url?.split('public');
     const publicPart = parts ? parts[1] : null;
-    return { src: publicPart };
+    return { src: url };
   });
+
+  console.log(images,'imagesss')
 
   const [maxImgLength, setMaxImgLength] = useState(images?.length)
   const [currentImg, setCurrentImg] = useState(0)
@@ -287,8 +291,7 @@ export default function ProfilePostItem({ data: unused }: Props) {
                   }
                 }>
                   <Stack
-                    // justifyContent="flex-start"
-                    // alignItems="flex-start"
+                  
                     sx={{
                       // width: '100%',
                       height: 'auto',
@@ -298,7 +301,7 @@ export default function ProfilePostItem({ data: unused }: Props) {
                       width: 200,
                       height: 200,
                       borderRadius: 2
-                    }} srcSet={publicPart} src={publicPart} alt={publicPart} loading="lazy" />
+                    }} srcSet={url} src={url} alt={url} loading="lazy" />
                   </Stack>
 
                   {index === 1 && data?.attachmentData.length > 2 && (

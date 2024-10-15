@@ -51,7 +51,7 @@ import PatientPrescriptionTableRowSkeleton from '../prescription-table-row-skele
 import PatientPrescriptionTableToolbar from '../prescription-table-toolbar';
 import PatientPrescriptionTableFiltersResult from '../prescription-table-filters-result';
 import { PrescriptionDelete, Prescriptions } from '../../../../libs/gqls/prescription';
-import { DR_CLINICS } from '../../../../libs/gqls/drprofile';
+import { DoctorClinicsHistory, DR_CLINICS } from '../../../../libs/gqls/drprofile';
 import { useLazyQuery, useMutation, useQuery } from '@apollo/client';
 import { reset } from 'numeral';
 import { C } from '@fullcalendar/core/internal-common';
@@ -128,28 +128,48 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   const dateError = isDateError(filters.startDate, filters.endDate);
 
 
-  const { loading: clinicLoading, data: clinicData } = useQuery(DR_CLINICS);
-  console.log(clinicData,'sa main')
+  // const { loading: clinicLoading, data: clinicData } = useQuery(DR_CLINICS);
+  
+   
+  const {
+    data: drClinicData,
+    error: drClinicError,
+    loading: drClinicLoad,
+    refetch: drClinicFetch,
+  }: any = useQuery(DoctorClinicsHistory);
+
+
+  const [clinicData, setclinicData] = useState<any>([]);
+
+
+  useEffect(()=>{
+    if(drClinicData){
+      setclinicData(drClinicData?.DoctorClinicsHistory)
+    }
+  },[drClinicData])
+
+  console.log(clinicData,'awitttttttttttt')
+
+
+
   const containsLetters = (value: any) => /[a-zA-Z]/.test(value);
   const [smartFilters, setSmartFilters]: any = useState(null);
   const { getItem } = useSessionStorage();
 
   const [isLoading, setIsLoading] = useState(true);
 
-  const {
-    data: prescriptionData,
-    error,
-    loading,
-    refetch,
-  }: any = useQuery(Prescriptions, {
+  const [getAllPrescs, prescResult] = useLazyQuery(Prescriptions, {
     context: {
-      requestTrackerId: 'Prescription_data[Prescription_data]',
+        requestTrackerId: 'orders[QueryAllOrderUser]',
     },
-    fetchPolicy: 'cache-first',
     notifyOnNetworkStatusChange: true,
-    variables: {
-      data: {
-        skip: page * rowsPerPage,
+});
+  
+  useEffect(()=>{
+    getAllPrescs({
+      variables:{
+        data:{
+          skip: page * rowsPerPage,
         take: rowsPerPage,
         orderBy: orderBy,
         orderDir: order,
@@ -164,7 +184,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
 
 
           filters?.hospital?.map((i: any) => {
-            clinicData?.doctorClinics?.map((c: any) => {
+            clinicData?.map((c: any) => {
               if (i === c?.clinic_name) {
                 myArray.push(Number(c.id));
               }
@@ -177,21 +197,77 @@ export default function PatientPrescriptionListView({ slug }: Props) {
         })(),
 
         searchKeyword: Number(filters?.name) || null,
-      },
-    },
-  });
+        }
+      }
+    }).then((res)=>{
+      const {QueryAllPrescription} = res.data;
 
-  useEffect(() => {
-    if (prescriptionData?.QueryAllPrescription?.Prescription_data) {
-      const { data }: any = prescriptionData;
-      setTableData(prescriptionData?.QueryAllPrescription?.Prescription_data);
-      setSummary(prescriptionData?.QueryAllPrescription?.totalRecords);
+      setTableData(QueryAllPrescription?.Prescription_data);
+      setSummary(QueryAllPrescription?.totalRecords);
       setAllData((prev: any) => {
-        return { ...prev, prescription: prescriptionData?.QueryAllPrescription?.Prescription_data };
+        return { ...prev, prescription:QueryAllPrescription?.Prescription_data };
       });
       setIsLoading(false);
-    }
-  }, [prescriptionData, filters.reset]);
+    })
+  },[page, rowsPerPage,prescResult.data, orderBy, order, filters.startDate, filters.endDate,id])
+
+  const refetch = ()=>prescResult.refetch()
+ 
+  // const {
+  //   data: prescriptionData,
+  //   error,
+  //   loading,
+  //   refetch,
+  // }: any = useQuery(Prescriptions, {
+  //   context: {
+  //     requestTrackerId: 'Prescription_data[Prescription_data]',
+  //   },
+  //   notifyOnNetworkStatusChange: true,
+  //   variables: {
+  //     data: {
+  //       skip: page * rowsPerPage,
+  //       take: rowsPerPage,
+  //       orderBy: orderBy,
+  //       orderDir: order,
+  //       startDate: filters?.startDate,
+  //       endDate: filters?.endDate,
+  //       uuid: id,
+  //       isEmr: containsLetters(id) ? 2 : 1,
+  //       // clinicID: filters?.hospital.map((v: any) => Number(v)) || filters?.hospital,
+  //       clinicID: (() => {
+  //         const myArray: any = [];
+
+
+
+  //         filters?.hospital?.map((i: any) => {
+  //           clinicData?.map((c: any) => {
+  //             if (i === c?.clinic_name) {
+  //               myArray.push(Number(c.id));
+  //             }
+  //             return true;
+  //           });
+  //           return true;
+  //         });
+
+  //         return myArray;
+  //       })(),
+
+  //       searchKeyword: Number(filters?.name) || null,
+  //     },
+  //   },
+  // });
+
+  // useEffect(() => {
+  //   if (prescriptionData?.QueryAllPrescription?.Prescription_data) {
+  //     const { data }: any = prescriptionData;
+  //     setTableData(prescriptionData?.QueryAllPrescription?.Prescription_data);
+  //     setSummary(prescriptionData?.QueryAllPrescription?.totalRecords);
+  //     setAllData((prev: any) => {
+  //       return { ...prev, prescription: prescriptionData?.QueryAllPrescription?.Prescription_data };
+  //     });
+  //     setIsLoading(false);
+  //   }
+  // }, [prescriptionData, filters.reset]);
 
 
   const queryData = () => {
@@ -245,7 +321,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
     setOpenEdit(null);
     setEditId(null);
 
-    const tempClinicData = clinicData?.doctorClinics?.filter(
+    const tempClinicData = clinicData?.filter(
       (i) => Number(i?.id) === Number(data?.CLINIC?.id)
     );
 
@@ -290,7 +366,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   }, [tableData]);
 
   function updateDataTable() {
-    const tempClinicData = clinicData?.doctorClinics?.filter(
+    const tempClinicData = clinicData?.filter(
       (i) => Number(i?.id) === Number(tempData?.CLINIC)
     );
 
@@ -440,7 +516,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
                           // onClick={openCreate.onTrue}
                           onClick={openCreateFull.onTrue}
                           variant="contained"
-                          disabled={loading}
+                          disabled={prescResult.loading}
                           startIcon={<Iconify icon="mingcute:add-line" />}
                           sx={{ ml: 2, width: 180 }}
                         >
@@ -471,7 +547,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
             }
             //
             // hospitalOptions={HOSPITAL_OPTIONS.map((option) => option)}
-            hospitalOptions={clinicData?.doctorClinics && clinicData?.doctorClinics}
+            hospitalOptions={clinicData && clinicData}
           />
 
           {canReset && (
@@ -499,12 +575,12 @@ export default function PatientPrescriptionListView({ slug }: Props) {
                 )}
 
                 <TableBody>
-                  {loading &&
+                  {prescResult.loading &&
                     [...Array(rowsPerPage)].map((_, i) => (
                       <PatientPrescriptionTableRowSkeleton key={i} />
                     ))}
 
-                  {!loading &&
+                  {!prescResult.loading &&
                     tableData?.map((row: any, index: number) => (
                       <PatientPrescriptionTableRow
                         key={row?.id}

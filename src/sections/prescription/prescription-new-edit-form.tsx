@@ -150,7 +150,7 @@ export default function PrescriptionNewEditForm({
 
   useEffect(() => {
     if (values?.hospitalId) {
-      const id = clinic?.doctorClinics?.find((i) => i.clinic_name === values?.hospitalId);
+      const id = clinic?.find((i) => i.clinic_name === values?.hospitalId);
 
       setValue('CLINIC', id);
     }
@@ -305,15 +305,15 @@ export default function PrescriptionNewEditForm({
               label="Hospital/Clinic"
               options={
                 // clinic?.doctorClinics?.length &&
-                clinic?.doctorClinics?.map((hospital: any) => hospital?.id) || []
+                clinic?.map((hospital: any) => hospital?.id) || []
                 // clinic?.doctorClinics?.map((hospital) => hospital?.clinic_name) || []
               }
               getOptionLabel={(option) =>
-                clinic?.doctorClinics?.find((hospital) => hospital.id === option)?.clinic_name
+                clinic?.find((hospital) => hospital.id === option)?.clinic_name
               }
               isOptionEqualToValue={(option, value) => option === value}
               renderOption={(props, option) => {
-                const { id, clinic_name } = clinic?.doctorClinics?.filter(
+                const { id, clinic_name } = clinic?.filter(
                   (hospital) => hospital.id === option
                 )[0];
 

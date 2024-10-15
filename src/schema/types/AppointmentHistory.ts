@@ -363,6 +363,12 @@ export const GET_ALL_PATIENT_APPOINTMENTS = extendType({
           };
         })();
 
+        let doctorDetails = await client.employees.findFirst({
+          where:{
+            EMP_EMAIL:session?.user?.email
+          }
+        })
+
 
         const checkUser = (() => {
           if (session?.user?.role === 'secretary')
@@ -370,7 +376,7 @@ export const GET_ALL_PATIENT_APPOINTMENTS = extendType({
               doctorID: session?.user?.permissions?.doctorID,
             };
           return {
-            doctorID: session?.user?.id,
+            doctorID: doctorDetails?.EMP_ID
           };
         })();
 
@@ -581,8 +587,6 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
 
         const { session } = ctx;
 
-        console.log(args?.data?.clinicIds,'HOSPITALLLLLLLLLLLLLLL')
-
         await cancelServerQueryRequest(
           client,
           session?.user?.id,
@@ -597,9 +601,6 @@ export const GET_ALL_PATIENT_APPOINTMENTS_USER = extendType({
             status: Number(args?.data!.status),
           };
         })();
-
-        console.log(whereconditions,'HOSPITALLLLLLLLLLLLLLLfilters')
-
 
         let order: any;
         switch (args?.data!.orderBy) {

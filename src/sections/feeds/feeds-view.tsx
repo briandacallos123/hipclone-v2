@@ -32,6 +32,7 @@ import ProfilePostItem from './profile-post-item';
 import FeedsController from './_feedController';
 import FeedSkeleton from './patient-table-row-skeleton';
 import EmptyContent from '@/components/empty-content';
+import { useResponsive } from '@/hooks/use-responsive';
 
 export default function FeedsView() {
   const settings: any = useSettingsContext();
@@ -51,6 +52,9 @@ export default function FeedsView() {
     requestType: 'FirstFetch',
   });
   const notFound = !queryResults.loading && !feedData?.length;
+
+  const upMd = useResponsive('up', 'md');
+
   // renew request page
   useEffect(() => {
     queryResults
@@ -300,6 +304,13 @@ export default function FeedsView() {
 
   const renderPostInput = (
     <Card sx={{ p: 3 }}>
+      {!upMd && <Chip
+            variant="outlined"
+            avatar={<Iconify icon={iconData} />}
+            label={getValues('isPublic') === 1 ? 'Public' : 'Patient Only'}
+            onClick={popover.onOpen}
+            sx={{ width: getValues('isPublic') === 1 ? 100 : 140 }}
+          />}
       <RHFTextField
         name="text"
         multiline
@@ -317,13 +328,13 @@ export default function FeedsView() {
             <Iconify icon="solar:gallery-wide-bold" width={24} sx={{ color: 'success.main' }} />
             Image/Video
           </Fab>
-          <Chip
+         {upMd &&  <Chip
             variant="outlined"
             avatar={<Iconify icon={iconData} />}
             label={getValues('isPublic') === 1 ? 'Public' : 'Patient Only'}
             onClick={popover.onOpen}
             sx={{ width: getValues('isPublic') === 1 ? 100 : 140 }}
-          />
+          />}
         </Stack>
 
         <CustomPopover

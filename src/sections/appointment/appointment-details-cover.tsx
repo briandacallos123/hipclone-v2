@@ -99,7 +99,7 @@ export default function AppointmentDetailsCover({
         alignItems="center"
         sx={{
           p: { md: 3, xs: 1 },
-          background: 'url(/assets/background/banner-bg.png)',
+          background: 'url(/assets/background/bg-blueee.jpg)',
           backgroundSize: 'cover',
           height: 1,
           color: 'common.white',
@@ -221,7 +221,7 @@ export default function AppointmentDetailsCover({
               icon="ph:qr-code-duotone"
               sx={{ minWidth: 25, fontSize: 25, color: 'primary.main' }}
             />
-            {voucherId} (Voucher Code)
+            {voucherId} (Appointment Code)
           </Stack>
 
           <Stack spacing={1} direction="row" sx={{ typography: { md: 'body2', xs: 'caption' } }}>

@@ -49,6 +49,7 @@ import ChatHeaderDetail from '../chat-header-detail';
 import ChatHeaderCompose from '../chat-header-compose';
 import { Box, Dialog } from '@mui/material';
 import ModalSplash from '@/components/modal-splash/modal-splash';
+import FooterNav from '@/layouts/dashboard/footer-nav';
 // ----------------------------------------------------------------------
 const baseUrl = paths.dashboard.chat;
 function useInitial() {
@@ -160,24 +161,13 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
   const handleMessageView = (b: any, participants: any, messages: any, curId: any) => {
     setisMessageView(Boolean(b));
     setcurrentId(curId);
-    console.log("tinawag na una")
-    console.log(participants,"tinawag na una")
-
     setcurrentParticipants(participants);
     setcurrentMessage(messages);
   };
 
-  /* const dd = useSubscription(
-    REPLY_CONVERSATION_SUB,
-    { variables: { id: "22443f78-08c0-4972-b00a-7511ae945ffe" } }
-  );
-
-
-  console.log(dd) */
-
-  const handleSingleConversation = () => {
+ 
+  const handleSingleConversation = useCallback(() => {
     (async () => {
-      console.log("Nag run dito bossing")
       handleMessageView(false, [], [], null);
       setcurrentConve(null);
       // setIsLoading(true)
@@ -189,7 +179,6 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
       }).then(async (result) => {
         const { data } = result;
        if(!id){
-
         await refetch();
         await rChat();
        }
@@ -203,14 +192,13 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
             conversationParam || id
           );
           setcurrentConve(data?.conversation);
-          console.log(data?.conversation?.participants,'PARA SANTO?')
-          // setIsLoading(false)
+          
         } else {
           router.push(baseUrl);
         }
       });
     })();
-  };
+  },[conversationParam, id])
 
   const {
     contacts,
@@ -238,7 +226,7 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
   useEffect(() => {
     if (socket?.connected) {
       socket.on('sendmessage', (arg: any) => {
-        /*  console.log('sendmessagedata@@@@@@@@@@@@@@@@', arg) */
+        
         setTimeout(() => {
           if (
             dChat?.allConversations?.find((t: any) => String(t.id) === String(arg?.conversationId))
@@ -337,6 +325,8 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
       loading={false}
       currentConversationId={_data?.conversation?.id}
       handleMessageView={handleMessageView}
+      handleStartConvo={()=>SetStartConvo(true)}
+      startConvo={startConvo}
     />
   );
   // bug on desktop render
@@ -435,12 +425,14 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
           >
             {renderHead}
 
+
             <Stack
               direction="row"
               sx={{
                 width: 1,
                 height: 1,
                 overflow: 'hidden',
+                pb:10,
                 borderTop: (theme) => `solid 1px ${theme.palette.divider}`,
               }}
             >
@@ -459,6 +451,13 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
         </Stack>
 
         <NavVertical openNav={nav.value} onCloseNav={nav.onFalse} />
+        <Box sx={{
+          position:'absolute',
+          bottom:0,
+          zIndex:9999
+        }}>
+           <FooterNav />
+        </Box>
       </>
     );
   }
@@ -482,9 +481,7 @@ export default function ChatView({isNotif, id, closeChat}:ChatProps) {
     </Stack>
   );
 
-  console.log('!startConvo', !startConvo);
-  console.log('!conversationParam', !conversationParam);
-
+  
 
   if(isLoading){
     return(

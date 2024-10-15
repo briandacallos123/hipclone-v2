@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 // @mui
 import Button from '@mui/material/Button';
 import IconButton from '@mui/material/IconButton';
@@ -16,6 +16,8 @@ import Iconify from 'src/components/iconify';
 import { ImagingListView } from 'src/sections/imaging/view';
 import PatientImagingCreateView from './imaging-create-view';
 import LoadingButton from '@mui/lab/LoadingButton';
+import { DoctorClinicsHistory } from '@/libs/gqls/drprofile';
+import { useQuery } from '@apollo/client';
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +36,23 @@ export default function PatientImagingListView({ slug, data }: Props) {
   const { user } = useAuthContext();
 
   const [tableData] = useState(_imagingList.filter((_) => _.patientId === slug));
+  
+  const {
+    data: drClinicData,
+    error: drClinicError,
+    loading: drClinicLoad,
+    refetch: drClinicFetch,
+  }: any = useQuery(DoctorClinicsHistory);
+
+
+  const [clinicData, setclinicData] = useState<any>([]);
+
+
+  useEffect(()=>{
+    if(drClinicData){
+      setclinicData(drClinicData?.DoctorClinicsHistory)
+    }
+  },[drClinicData])
 
   return (
     <>
@@ -43,6 +62,7 @@ export default function PatientImagingListView({ slug, data }: Props) {
         setRefetch={setRefetch}
         editData={editData}
         setEditData={setEditData}
+        clinicData={clinicData}
         action={
           upMd ? (
             
@@ -96,6 +116,7 @@ export default function PatientImagingListView({ slug, data }: Props) {
         editData={editData}
         setLoading={setLoading} 
         isLoading={isLoading}
+        clinicData={clinicData}
         open={openCreate.value || editData}
         onClose={()=>{
           openCreate.onFalse()

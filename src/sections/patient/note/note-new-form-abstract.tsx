@@ -27,9 +27,10 @@ type Props = {
   refIds: any;
   refetch: any;
   editData:any;
+  clinicData?:any;
 };
 
-export default function NoteNewFormAbstract({editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormAbstract({clinicData, editData, onClose, refIds, refetch: onRefetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const {getItem} = useSessionStorage()
@@ -49,25 +50,6 @@ export default function NoteNewFormAbstract({editData, onClose, refIds, refetch:
     treatment: Yup.string().required('Treatment is required, N/A if None '),
   });
 
-  const {
-    data: drClinicData,
-    error: drClinicError,
-    loading: drClinicLoad,
-    refetch: drClinicFetch,
-  }: any = useQuery(DR_CLINICS);
-  const [clinicData, setclinicData] = useState<any>([]);
-
-  useEffect(() => {
-    drClinicFetch().then((result: any) => {
-      const { data } = result;
-      if (data) {
-        const { doctorClinics } = data;
-        setclinicData(doctorClinics);
-      }
-    });
-    return () => drClinicFetch();
-  }, []);
-
   const defaultValues = useMemo(
     () => ({
       hospitalId: editData?.clinic || null,
@@ -83,6 +65,7 @@ export default function NoteNewFormAbstract({editData, onClose, refIds, refetch:
       complication:editData?.complications || '',
       procedure:editData?.procedures || '',
       treatment:editData?.treatplan || '',
+      dateCreated:editData?.dateCreated || null
     }),
     []
   );
@@ -99,12 +82,12 @@ export default function NoteNewFormAbstract({editData, onClose, refIds, refetch:
     formState: { isSubmitting },
   } = methods;
 
-  useEffect(()=>{
-    const data = getItem('defaultFilters');
-   if(data?.clinic){
-     setValue('hospitalId',Number(data?.clinic?.id))
-   }
-   },[])
+  // useEffect(()=>{
+  //   const data = getItem('defaultFilters');
+  //  if(data?.clinic){
+  //    setValue('hospitalId',Number(data?.clinic?.id))
+  //  }
+  //  },[])
 
 
   const [createNoteAbs] = useMutation(POST_NOTES_ABS);
@@ -131,20 +114,56 @@ export default function NoteNewFormAbstract({editData, onClose, refIds, refetch:
         treatplan: String(model.treatment),
         recordId:Number(editData?.R_ID),
         abs_id:Number(editData?.id)
-        // complaint
-        // history
-        // review
-        // medicalHistory
-        // personalHistory
-        // examination
-        // result
-        // finding
-        // diagnosis
-        // complication
-        // procedure
-        // treatment
+     
       };
-      (editData ? updateNoteAbs:createNoteAbs)({
+      createNoteAbs({
+        variables: {
+          data,
+        }
+      }).then(async (res) => {
+          closeSnackbar(snackKey);
+          setSnackKey(null);
+          enqueueSnackbar(editData ? "Update Successfull":"Create success!");
+          // refetch();
+          reset();
+          onRefetch();
+        })
+        .catch((error) => {
+          closeSnackbar(snackKey);
+          setSnackKey(null);
+          console.log(error, 'ano error?');
+          enqueueSnackbar('Something went wrong', { variant: 'error' });
+        });
+    },
+    [createNoteAbs, enqueueSnackbar, refIds?.S_ID, reset, snackKey]
+  );
+
+  const handleSubmitUpdate= useCallback(
+    async (model: any) => {
+      console.log(editData,'edit dataaaaa')
+
+      const data: NexusGenInputs['NoteAbstInputType'] = {
+        clinic: Number(model.hospitalId),
+        patientID: Number(refIds?.S_ID),
+        dateCreated:model?.dateCreated,
+        R_TYPE: String(10),
+        complaint: String(model.complaint),
+        illness: String(model.history),
+        symptoms: String(model.review),
+        pastmed: String(model.medicalHistory),
+        persoc: String(model.personalHistory),
+        physical: String(model.examination),
+        labdiag: String(model.result),
+        findings: String(model.finding),
+        finaldiag: String(model.diagnosis),
+        complications: String(model.complication),
+        procedures: String(model.procedure),
+        treatplan: String(model.treatment),
+        recordId:Number(editData?.R_ID),
+        abs_id:Number(editData?.id),
+     
+      };
+       updateNoteAbs({
         variables: {
           data,
         },
@@ -164,14 +183,19 @@ export default function NoteNewFormAbstract({editData, onClose, refIds, refetch:
           enqueueSnackbar('Something went wrong', { variant: 'error' });
         });
     },
-    [createNoteAbs, enqueueSnackbar, refIds?.S_ID, reset, snackKey]
+    [createNoteAbs, enqueueSnackbar, refIds?.S_ID, reset, snackKey, editData]
   );
+
 
   const [myData, setMyData]: any = useState(null);
   useEffect(() => {
     if (snackKey) {
       (async () => {
-        await handleSubmitValue({ ...myData });
+        if(!editData){
+          await handleSubmitUpdate({...myData})
+        }else{
+          await handleSubmitValue({ ...myData });
+        }
         // setSnackKey(null);
       })();
     }

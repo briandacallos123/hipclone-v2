@@ -20,6 +20,7 @@ import { useMutation } from '@apollo/client';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFSelect, RHFMultiCheckbox, RHFCheckbox, RHFTextField } from 'src/components/hook-form';
 import { NexusGenInputs } from 'generated/nexus-typegen';
+import { Typography } from '@mui/material';
 // ----------------------------------------------------------------------
 
 const APPOINTMENT_TYPE = [
@@ -68,8 +69,9 @@ export default function ClinicScheduleNewEditForm({
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const UpdateUserSchema = Yup.object().shape({
+    days: Yup.array().required('Days is required').min(1, 'At least one Type must be selected'),
     type: Yup.array().required('Type is required').min(1, 'At least one Type must be selected'),
-    days: Yup.array().required('Days are required'),
+ 
     start_time: Yup.date().required('Start Time is required'),
     end_time: Yup.date().required('End Time is required'),
     time_interval: Yup.string().required('Time Interval is required'),
@@ -269,6 +271,16 @@ export default function ClinicScheduleNewEditForm({
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
           <Stack spacing={3} sx={{ pt: 1 }}>
             <div>
+              <Box sx={{
+                mb:1
+              }}>
+                <Typography variant="body2" color="gray">Clinic Name</Typography>
+                <Typography variant="body1" sx={{
+                  textTransform:'capitalize'
+                }}>{currentItem?.clinic_name}</Typography>
+
+              </Box>
+              
               <RHFMultiCheckbox
                 row
                 name="type"

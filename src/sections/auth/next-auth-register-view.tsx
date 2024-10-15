@@ -21,7 +21,7 @@ import { useBoolean } from 'src/hooks/use-boolean';
 // routes
 import { paths } from 'src/routes/paths';
 import { RouterLink } from 'src/routes/components';
-import { usePathname, useSearchParams } from 'src/routes/hook';
+import { useParams, usePathname, useSearchParams } from 'src/routes/hook';
 // config
 import { PATH_AFTER_LOGIN } from 'src/config-global';
 // auth
@@ -36,6 +36,8 @@ import bcrypt from 'bcryptjs';
 /* import Password from 'node-php-password'; */
 import { Box, Button, DialogActions, DialogContentText, Divider } from '@mui/material';
 import { signIn } from 'next-auth/react';
+import { useSnackbar } from 'src/components/snackbar';
+
 import axios from 'axios';
 import MapContainer from '../map/GoogleMap';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
@@ -114,7 +116,7 @@ function validatePassword(password) {
 }
 
 export default function NextAuthRegisterView({ open, onClose }: Props) {
-  const { login } = useAuthContext();
+  const { login, user } = useAuthContext();
 
   const pathname = usePathname();
 
@@ -123,6 +125,8 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
   const [errorMsg, setErrorMsg] = useState('');
 
   const searchParams: any = useSearchParams();
+
+  const {id} = useParams()
 
   const returnTo = searchParams.get('returnTo');
 
@@ -139,6 +143,9 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
   const [map, showMap] = useState(false)
 
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const [snackKey, setSnackKey]:any = useState(null);
 
 
 
@@ -150,6 +157,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     phoneNumber: Yup.string().required('Phone number is required')
       .matches(/^[0-9]{11}$/, 'Phone number must be exactly 10 digits')
       .matches(/^\+?[0-9]\d{1,14}$/, 'Phone number must be valid'),
+    birthDate: Yup.date().required('Date of Birth is required'),
     password: Yup.string()
       .required('Password is required')
       .min(8, 'Password must be at least 8 characters')
@@ -165,9 +173,9 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
   const [registerUser] = useMutation(USER_REGISTER);
 
   const handleSubmitValue = useCallback(
-    async (model: NexusGenInputs['UserProfileUpsertType']) => {
+    async (model: any) => {
       const s = bcrypt.genSaltSync(12);
-      const data: NexusGenInputs['UserProfileUpsertType'] = {
+      const data: any = {
         firstName: model.firstName,
         lastName: model.lastName,
         // username: model.username,
@@ -176,7 +184,8 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         address: model.address,
         phoneNumber: model.phoneNumber,
         latitude: model?.latitude,
-        longitude: model?.longitude
+        longitude: model?.longitude,
+        birthDate:model?.birthDate
       };
       registerUser({
         variables: {
@@ -185,14 +194,29 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
       })
         .then(async (res) => {
           const { registerUser: regData } = res.data;
+          closeSnackbar(snackKey);
+
+        enqueueSnackbar('Register Successfully!')
+
           await login(regData.email, model.password);
-          window.location.href = returnTo || PATH_AFTER_LOGIN;
+
+          window.location.href =
+          returnTo ||
+          (id && pathname === `/find-doctor/${id}/`
+            ? (() => {
+                if (user?.role !== 'doctor') {
+                  return paths.dashboard.appointment.book(id);
+                }
+              })()
+            : PATH_AFTER_LOGIN);
+
+          // window.location.href = returnTo || PATH_AFTER_LOGIN;
         })
         .catch((error) => {
           setErrorMsg(typeof error === 'string' ? error : error.message);
         });
     },
-    [login, registerUser, returnTo]
+    [login, registerUser, returnTo, snackKey]
   );
 
 
@@ -206,6 +230,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     address: '',
     phoneNumber: "",
     confirmPassword: "",
+    birthDate:null
   };
 
   const methods = useForm<NexusGenInputs['UserProfileUpsertType']>({
@@ -249,12 +274,19 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         newData.latitude = mapData?.lat
         newData.longitude = mapData?.lng
 
+        const snackbarKey = enqueueSnackbar('Saving Data...', {
+          variant: 'info',
+          key: 'savingGeneral',
+          persist: true, // Do not auto-hide
+        });
+        setSnackKey(snackbarKey);
+       
         await handleSubmitValue(newData);
       } catch (error) {
         setErrorMsg(typeof error === 'string' ? error : error.message);
       }
     },
-    [handleSubmitValue, mapData]
+    [handleSubmitValue, mapData, snackKey]
   );
 
   const [valResult, setValResult] = useState([])
@@ -410,9 +442,29 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
           <RHFTextField name="email" label="Email address" />
           <RHFTextField name="phoneNumber" label="Phone number" />
         </Stack>
-        <Stack direction="column" spacing={2}>
+        <Stack direction={{xs:'column',sm:'row'}} spacing={2}>
           <RHFTextField fullWidth name="address" label="Address" />
 
+          <Controller
+                  name="birthDate"
+                  control={control}
+                  render={({ field, fieldState: { error } }: CustomRenderInterface) => (
+                    <DatePicker
+                      label="Date of Birth"
+                      value={field.value}
+                      onChange={(newValue) => {
+                        field.onChange(newValue);
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!error,
+                          helperText: error?.message,
+                        },
+                      }}
+                    />
+                  )}
+                />
         </Stack>
         <Stack>
           {map && <MapContainer lat={mapData?.lat} lng={mapData?.lng} />}

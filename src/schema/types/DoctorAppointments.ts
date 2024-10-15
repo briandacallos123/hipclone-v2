@@ -49,22 +49,22 @@ const DoctorInfoObjectFields = objectType({
     t.nullable.string('MEDCERT_FEE'); //  = 1
     t.nullable.string('MEDCLEAR_FEE'); //  = 2
     t.nullable.string('MEDABSTRACT_FEE'); //  = 3
-    t.nullable.field('EMP_ATTACHMENT',{
-      type:EMP_ATTACHMENT,
-      async resolve(t){
+    t.nullable.field('EMP_ATTACHMENT', {
+      type: EMP_ATTACHMENT,
+      async resolve(t) {
 
         const user = await client.user.findFirst({
-          where:{
-            email:t?.EMP_EMAIL
+          where: {
+            email: t?.EMP_EMAIL
           }
         });
 
         const attachment = await client.display_picture.findFirst({
-          where:{
-            userID:Number(user?.id)
+          where: {
+            userID: Number(user?.id)
           },
-          orderBy:{
-            uploaded:'desc'
+          orderBy: {
+            uploaded: 'desc'
           }
         });
 
@@ -76,9 +76,9 @@ const DoctorInfoObjectFields = objectType({
 });
 
 const EMP_ATTACHMENT = objectType({
-  name:"EMP_ATTACHMENT",
+  name: "EMP_ATTACHMENT",
   definition(t) {
-      t.string('filename');
+    t.string('filename');
   },
 })
 
@@ -234,7 +234,7 @@ const appt_patient_hmo_details = objectType({
           },
         });
 
-        console.log(result,'RESLT DINNNNNNNNNNNNN')
+        console.log(result, 'RESLT DINNNNNNNNNNNNN')
 
         return result;
       },
@@ -359,17 +359,17 @@ export const DoctorAppointments = objectType({
         type: appt_patient_hmo_details,
         async resolve(root, _arg, _ctx) {
 
-          
+
 
           const result: any = await client.patient_hmo.findFirst({
             where: {
               patientID: Number(root?.patientID),
               member_id: String(root?.member_id),
               isDeleted: 0,
-              appt_id:Number(root?.id)
+              appt_id: Number(root?.id)
             },
-            orderBy:{
-              id:'desc'
+            orderBy: {
+              id: 'desc'
             }
           });
 
@@ -851,7 +851,7 @@ export const QueryAllAppointments = extendType({
           '`appointments`',
           'allAppointments'
         );
-        const checkUser = (() => {
+        const checkUser = await (async () => {
           if (args?.data!.userType === 'patient')
             return {
               patientID: session?.user?.s_id,
@@ -860,10 +860,20 @@ export const QueryAllAppointments = extendType({
             return {
               doctorID: session?.user?.permissions?.doctorID,
             };
+
+            const doctorID = await client.employees.findFirst({
+              where:{
+                EMP_EMAIL:session?.user?.email
+              }
+            })
+
+         
+
           return {
-            doctorID: session?.user?.id,
+            doctorID: doctorID?.EMP_ID,
           };
         })();
+
         console.log(checkUser, 'CHECKUSERRRRRRRRRR!!!!!!!!!!!');
 
         try {
@@ -1122,12 +1132,12 @@ export const QueryAllAppointments = extendType({
               include: {
                 clinicInfo: true
               },
-              orderBy:{
-                clinicInfo:{
-                  clinic_name:'asc'
+              orderBy: {
+                clinicInfo: {
+                  clinic_name: 'asc'
                 }
               }
-              
+
             })
             //// DONE
           ]);
@@ -1174,6 +1184,7 @@ export const QueryAllAppointments = extendType({
             cancelled: count_cancelled,
             done: count_done,
           };
+          console.log(totalSum, 'totalSum!!!!!!!!!!!');
 
           const response: any = {
             appointments_data: _result,
@@ -1375,13 +1386,19 @@ export const QueryTodaysAPRRenew = extendType({
           'todaysAPRNew'
         );
 
+        const doctorD = await client.employees.findFirst({
+          where:{
+            EMP_EMAIL:session?.user?.email
+          }
+        })
+
         const checkUser = (() => {
           if (args?.data!.userType === 'secretary')
             return {
               doctorID: session?.user?.permissions?.doctorID,
             };
           return {
-            doctorID: session?.user?.id,
+            doctorID: doctorD?.EMP_ID
           };
         })();
 
@@ -1689,13 +1706,19 @@ export const QueueAll = extendType({
         const whereConditions = filtersQueues(args);
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`appointments`', 'TodaysDone');
+        let doctorDetails = await client.employees.findFirst({
+          where:{
+            EMP_EMAIL: session?.user?.email
+          }
+        })
+        
         const checkUser = (() => {
           if (args?.data!.userType === 'secretary')
             return {
               doctorID: session?.user?.permissions?.doctorID,
             };
           return {
-            doctorID: session?.user?.id,
+            doctorID: doctorDetails?.EMP_ID
           };
         })();
 
@@ -2299,6 +2322,16 @@ export const query_all_appointment_calendar = extendType({
           'calendar_doctor_appointment_request_input'
         );
 
+        let doctorDetails;
+
+        if(session?.user?.role === 'doctor'){
+          doctorDetails = await client.employees.findFirst({
+            where:{
+              EMP_EMAIL:session?.user?.email
+            }
+          })
+        }
+
         try {
           const [calendar_doctor_appointments, _count]: any = await client.$transaction([
             client.appointments.findMany({
@@ -2309,8 +2342,8 @@ export const query_all_appointment_calendar = extendType({
                   lte: yearEndDate, // Less than or equal to the end of the year
                 },
                 OR: [
-                  { doctorID: session?.user?.permissions?.doctorID },
-                  { doctorID: session?.user?.id },
+                  { doctorID: doctorDetails?.EMP_ID },
+                  { doctorID: doctorDetails?.EMP_ID },
                   { patientID: session?.user?.s_id },
                 ],
                 NOT: [{ time_slot: null }, { patientInfo: null }],
@@ -2348,8 +2381,8 @@ export const query_all_appointment_calendar = extendType({
                   lte: yearEndDate, // Less than or equal to the end of the year
                 },
                 OR: [
-                  { doctorID: session?.user?.permissions?.doctorID },
-                  { doctorID: session?.user?.id },
+                  { doctorID: doctorDetails?.EMP_ID },
+                  { doctorID: doctorDetails?.EMP_ID },
                   { patientID: session?.user?.s_id },
                 ],
                 NOT: [{ time_slot: null }, { patientInfo: null }],
@@ -2482,13 +2515,13 @@ export const BookAppointment = extendType({
         await cancelServerQueryRequest(client, session?.user?.id, '`employees`', 'BookAppointment');
         try {
 
-          
+
           const e_time = await client.clinic_schedule.findFirst({
-            where:{
-              clinic:Number(createData?.clinic)
+            where: {
+              clinic: Number(createData?.clinic)
             },
-            orderBy:{
-              id:'desc'
+            orderBy: {
+              id: 'desc'
             }
           })
 
@@ -2500,129 +2533,292 @@ export const BookAppointment = extendType({
           const timeInput = new Date(createData.time_slot);
           // timeInput.setMinutes(timeInput.getMinutes() - timeInput.getTimezoneOffset()); // Convert to UTC
           timeInput.setMinutes(timeInput.getMinutes() - timeInput.getTimezoneOffset()); // Convert to UTC
-         
-          
-          const newTime = addTimeInterval(timeInput, e_time?.time_interval);
 
-          let isExists = true;
-          let VoucherCode: any;
 
-          while (isExists) {
-            VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+          if(e_time?.isLimited === 1){
+            if(e_time?.number_patient === 0){
+              throw new GraphQLError('Sorry, no more available slot.')
+            }else{
+              const newTime = addTimeInterval(timeInput, e_time?.time_interval);
 
-            const result = await client.prescriptions.findFirst({
-              where: {
-                presCode: VoucherCode
+              let isExists = true;
+              let VoucherCode: any;
+    
+              while (isExists) {
+                VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+    
+                const result = await client.prescriptions.findFirst({
+                  where: {
+                    presCode: VoucherCode
+                  }
+                })
+    
+                if (!result) {
+                  isExists = false;
+                }
               }
-            })
-
-            if (!result) {
-              isExists = false;
-            }
-          }
-
-          
-
-
-
-       
-          const timeInputEnd = new Date(createData.end_time);
-          timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
-     
-          console.log(newTime,'TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE', e_time?.time_interval)
-
-          const BookTransaction = await client.$transaction(async (trx) => {
-            const BookPost = await trx.appointments.create({
-              data: {
-                doctorID: Number(createData.doctorID),
-                clinic: Number(createData.clinic),
-                patientID: Number(session?.user?.s_id),
-                date: dateInput,
-                time_slot: timeInput,
-                type: Number(createData.type),
-                status: Number(0),
-                symptoms: symptomsData,
-                comment: String(createData.comment), // other complaints
-                Others: String(createData.others),
-                AddRequest: AddRequestData,
-                loa_num: '',
-                hmo: hmoData,
-                member_id: String(createData.member_id),
-                voucherId: VoucherCode,
-                e_time: newTime,
-              },
-            });
-
-            return {
-              ...BookPost,
-            };
-          });
-
-          const notifContent = await client.notification_content.create({
-            data: {
-              content: "book an appointment"
-            }
-          })
-
-          await client.records.create({
-            data: {
-              patientID: Number(session?.user?.s_id),
-              doctorID: Number(createData.doctorID),
-              CLINIC: Number(createData.clinic),
-              isEMR:0,
-              APPID: String(BookTransaction?.id)
-            }
-          })
-
-          await client.notification.create({
-            data: {
-              user_id: Number(session?.user?.id),
-              notifiable_id: Number(createData.doctorID),
-              notification_type_id: 1,
-              notification_content_id: Number(notifContent?.id),
-              appt_id: Number(BookTransaction?.id),
-              user_id_user_role: 5,
-              notifiable_user_role: 2
-            }
-          })
-
-
-          let PatientHMO;
-
-          if (createData?.hmo) {
-            PatientHMO = await client.patient_hmo.create({
-              data: {
-                patientID: Number(session?.user?.s_id),
-                idno: String(session?.user?.patientIDNO),
-                hmo: Number(createData.hmo),
-                member_id: String(createData.member_id),
-                appt_id: Number(BookTransaction?.id)
-              },
-            });
-          }
-
-          const sFile = await args?.file;
-          if (sFile) {
-            // console.log(sFile, 'FILE@@@');
-            const res: any = useUpload(sFile, 'public/documents/');
-            res?.map(async (v: any) => {
-              await client.appt_hmo_attachment.create({
+    
+    
+    
+    
+    
+    
+              const timeInputEnd = new Date(createData.end_time);
+              timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
+    
+              console.log(newTime, 'TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE', e_time?.time_interval)
+    
+              const BookTransaction = await client.$transaction(async (trx) => {
+                const BookPost = await trx.appointments.create({
+                  data: {
+                    doctorID: Number(createData.doctorID),
+                    clinic: Number(createData.clinic),
+                    patientID: Number(session?.user?.s_id),
+                    date: dateInput,
+                    time_slot: timeInput,
+                    type: Number(createData.type),
+                    status: Number(0),
+                    symptoms: symptomsData,
+                    comment: String(createData.comment), // other complaints
+                    Others: String(createData.others),
+                    AddRequest: AddRequestData,
+                    loa_num: '',
+                    hmo: hmoData,
+                    member_id: String(createData.member_id),
+                    voucherId: VoucherCode,
+                    e_time: newTime,
+                  },
+                });
+    
+                return {
+                  ...BookPost,
+                };
+              });
+    
+              const notifContent = await client.notification_content.create({
                 data: {
-                  filename: String(v!.fileName),
-                  file_url: String(v!.path),
-                  patientID: Number(session?.user?.id),
+                  content: "book an appointment"
+                }
+              })
+    
+              await client.records.create({
+                data: {
+                  patientID: Number(session?.user?.s_id),
+                  doctorID: Number(createData.doctorID),
+                  CLINIC: Number(createData.clinic),
+                  isEMR: 0,
+                  APPID: String(BookTransaction?.id)
+                }
+              })
+    
+              const empDetails = await client.employees.findFirst({
+                where:{
+                  EMP_ID:Number(createData.doctorID)
+                }
+              })
+    
+    
+              const empUser = await client.user.findFirst({
+                where:{
+                  email:empDetails?.EMP_EMAIL
+                }
+              })
+    
+              await client.notification.create({
+                data: {
+                  user_id: Number(session?.user?.id),
+                  notifiable_id: Number(empUser?.id),
+                  notification_type_id: 1,
+                  notification_content_id: Number(notifContent?.id),
+                  appt_id: Number(BookTransaction?.id),
+                  user_id_user_role: 5,
+                  notifiable_user_role: 2
+                }
+              })
+    
+    
+              let PatientHMO;
+    
+              if (createData?.hmo) {
+                PatientHMO = await client.patient_hmo.create({
+                  data: {
+                    patientID: Number(session?.user?.s_id),
+                    idno: String(session?.user?.patientIDNO),
+                    hmo: Number(createData.hmo),
+                    member_id: String(createData.member_id),
+                    appt_id: Number(BookTransaction?.id)
+                  },
+                });
+              }
+    
+              const sFile = await args?.file;
+              if (sFile) {
+                // console.log(sFile, 'FILE@@@');
+                const res: any = useUpload(sFile, 'public/documents/');
+                res?.map(async (v: any) => {
+                  await client.appt_hmo_attachment.create({
+                    data: {
+                      filename: String(v!.fileName),
+                      file_url: String(v!.path),
+                      patientID: Number(session?.user?.id),
+                      doctorID: Number(createData.doctorID),
+                      clinic: Number(createData.clinic),
+                      appt_hmo_id: Number(BookTransaction?.id),
+                    },
+                  });
+                });
+              }
+    
+              // end
+              await client.clinic_schedule.update({
+                data:{
+                  number_patient:e_time?.number_patient - 1
+                },
+                where: {
+                  id:e_time?.id
+                }
+              })
+    
+              const res: any = { ...BookTransaction, ...PatientHMO };
+              return res;
+            }
+          }else{
+            const newTime = addTimeInterval(timeInput, e_time?.time_interval);
+
+            let isExists = true;
+            let VoucherCode: any;
+  
+            while (isExists) {
+              VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
+  
+              const result = await client.prescriptions.findFirst({
+                where: {
+                  presCode: VoucherCode
+                }
+              })
+  
+              if (!result) {
+                isExists = false;
+              }
+            }
+  
+  
+  
+  
+  
+  
+            const timeInputEnd = new Date(createData.end_time);
+            timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
+  
+            console.log(newTime, 'TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE', e_time?.time_interval)
+  
+            const BookTransaction = await client.$transaction(async (trx) => {
+              const BookPost = await trx.appointments.create({
+                data: {
                   doctorID: Number(createData.doctorID),
                   clinic: Number(createData.clinic),
-                  appt_hmo_id: Number(BookTransaction?.id),
+                  patientID: Number(session?.user?.s_id),
+                  date: dateInput,
+                  time_slot: timeInput,
+                  type: Number(createData.type),
+                  status: Number(0),
+                  symptoms: symptomsData,
+                  comment: String(createData.comment), // other complaints
+                  Others: String(createData.others),
+                  AddRequest: AddRequestData,
+                  loa_num: '',
+                  hmo: hmoData,
+                  member_id: String(createData.member_id),
+                  voucherId: VoucherCode,
+                  e_time: newTime,
                 },
               });
+  
+              return {
+                ...BookPost,
+              };
             });
+  
+            const notifContent = await client.notification_content.create({
+              data: {
+                content: "book an appointment"
+              }
+            })
+  
+            await client.records.create({
+              data: {
+                patientID: Number(session?.user?.s_id),
+                doctorID: Number(createData.doctorID),
+                CLINIC: Number(createData.clinic),
+                isEMR: 0,
+                APPID: String(BookTransaction?.id)
+              }
+            })
+  
+            const empDetails = await client.employees.findFirst({
+              where:{
+                EMP_ID:Number(createData.doctorID)
+              }
+            })
+  
+  
+            const empUser = await client.user.findFirst({
+              where:{
+                email:empDetails?.EMP_EMAIL
+              }
+            })
+  
+            await client.notification.create({
+              data: {
+                user_id: Number(session?.user?.id),
+                notifiable_id: Number(empUser?.id),
+                notification_type_id: 1,
+                notification_content_id: Number(notifContent?.id),
+                appt_id: Number(BookTransaction?.id),
+                user_id_user_role: 5,
+                notifiable_user_role: 2
+              }
+            })
+  
+  
+            let PatientHMO;
+  
+            if (createData?.hmo) {
+              PatientHMO = await client.patient_hmo.create({
+                data: {
+                  patientID: Number(session?.user?.s_id),
+                  idno: String(session?.user?.patientIDNO),
+                  hmo: Number(createData.hmo),
+                  member_id: String(createData.member_id),
+                  appt_id: Number(BookTransaction?.id)
+                },
+              });
+            }
+  
+            const sFile = await args?.file;
+            if (sFile) {
+              // console.log(sFile, 'FILE@@@');
+              const res: any = useUpload(sFile, 'public/documents/');
+              res?.map(async (v: any) => {
+                await client.appt_hmo_attachment.create({
+                  data: {
+                    filename: String(v!.fileName),
+                    file_url: String(v!.path),
+                    patientID: Number(session?.user?.id),
+                    doctorID: Number(createData.doctorID),
+                    clinic: Number(createData.clinic),
+                    appt_hmo_id: Number(BookTransaction?.id),
+                  },
+                });
+              });
+            }
+  
+  
+  
+            const res: any = { ...BookTransaction, ...PatientHMO };
+            return res;
           }
-
-
-
-          const res: any = { ...BookTransaction, ...PatientHMO };
-          return res;
+       
         } catch (error) {
           console.log(error);
 
@@ -2845,7 +3041,7 @@ export const QueryTakenTimeSlot = extendType({
 
 
 const QueryPatientIncomingApptType = objectType({
-  name:'QueryPatientIncomingApptType',
+  name: 'QueryPatientIncomingApptType',
   definition(t) {
     t.nullable.list.field('appointments_data', {
       type: DoctorAppointments,
@@ -2855,10 +3051,10 @@ const QueryPatientIncomingApptType = objectType({
 })
 
 const QueryPatientIncomingApptTypeInp = inputObjectType({
-  name:"QueryPatientIncomingApptTypeInp",
+  name: "QueryPatientIncomingApptTypeInp",
   definition(t) {
-      t.nullable.int('take');
-      t.nullable.int('skip');
+    t.nullable.int('take');
+    t.nullable.int('skip');
   },
 })
 
@@ -2867,10 +3063,10 @@ export const QueryPatientIncomingAppt = extendType({
   definition(t) {
     t.field('QueryPatientIncomingAppt', {
       type: QueryPatientIncomingApptType,
-      args:{data:QueryPatientIncomingApptTypeInp},
+      args: { data: QueryPatientIncomingApptTypeInp },
       async resolve(_parent, args, ctx) {
-     
-        const {take, skip} = args?.data;
+
+        const { take, skip } = args?.data;
 
         const currentDateBackward = new Date();
         currentDateBackward.setHours(23, 59, 59, 59);
@@ -2878,7 +3074,7 @@ export const QueryPatientIncomingAppt = extendType({
         const currentDate = new Date();
         const formattedDate = currentDate.toISOString().slice(0, 10);
         const formattedDateAsDate = new Date(formattedDate);
-        
+
         const { session } = ctx;
         await cancelServerQueryRequest(
           client,
@@ -2887,14 +3083,14 @@ export const QueryPatientIncomingAppt = extendType({
           'PatientUpcomingAppt'
         );
         try {
-        
+
 
           const result: any = await client.appointments.findMany({
             take,
             skip,
             where: {
               patientID: session?.user?.s_id,
-              status:1,
+              status: 1,
               NOT: [{ time_slot: null }, { patientInfo: null }],
               clinicInfo: {
                 isDeleted: 0,
@@ -2930,14 +3126,14 @@ export const QueryPatientIncomingAppt = extendType({
               appt_payment_attachment: true,
               hmo_claims: true,
             },
-            orderBy:{
-              add_date:'desc'
+            orderBy: {
+              add_date: 'desc'
             }
 
           });
           return {
-            appointments_data:result,
-            total_records:result?.length
+            appointments_data: result,
+            total_records: result?.length
           };
           // console.log('Appointments:', result);
         } catch (error) {
