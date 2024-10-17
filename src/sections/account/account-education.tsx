@@ -28,6 +28,10 @@ import Image from '@/components/image';
 import { Button, Typography } from '@mui/material';
 import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
+import './generalStyle.css'
+import { useBoolean } from '@/hooks/use-boolean';
+import { ConfirmDialog } from '@/components/custom-dialog';
+
 // ----------------------------------------------------------------------
 
 type FormValuesProps = IUserProfileEducation;
@@ -36,7 +40,7 @@ export default function AccountEducation() {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const { user, reInitialize } = useAuthContext();
   const upMd = useResponsive('up', 'md');
- const router = useRouter();
+  const router = useRouter();
   // const [user] = useState<IUserProfileEducation>(_userProfileEducation);
   const [updateEducation] = useMutation(EducationMutation);
   const { data: queryData, error, loading, refetch }: any = useQuery(GetEducations);
@@ -72,7 +76,7 @@ export default function AccountEducation() {
             enqueueSnackbar('Updated Successfully');
             refetch();
 
-            if(currentStep && Number(currentStep) !== 100){
+            if (currentStep && Number(currentStep) !== 100) {
               localStorage.setItem('currentStep', '6')
               router.push(paths.dashboard.user.manage.clinic)
             }
@@ -115,8 +119,9 @@ export default function AccountEducation() {
   const {
     handleSubmit,
     watch,
+    reset,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = methods;
 
   useEffect(() => {
@@ -192,7 +197,7 @@ export default function AccountEducation() {
 
   const firstStep = (
     <m.div>
-     
+
       <Typography
 
         sx={{
@@ -214,7 +219,7 @@ export default function AccountEducation() {
 
   const secondStep = (
     <m.div>
-     
+
       <Typography
 
         sx={{
@@ -228,7 +233,7 @@ export default function AccountEducation() {
           },
         }}
       >
-       Accurately providing your educational background is essential for verifying your qualifications and credentials. 📚🔍
+        Accurately providing your educational background is essential for verifying your qualifications and credentials. 📚🔍
       </Typography>
     </m.div>
   )
@@ -243,7 +248,7 @@ export default function AccountEducation() {
       left: 0,
       right: 0,
       bottom: 0,
-      zIndex: 9999,
+      zIndex: 99999,
     }}>
 
 
@@ -261,7 +266,7 @@ export default function AccountEducation() {
 
         </Box>
 
-        <Box sx={{
+        {step < 3 && <Box sx={{
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
@@ -272,7 +277,7 @@ export default function AccountEducation() {
               background: theme.palette.background.default,
               height: 'auto',
               width: 'auto',
-              maxWidth:250,
+              maxWidth: 250,
               left: 10,
               borderRadius: 2,
               zIndex: 99999,
@@ -281,13 +286,13 @@ export default function AccountEducation() {
               flexDirection: 'column',
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
-                p:3
+              p: 3
             }}>
               {step === 1 && firstStep}
               {step === 2 && secondStep}
 
-              
-              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+
+              <Box sx={{ width: '90%', pt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                 <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
               </Box>
             </Box>
@@ -305,20 +310,185 @@ export default function AccountEducation() {
             src={'/assets/tutorial-doctor/nurse-tutor.png'}
 
           />
-        </Box>
+        </Box>}
       </>
 
     </Box>
   )
+  const confirm = useBoolean();
 
+  const clearUnsaved = useCallback(() => {
+    switch (step) {
+      case 3:
+        setValue('medicalSchool', { name: '', year: '' });
+        break;
+      case 4:
+        setValue('recidency', { name: '', year: '' })
+        break;
+      case 5:
+        setValue('fellowship1', { name: '', year: '' })
+        break;
+      case 6:
+        setValue('fellowship2', { name: '', year: '' })
+        break;
+    }
+  }, [step])
+
+  const renderConfirm = (
+    <ConfirmDialog
+      open={confirm.value}
+      onClose={confirm.onFalse}
+      title="Unsaved Changes"
+      content="You have unsaved changes, are you sure you want to skip?"
+      sx={{
+        zIndex: 99999
+      }}
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            incrementStep();
+            clearUnsaved()
+            confirm.onFalse();
+            reset({}, { keepValues: true });
+          }}
+        >
+          Skip
+        </Button>
+      }
+    />
+  );
+
+
+  const onSkip = useCallback(() => {
+    if (isDirty) {
+      confirm.onTrue()
+    } else {
+      incrementStep()
+
+
+    }
+  }, [isDirty])
+
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    if (isDirty) {
+      setHasChanges(true)
+    }
+  }, [isDirty])
+
+  const handleContinue = useCallback(() => {
+    // Resetting isDirty by setting the values to the current values
+    reset({}, { keepValues: true });
+    // Then increment the step
+    incrementStep();
+  }, [values, incrementStep])
+
+  const renderChoices = (
+    <Stack sx={{
+      p: 1
+    }} direction="row" alignItems='center' gap={2} justifyContent='flex-end'>
+      <Button onClick={onSkip} variant="outlined">Skip</Button>
+      <Button disabled={!isDirty} onClick={handleContinue} variant="contained">Continue</Button>
+
+    </Stack>
+  )
+
+
+
+
+  const renderTutsField = (
+    <Stack rowGap={2}>
+      {Object.keys(values)?.map((item, index) => (
+        <Grid key={item} container spacing={{ md: 3, xs: 1 }}>
+          <Grid xs={12} md={4}>
+            <ListItemText
+              primary={
+                (index === 0 && 'Medical School') ||
+                (index === 1 && 'Recidency') ||
+                'Fellowship Training'
+              }
+              secondary={
+                (index === 0 && 'Input your medical graduate education') ||
+                (index === 1 && 'Input your recidency/postgraduate training') ||
+                'Input your medical fellowship training'
+              }
+              primaryTypographyProps={{ typography: { md: 'h6', xs: 'body1' }, mb: 0.5 }}
+              secondaryTypographyProps={{ component: 'span' }}
+            />
+          </Grid>
+          <div className={(() => {
+            if (index === 0 && step === 3) {
+              return 'showFields'
+            } else if (index === 1 && step === 4) {
+              return 'showFields'
+            } else if (index === 2 && step === 5) {
+              return 'showFields'
+            } else if (index === 3 && step === 6) {
+              return 'showFields'
+            }
+            else {
+              return 'default'
+            }
+          })()}>
+            <Grid xs={12} md={8}>
+
+              <Box
+                rowGap={{ md: 3, xs: 0 }}
+                columnGap={{ md: 2, xs: 1 }}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: '3fr 1fr',
+                }}
+                sx={{ p: { md: 3, xs: 1 }, borderRadius: 2, bgcolor: 'background.neutral' }}
+              >
+                <RHFTextField name={`${item}.name`} label="Name of Institution" />
+                <RHFTextField name={`${item}.year`} label="Year Completed" />
+              </Box>
+
+              {(() => {
+                if (index === 0 && step === 3) {
+                  return renderChoices
+                } else if (index === 1 && step === 4) {
+                  return renderChoices
+                } else if (index === 2 && step === 5) {
+                  return renderChoices
+                } else if (index === 3 && step === 6) {
+                  return renderChoices
+
+                }
+              })()}
+
+              {renderConfirm}
+            </Grid>
+          </div>
+
+        </Grid>
+
+
+      ))}
+      <Stack spacing={3} alignItems="flex-end" justifyContent="flex-end">
+          <div className={step === 7 ? 'showFields-submit' : ''}>
+            <LoadingButton type={!hasChanges ? 'button':'submit'} variant="contained" loading={isSubmitting}>
+
+            Save Changes
+            </LoadingButton>
+          </div>
+
+        </Stack>
+    </Stack>
+  )
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      {Number(currentStep) === 5 && step !== 3 && renderFourthTutorial}
+      {Number(currentStep) === 5 && step !== 8 && renderFourthTutorial}
 
-      
-     
-      <Stack component={Card} spacing={{ md: 3, xs: 1 }} sx={{ p: 3 }}>
+
+
+      {!currentStep && <Stack component={Card} spacing={{ md: 3, xs: 1 }} sx={{ p: 3 }}>
         {Object.keys(values)?.map((item, index) => (
           <Grid key={item} container spacing={{ md: 3, xs: 1 }}>
             <Grid xs={12} md={4}>
@@ -356,47 +526,11 @@ export default function AccountEducation() {
           </Grid>
         ))}
 
-        {/* {Object.keys(user).map((item, index) => (
-          <Grid key={item} container spacing={3}>
-            <Grid xs={12} md={4}>
-              <ListItemText
-                primary={
-                  (index === 0 && 'Medical School') ||
-                  (index === 1 && 'Recidency') ||
-                  'Fellowship Training'
-                }
-                secondary={
-                  (index === 0 && 'Input your medical graduate education') ||
-                  (index === 1 && 'Input your recidency/postgraduate training') ||
-                  'Input your medical fellowship training'
-                }
-                primaryTypographyProps={{ typography: 'h6', mb: 0.5 }}
-                secondaryTypographyProps={{ component: 'span' }}
-              />
-            </Grid>
-
-            <Grid xs={12} md={8}>
-              <Box
-                rowGap={3}
-                columnGap={2}
-                display="grid"
-                gridTemplateColumns={{
-                  xs: 'repeat(1, 1fr)',
-                  sm: '3fr 1fr',
-                }}
-                sx={{ p: 3, borderRadius: 2, bgcolor: 'background.neutral' }}
-              >
-                <RHFTextField name={`${item}.name`} label="Name of Institution" />
-                <RHFTextField name={`${item}.year`} label="Year Completed" />
-              </Box>
-            </Grid>
-          </Grid>
-        ))} */}
-
         <LoadingButton type="submit" variant="contained" loading={isSubmitting} sx={{ ml: 'auto' }}>
           Save Changes
         </LoadingButton>
-      </Stack>
+      </Stack>}
+      {currentStep && renderTutsField}
     </FormProvider>
   );
 }

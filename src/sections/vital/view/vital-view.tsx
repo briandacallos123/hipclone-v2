@@ -26,15 +26,25 @@ type Props = {
 export default function VitalView({ refetchP2, refetch, openSingle, items2, items, loading, isDashboard, addedCategory }: Props) {
   const upMd = useResponsive('up', 'md');
 
-  const weightData = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => {
+  let weightData = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => {
     return {
       data: item?.wt,
       id: item?.id
     }
   });
-  // fDate(item?.date, 'MMM dd')
-  const weightDataDate = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => fDate(item?.date, 'MMM dd'))
+
+  if(weightData?.length === 1){
+    weightData.push({
+      data:'0',
+      id:0
+    })
+  }
+
+  const weightDataDate = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => fDate(item?.date, 'MMM dd'));
+  weightData = weightData.reverse();
   const weightDataDateNoFormat = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => item?.date)
+
+  // --------------------------------
 
   const HeightData = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => {
     return {
@@ -44,6 +54,9 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
   })
   const HeightDataDate = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => fDate(item?.date, 'MMM dd'));
   const HeightDataDateNoFormat = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => item?.date);
+
+  // --------------------------------
+
 
   const BMIData = items?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)?.map((item) => {
     return {
@@ -245,9 +258,9 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               data: [{ name: 'kg', data: weightData?.map((item) => item?.data) }],
             }}
             list={[...Array(weightDataDate?.length)].map((_, index) => ({
-              value: `${weightData[index]?.data} kg`,
+              value: `${weightData[weightData?.find((item)=>item?.id === 0)?index+1:index]?.data} kg`,
               date: weightDataDate[index],
-              id: weightData[index]?.id,
+              id: weightData[weightData?.find((item)=>item?.id === 0)?index+1:index]?.id,
               category: 'wt',
               dataDate: weightDataDateNoFormat[index]
             }))}

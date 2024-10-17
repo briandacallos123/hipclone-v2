@@ -32,7 +32,10 @@ import FormProvider, {
   RHFMultiCheckbox,
   RHFUploadAvatar,
 } from 'src/components/hook-form';
-
+import './generalStyle.css'
+import { useTheme, alpha } from '@mui/material/styles';
+import { useBoolean } from '@/hooks/use-boolean';
+import { ConfirmDialog } from '@/components/custom-dialog';
 // ----------------------------------------------------------------------
 
 const PROVINCE_OPTIONS = ['Abra', 'Bataan', 'Cagayan'];
@@ -84,7 +87,7 @@ export default function ClinicNewForm({
   const [limitReq, setLimitReq] = useState(false);
 
   const isLimitReq = limitReq && {
-    limitValue:Yup.string().required('Patient Limit is required'),
+    limitValue: Yup.string().required('Patient Limit is required'),
   }
 
 
@@ -96,8 +99,8 @@ export default function ClinicNewForm({
     // avatarUrl: '',
     type: Yup.array().required('Type is required').min(1, 'At least one type is required'),
     days: Yup.array().required('Days are required').min(1, 'At least one day is required'),
-    start_time:Yup.string().required('Start time is required'),
-    end_time:Yup.string().required('End time is required'),
+    start_time: Yup.string().required('Start time is required'),
+    end_time: Yup.string().required('End time is required'),
     time_interval: Yup.string().required('Time interval is required'),
     ...isLimitReq
   });
@@ -135,27 +138,49 @@ export default function ClinicNewForm({
     setValue,
     watch,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = methods;
   const values = watch();
 
-  useEffect(()=>{
-    if(values.time_interval === '10'){
+  useEffect(() => {
+    if (values.time_interval === '10') {
       setLimitReq(true)
     }
-  },[values.time_interval])
+  }, [values.time_interval])
 
-  console.log(limitReq,'limit')
+  console.log(limitReq, 'limit')
 
-  useEffect(()=>{
-    if(!values.limitValue && values.time_interval === '10'){
+  useEffect(() => {
+    if (!values.limitValue && values.time_interval === '10') {
       setLimitReq(true)
     }
-  },[values.limitValue, values.time_interval])
+  }, [values.limitValue, values.time_interval])
 
-  console.log(values.limitValue,'ano valuee')
+  console.log(values.limitValue, 'ano valuee')
 
   const currentStep = localStorage?.getItem('currentStep')
+
+  const [step, setStep] = useState(3);
+
+  const onIncrementStep = useCallback(() => {
+    if(values.time_interval){
+      if(values.time_interval === '10'){
+        setStep(step + 1);
+      }else{
+        setStep(step + 2);
+      }
+    }else{
+      setStep(step + 1);
+
+    }
+    // if(values.time_interval === '10'){
+    //   setStep(step + 1);
+    // }else{
+    //   setStep(step + 2);
+    // }
+    reset({}, { keepValues: true });
+
+  },[values])
 
   const [createClinic] = useMutation(CLINIC_POST);
   const [snackKey, setSnackKey] = useState(null);
@@ -165,7 +190,7 @@ export default function ClinicNewForm({
       const data: any = {
         clinic_name: model.clinic_name,
         location: model.location,
-        number: model.number,
+        number: String(model.number),
         Province: model.Province,
         type: model.type,
         days: model.days,
@@ -173,7 +198,7 @@ export default function ClinicNewForm({
         end_time: formatDateToTime(model.end_time),
         time_interval: model.time_interval,
         uuid: model.uuid,
-        limitValue:model?.limitValue
+        limitValue: model?.limitValue
       };
       createClinic({
         variables: {
@@ -190,17 +215,17 @@ export default function ClinicNewForm({
           refetch();
           reset();
           onClose()
-          if(currentStep && Number(currentStep) !== 100){
-            localStorage.setItem('currentStep','7')
+          if (currentStep && Number(currentStep) !== 100) {
+            localStorage.setItem('currentStep', '7')
           }
-         
+
 
         })
         .catch((error) => {
           console.log(error, 'ano error?');
           closeSnackbar(snackKey);
           setSnackKey(null);
-      onClose();
+          onClose();
 
           enqueueSnackbar('Something went wrong', { variant: 'error' });
         });
@@ -223,7 +248,7 @@ export default function ClinicNewForm({
   const onSubmit = useCallback(async (data: NexusGenInputs['ClinicInsertPayload']) => {
     try {
       appendDataClient(data);
-     
+
       const snackbarKey = enqueueSnackbar('Saving Data...', {
         variant: 'info',
         key: 'savingEducation',
@@ -254,96 +279,121 @@ export default function ClinicNewForm({
       if (file) {
         setValue('avatarUrl', newFile, { shouldValidate: true });
       }
+      onIncrementStep()
     },
     [setValue]
   );
 
-  return (
-    <>
-      <DialogContent>
-        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-          <Typography variant="overline" color="text.disabled">
-            Fill in clinic details
-          </Typography>
+  const theme = useTheme();
+  const confirm = useBoolean();
 
-          <Grid container spacing={3} sx={{ mt: 0.2, mb: 3 }}>
-            <Grid xs={12} md={4}>
-              <Card sx={{ py: 5, px: 3, textAlign: 'center' }}>
-                <RHFUploadAvatar
-                  name="avatarUrl"
-                  maxSize={3145728}
-                  onDrop={handleDrop}
-                  helperText={
-                    <Typography
-                      variant="caption"
-                      sx={{
-                        mt: 3,
-                        mx: 'auto',
-                        display: 'block',
-                        textAlign: 'center',
-                        color: 'text.disabled',
-                      }}
-                    >
-                      Allowed *.jpeg, *.jpg, *.png, *.gif
-                      <br /> max size of {fData(3145728)}
-                    </Typography>
-                  }
-                />
-              </Card>
-            </Grid>
 
-            <Grid xs={12} md={8}>
-              <Stack spacing={3}>
-                <RHFTextField name="clinic_name" label="Clinic/Hospital Name" />
-                <RHFTextField name="location" label="Clinic Address" />
+  const PRIMARY_MAIN = theme.palette.primary.main;
 
-                <Box
-                  rowGap={3}
-                  columnGap={2}
-                  display="grid"
-                  gridTemplateColumns={{
-                    xs: 'repeat(1, 1fr)',
-                    sm: 'repeat(2, 1fr)',
-                  }}
-                >
-                  <RHFTextField
-                    name="number"
-                    label="Clinic Phone Number"
-                    helperText="This number will be visible to the public. Please indicate the clinic official contact number."
-                  />
+  const renderConfirm = (
+    <ConfirmDialog
+      open={confirm.value}
+      onClose={confirm.onFalse}
+      title="Unsaved Changes"
+      content="You have unsaved changes, are you sure you want to skip?"
+      sx={{
+        zIndex: 99999
+      }}
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            // incrementStep();
+            // clearUnsaved()
+            confirm.onFalse();
+            reset({}, { keepValues: true });
+          }}
+        >
+          Skip
+        </Button>
+      }
+    />
+  );
 
-                  <RHFSelect name="Province" label="Province">
-                    {provinces &&
-                      provinces.map((option: any, index: Number) => (
-                        <MenuItem key={index} value={option?.Province}>
-                          {option?.Province}
-                        </MenuItem>
-                      ))}
-                  </RHFSelect>
-                </Box>
-              </Stack>
-            </Grid>
-          </Grid>
+  const onSkip = useCallback(() => {
+    if (isDirty) {
+      confirm.onTrue()
+    } else {
+      onIncrementStep()
+    }
+  }, [isDirty])
 
-          <Typography variant="overline" color="text.disabled">
-            Fill in clinic schedule
-          </Typography>
+  console.log(isDirty,'isDirtyisDirty')
 
-          <Stack spacing={3} sx={{ mt: 1 }}>
-            <div>
-              <RHFMultiCheckbox
-                row
-                name="type"
-                label="Appointment Types"
-                options={APPOINTMENT_TYPE}
+  const handleContinue = useCallback(() => {
+    // Resetting isDirty by setting the values to the current values
+    reset({}, { keepValues: true });
+    // Then increment the step
+    onIncrementStep();
+  }, [values])
+
+  const RenderChoices = useCallback(({ isRequired }: any) => {
+    return (
+      <Stack sx={{
+        p: 1
+      }} direction="row" alignItems='center' gap={2} justifyContent='flex-end'>
+        {!isRequired && <Button onClick={onSkip} variant="outlined">Skip</Button>}
+        <Button disabled={(()=>{
+          if(step === 7){
+            return false
+          }else{
+            return !isDirty
+          }
+        })()} onClick={handleContinue} variant="contained">Continue</Button>
+
+      </Stack>
+    )
+  },[isDirty, step])
+
+  const renderTutsFields = (
+    <Box sx={{
+      mb: 5
+    }}>
+      {renderConfirm}
+      <Grid container spacing={3} sx={{ mt: 0.2, mb: 3 }}>
+        <Grid xs={12} md={4}>
+          <div className={step === 3 ? 'showFields' : ''}>
+            <Box sx={{ py: 5, px: 3, textAlign: 'center' }}>
+              <RHFUploadAvatar
+                name="avatarUrl"
+                maxSize={3145728}
+                onDrop={handleDrop}
+                helperText={
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mt: 3,
+                      mx: 'auto',
+                      display: 'block',
+                      textAlign: 'center',
+                      color: 'text.disabled',
+                    }}
+                  >
+                    Allowed *.jpeg, *.jpg, *.png, *.gif
+                    <br /> max size of {fData(3145728)}
+                  </Typography>
+                }
               />
+            </Box>
+            {step === 3 && <RenderChoices isRequired={false} />}
+          </div>
+        </Grid>
 
-              <RHFMultiCheckbox
-                row
-                name="days"
-                label="Appointment Days"
-                options={APPOINTMENT_DAY}
-              />
+        <Grid xs={12} md={8}>
+          <Stack spacing={3}>
+            <div className={step === 4 ? 'showFields' : ''}>
+              <RHFTextField name="clinic_name" label="Clinic/Hospital Name" />
+              {step === 4 && <RenderChoices isRequired={true} />}
+            </div>
+            <div className={step === 5 ? 'showFields' : ''}>
+              <RHFTextField name="location" label="Clinic Address" />
+              {step === 5 && <RenderChoices isRequired={true} />}
             </div>
 
             <Box
@@ -352,73 +402,347 @@ export default function ClinicNewForm({
               display="grid"
               gridTemplateColumns={{
                 xs: 'repeat(1, 1fr)',
-                sm: 'repeat(3, 1fr)',
+                sm: 'repeat(2, 1fr)',
               }}
             >
-              <Controller
-                name="start_time"
-                control={control}
-                render={({ field, fieldState: { error } }: CustomRenderInterface) => (
-                  <TimePicker
-                    label="Start Time"
-                    value={field.value}
-                    onChange={(newValue) => {
-                      field.onChange(newValue);
-                    }}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        error: !!error,
-                        helperText: error?.message,
-                      },
-                    }}
-                  />
-                )}
-              />
+              <div className={step === 6 ? 'showFields' : ''}>
+                <RHFTextField
+                  name="number"
+                  type="number"
+                  label="Clinic Phone Number"
+                  helperText="This number will be visible to the public. Please indicate the clinic official contact number."
+                />
+                {step === 6 && <RenderChoices isRequired={true} />}
 
-              <Controller
-                name="end_time"
-                control={control}
-                render={({ field, fieldState: { error } }: CustomRenderInterface) => (
-                  <TimePicker
-                    label="End Time"
-                    value={field.value}
-                    onChange={(newValue) => {
-                      field.onChange(newValue);
-                    }}
-                    slotProps={{
-                      textField: {
-                        fullWidth: true,
-                        error: !!error,
-                        helperText: error?.message,
-                      },
-                    }}
-                  />
-                )}
-              />
+              </div>
 
-              <RHFSelect name="time_interval" label="Duration">
-                <MenuItem value="15">15 Mins</MenuItem>
-                <MenuItem value="30">30 Mins</MenuItem>
-                <MenuItem value="45">45 Mins</MenuItem>
-                <MenuItem value="60">1 Hour</MenuItem>
-                <MenuItem value="0">No Limit</MenuItem>
-                <MenuItem value="10">Limited</MenuItem>
 
-              </RHFSelect>
-              {values.time_interval === '10' && <RHFTextField label="Allowed Patient" name="limitValue" type="number">
-              </RHFTextField>
-                }
+              <div className={step === 7 ? 'showFields' : ''}>
+                <RHFSelect name="Province" label="Province">
+                  {provinces &&
+                    provinces.map((option: any, index: Number) => (
+                      <MenuItem key={index} value={option?.Province}>
+                        {option?.Province}
+                      </MenuItem>
+                    ))}
+                </RHFSelect>
+                {step === 7 && <RenderChoices isRequired={true} />}
+              </div>
 
-              
-
-            
             </Box>
           </Stack>
+        </Grid>
+      </Grid>
+      <Typography variant="overline" color="text.disabled">
+        Fill in clinic schedule
+      </Typography>
+
+      <Stack spacing={3} sx={{ mt: 1 }}>
+        <div>
+          <div className={step === 8 ? 'showFields' : ''}>
+            <RHFMultiCheckbox
+              row
+              name="type"
+              label="Appointment Types"
+              options={APPOINTMENT_TYPE}
+            />
+            {step === 8 && <RenderChoices isRequired={true} />}
+          </div>
+
+          <div className={step === 9 ? 'showFields' : ''}>
+            <RHFMultiCheckbox
+              row
+              name="days"
+              label="Appointment Days"
+              options={APPOINTMENT_DAY}
+            />
+            {step === 9 && <RenderChoices isRequired={true} />}
+          </div>
+
+        </div>
+
+        <Box
+          rowGap={3}
+          columnGap={2}
+          display="grid"
+          gridTemplateColumns={{
+            xs: 'repeat(1, 1fr)',
+            sm: 'repeat(3, 1fr)',
+          }}
+        >
+          <div className={step === 10 ? 'showFields' : ''}>
+            <Controller
+              name="start_time"
+              control={control}
+              render={({ field, fieldState: { error } }: CustomRenderInterface) => (
+                <TimePicker
+                  label="Start Time"
+                  value={field.value}
+                  onChange={(newValue) => {
+                    field.onChange(newValue);
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      error: !!error,
+                      helperText: error?.message,
+                    },
+                  }}
+                />
+              )}
+            />
+            {step === 10 && <RenderChoices isRequired={true} />}
+          </div>
+
+
+          <div className={step === 11 ? 'showFields' : ''}>
+            <Controller
+              name="end_time"
+              control={control}
+              render={({ field, fieldState: { error } }: CustomRenderInterface) => (
+                <TimePicker
+                  label="End Time"
+                  value={field.value}
+                  onChange={(newValue) => {
+                    field.onChange(newValue);
+                  }}
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      error: !!error,
+                      helperText: error?.message,
+                    },
+                  }}
+                />
+              )}
+            />
+            {step === 11 && <RenderChoices isRequired={true} />}
+          </div>
+
+          <div className={step === 12 ? 'showFields' : ''}>
+            <RHFSelect name="time_interval" label="Duration">
+              <MenuItem value="15">15 Mins</MenuItem>
+              <MenuItem value="30">30 Mins</MenuItem>
+              <MenuItem value="45">45 Mins</MenuItem>
+              <MenuItem value="60">1 Hour</MenuItem>
+              <MenuItem value="0">No Limit</MenuItem>
+              <MenuItem value="10">Limited</MenuItem>
+
+            </RHFSelect>
+            {step === 12 && <RenderChoices isRequired={true} />}
+          </div>
+
+          {values.time_interval === '10' &&
+            <div className={(step === 13 && values.time_interval === '10') ? 'showFields' : ''}>
+              <RHFTextField label="Allowed Patient" name="limitValue" type="number">
+              </RHFTextField>
+              {step === 13 && <RenderChoices isRequired={true} />}
+              <Box></Box>
+            </div>
+          }
+
+
+
+
+        </Box>
+      </Stack>
+      <DialogActions>
+
+        <Button variant="outlined" onClick={onClose}>
+          Cancel
+        </Button>
+        <div className={step === 14 ? 'showFields-submit' : ''}>
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            loading={isSubmitting}
+            onClick={handleSubmit(onSubmit)}
+          >
+            Create
+          </LoadingButton>
+        </div>
+
+      </DialogActions>
+      <Box sx={{
+        background: PRIMARY_MAIN,
+        opacity: .4,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+
+      }}>
+
+      </Box>
+    </Box>
+  )
+
+  return (
+    <>
+      <DialogContent>
+        <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+
+          {!currentStep ? <Box>
+
+            <Typography variant="overline" color="text.disabled">
+              Fill in clinic details
+            </Typography>
+
+            <Grid container spacing={3} sx={{ mt: 0.2, mb: 3 }}>
+              <Grid xs={12} md={4}>
+                <Card sx={{ py: 5, px: 3, textAlign: 'center' }}>
+                  <RHFUploadAvatar
+                    name="avatarUrl"
+                    maxSize={3145728}
+                    onDrop={handleDrop}
+                    helperText={
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          mt: 3,
+                          mx: 'auto',
+                          display: 'block',
+                          textAlign: 'center',
+                          color: 'text.disabled',
+                        }}
+                      >
+                        Allowed *.jpeg, *.jpg, *.png, *.gif
+                        <br /> max size of {fData(3145728)}
+                      </Typography>
+                    }
+                  />
+                </Card>
+              </Grid>
+
+              <Grid xs={12} md={8}>
+                <Stack spacing={3}>
+                  <RHFTextField name="clinic_name" label="Clinic/Hospital Name" />
+                  <RHFTextField name="location" label="Clinic Address" />
+
+                  <Box
+                    rowGap={3}
+                    columnGap={2}
+                    display="grid"
+                    gridTemplateColumns={{
+                      xs: 'repeat(1, 1fr)',
+                      sm: 'repeat(2, 1fr)',
+                    }}
+                  >
+                    <RHFTextField
+                      name="number"
+                      label="Clinic Phone Number"
+                      helperText="This number will be visible to the public. Please indicate the clinic official contact number."
+                    />
+
+                    <RHFSelect name="Province" label="Province">
+                      {provinces &&
+                        provinces.map((option: any, index: Number) => (
+                          <MenuItem key={index} value={option?.Province}>
+                            {option?.Province}
+                          </MenuItem>
+                        ))}
+                    </RHFSelect>
+                  </Box>
+                </Stack>
+              </Grid>
+            </Grid>
+
+            <Typography variant="overline" color="text.disabled">
+              Fill in clinic schedule
+            </Typography>
+
+            <Stack spacing={3} sx={{ mt: 1 }}>
+              <div>
+                <RHFMultiCheckbox
+                  row
+                  name="type"
+                  label="Appointment Types"
+                  options={APPOINTMENT_TYPE}
+                />
+
+                <RHFMultiCheckbox
+                  row
+                  name="days"
+                  label="Appointment Days"
+                  options={APPOINTMENT_DAY}
+                />
+              </div>
+
+              <Box
+                rowGap={3}
+                columnGap={2}
+                display="grid"
+                gridTemplateColumns={{
+                  xs: 'repeat(1, 1fr)',
+                  sm: 'repeat(3, 1fr)',
+                }}
+              >
+                <Controller
+                  name="start_time"
+                  control={control}
+                  render={({ field, fieldState: { error } }: CustomRenderInterface) => (
+                    <TimePicker
+                      label="Start Time"
+                      value={field.value}
+                      onChange={(newValue) => {
+                        field.onChange(newValue);
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!error,
+                          helperText: error?.message,
+                        },
+                      }}
+                    />
+                  )}
+                />
+
+                <Controller
+                  name="end_time"
+                  control={control}
+                  render={({ field, fieldState: { error } }: CustomRenderInterface) => (
+                    <TimePicker
+                      label="End Time"
+                      value={field.value}
+                      onChange={(newValue) => {
+                        field.onChange(newValue);
+                      }}
+                      slotProps={{
+                        textField: {
+                          fullWidth: true,
+                          error: !!error,
+                          helperText: error?.message,
+                        },
+                      }}
+                    />
+                  )}
+                />
+
+                <RHFSelect name="time_interval" label="Duration">
+                  <MenuItem value="15">15 Mins</MenuItem>
+                  <MenuItem value="30">30 Mins</MenuItem>
+                  <MenuItem value="45">45 Mins</MenuItem>
+                  <MenuItem value="60">1 Hour</MenuItem>
+                  <MenuItem value="0">No Limit</MenuItem>
+                  <MenuItem value="10">Limited</MenuItem>
+
+                </RHFSelect>
+                {values.time_interval === '10' && <RHFTextField label="Allowed Patient" name="limitValue" type="number">
+                </RHFTextField>
+                }
+
+
+
+
+              </Box>
+            </Stack>
+          </Box> : renderTutsFields}
         </FormProvider>
       </DialogContent>
 
-      <DialogActions>
+      {!currentStep && <DialogActions>
         <Button variant="outlined" onClick={onClose}>
           Cancel
         </Button>
@@ -431,7 +755,7 @@ export default function ClinicNewForm({
         >
           Create
         </LoadingButton>
-      </DialogActions>
+      </DialogActions>}
     </>
   );
 }

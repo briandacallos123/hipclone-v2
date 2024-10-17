@@ -183,8 +183,12 @@ export default function UserServiceView() {
   )
 
 
+
+
   return (
-    <Container maxWidth={settings.themeStretch ? false : 'lg'}>
+    <Container sx={{
+      position:'relative'
+    }} maxWidth={settings.themeStretch ? false : 'lg'}>
 
       {Number(currentStep) === 7 && step !== 2 && renderFifthTutorial}
 
@@ -197,7 +201,6 @@ export default function UserServiceView() {
       >
         Manage Service
       </Typography>
-
       <Stack spacing={3}>
         <ServiceProfessionalFee incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
 

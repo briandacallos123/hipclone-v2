@@ -22,6 +22,9 @@ import { borderRadius } from '@mui/system';
 import './styles/service.css';
 import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
+import { useTheme } from '@mui/material/styles';
+import { Stack } from '@mui/material';
+
 // ----------------------------------------------------------------------
 
 type IUserPaymentItem = {
@@ -42,7 +45,7 @@ type Props = {
   onSuccess?: any;
   isTuts?: any;
   isView?: boolean;
-  incrementTutsTab?:()=>void;
+  incrementTutsTab?: () => void;
 };
 
 export default function ServicePaymentMethodNewEditForm({
@@ -103,7 +106,7 @@ export default function ServicePaymentMethodNewEditForm({
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = methods;
   const values = watch();
 
@@ -136,15 +139,15 @@ export default function ServicePaymentMethodNewEditForm({
           // setIsRefetch(data?.MutationPrescription);
           reset();
           refetch();
-         
+          onClose();
           enqueueSnackbar(currentItem ? 'Updated sucessfully' : 'Created Successfully');
-          if(currentStep && Number(currentStep) !== 100){
-            localStorage.setItem('currentStep','12');
+          if (currentStep && Number(currentStep) !== 100) {
+            localStorage.setItem('currentStep', '12');
             router.push(paths.dashboard.user.manage.subaccount);
             incrementTutsTab()
           }
         })
-        
+
         .catch((error) => {
           closeSnackbar(snackKey);
           console.log(error, 'ERRORD DAW@');
@@ -211,7 +214,7 @@ export default function ServicePaymentMethodNewEditForm({
 
         // });
         // reset();
-        onClose();
+     
         // enqueueSnackbar(currentItem ? 'Update success!' : 'Create success!');
         console.info('DATA', data);
       } catch (error) {
@@ -245,11 +248,200 @@ export default function ServicePaymentMethodNewEditForm({
     setValue('attachment', null)
   }, [setValue]);
 
-  console.log(isTuts, 'istusss')
+  const theme = useTheme();
+
+  const PRIMARY_MAIN = theme.palette.primary.main;
+
+  const renderFifthTutorial = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 9999,
+    }}>
+
+
+      <>
+        <Box sx={{
+          background: PRIMARY_MAIN,
+          opacity: .4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 9991
+        }}>
+
+        </Box>
+
+
+      </>
+
+    </Box>
+  )
+
+  const [step, setStep] = useState(1);
+
+  const onIncrementStep = useCallback(() => {
+    setStep((prev) => prev + 1);
+  }, [step])
+
+
+  const handleContinue = useCallback(() => {
+    // Resetting isDirty by setting the values to the current values
+    reset({}, { keepValues: true });
+    // Then increment the step
+    onIncrementStep();
+  }, [values])
+
+  const onSkip = useCallback(() => {
+    onIncrementStep()
+  }, [isDirty])
+
+  const RenderChoices = useCallback(({ isRequired }: any) => {
+    return (
+      <Stack sx={{
+        p: 1,
+        position:'relative'
+      }} direction="row" alignItems='center' gap={2} justifyContent='flex-end'>
+        {!isRequired && <Button onClick={onSkip} variant="outlined">Skip</Button>}
+        <Button disabled={(() => {
+          if (step === 7) {
+            return false
+          } else {
+            return !isDirty
+          }
+        })()} onClick={handleContinue} variant="contained">Continue</Button>
+
+      </Stack>
+    )
+  }, [isDirty, step])
+
+
+  const tutsField = (
+    <Box sx={{
+      pb: 10,
+      overflow:'hidden'
+    }}>
+      <DialogTitle>
+        <Typography variant="h6">Payment Method</Typography>
+        <Typography variant="body2" color="text.disabled">
+          Fill-in details for patients to know how to pay with varities of options.
+        </Typography>
+      </DialogTitle>
+
+      <DialogContent>
+        <Box
+          rowGap={3}
+          columnGap={2}
+          display="grid"
+          gridTemplateColumns={{
+            xs: 'repeat(1, 1fr)',
+            sm: 'repeat(2, 1fr)',
+          }}
+          sx={{ pt: 1 }}
+        >
+          <div className={step === 1 ? 'showFields' : ''}>
+            <RHFSelect InputProps={{
+              readOnly: isView,
+            }} name="name" label="Payment Method">
+              <MenuItem value="BDO">BDO</MenuItem>
+              <MenuItem value="BPI">BPI</MenuItem>
+              <MenuItem value="Philam">Philam</MenuItem>
+              <MenuItem value="G-Cash">G-Cash</MenuItem>
+              <MenuItem value="PayMaya">PayMaya</MenuItem>
+            </RHFSelect>
+            {step === 1 && <RenderChoices isRequired={true} />}
+          </div>
+
+          <div className={step === 2 ? 'showFields' : ''}>
+            <RHFTextField InputProps={{
+              readOnly: isView,
+            }} name="accountNumber" label="Account Number" />
+            {step === 2 && <RenderChoices isRequired={true} />}
+          </div>
+        </Box>
+
+        <div className={step === 3 ? 'showFields' : ''}>
+          <RHFTextField InputProps={{
+            readOnly: isView,
+          }} name="instruction" label="Instruction" multiline rows={3} sx={{ my: 3 }} />
+          {step === 3 && <RenderChoices isRequired={true} />}
+        </div>
+
+
+      </DialogContent>
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '100%',
+      }}>
+        {isView ? <Image
+          alt="image"
+          src={values?.attachment}
+          sx={{
+            borderRadius: 5,
+            width: 400,
+            height: 400
+
+          }}
+        /> :
+          <div className={step === 4 ? 'showFields' : ''}>
+            <RHFUpload
+              disabled={isView}
+              thumbnail
+              name="attachment"
+              maxSize={3145728}
+              onDrop={handleDrop}
+              onRemove={handleRemoveFile}
+              onRemoveAll={handleRemoveAllFiles}
+            />
+            {step === 4 && <RenderChoices isRequired={false} />}
+          </div>
+        }
+      </Box>
+
+      <Stack sx={{
+        p:2
+      }} direction="row" justifyContent='flex-end' gap={1}>
+        <Button variant="outlined" onClick={onClose}>
+          Cancel
+        </Button>
+
+        <div className={step === 5 ? 'showFields-submit':''}>
+          <LoadingButton
+            type="submit"
+            variant="contained"
+            loading={isSubmitting}
+            onClick={handleSubmit(onSubmit)}
+          >
+            {currentItem ? 'Update' : 'Create'}
+          </LoadingButton>
+        </div>
+      </Stack>
+
+      <Box sx={{
+        background: PRIMARY_MAIN,
+        opacity: .4,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+
+      }}>
+
+      </Box>
+    </Box>
+  )
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <div className={'service-fee'}>
+      {!currentStep ? <div className={'service-fee'}>
         <DialogTitle>
           <Typography variant="h6">Payment Method</Typography>
           <Typography variant="body2" color="text.disabled">
@@ -323,13 +515,16 @@ export default function ServicePaymentMethodNewEditForm({
           <LoadingButton
             type="submit"
             variant="contained"
+            disabled={!isDirty}
             loading={isSubmitting}
             onClick={handleSubmit(onSubmit)}
           >
             {currentItem ? 'Update' : 'Create'}
           </LoadingButton>
         </DialogActions>
-      </div>
+      </div> :
+        tutsField
+      }
     </FormProvider>
   );
 }

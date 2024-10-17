@@ -589,7 +589,8 @@ export default function UserClinicListView() {
       left: 0,
       right: 0,
       bottom: 0,
-      zIndex: 9999,
+      zIndex: 1000,
+
     }}>
 
 
@@ -602,12 +603,11 @@ export default function UserClinicListView() {
           left: 0,
           right: 0,
           bottom: 0,
-          zIndex: 9991
         }}>
 
         </Box>
 
-        <Box sx={{
+        {step !== 3 && <Box sx={{
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
@@ -651,7 +651,7 @@ export default function UserClinicListView() {
             src={'/assets/tutorial-doctor/nurse-tutor.png'}
 
           />
-        </Box>
+        </Box>}
       </>
 
     </Box>
@@ -767,7 +767,7 @@ export default function UserClinicListView() {
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-        {Number(currentStep) === 6 && step !== 3 && renderFifthTutorial}
+        {Number(currentStep) === 6 && step !== 14 && renderFifthTutorial}
         {Number(currentStep) === 6 && step === 3 && !openCreate.value && addHighlight}
         {Number(currentStep) === 7 && successStep !== 3 && successClinic}
 

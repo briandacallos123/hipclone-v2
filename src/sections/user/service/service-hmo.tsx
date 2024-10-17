@@ -22,6 +22,8 @@ import { useQuery } from '@apollo/client';
 import { GET_ALL_HMO } from '@/libs/gqls/hmo';
 import { useTheme, alpha } from '@mui/material/styles';
 import { v4 as uuidv4 } from 'uuid';
+import { useResponsive } from '@/hooks/use-responsive';
+import { Stack } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -34,6 +36,8 @@ export default function ServiceHmo({ tutorialTab, incrementTutsTab }: any) {
   const { loading, data, refetch } = useQuery(GET_ALL_HMO);
 
   const [tableData, setTableData]: any = useState([]);
+
+  const upMd = useResponsive('up', 'md');
 
   useEffect(() => {
     if (data) {
@@ -172,7 +176,8 @@ export default function ServiceHmo({ tutorialTab, incrementTutsTab }: any) {
             title="HMO Accreditations"
             subheader="HIP is accredited by Cocolife. Updating the accreditation status is between doctor and HMO."
             action={
-              <Button
+             <Stack direction={!upMd ? 'column':'row'} gap={2}>
+               <Button
                 onClick={openEdit.onTrue}
                 variant="contained"
                 disabled={loading}
@@ -180,6 +185,15 @@ export default function ServiceHmo({ tutorialTab, incrementTutsTab }: any) {
               >
                 Configure
               </Button>
+              {tutorialTab === 10 && <Button
+                onClick={incrementTutsTab}
+                variant="outlined"
+                disabled={loading}
+                startIcon={<Iconify icon="solar:pen-2-bold" />}
+              >
+                Skip
+              </Button>}
+             </Stack>
             }
           />
 

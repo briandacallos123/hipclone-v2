@@ -108,7 +108,7 @@ export default function ServiceProfessionalFee({ tutorialTab, incrementTutsTab }
     handleSubmit,
     setValue,
     watch,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = methods;
 
   const values = watch();
@@ -229,8 +229,9 @@ export default function ServiceProfessionalFee({ tutorialTab, incrementTutsTab }
                 <LoadingButton
                   type="submit"
                   variant="contained"
-                  disabled={loading}
+                  disabled={!isDirty}
                   loading={isSubmitting}
+                  
                 >
                   Save Changes
                 </LoadingButton>

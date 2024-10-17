@@ -1,11 +1,3 @@
-
-
-.service-fee {
-    position: relative;
-    display: inline-block;
-    z-index: 100;
-}
-
 .showFields {
     position: relative;
     display: inline-block;
@@ -13,15 +5,13 @@
     background-color: white;
     border-radius: 10px;
     width: 100%;
-    padding:5px
     
 }
 
 .showFields-submit {
     position: relative;
     display: inline-block;
-    z-index: 999999;
-
+    z-index: 99999;
     border-radius: 10px;
 }
 

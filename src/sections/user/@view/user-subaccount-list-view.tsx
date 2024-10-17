@@ -52,6 +52,7 @@ import { Box } from '@mui/material';
 import { m } from 'framer-motion';
 import { MotionContainer, varFade } from 'src/components/animate';
 import Image from '@/components/image';
+import './generalStyle.css'
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -302,8 +303,8 @@ export default function UserSubaccountListView() {
           },
         }}
       >
-        <span>Manage Your Team! 🌟</span><br/><br/>
-        As a doctor, you can now create sub-accounts for your assistants. 
+        <span>Manage Your Team! 🌟</span><br /><br />
+        As a doctor, you can now create sub-accounts for your assistants.
       </Typography>
     </m.div>
   )
@@ -324,12 +325,12 @@ export default function UserSubaccountListView() {
           },
         }}
       >
-        <span>Manage Your Team! 🌟</span><br/><br/>
+        <span>Manage Your Team! 🌟</span><br /><br />
         This feature allows you to delegate tasks and enhance your practice's efficiency.
       </Typography>
     </m.div>
   )
- 
+
 
   const renderTwelveTutorial = (
     <Box sx={{
@@ -356,18 +357,17 @@ export default function UserSubaccountListView() {
 
         </Box>
 
-        <Box sx={{
+        {step < 3 && <Box sx={{
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
         }}>
-          {/* message */}
           <m.div variants={varFade().inUp}>
             <Box sx={{
               background: theme.palette.background.default,
               height: 'auto',
               width: 'auto',
-              maxWidth:250,
+              maxWidth: 250,
               left: 10,
               borderRadius: 2,
               zIndex: 99999,
@@ -376,13 +376,13 @@ export default function UserSubaccountListView() {
               flexDirection: 'column',
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
-              p:3
+              p: 3
             }}>
               {step === 1 && firstStep}
               {step === 2 && secondStep}
 
 
-              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ width: '90%', pt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                 <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
               </Box>
             </Box>
@@ -400,17 +400,18 @@ export default function UserSubaccountListView() {
             src={'/assets/tutorial-doctor/nurse-tutor.png'}
 
           />
-        </Box>
+        </Box>}
       </>
 
     </Box>
   )
 
+  console.log(step,'stepstep')
 
   return (
     <>
 
-      {Number(currentStep) === 12 && step !== 3 && renderTwelveTutorial}
+      {Number(currentStep) === 12 && step !== 4 && renderTwelveTutorial}
 
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
         <Stack
@@ -423,14 +424,19 @@ export default function UserSubaccountListView() {
         >
           <Typography variant="h5">Manage Sub-account</Typography>
 
-          <LoadingButton
-            onClick={openCreate.onTrue}
-            variant="contained"
-            loading={isLoading}
-            startIcon={<Iconify icon="mingcute:add-line" />}
-          >
-            {!upMd ? "New account":"New Sub-account"}
-          </LoadingButton>
+          <div className={step === 3 ? `showFields-submit`:''}> 
+            <LoadingButton
+              onClick={()=>{
+                openCreate.onTrue();
+                incrementStep()
+              }}
+              variant="contained"
+              loading={isLoading}
+              startIcon={<Iconify icon="mingcute:add-line" />}
+            >
+              {!upMd ? "New account" : "New Sub-account"}
+            </LoadingButton>
+          </div>
         </Stack>
 
         <Card>

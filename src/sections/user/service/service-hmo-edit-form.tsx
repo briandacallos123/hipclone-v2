@@ -92,7 +92,7 @@ export default function ServiceHmoEditForm({
     control,
     handleSubmit,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = methods;
 
 const currentStep = localStorage.getItem('currentStep');
@@ -300,7 +300,7 @@ const currentStep = localStorage.getItem('currentStep');
 
         <LoadingButton
           type="submit"
-          disabled={toggleUpdate}
+          disabled={!isDirty}
           variant="contained"
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}

@@ -39,7 +39,7 @@ export default function ServicePaymentMethodCreate({
       open={open}
       onClose={onClose}
       PaperProps={{
-        sx: { maxWidth: 720 },
+        sx: { maxWidth: 720},
       }}
     >
       <ServicePaymentMethodNewEditForm

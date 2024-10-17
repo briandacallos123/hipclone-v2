@@ -331,6 +331,9 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
     });
     setSnackKey2(snackbarKey);
   };
+
+  const  [myImage, setMyImg] = useState();
+
   const handlePad = () => {
     const canvas: any = mySig.current;
     if (canvas) {
@@ -341,9 +344,11 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
   
       // Convert base64 to a Blob
       const blob = b64toBlob(base64Data);
+
   
       // Create a File from the Blob
       const file = new File([blob], 'signature.png', { type: 'image/png' });
+  
   
       // Set the Blob data to the signatureCanvas
       const reader = new FileReader();
@@ -358,6 +363,7 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
         img.src = e.target.result as string;
       };
       reader.readAsDataURL(blob);
+
       
       setValue('signatureD', false);
       setValue('signatureDigital', file, { shouldValidate: true });

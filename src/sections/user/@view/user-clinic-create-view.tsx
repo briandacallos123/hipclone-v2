@@ -36,6 +36,7 @@ export default function UserClinicCreateView({
       fullScreen={!upMd}
       fullWidth
       maxWidth={false}
+      disableBackdropClick
       open={open}
       onClose={onClose}
       PaperProps={{

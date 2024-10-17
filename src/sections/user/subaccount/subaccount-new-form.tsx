@@ -27,7 +27,8 @@ import { mutation_create_sub_account, email_validation, mobile_no_validation } f
 import { useAuthContext } from '@/auth/hooks';
 import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
-
+import { useTheme, alpha } from '@mui/material/styles';
+import { ConfirmDialog } from '@/components/custom-dialog';
 
 
 // ----------------------------------------------------------------------
@@ -35,14 +36,14 @@ import { paths } from '@/routes/paths';
 type Props = {
   onClose: VoidFunction;
   setIsRefetch?: any;
-  refetch:any;
-  isLoading:any;
-  setLoading:any;
+  refetch: any;
+  isLoading: any;
+  setLoading: any;
 };
 
-export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsRefetch,refetch }: Props) {
-  const { enqueueSnackbar,closeSnackbar } = useSnackbar();
-  const [snackKey, setSnackKey]:any = useState(null);
+export default function SubaccountNewForm({ isLoading, setLoading, onClose, setIsRefetch, refetch }: Props) {
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const [snackKey, setSnackKey]: any = useState(null);
 
   const router = useRouter();
 
@@ -72,9 +73,10 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
 
   const currentStep = localStorage?.getItem('currentStep')
 
+  const [step, setStep] = useState(1);
 
 
-
+  const onIncrementStep = () => setStep(step + 1);
 
   const [emailValidation, setEmailValidation] = useState('');
   const handleEmailChange = (event: any) => {
@@ -166,9 +168,9 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
     middleName: Yup.string().required('MiddleName is required'),
     gender: Yup.string().required('Gender is required'),
     email: Yup.string()
-    .required('Email is required')
-    .email('Email must be a valid email address')
-    .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email must be a valid email format'),
+      .required('Email is required')
+      .email('Email must be a valid email address')
+      .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email must be a valid email format'),
 
   });
 
@@ -182,8 +184,11 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
     reset,
     watch,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty, errors },
   } = methods;
+
+
+  console.log(errors, 'errorserrors')
 
   const values = watch();
   useEffect(() => {
@@ -192,14 +197,14 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
       (async () => {
         await handleSubmitValue({
           ...values,
-            fname: values?.firstName,
-            lname: values?.lastName,
-            mname: values?.middleName,
-            gender: values?.gender,
-            mobile_no: MobileNoValidation,
-            email:emailValidation,
-            password: values?.password,
-            confirmpasword: values?.confirmPassword,
+          fname: values?.firstName,
+          lname: values?.lastName,
+          mname: values?.middleName,
+          gender: values?.gender,
+          mobile_no: MobileNoValidation,
+          email: emailValidation,
+          password: values?.password,
+          confirmpasword: values?.confirmPassword,
         });
         // setSnackKey(null);
       })();
@@ -239,12 +244,12 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
         refetch();
         setLoading(false)
 
-        if(currentStep && Number(currentStep) !== 100){
-          localStorage.setItem('currentStep','13');
+        if (currentStep && Number(currentStep) !== 100) {
+          localStorage.setItem('currentStep', '13');
           router.push(paths.dashboard.user.manage.login)
         }
       })
-      .catch((error) => { 
+      .catch((error) => {
         closeSnackbar(snackKey);
         enqueueSnackbar('Something went wrong', { variant: 'error' });
         setLoading(false)
@@ -259,7 +264,7 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
 
       try {
 
-        const snackbarKey:any = enqueueSnackbar('Creating Sub Account...', {
+        const snackbarKey: any = enqueueSnackbar('Creating Sub Account...', {
           variant: 'info',
           key: 'UpdatingPhoneNumber',
           persist: true, // Do not auto-hide
@@ -300,7 +305,7 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
         console.error(error);
       }
     },
-    [enqueueSnackbar, onClose, reset,emailValidation,MobileNoValidation]
+    [enqueueSnackbar, onClose, reset, emailValidation, MobileNoValidation]
   );
 
   const INPUT_FIELD = [
@@ -318,11 +323,254 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
     },
   ];
 
+  const theme = useTheme();
+  const confirm = useBoolean();
+
+  const PRIMARY_MAIN = theme.palette.primary.main;
+
+  const renderConfirm = (
+    <ConfirmDialog
+      open={confirm.value}
+      onClose={confirm.onFalse}
+      title="Unsaved Changes"
+      content="You have unsaved changes, are you sure you want to skip?"
+      sx={{
+        zIndex: 99999
+      }}
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            onIncrementStep();
+            // clearUnsaved()
+            confirm.onFalse();
+            reset({}, { keepValues: true });
+          }}
+        >
+          Skip
+        </Button>
+      }
+    />
+  );
+  const handleContinue = useCallback(() => {
+    // Resetting isDirty by setting the values to the current values
+    reset({}, { keepValues: true });
+    // Then increment the step
+    onIncrementStep();
+  }, [values])
+
+  const onSkip = useCallback(() => {
+    if (isDirty) {
+      confirm.onTrue()
+    } else {
+      onIncrementStep()
+    }
+  }, [isDirty])
+
+  const [emailChange, setEmailChange] = useState(false);
+  const [passwordChange, setPasswordChange] = useState(false);
+  const [rePasswordChange, setRepasswordChange] = useState(false);
+
+  const [load, setLoad] = useState(false);
+
+  const RenderChoices = useCallback(({ isRequired }: any) => {
+    return (
+      <Stack sx={{
+        p: 1
+      }} direction="row" alignItems='center' gap={2} justifyContent='flex-end'>
+        {!isRequired && <Button onClick={onSkip} variant="outlined">Skip</Button>}
+        <LoadingButton loading={load} disabled={
+          (() => {
+            if (step === 6) {
+              setLoad(true)
+              if (statusMobilePhoneData === 'Failed') {
+                setLoad(false)
+                return true
+              } else {
+                setLoad(false)
+
+                return false
+              }
+            } else if (emailChange) {
+              if (Object.keys(errors)?.length !== 0) {
+                return true
+              } else {
+                return false
+              }
+            }else if(passwordChange){
+              if (Object.keys(errors)?.length !== 0) {
+                return true
+              } else {
+                return false
+              }
+            }else if(rePasswordChange){
+              if (Object.keys(errors)?.length !== 0) {
+                return true
+              } else {
+                return false
+              }
+            }
+            
+             else {
+              return !isDirty
+            }
+          })()
+        } onClick={handleContinue} variant="contained">Continue</LoadingButton>
+
+      </Stack>
+    )
+  }, [isDirty, step, statusMobilePhoneData, Object.keys(errors)])
+
+  console.log(isDirty, 'isDirty')
+  console.log(Object.keys(errors)?.length !== 0, 'Object.keys(errors)')
+
+  const renderTutsFields = (
+    <Box>
+      <Box
+        rowGap={3}
+        columnGap={2}
+        display="grid"
+        gridTemplateColumns={{
+          xs: 'repeat(1, 1fr)',
+          sm: 'repeat(2, 1fr)',
+        }}
+      >
+        <div className={step === 1 ? 'showFields' : ''}>
+          <RHFTextField name="firstName" label="First Name" />
+          {step === 1 && <RenderChoices isRequired={true} />}
+        </div>
+
+        <div className={step === 2 ? 'showFields' : ''}>
+          <RHFTextField name="lastName" label="Last Name" />
+          {step === 2 && <RenderChoices isRequired={true} />}
+        </div>
+
+        <div className={step === 3 ? 'showFields' : ''}>
+          <RHFTextField name="middleName" label="Middle Name" />
+          {step === 3 && <RenderChoices isRequired={false} />}
+        </div>
+
+
+        <div className={step === 4 ? 'showFields' : ''}>
+          <RHFSelect name="gender" label="Gender">
+            <MenuItem value="1">Male</MenuItem>
+            <MenuItem value="2">Female</MenuItem>
+
+          </RHFSelect>
+          {step === 4 && <RenderChoices isRequired={true} />}
+        </div>
+
+        <div className={step === 5 ? 'showFields' : ''}>
+          <RHFTextField
+            helperText={errors.email ? errors.email.message : ''}
+            name="email"
+            type='email'
+            error={!!errors.email}
+            label="Email Address"
+            onChange={(e) => {
+              methods.setValue('email', e.target.value);
+              setEmailChange(true)
+              methods.trigger('email'); // Validate on change
+            }}
+          />
+          {step === 5 && <RenderChoices isRequired={true} />}
+        </div>
+
+
+        {renderConfirm}
+        <div className={step === 6 ? 'showFields' : ''}>
+          <RHFTextField
+            name="phoneNumber"
+            type='number'
+            label="Phone Number"
+            onChange={handleMobileNoChange}
+            value={MobileNoValidation}
+            helperText={
+
+              <>
+                {MobileNoValidation ?
+                  (statusMobilePhoneData === 'Failed' && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
+                    *{messageMobilePhoneData}
+                  </Typography>
+                  ) :
+                  (noValueMobilePhone && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
+                    *Phone number is required
+                  </Typography>)
+                }
+              </>
+
+            }
+          />
+          {step === 6 && <RenderChoices isRequired={true} />}
+        </div>
+        {/* <Stack>
+    
+    </Stack>     */}
+        {INPUT_FIELD.map((field, index) => (
+          <div className={(() => {
+            if (index === 0 && step === 7) {
+              return 'showFields'
+            } else if (index === 1 && step === 8) {
+              return 'showFields'
+            }
+          })()}>
+            <RHFTextField
+              key={field.label}
+              name={field.value}
+              placeholder={field.label}
+              type={field.state ? 'text' : 'password'}
+              InputProps={{
+                endAdornment: (
+                  <InputAdornment position="end">
+                    <IconButton onClick={field.func} edge="end">
+                      <Iconify icon={field.state ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+              }}
+              onChange={(e) => {
+                if(index === 0){
+                  methods.setValue('password', e.target.value);
+                  setPasswordChange(true)
+                  methods.trigger('password')
+                }else if(index === 1){
+                  methods.setValue('confirmPassword', e.target.value);
+                  setRepasswordChange(true)
+                  methods.trigger('confirmPassword')
+                }
+              }}
+            />
+            {(() => {
+              if (index === 0 && step === 7) {
+                return <RenderChoices isRequired={true} />
+              } else if (index === 1 && step === 8) {
+                return <RenderChoices isRequired={true} />
+              }
+            })()}
+          </div>
+        ))}
+      </Box>
+      <Box sx={{
+        background: PRIMARY_MAIN,
+        opacity: .4,
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+
+      }}>
+
+      </Box>
+    </Box>
+  )
+
   return (
     <>
       <DialogContent>
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-          <Box
+          {!currentStep ? <Box
             rowGap={3}
             columnGap={2}
             display="grid"
@@ -345,23 +593,23 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
               name="email"
               type='email'
               label="Email Address"
-              // onChange={handleEmailChange}
-              // onFocus={handleEmailChange}
-              // onKeyDown={handleEmailChange}
-              // value={emailValidation}
-              // helperText={
-              //   <>
-              //     {emailValidation ?
-              //       (statusEmailData === 'Failed' && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
-              //         *{messageEmailData}
-              //       </Typography>
-              //       ) :
-              //       (noValueEmail && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
-              //         *Email is required
-              //       </Typography>)
-              //     }
-              //   </>
-              // }
+            // onChange={handleEmailChange}
+            // onFocus={handleEmailChange}
+            // onKeyDown={handleEmailChange}
+            // value={emailValidation}
+            // helperText={
+            //   <>
+            //     {emailValidation ?
+            //       (statusEmailData === 'Failed' && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
+            //         *{messageEmailData}
+            //       </Typography>
+            //       ) :
+            //       (noValueEmail && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
+            //         *Email is required
+            //       </Typography>)
+            //     }
+            //   </>
+            // }
             />
 
             <RHFTextField
@@ -406,7 +654,9 @@ export default function SubaccountNewForm({isLoading, setLoading,onClose, setIsR
                 }}
               />
             ))}
-          </Box>
+          </Box> :
+            renderTutsFields
+          }
         </FormProvider>
       </DialogContent>
 

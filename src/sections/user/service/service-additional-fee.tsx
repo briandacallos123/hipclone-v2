@@ -125,7 +125,7 @@ export default function ServiceAdditionalFee({tutorialTab, incrementTutsTab}:any
     handleSubmit,
     watch,
     setValue,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = methods;
 
   useEffect(() => {
@@ -300,7 +300,7 @@ export default function ServiceAdditionalFee({tutorialTab, incrementTutsTab}:any
               <LoadingButton
                 type="submit"
                 variant="contained"
-                disabled={loading}
+                disabled={!isDirty}
                 loading={isSubmitting}
               >
                 Save Changes

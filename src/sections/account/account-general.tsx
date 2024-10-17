@@ -390,7 +390,6 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
       <Typography
         sx={{
           fontSize: 15,
-          mb: 2,
           lineHeight: 1.25,
           '& > span': {
             color: theme.palette.primary.main,
