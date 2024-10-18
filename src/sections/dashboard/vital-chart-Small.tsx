@@ -35,8 +35,8 @@ interface Props extends CardProps {
     options?: ApexOptions;
   };
   loading: boolean;
-  isLegend?:boolean;
-  isSmall?:boolean
+  isLegend?: boolean;
+  isSmall?: boolean;
 }
 
 export default function VitalChartSmall({
@@ -47,7 +47,7 @@ export default function VitalChartSmall({
 
   loading,
   isLegend,
-  isSmall=false,
+  isSmall = false,
   ...other
 }: Props) {
   const theme = useTheme();
@@ -84,7 +84,7 @@ export default function VitalChartSmall({
     },
 
     tooltip: {
-      enabled:true,
+      enabled: true,
       x: {
         show: true,
       },
@@ -103,13 +103,13 @@ export default function VitalChartSmall({
       show: true,
       floating: true,
       offsetY: 10,
-      position:'top',
+      position: 'top',
       onItemClick: {
-        toggleDataSeries: true
-    },
+        toggleDataSeries: true,
+      },
       onItemHover: {
-        highlightDataSeries: true
-    },
+        highlightDataSeries: true,
+      },
     },
 
     ...options,
@@ -117,54 +117,50 @@ export default function VitalChartSmall({
 
   // console.log(chart.categories,'________________CATEGORRIES2___________________')
   // console.log(chartOptions,'________________CATEGORRIES2___________________')
-  
+
   // console.log(data,'________________DATA2___________________')
 
   return (
-    <>
-      {upMd && (
-        <Card
-          {...other}
-          sx={{
-            p:isSmall ? .5:1 ,
-            width: { xs: 200, md: 'auto' },
-            height: { xs: 180, md: 350 },
-            '& .MuiCardHeader-title': {
-              fontSize: 12,
-              textAlign: isSmall ? "left":"center",
-            },
-            boxShadow: 'none',
-            border: 'none',
-          
-          }}
-        >
-
-          {isSmall ? <Typography variant="caption" sx={{ color: theme.palette.primary.main }}>
-                Body Temperature
-              </Typography>:
-              <CardHeader  title={title} subheader={subheader} sx={{ p: { xs: 0.7, md: isSmall ? 0:2} }} />
-         
-              }
-          
-          {loading ? (
-            <Box sx={{ p: 3, pt: 2 }}>
-              <Skeleton variant="rounded" height={180} />
-            </Box>
-          ) : (
-            <Chart
-              dir="ltr"
-              type="area"
-              series={data && data}
-              options={chartOptions}
-              width={
-                (upMd && isSmall && '25%') ||
-                ((upMd && !isSmall) ? '70%':200 )
-              }
-              height={upMd ? '40%' : 165}
-            />
-          )}
-        </Card>
+    <Card
+      {...other}
+      sx={{
+        p: isSmall ? 0.5 : 1,
+        width: { xs: 200, md: 'auto' },
+        height: { xs: 180, md: 350 },
+        '& .MuiCardHeader-title': {
+          fontSize: 12,
+          textAlign: isSmall ? 'left' : 'center',
+        },
+        boxShadow: 'none',
+        border: 'none',
+      }}
+    >
+      {isSmall ? (
+        <Typography variant="caption" sx={{ color: theme.palette.primary.main }}>
+          Body Temperature
+        </Typography>
+      ) : (
+        <CardHeader
+          title={title}
+          subheader={subheader}
+          sx={{ p: { xs: 0.7, md: isSmall ? 0 : 2 } }}
+        />
       )}
-    </>
+
+      {loading ? (
+        <Box sx={{ p: 3, pt: 2 }}>
+          <Skeleton variant="rounded" height={180} />
+        </Box>
+      ) : (
+        <Chart
+          dir="ltr"
+          type="area"
+          series={data && data}
+          options={chartOptions}
+          width={(upMd && isSmall && '25%') || (upMd && !isSmall ? '70%' : 200)}
+          height={upMd ? '40%' : 165}
+        />
+      )}
+    </Card>
   );
 }

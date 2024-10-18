@@ -83,36 +83,31 @@ export default function VitalChart({
   // console.log(data, 'DATA_____________');
 
   return (
-    <>
-      {upMd && (
-        <Card
-          {...other}
-          sx={{
-            width: { xs: 200, md: 'auto' },
-            height: { xs: 180, md: 270 },
-            boxShadow: 'none',
-            border: 'none',
-          }}
-        >
-          <CardHeader title={title} subheader={subheader} sx={{ p: { xs: 0.7, md: 2 } }} />
+    <Card
+      {...other}
+      sx={{
+        width: '100%',
+        height: { xs: 180, md: 270 },
+        boxShadow: 'none',
+        border: 'none',
+      }}
+    >
+      <CardHeader title={title} subheader={subheader} sx={{ p: { xs: 0.7, md: 2 } }} />
 
-          {loading ? (
-            <Box sx={{ p: 3, pt: 2 }}>
-              <Skeleton variant="rounded" height={180} />
-            </Box>
-          ) : (
-            <Chart
-              dir="ltr"
-              type="area"
-              series={data && data}
-              options={chartOptions}
-              height={upMd ? 180 : 165}
-              width={upMd ? '100%' : 200}
-            />
-          )}
-         
-        </Card>
+      {loading ? (
+        <Box sx={{ p: 3, pt: 2 }}>
+          <Skeleton variant="rounded" height={180} />
+        </Box>
+      ) : (
+        <Chart
+          dir="ltr"
+          type="area"
+          series={data && data}
+          options={chartOptions}
+          height={upMd ? 180 : 165}
+          width="100%"
+        />
       )}
-    </>
+    </Card>
   );
 }
