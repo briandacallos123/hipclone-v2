@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { forwardRef, useEffect, useState } from 'react';
 // @mui
 import Box from '@mui/material/Box';
 import Card from '@mui/material/Card';
@@ -24,10 +24,11 @@ import { useTheme, alpha } from '@mui/material/styles';
 import { v4 as uuidv4 } from 'uuid';
 import { useResponsive } from '@/hooks/use-responsive';
 import { Stack } from '@mui/material';
+import './styles/service.css'
 
 // ----------------------------------------------------------------------
 
-export default function ServiceHmo({ tutorialTab, incrementTutsTab }: any) {
+const ServiceHmo = forwardRef(({tutorialTab, incrementTutsTab }, ref) =>{
   const [user] = useState<IUserService>(_userService);
   const theme = useTheme();
 
@@ -170,8 +171,8 @@ export default function ServiceHmo({ tutorialTab, incrementTutsTab }: any) {
 
   return (
     <>
-      <div className={tutorialTab && tutorialTab === 10 ? 'service-fee':''}>
-        <Card>
+      <div className={tutorialTab && tutorialTab === 10 ? 'service-fee service-fee-mt':''}>
+        <Card ref={ref}>
           <CardHeader
             title="HMO Accreditations"
             subheader="HIP is accredited by Cocolife. Updating the accreditation status is between doctor and HMO."
@@ -248,7 +249,9 @@ export default function ServiceHmo({ tutorialTab, incrementTutsTab }: any) {
      
     </>
   );
-}
+})
+
+export default ServiceHmo
 
 function imgReader(data: number) {
   if (data === 1) return '/assets/icons/hmo/asiancare-health-systems.jpg';

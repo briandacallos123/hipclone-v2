@@ -43,6 +43,8 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
 
   const router = useRouter();
 
+  const language = localStorage?.getItem('languagePref');
+  const isEnglish = language && language === 'english';
 
   useEffect(() => {
     setCurrentStep(localStorage.getItem('currentStep'))
@@ -125,13 +127,13 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
   const [successProfile, setSuccProfile] = useState(1);
 
 
-      useEffect(()=>{
-        if(successProfile === 3){
-          router.push(paths.dashboard.root)
-          localStorage.setItem('currentStep', '100');
+  useEffect(() => {
+    if (successProfile === 3) {
+      router.push(paths.dashboard.root)
+      localStorage.setItem('currentStep', '100');
 
-        }
-      },[successProfile])
+    }
+  }, [successProfile])
 
   const onIncrementSucc = () => setSuccProfile(successProfile + 1)
 
@@ -216,8 +218,10 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
           },
         }}
       >
-        <span>Congratulations, Doctor! 🎉</span><br /><br />
-        You've set up your profile and data. Here are the modified sections—feel free to make any changes later on!
+        <span>
+          {isEnglish ? "Congratulations, Doctor! 🎉" : "Maligayang bati, Doktor! 🎉"}
+        </span><br /><br />
+        {isEnglish ? "You've set up your profile and data. Here are the modified sections—feel free to make any changes later on!" : "Naitayo mo na ang iyong profile at datos. Narito ang mga binagong seksyon—malaya kang gumawa ng mga pagbabago sa ibang pagkakataon!"}
       </Typography>
     </m.div>
   )
@@ -240,8 +244,11 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
           },
         }}
       >
-        <span>Congratulations, Doctor! 🎉</span><br /><br />
-        🔄 I will now redirect you to your home page. 🏠
+        <span>
+          {isEnglish ? "Congratulations, Doctor! 🎉" : "Maligayang bati, Doktor! 🎉"}
+        </span><br /><br />
+
+        {isEnglish ? "🔄 I will now redirect you to your home page. 🏠" : "🔄 Ikaw ay ire-redirect ko na sa iyong home page. 🏠"}
       </Typography>
     </m.div>
   )
@@ -326,16 +333,18 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
       </Box>
 
       {lgUp ? (
-        <Stack
-          sx={{
-            height: 1,
-            position: 'fixed',
-            width: NAV.W_VERTICAL,
-            borderRight: (theme) => `dashed 1px ${theme.palette.divider}`,
-          }}
-        >
-          {renderContent}
-        </Stack>
+        <div className={(Number(cStep) === 15 && successProfile !== 3) ? 'showFields-nav':''}>
+          <Stack
+            sx={{
+              height: 1,
+              position: 'fixed',
+              width: NAV.W_VERTICAL,
+              borderRight: (theme) => `dashed 1px ${theme.palette.divider}`,
+            }}
+          >
+            {renderContent}
+          </Stack>
+        </div>
       ) : (
 
         <Drawer

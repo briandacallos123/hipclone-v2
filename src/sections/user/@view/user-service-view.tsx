@@ -8,12 +8,14 @@ import Typography from '@mui/material/Typography';
 import { useSettingsContext } from 'src/components/settings';
 import { useTheme } from '@mui/material/styles';
 //
+import { useResponsive } from 'src/hooks/use-responsive';
+
 import ServiceProfessionalFee from '../service/service-professional-fee';
 import ServiceAdditionalFee from '../service/service-additional-fee';
 import ServicePaymentSchedule from '../service/service-payment-schedule';
 import ServiceHmo from '../service/service-hmo';
 import ServicePaymentMethodList from '../service/service-payment-method-list';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Box, Button } from '@mui/material';
 import { paths } from '@/routes/paths';
 import { useRouter } from 'next/navigation';
@@ -27,7 +29,7 @@ export default function UserServiceView() {
   const settings = useSettingsContext();
 
   const [tutorialTab, setTutsTab] = useState<number | null>(null);
-
+  const targetRef = useRef(null)
 
   let currentStep = localStorage?.getItem('currentStep')
 
@@ -41,10 +43,15 @@ export default function UserServiceView() {
     }
   }, [])
 
-  const incrementTutsTab = useCallback(()=>{
-    setTutsTab((prev:any)=>prev+1);
-  },[tutorialTab])
+  const incrementTutsTab = useCallback(() => {
+    setTutsTab((prev: any) => prev + 1);
+    if (tutorialTab) {
+      targetRef.current.scrollIntoView({ behavior: 'smooth' });
 
+    }
+  }, [tutorialTab])
+
+  const upMd = useResponsive('up', 'md');
 
 
   const theme = useTheme();
@@ -53,6 +60,9 @@ export default function UserServiceView() {
   const [step, setSteps] = useState(1);
 
   const incrementStep = () => setSteps((prev) => prev + 1)
+
+  const language = localStorage?.getItem('languagePref');
+  const isEnglish = language && language === 'english';
 
   const firstStep = (
     <m.div>
@@ -71,7 +81,8 @@ export default function UserServiceView() {
           },
         }}
       >
-        Please ensure you fill in all required services fields. 🏥✅
+        {isEnglish ? 'Please ensure you fill in all required services fields. 🏥✅' : 'Pakisigurong punan ang lahat ng kinakailangang field para sa mga serbisyo. 🏥✅'}
+
       </Typography>
     </m.div>
   )
@@ -104,6 +115,7 @@ export default function UserServiceView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
+          right:upMd ? 100:30
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -182,17 +194,17 @@ export default function UserServiceView() {
     </Box>
   )
 
-
+  const dummyRef = useRef(null)
 
 
   return (
     <Container sx={{
-      position:'relative'
+      position: 'relative'
     }} maxWidth={settings.themeStretch ? false : 'lg'}>
 
       {Number(currentStep) === 7 && step !== 2 && renderFifthTutorial}
 
-      {tutorialTab && renderTuts}
+      {tutorialTab && step !== 1 && renderTuts}
       <Typography
         variant="h5"
         sx={{
@@ -202,15 +214,15 @@ export default function UserServiceView() {
         Manage Service
       </Typography>
       <Stack spacing={3}>
-        <ServiceProfessionalFee incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
+        <ServiceProfessionalFee step={step} incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
 
-        <ServiceAdditionalFee incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
+        <ServiceAdditionalFee ref={tutorialTab === 7 ? targetRef : dummyRef} incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
 
-        <ServicePaymentSchedule incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
+        <ServicePaymentSchedule ref={tutorialTab === 8 ? targetRef : dummyRef} incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
 
-        <ServiceHmo incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
+        <ServiceHmo ref={tutorialTab === 9 ? targetRef : dummyRef} incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
 
-        <ServicePaymentMethodList incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
+        <ServicePaymentMethodList ref={tutorialTab === 10 ? targetRef : dummyRef} incrementTutsTab={incrementTutsTab} tutorialTab={tutorialTab} />
       </Stack>
     </Container>
   );

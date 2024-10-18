@@ -3,7 +3,6 @@
 .service-fee {
     position: relative;
     display: inline-block;
-    width:100%;
     z-index: 100;
 }
 
@@ -12,18 +11,18 @@
    top:100px;
 }
 
-.showFields-service {
+.showFields {
     position: relative;
     display: inline-block;
     z-index: 99999;
-    /* background-color: white; */
+    background-color: white;
     border-radius: 10px;
     width: 100%;
     padding:5px
     
 }
 
-.showFields-submit-payment {
+.showFields-submit {
     position: relative;
     display: inline-block;
     z-index: 999999;
@@ -32,13 +31,13 @@
 }
 
 
-.showFields-submit-payment::before {
+.showFields-submit::before {
     content: '➔'; /* You can replace this with an arrow icon */
     position: absolute;
-    top: 0%; /* Adjust as needed to position the arrow */
-    left: -30%;
+    margin-top: 0;
+    margin-left: -10px;
     transform: translateX(-50%);
-    font-size: 24px; /* Adjust the size of the arrow */
+    font-size: 42px; /* Adjust the size of the arrow */
     animation: scale .7s infinite alternate; /* Animation for scaling */
     color: white; /* Adjust color */
 }

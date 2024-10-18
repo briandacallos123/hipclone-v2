@@ -26,7 +26,7 @@ import { MotionContainer, varFade } from 'src/components/animate';
 import Image from '@/components/image';
 import { useTheme } from '@mui/material/styles';
 import { Button } from '@mui/material';
-import './generalStyle.css'
+import './styles/licences.css'
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
 
@@ -130,7 +130,7 @@ export default function AccountLicenses() {
           validity: values?.prcExpiry,
           practicing_since: values?.since,
         });
-       
+
         setSnackKey(null);
       })();
     }
@@ -148,8 +148,8 @@ export default function AccountLicenses() {
           variant: 'info',
           key: 'savingGeneral',
           persist: true,
-          style:{
-            zIndex:9999
+          style: {
+            zIndex: 9999
           }
         });
         setSnackKey(snackbarKey);
@@ -174,6 +174,9 @@ export default function AccountLicenses() {
 
   const PRIMARY_MAIN = theme.palette.primary.main;
   const [step, setSteps] = useState(1);
+
+  const language = localStorage?.getItem('languagePref');
+    const isEnglish = language && language === 'english';
 
   const incrementStep = () => setSteps((prev) => prev + 1)
 
@@ -204,7 +207,7 @@ export default function AccountLicenses() {
           },
         }}
       >
-        Great! 🎉 Please ensure that all required license fields are filled out completely. ✅
+        {language === 'english' ? ' Great! 🎉 Please ensure that all required license fields are filled out completely. ✅' : 'Magaling! 🎉 Pakisigurong kumpleto ang lahat ng kinakailangang field ng lisensya. ✅'}
       </Typography>
     </m.div>
   )
@@ -226,7 +229,7 @@ export default function AccountLicenses() {
           },
         }}
       >
-        It is important for maintaining compliance and ensuring proper documentation of your credentials. 📜✨ Don't forget to save your changes! 💾
+        {language === 'tagalog' ? "Mahalaga ito para sa pagpapanatili ng pagsunod at pagtiyak ng tamang dokumentasyon ng iyong mga kredensyal. 📜✨ Huwag kalimutang i-save ang iyong mga pagbabago! 💾" : 'It is important for maintaining compliance and ensuring proper documentation of your credentials. 📜✨ Do not forget to save your changes! 💾'}
       </Typography>
     </m.div>
   )
@@ -245,8 +248,7 @@ export default function AccountLicenses() {
       left: 0,
       right: 0,
       bottom: 0,
-      zIndex: !angGulo ? 99999 : 100
-
+      zIndex: 900
     }}>
 
 
@@ -268,6 +270,7 @@ export default function AccountLicenses() {
           zIndex: 2001,
           position: 'absolute',
           bottom: 0,
+          right:upMd ? 100:null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -341,25 +344,25 @@ export default function AccountLicenses() {
     }
   }
 
-  const clearUnsaved = useCallback( () => {
-    switch(step){
+  const clearUnsaved = useCallback(() => {
+    switch (step) {
       case 3:
-        setValue('prcNumber','');
+        setValue('prcNumber', '');
         break;
       case 4:
-        setValue('prcExpiry','')
+        setValue('prcExpiry', '')
         break;
       case 5:
-        setValue('ptrNumber','')
+        setValue('ptrNumber', '')
         break;
       case 6:
-        setValue('s2Number','')
+        setValue('s2Number', '')
         break;
       case 7:
-        setValue('since','')
+        setValue('since', '')
         break;
     }
-  },[step])
+  }, [step])
 
   const handleContinue2 = useCallback(() => {
     // Resetting isDirty by setting the values to the current values
@@ -375,10 +378,10 @@ export default function AccountLicenses() {
     <ConfirmDialog
       open={confirm.value}
       onClose={confirm.onFalse}
-      title="Unsaved Changes"
-      content="You have unsaved changes, are you sure you want to skip?"
+      title={isEnglish ? 'Unsaved Changes':"Mga Hindi Nai-save na Pagbabago"}
+      content={isEnglish ? "You have unsaved changes, are you sure you want to skip":'Mayroon kang mga hindi nai-save na pagbabago. Sigurado ka bang nais mong laktawan ito?'}
       sx={{
-        zIndex:99999
+        zIndex: 99999
       }}
       action={
         <Button
@@ -408,16 +411,16 @@ export default function AccountLicenses() {
       p: 1
     }} direction="row" alignItems='center' gap={2} justifyContent='flex-end'>
       {step !== 3 && <Button onClick={onSkip} variant="outlined">Skip</Button>}
-      <Button disabled={(()=>{
-        if(step === 3 && values.prcNumber === ''){
+      <Button disabled={(() => {
+        if (step === 3 && values.prcNumber === '') {
           return true
-        }else if(step === 3 && values.prcNumber !== ''){
+        } else if (step === 3 && values.prcNumber !== '') {
           return false
         }
-        else{
+        else {
           return !isDirty
         }
-        
+
       })()} onClick={handleContinue2} variant="contained">Continue</Button>
 
     </Stack>
@@ -441,16 +444,18 @@ export default function AccountLicenses() {
         }}
 
       >
-        <div className={(step === 3 && (!hideChoices || angGulo)) ? 'showFields' : ''}>
+        <div className={(step === 3 && (!hideChoices || angGulo)) ? 'showFields-license' : ''}>
           {noData && <Typography></Typography>}
           <RHFTextField name="prcNumber" label="PRC Number" />
           {step === 3 && renderChoices}
         </div>
 
-        <div onClick={hideC} className={(step === 4 && (!hideChoices || angGulo)) ? 'showFields' : ''}>
+        {/* <div onClick={hideC} className={(step === 4 && (!hideChoices || angGulo)) ? 'showFields-license' : ''}> */}
+
+        <div onClick={hideC} className={step === 4 ? 'showFields-license':''}>
           <Controller
             name="prcExpiry"
-            className="showFields"
+            className="showFields-license"
             control={control}
             render={({ field, fieldState: { error } }: CustomRenderInterface) => (
               <DatePicker
@@ -459,13 +464,13 @@ export default function AccountLicenses() {
                 onChange={(newValue) => {
                   field.onChange(newValue);
                 }}
-                onClose={() => {
-                  setAngGulo(true)
-                }}
-                onOpen={() => {
-                  setAngGulo(false)
-
-                }}
+                // onClose={() => {
+                //   setAngGulo(true)
+                // }}
+                // onOpen={() => {
+                //   setAngGulo(false)
+                  
+                // }}
                 slotProps={{
                   textField: {
                     fullWidth: true,
@@ -476,20 +481,20 @@ export default function AccountLicenses() {
               />
             )}
           />
-          {step === 4 && (!hideChoices || angGulo) && renderChoices}
+          {step === 4 && renderChoices}
         </div>
 
-        <div className={step === 5 ? 'showFields' : ''}>
+        <div className={step === 5 ? 'showFields-license' : ''}>
           <RHFTextField name="ptrNumber" label="PTR Number" />
           {step === 5 && renderChoices}
         </div>
 
-        <div className={step === 6 ? 'showFields' : ''}>
+        <div className={step === 6 ? 'showFields-license' : ''}>
           <RHFTextField name="s2Number" label="S2 Number" />
           {step === 6 && renderChoices}
         </div>
 
-        <div className={step === 7 ? 'showFields' : ''}>
+        <div className={step === 7 ? 'showFields-license' : ''}>
           <RHFTextField name="since" label="Practicing Since (Year)" />
           {step === 7 && renderChoices}
         </div>
@@ -499,9 +504,11 @@ export default function AccountLicenses() {
 
         <Stack spacing={3} alignItems="flex-end" justifyContent="flex-end">
           <div className={step === 8 ? 'showFields-submit' : ''}>
-            <LoadingButton type={!hasChanges ? 'button':'submit'} variant="contained" loading={isSubmitting}>
+          {/* <div className={ 'showFields-submit'}> */}
 
-            Save Changes
+            <LoadingButton type={!hasChanges ? 'button' : 'submit'} variant="contained" loading={isSubmitting}>
+
+              Save Changes
             </LoadingButton>
           </div>
 
@@ -534,7 +541,7 @@ export default function AccountLicenses() {
           }}
 
         >
-          <div className="showFields">
+          <div className="showFields-license">
             <RHFTextField name="prcNumber" label="PRC Number" />
           </div>
 
@@ -565,7 +572,7 @@ export default function AccountLicenses() {
           <RHFTextField name="s2Number" label="S2 Number" />
           <RHFTextField name="since" label="Practicing Since (Year)" />
 
-          <div className={`${step === 8 ? 'showFields' : ''} `}>
+          <div className={`${step === 8 ? 'showFields-license' : ''} `}>
             <Stack spacing={3} alignItems="flex-end" justifyContent="flex-end">
               <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
                 Save Changes

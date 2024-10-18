@@ -27,8 +27,10 @@ import { gql, useMutation } from '@apollo/client';
 import { useForm, FieldValues } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { useResponsive } from 'src/hooks/use-responsive';
+import { useTheme } from '@mui/material/styles';
 
-const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
+const AccountGeneralSig = ({ onIncrementStep, decrementStep, setStep, step, isOpen, onClose, reset: resetParent, data }: any) => {
+
   const openPay = useBoolean();
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey1, setSnackKey1]: any = useState(null);
@@ -135,19 +137,19 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
           console.log(model, 'MODELLLL');
           const { data } = res;
           const cType = Number(model?.type);
-      
+
           const currentStep = localStorage?.getItem('currentStep')
 
-          if(currentStep){
-            localStorage.setItem('esigCalled','true')
+          if (currentStep) {
+            localStorage.setItem('esigCalled', 'true')
 
-            
+
           }
           if (!user?.esig?.filename) {
             reInitialize()
             onClose()
           }
-          
+
 
 
           if (cType === 2) {
@@ -332,24 +334,24 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
     setSnackKey2(snackbarKey);
   };
 
-  const  [myImage, setMyImg] = useState();
+  const [myImage, setMyImg] = useState();
 
   const handlePad = () => {
     const canvas: any = mySig.current;
     if (canvas) {
       const imageData = canvas.toDataURL();
-  
+
       // Extract the base64 data from the data URL
       const base64Data = imageData.replace(/^data:image\/(png|jpeg);base64,/, '');
-  
+
       // Convert base64 to a Blob
       const blob = b64toBlob(base64Data);
 
-  
+
       // Create a File from the Blob
       const file = new File([blob], 'signature.png', { type: 'image/png' });
-  
-  
+
+
       // Set the Blob data to the signatureCanvas
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -364,28 +366,28 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
       };
       reader.readAsDataURL(blob);
 
-      
+
       setValue('signatureD', false);
       setValue('signatureDigital', file, { shouldValidate: true });
-  
+
       setSubmit(true);
     }
   };
-  
+
+  const [disableEsigBtn, setDisableEsigBtn] = useState(true);
+
+  const enableEsigBtn = () => setDisableEsigBtn(false)
+
   const clearCanvas = () => {
 
     const canvas = mySig.current;
     if (canvas) {
       canvas?.clear()
     }
-    // if (canvas) {
+    if (!disableEsigBtn) {
+      setDisableEsigBtn(true)
+    }
 
-    //   if (canvas) {
-    //     canvas.clearRect(0, 0, canvas.width, canvas.height);
-    //   } else {
-    //     console.error('Failed to get canvas context');
-    //   }
-    // }
   };
 
   // useEffect(()=>{
@@ -416,24 +418,26 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
   const handleDropSig = useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
-      setHasChanges(true);
       const newFile = Object.assign(file, {
         preview: URL.createObjectURL(file),
       });
 
-      console.log(newFile,'new fileeeeeeee')
+      setHasChange(true)
+
 
       if (file) {
         setValue('signatureFile', newFile, { shouldValidate: true });
       }
+
     },
-    [setValue]
+    [setValue, hasChange]
   );
 
   const [drawCanvas, setDrawCanvas] = useState(false);
 
   const handleRemoveFile = useCallback(() => {
     setValue('signatureFile', null);
+    setHasChange(false)
   }, [setValue]);
 
   const upMd = useResponsive('up', 'md');
@@ -444,20 +448,231 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
   const handleUploadEsig = () => {
     setUpload(true)
     setSelected(true)
+    if (esigSelected) {
+      setEsig(false)
+    }
+    if (step) {
+      onIncrementStep()
+    }
   }
 
   const handleWriteEsig = () => {
     setEsig(true)
 
     setSelected(true)
+    if (uploadSelected) {
+      setUpload(false)
+    }
+    if (step) {
+      onIncrementStep()
+    }
 
   }
 
-  console.log(values, 'hayop')
+  const theme = useTheme();
+
+
+  const PRIMARY_MAIN = theme.palette.primary.main;
+
+
+  console.log(step, 'stepppp')
+
+  const RenderTuts = useCallback(() => {
+    return (
+      (
+        <Box sx={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 5000,
+          padding: 3,
+          display:'flex',
+          justifyContent:'center',
+          alignItems:'center'
+        }}>
+          <Box sx={{
+            background: PRIMARY_MAIN,
+            opacity: .4,
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            zIndex: 5000
+          }}></Box>
+
+          <Box sx={{
+            p: {xs:1,md:2},
+            width:{xs:'100%',md:500}
+            
+          }}>
+            {step === 4 &&
+              <Paper elevation={!upMd && 5} sx={{
+                width: '100%',
+                py: 5,
+                px: 2,
+                mt: !upMd && 10
+              }}>
+                <div className="showFields-esig">
+                  <Typography sx={{
+                    mb: !upMd ? 2 : 5
+                  }}>What do you want to do?</Typography>
+                  <Stack gap={1} sx={{
+                    justifyContent: 'center'
+                  }} direction={!upMd ? 'column' : 'row'} alignItems='center'>
+                    <Button onClick={handleUploadEsig} variant="contained">Upload E-Sig</Button>
+                    <span>Or</span>
+                    <Button onClick={handleWriteEsig} variant="contained">Write E-Sig</Button>
+                  </Stack>
+                </div>
+
+              </Paper>
+            }
+
+            {/* signature pad */}
+
+            {esigSelected && step === 5 &&
+
+              <div className="showFields-esig-write-general">
+           
+                <Stack>
+                  <Stack alignItems="flex-start" spacing={1}>
+                    <Stack sx={{
+                      width: '100%',
+                      
+                    }} gap={!upMd && 2} direction={ 'column' } justifyContent='space-between'>
+
+                      <Stack direction="row" justifyContent={'space-between'} alignItems="center">
+
+                        <Typography>Signature Pad</Typography>
+                        <Button onClick={() => {
+                          setStep(4)
+                        }} variant="contained">Back</Button>
+
+                      </Stack>
+                      <Typography color="error" sx={{ fontSize: '14px', mb:{md:1} }}>
+                        {' '}
+                        *Please draw your signature
+                      </Typography>
+
+                      <Stack direction="row" alignItems="center" spacing={1}>
+
+                        <Button
+                          fullWidth={!upMd}
+                          onClick={() => {
+                            setValue('signatureFile', null);
+                            setDrawCanvas(true)
+                            clearCanvas()
+                          }}
+                          color="error"
+                          variant="outlined"
+                        >
+                          Clear Canvas
+                        </Button>
+                      </Stack>
+
+                    </Stack>
+
+
+
+                    {(values?.defaultESig === 1) && <RHFUpload
+                      name="signatureDigital"
+                      maxSize={3145728}
+                      onDrop={handleDropSig}
+                      sx={{
+                        pointerEvents: 'none',
+                      }}
+                    />}
+
+                    {(values?.defaultESig === 2 || esigSelected) &&
+
+                      (
+                        (drawCanvas || esigSelected || !user?.esigDigital?.filename) ? <Box sx={{ width: '100%', border: '2px solid black', overflow: 'hidden' }}>
+                          <SignatureCanvas
+                            penColor="black"
+                            ref={mySig}
+                            backgroundColor="white  "
+                            canvasProps={{
+                              width: !upMd ? 350 : 500,
+                              height: 300,
+                            }}
+                            onBegin={enableEsigBtn}
+                          />
+                        </Box> :
+                          <RHFUpload
+                            name="signatureDigital"
+                            maxSize={3145728}
+                            onDrop={handleDropSig}
+                            sx={{
+                              pointerEvents: 'none',
+                            }}
+                          />
+
+                      )
+
+                    }
+
+
+                  </Stack>
+                  <Button sx={{mt:1}} variant="contained" onClick={handlePad} color="success">
+                    Confirm Signature
+                  </Button>
+                </Stack>
+              </div>
+            }
+
+            {uploadSelected && step === 5 &&
+              <div className="showFields-esig-upload">
+                <Stack sx={{
+                  // height: !upMd && 300,
+                  width: !upMd ? 300 : 400
+                }}>
+
+                  <Stack spacing={1}>
+                    <Stack direction="row" justifyContent={'space-between'} alignItems="center">
+                      <Typography>Upload E-Signature</Typography>
+                      <Button onClick={() => {
+                        setStep(4)
+                      }} variant="contained">Back</Button>
+
+                    </Stack>
+                    {/* <Typography></Typography> */}
+                    <Stack gap={2}>
+                      <RHFUpload
+                        name="signatureFile"
+                        maxSize={3145728}
+                        onDrop={handleDropSig}
+                        onDelete={handleRemoveFile}
+
+                      />
+                      <Button
+                        variant="contained"
+                        disabled={!hasChange}
+                        onClick={handleUpload}
+                        color="success"
+                      >
+                        Confirm Signature
+                      </Button>
+                    </Stack>
+                  </Stack>
+                </Stack>
+              </div>
+            }
+          </Box>
+        </Box>
+      )
+    )
+  }, [step, hasChange])
+
+  console.log(hasChange, 'hasChange')
+
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <Dialog
+      {step && <RenderTuts />}
+     {!upMd && !step &&  <Dialog
         fullScreen={!upMd}
         fullWidth
         maxWidth={false}
@@ -468,7 +683,6 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
 
         }}
       >
-        {/* {renderHead} */}
         <DialogTitle sx={{
           position: 'relative',
           px: { xs: 1, lg: 5 }
@@ -492,7 +706,7 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
             width: !upMd ? 300 : 400
           }}>
             {/* <Typography></Typography> */}
-            {(values.defaultESig === 1 || uploadSelected) && <Stack spacing={1}>
+            {(values.defaultESig === 1 || uploadSelected) && !step && <Stack spacing={1}>
               <Typography>Upload E-Signature</Typography>
               <Stack gap={2}>
                 <RHFUpload
@@ -513,30 +727,33 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
               </Stack>
             </Stack>}
 
-            {!user?.esig && !isSelected && <Paper elevation={!upMd && 5} sx={{
-              width: '100%',
-              py: 5,
-              px: 2,
-              mt: !upMd && 10
-            }}>
-              <Typography sx={{
-                mb: !upMd ? 2 : 5
-              }}>What do you want to do?</Typography>
-              <Stack gap={1} sx={{
-                justifyContent: 'center'
-              }} direction={!upMd ? 'column' : 'row'} alignItems='center'>
-                <Button onClick={handleUploadEsig} variant="contained">Upload E-Sig</Button>
-                <span>Or</span>
-                <Button onClick={handleWriteEsig} variant="contained">Write E-Sig</Button>
-              </Stack>
+            {!user?.esig && !isSelected && !step &&
+              <Paper elevation={!upMd && 5} sx={{
+                width: '100%',
+                py: 5,
+                px: 2,
+                mt: !upMd && 10
+              }}>
+                <div className="showFields-esig">
+                  <Typography sx={{
+                    mb: !upMd ? 2 : 5
+                  }}>What do you want to do?</Typography>
+                  <Stack gap={1} sx={{
+                    justifyContent: 'center'
+                  }} direction={!upMd ? 'column' : 'row'} alignItems='center'>
+                    <Button onClick={handleUploadEsig} variant="contained">Upload E-Sig</Button>
+                    <span>Or</span>
+                    <Button onClick={handleWriteEsig} variant="contained">Write E-Sig</Button>
+                  </Stack>
+                </div>
 
-            </Paper>
+              </Paper>
             }
 
 
 
 
-            {(values.defaultESig === 2 || esigSelected) && <Stack  spacing={1}>
+            {(values.defaultESig === 2 || esigSelected) && !step && <Stack spacing={1}>
               <Stack alignItems="flex-start" spacing={1}>
                 <Stack sx={{
                   width: '100%',
@@ -617,57 +834,58 @@ const AccountGeneralSig = ({ isOpen, onClose, reset: resetParent, data }) => {
 
           </Stack>
         </DialogContent>
-        {user?.esig && 
-        <Stack sx={{ paddingX: 3, paddingY: 1 }} direction={!upMd ? 'column':'row'} spacing={2}>
-          <Stack direction="column" spacing={1} width={!upMd?'100%':'50%'}>
-            <Typography variant="body2">Select Default Signature</Typography>
-            <RHFSelect name="defaultESig">
-              {/* <MenuItem value={0}>Blank Signature</MenuItem> */}
-              <MenuItem value={1}>Uploaded Signature</MenuItem>
-              <MenuItem value={2}>Digital Signature</MenuItem>
-            </RHFSelect>
-          </Stack>
-          <Stack
-            direction={!upMd ? 'column' : 'row'}
-            spacing={1}
-            width={!upMd ? '100%':'50%'}
-            justifyContent="flex-end"
-            alignItems="flex-end"
-          >
-            <Button fullWidth={!upMd} variant="contained" color="info" type="submit" onClick={() => onSubmit()}>
-              Save Changes
-            </Button>
-            <Button
-           fullWidth={!upMd}
-              variant="outlined"
-              onClick={() => {
-                onClose();
-                setDrawCanvas(false)
-                setValue('signatureD', true);
-                setHideBtn2(true);
-                setHasChanges(false);
-
-
-                if (getValues('signatureDigital') === null) {
-                  (() => {
-                    const url = user?.esigDigital?.filename;
-                    const parts = url.split('public');
-                    const publicPart = parts[1];
-
-                    setValue('signatureDigital', publicPart);
-                  })();
-                }
-                // values?.signatureD && values?.signatureDigital;
-                // setValue('signatureFile', null);
-              }}
-              color="primary"
-              // sx={{ mr: 1 }}
+        {user?.esig &&
+          <Stack sx={{ paddingX: 3, paddingY: 1 }} direction={!upMd ? 'column' : 'row'} spacing={2}>
+            <Stack direction="column" spacing={1} width={!upMd ? '100%' : '50%'}>
+              <Typography variant="body2">Select Default Signature</Typography>
+              <RHFSelect name="defaultESig">
+                {/* <MenuItem value={0}>Blank Signature</MenuItem> */}
+                <MenuItem value={1}>Uploaded Signature</MenuItem>
+                <MenuItem value={2}>Digital Signature</MenuItem>
+              </RHFSelect>
+            </Stack>
+            <Stack
+              direction={!upMd ? 'column' : 'row'}
+              spacing={1}
+              width={!upMd ? '100%' : '50%'}
+              justifyContent="flex-end"
+              alignItems="flex-end"
             >
-              Close
-            </Button>
-          </Stack>
-        </Stack>}
-      </Dialog>
+              <Button fullWidth={!upMd} variant="contained" color="info" type="submit" onClick={() => onSubmit()}>
+                Save Changes
+              </Button>
+              <Button
+                fullWidth={!upMd}
+                variant="outlined"
+                onClick={() => {
+                  onClose();
+                  setDrawCanvas(false)
+                  setValue('signatureD', true);
+                  setHideBtn2(true);
+                  setHasChanges(false);
+
+
+                  if (getValues('signatureDigital') === null) {
+                    (() => {
+                      const url = user?.esigDigital?.filename;
+                      const parts = url.split('public');
+                      const publicPart = parts[1];
+
+                      setValue('signatureDigital', publicPart);
+                    })();
+                  }
+                  // values?.signatureD && values?.signatureDigital;
+                  // setValue('signatureFile', null);
+                }}
+                color="primary"
+              // sx={{ mr: 1 }}
+              >
+                Close
+              </Button>
+            </Stack>
+          </Stack>}
+      </Dialog>}
+
     </FormProvider>
   );
 };

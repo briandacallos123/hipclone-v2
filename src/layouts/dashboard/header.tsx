@@ -27,6 +27,7 @@ import HeaderOrders from '../_common/header-order';
 import QueuePopover from '../_common/queue-popover';
 import Link from 'next/link';
 import { paths } from '@/routes/paths';
+import { Box } from '@mui/material';
 
 // ----------------------------------------------------------------------
 
@@ -128,14 +129,54 @@ export default function Header({ onOpenNav }: Props) {
     </>
   );
 
+  const isTutorial = localStorage?.getItem('currentStep');
+
+
+
+  const PRIMARY_MAIN = theme.palette.primary.main;
+
+
+  const renderTuts = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      right: 0,
+      bottom: 0,
+      zIndex: 100,
+    }}>
+
+
+      <>
+        <Box sx={{
+          background: PRIMARY_MAIN,
+          opacity: .4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: -10
+        }}>
+
+        </Box>
+
+
+      </>
+
+    </Box>
+  )
+
+  let bg = !isTutorial && bgBlur({
+    color: theme.palette.background.default,
+  })
+
   return (
     <AppBar
       sx={{
         height: HEADER.H_MOBILE,
         zIndex: theme.zIndex.appBar + 1,
-        ...bgBlur({
-          color: theme.palette.background.default,
-        }),
+        ...bg,
         transition: theme.transitions.create(['height'], {
           duration: theme.transitions.duration.shorter,
         }),
@@ -157,6 +198,7 @@ export default function Header({ onOpenNav }: Props) {
         }),
       }}
     >
+
       <Toolbar
         sx={{
           height: 1,

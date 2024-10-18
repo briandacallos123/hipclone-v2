@@ -30,7 +30,8 @@ import { paths } from '@/routes/paths';
 import { useTheme, alpha } from '@mui/material/styles';
 import { ConfirmDialog } from '@/components/custom-dialog';
 
-
+// server action
+import { validateEmail, validatePhone } from './action/sub-account-act';
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -165,7 +166,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
     confirmPassword: Yup.string().oneOf([Yup.ref('password')], 'Password must match'),
     firstName: Yup.string().required('FirstName is required'),
     lastName: Yup.string().required('LastName is required'),
-    middleName: Yup.string().required('MiddleName is required'),
+    middleName: Yup.string(),
     gender: Yup.string().required('Gender is required'),
     email: Yup.string()
       .required('Email is required')
@@ -183,14 +184,17 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
   const {
     reset,
     watch,
+    setValue,
     handleSubmit,
     formState: { isSubmitting, isDirty, errors },
   } = methods;
 
 
-  console.log(errors, 'errorserrors')
 
   const values = watch();
+
+  console.log(values, 'values')
+
   useEffect(() => {
     // console.log(values, 'YAWA@#');
     if (snackKey) {
@@ -202,7 +206,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
           mname: values?.middleName,
           gender: values?.gender,
           mobile_no: MobileNoValidation,
-          email: emailValidation,
+          email: values?.email,
           password: values?.password,
           confirmpasword: values?.confirmPassword,
         });
@@ -222,6 +226,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
   });
 
   const handleSubmitValue = useCallback(async (model: NexusGenInputs['user_sub_account_input_request']) => {
+
     const data: NexusGenInputs['user_sub_account_input_request'] = {
       email: model.email,
       fname: model.fname,
@@ -374,6 +379,52 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
 
   const [load, setLoad] = useState(false);
 
+  const [existsEmail, setExistsEmail] = useState(false)
+
+  useEffect(()=>{
+    if(values.email && Object.keys(errors)?.length === 0){
+     (async()=>{
+      validateEmail(values.email).then((res)=>{
+       const {isExists} = res;
+       if(isExists){
+        setExistsEmail(true)
+       }else{
+        setExistsEmail(false)
+       }
+      }).catch((err)=>{
+        console.log(err,'errorrrrrrrr')
+      })
+     })()
+    }
+  },[values.email, Object.keys(errors)?.length === 0])
+
+  const [existsPhone, setExistsPhone] = useState(false)
+
+
+  useEffect(()=>{
+    if(values.phoneNumber && Object.keys(errors)?.length === 0){
+     (async()=>{
+      validatePhone({
+        phone:String(values.phoneNumber)
+      }).then((res)=>{
+       const {isExists} = res;
+       console.log(res,'isExistsisExistsisExists')
+       if(isExists){
+        setExistsPhone(true)
+       }else{
+        setExistsPhone(false)
+       }
+      }).catch((err)=>{
+        console.log(err,'errorrrrrrrr')
+      })
+     })()
+    }
+  },[values.phoneNumber, Object.keys(errors)?.length === 0])
+
+  console.log(Object.keys(errors),'error ba?')
+  console.log(values.phoneNumber ,'values.phoneNumber  ba?')
+
+
   const RenderChoices = useCallback(({ isRequired }: any) => {
     return (
       <Stack sx={{
@@ -383,35 +434,65 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
         <LoadingButton loading={load} disabled={
           (() => {
             if (step === 6) {
-              setLoad(true)
-              if (statusMobilePhoneData === 'Failed') {
-                setLoad(false)
+              if(!values.phoneNumber){
                 return true
-              } else {
-                setLoad(false)
+              }else if(String(values.phoneNumber).length !== 11){
+                return true
+              }
+              if(Object.keys(errors)?.length === 0){
+                if(existsPhone){
+                  return true;
+                }else{
+                  return false;
+                }
+              }else{
+                return true
+              }
+           
+            }else if(step === 5){
+              if(!values.email){
+                return true
+              }
 
-                return false
-              }
-            } else if (emailChange) {
-              if (Object.keys(errors)?.length !== 0) {
+              if(Object.keys(errors)?.length === 0){
+                if(existsEmail){
+                  return true;
+                }else{
+                  return false;
+                }
+              }else{
                 return true
-              } else {
-                return false
-              }
-            }else if(passwordChange){
-              if (Object.keys(errors)?.length !== 0) {
-                return true
-              } else {
-                return false
-              }
-            }else if(rePasswordChange){
-              if (Object.keys(errors)?.length !== 0) {
-                return true
-              } else {
-                return false
               }
             }
-            
+             else if (emailChange) {
+              if (Object.keys(errors)?.length !== 0) {
+                return true
+              } else {
+                return false
+              }
+            }else if(step === 7){
+             if(passwordChange){
+              if (Object.keys(errors)?.length !== 0) {
+                return true
+              } else {
+                return false
+              }
+             }
+             else{
+              return true
+             }
+            }else if(step === 8){
+              if(rePasswordChange){
+                if (Object.keys(errors)?.length !== 0) {
+                  return true
+                } else {
+                  return false
+                }
+              }
+              else{
+                return true
+               }
+            }
              else {
               return !isDirty
             }
@@ -420,10 +501,9 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
 
       </Stack>
     )
-  }, [isDirty, step, statusMobilePhoneData, Object.keys(errors)])
+  }, [isDirty, step, statusMobilePhoneData, Object.keys(errors), existsEmail])
 
-  console.log(isDirty, 'isDirty')
-  console.log(Object.keys(errors)?.length !== 0, 'Object.keys(errors)')
+ 
 
   const renderTutsFields = (
     <Box>
@@ -436,23 +516,23 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
           sm: 'repeat(2, 1fr)',
         }}
       >
-        <div className={step === 1 ? 'showFields' : ''}>
+        <div className={step === 1 ? 'showFields-sub' : ''}>
           <RHFTextField name="firstName" label="First Name" />
           {step === 1 && <RenderChoices isRequired={true} />}
         </div>
 
-        <div className={step === 2 ? 'showFields' : ''}>
+        <div className={step === 2 ? 'showFields-sub' : ''}>
           <RHFTextField name="lastName" label="Last Name" />
           {step === 2 && <RenderChoices isRequired={true} />}
         </div>
 
-        <div className={step === 3 ? 'showFields' : ''}>
+        <div className={step === 3 ? 'showFields-sub' : ''}>
           <RHFTextField name="middleName" label="Middle Name" />
           {step === 3 && <RenderChoices isRequired={false} />}
         </div>
 
 
-        <div className={step === 4 ? 'showFields' : ''}>
+        <div className={step === 4 ? 'showFields-sub' : ''}>
           <RHFSelect name="gender" label="Gender">
             <MenuItem value="1">Male</MenuItem>
             <MenuItem value="2">Female</MenuItem>
@@ -461,46 +541,37 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
           {step === 4 && <RenderChoices isRequired={true} />}
         </div>
 
-        <div className={step === 5 ? 'showFields' : ''}>
+        <div className={step === 5 ? 'showFields-sub' : ''}>
           <RHFTextField
-            helperText={errors.email ? errors.email.message : ''}
+            helperText={(errors.email ? errors.email.message : '') || existsEmail && 'Email already used.' }
             name="email"
             type='email'
-            error={!!errors.email}
+            error={!!errors.email || existsEmail}
             label="Email Address"
             onChange={(e) => {
-              methods.setValue('email', e.target.value);
+              setValue('email', e.target.value);
               setEmailChange(true)
               methods.trigger('email'); // Validate on change
             }}
+            
           />
           {step === 5 && <RenderChoices isRequired={true} />}
         </div>
 
 
         {renderConfirm}
-        <div className={step === 6 ? 'showFields' : ''}>
+        <div className={step === 6 ? 'showFields-sub' : ''}>
           <RHFTextField
             name="phoneNumber"
             type='number'
             label="Phone Number"
-            onChange={handleMobileNoChange}
-            value={MobileNoValidation}
-            helperText={
-
-              <>
-                {MobileNoValidation ?
-                  (statusMobilePhoneData === 'Failed' && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
-                    *{messageMobilePhoneData}
-                  </Typography>
-                  ) :
-                  (noValueMobilePhone && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
-                    *Phone number is required
-                  </Typography>)
-                }
-              </>
-
-            }
+            error={!!errors.phoneNumber || existsPhone}
+            helperText={(errors.phoneNumber ? errors.phoneNumber.message : '') || existsPhone && 'Phone already used'}
+            onChange={(e) => {
+              setValue('phoneNumber', e.target.value);
+              
+              methods.trigger('phoneNumber'); // Validate on change
+            }}
           />
           {step === 6 && <RenderChoices isRequired={true} />}
         </div>
@@ -510,9 +581,9 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
         {INPUT_FIELD.map((field, index) => (
           <div className={(() => {
             if (index === 0 && step === 7) {
-              return 'showFields'
+              return 'showFields-sub'
             } else if (index === 1 && step === 8) {
-              return 'showFields'
+              return 'showFields-sub'
             }
           })()}>
             <RHFTextField
@@ -551,6 +622,27 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
           </div>
         ))}
       </Box>
+      <DialogActions>
+        <Button sx={{
+          mr:1
+        }} variant="outlined" onClick={onClose}>
+          Cancel
+        </Button>
+
+        <div className={step === 9 ? 'showFields-submit-sub' : ''}>
+        <LoadingButton
+          type="submit"
+          variant="contained"
+          loading={isSubmitting}
+          onClick={handleSubmit(onSubmit)}
+
+        >
+          Create
+        </LoadingButton>
+        </div>
+
+       
+      </DialogActions>
       <Box sx={{
         background: PRIMARY_MAIN,
         opacity: .4,
@@ -566,11 +658,13 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
     </Box>
   )
 
+  const tutsCondition = currentStep && Number(currentStep) < 20
+
   return (
     <>
       <DialogContent>
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-          {!currentStep ? <Box
+          {!tutsCondition ? <Box
             rowGap={3}
             columnGap={2}
             display="grid"
@@ -660,7 +754,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
         </FormProvider>
       </DialogContent>
 
-      <DialogActions>
+     {!tutsCondition &&  <DialogActions>
         <Button variant="outlined" onClick={onClose}>
           Cancel
         </Button>
@@ -674,7 +768,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
         >
           Create
         </LoadingButton>
-      </DialogActions>
+      </DialogActions>}
     </>
   );
 }

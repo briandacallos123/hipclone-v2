@@ -52,7 +52,7 @@ import { Box } from '@mui/material';
 import { m } from 'framer-motion';
 import { MotionContainer, varFade } from 'src/components/animate';
 import Image from '@/components/image';
-import './generalStyle.css'
+import './sub-account.css'
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -130,6 +130,8 @@ export default function UserSubaccountListView() {
   const notFound = !tableLoading && !tableData?.length;
   // const getStatusLength = (status: boolean) =>
   //   tableData.filter((item) => item.status.toString() === status.toString()).length;
+  const language = localStorage?.getItem('languagePref');
+    const isEnglish = language && language === 'english';
 
   const {
     data: subData,
@@ -303,8 +305,9 @@ export default function UserSubaccountListView() {
           },
         }}
       >
-        <span>Manage Your Team! 🌟</span><br /><br />
-        As a doctor, you can now create sub-accounts for your assistants.
+        <span>{isEnglish?"Manage Your Team! 🌟":"Pamahalaan ang Iyong Koponan! 🌟"}</span><br /><br />
+        
+        {isEnglish ? 'As a doctor, you can now create sub-accounts for your assistants.':'Bilang isang doktor, maaari ka nang lumikha ng mga sub-account para sa iyong mga katulong.'}
       </Typography>
     </m.div>
   )
@@ -325,8 +328,8 @@ export default function UserSubaccountListView() {
           },
         }}
       >
-        <span>Manage Your Team! 🌟</span><br /><br />
-        This feature allows you to delegate tasks and enhance your practice's efficiency.
+          <span>{isEnglish?"Manage Your Team! 🌟":"Pamahalaan ang Iyong Koponan! 🌟"}</span><br /><br />
+       {isEnglish?" This feature allows you to delegate tasks and enhance your practice's efficiency.":"Ang tampong ito ay nagbibigay-daan sa iyo upang i-delegate ang mga gawain at pagbutihin ang kahusayan ng iyong praktis."}
       </Typography>
     </m.div>
   )
@@ -361,6 +364,7 @@ export default function UserSubaccountListView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
+          right:upMd ? 100:0
         }}>
           <m.div variants={varFade().inUp}>
             <Box sx={{
@@ -424,7 +428,7 @@ export default function UserSubaccountListView() {
         >
           <Typography variant="h5">Manage Sub-account</Typography>
 
-          <div className={step === 3 ? `showFields-submit`:''}> 
+          <div className={step === 3 ? `showFields-submit-sub`:''}> 
             <LoadingButton
               onClick={()=>{
                 openCreate.onTrue();

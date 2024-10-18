@@ -17,6 +17,7 @@ import Image from '@/components/image';
 import { useEffect, useState } from 'react';
 import { useTheme, alpha } from '@mui/material/styles';
 import { useTutorialProvider } from '@/context/tut-step';
+import { useResponsive } from '@/hooks/use-responsive';
 
 // ----------------------------------------------------------------------
 
@@ -24,10 +25,15 @@ export default function UserLoginView() {
   const settings = useSettingsContext();
   const [step, setSteps] = useState(1);
   const incrementStep = () => setSteps((prev) => prev + 1)
+  const upMd = useResponsive('up', 'md');
 
   const {setCurrentStep:setStep}:any = useTutorialProvider();
 
   const [currentStep, setCurrentStep] = useState(null);
+
+  const language = localStorage?.getItem('languagePref');
+  const isEnglish = language && language === 'english';
+
 
   useEffect(() => {
     setCurrentStep(localStorage?.getItem('currentStep'))
@@ -53,8 +59,8 @@ export default function UserLoginView() {
           },
         }}
       >
-        <span>Keep Your Account Secure! 🔒</span><br /><br />
-        As a valued doctor, maintaining the security of your account is essential
+        <span>{isEnglish?"Keep Your Account Secure!":"Panatilihing Ligtas ang Iyong Account!"} 🔒</span><br /><br />
+        {isEnglish ? "As a valued doctor, maintaining the security of your account is essential":"Bilang isang mahalagang doktor, mahalaga ang pagpapanatili ng seguridad ng iyong account."}
       </Typography>
     </m.div>
   )
@@ -75,8 +81,9 @@ export default function UserLoginView() {
           },
         }}
       >
-        <span>Keep Your Account Secure! 🔒</span><br /><br />
-        You can easily change your password to ensure your personal and patient information remains safe.
+         <span>{isEnglish?"Keep Your Account Secure!":"Panatilihing Ligtas ang Iyong Account!"} 🔒</span><br /><br />
+       
+        {isEnglish ? "You can easily change your password to ensure your personal and patient information remains safe.":"Maaari mong madaling baguhin ang iyong password upang matiyak na mananatiling ligtas ang iyong personal at impormasyon ng pasyente."}
       </Typography>
     </m.div>
   )
@@ -106,10 +113,11 @@ export default function UserLoginView() {
 
         </Box>
 
-        <Box sx={{
+       {step < 3 &&  <Box sx={{
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
+          right:upMd? 100:null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -118,7 +126,7 @@ export default function UserLoginView() {
               height: 'auto',
               width: 'auto',
               maxWidth: 250,
-              left: 10,
+              left: upMd?0:10,
               borderRadius: 2,
               zIndex: 99999,
               position: 'absolute',
@@ -150,7 +158,7 @@ export default function UserLoginView() {
             src={'/assets/tutorial-doctor/nurse-tutor.png'}
 
           />
-        </Box>
+        </Box>}
       </>
 
     </Box>
@@ -159,13 +167,9 @@ export default function UserLoginView() {
 
   const successMessage1 = (
     <m.div>
-
       <Typography
-
         sx={{
           fontSize: 15,
-          mb: 2,
-          mt: 1,
           lineHeight: 1.25,
           '& > span': {
             color: theme.palette.primary.main,
@@ -175,8 +179,9 @@ export default function UserLoginView() {
           },
         }}
       >
-        <span>Congratulations, Doctor! 🎉</span><br /><br />
-        You’ve successfully completed the setup of your profile and necessary data. You're now ready to start using the system effectively!
+        <span>{isEnglish?'Congratulations, Doctor!':'Maligayang bati, Doktor'} 🎉</span><br /><br />
+       
+        {isEnglish?' You’ve successfully completed the setup of your profile and necessary data. You\'re now ready to start using the system effectively!':'Matagumpay mong nakumpleto ang pag-set up ng iyong profile at kinakailangang datos. Handa ka nang simulan ang epektibong paggamit ng sistema!'}
       </Typography>
     </m.div>
   )
@@ -189,8 +194,6 @@ export default function UserLoginView() {
 
         sx={{
           fontSize: 15,
-          mb: 2,
-          mt: 1,
           lineHeight: 1.25,
           '& > span': {
             color: theme.palette.primary.main,
@@ -200,8 +203,8 @@ export default function UserLoginView() {
           },
         }}
       >
-        <span>Congratulations, Doctor! 🎉</span><br /><br />
-        I know you’re excited, and I'm here to help you explore other sections of our system that will assist you in your practice:
+       <span>{isEnglish?'Congratulations, Doctor!':'Maligayang bati, Doktor'} 🎉</span><br /><br />
+        {isEnglish ? 'I know you’re excited, and I\'m here to help you explore other sections of our system that will assist you in your practice':'Alam kong sabik ka, at nandito ako upang tulungan kang tuklasin ang iba pang mga bahagi ng aming sistema na makakatulong sa iyong praktis'}
       </Typography>
     </m.div>
   )
@@ -212,8 +215,6 @@ export default function UserLoginView() {
 
         sx={{
           fontSize: 15,
-          mb: 2,
-          mt: 1,
           lineHeight: 1.25,
           '& > span': {
             color: theme.palette.primary.main,
@@ -223,8 +224,11 @@ export default function UserLoginView() {
           },
         }}
       >
-        <span>Congratulations, Doctor! 🎉</span><br /><br />
-        By the way, all the information you fill out can be accessed through the icon up there 🛠️. You can go back 🔙 if you need to make any changes.
+         <span>{isEnglish?'Congratulations, Doctor!':'Maligayang bati, Doktor'} 🎉</span><br /><br />
+        
+        {!upMd && (isEnglish?"By the way, all the information you fill out can be accessed through the icon up there 🛠️. You can go back 🔙 if you need to make any changes.":'Sa pamamagitan ng lahat ng impormasyon na iyong pupunan ay maa-access sa icon na iyon sa itaas 🛠️. Maaari kang bumalik 🔙 kung kailangan mong gumawa ng anumang pagbabago')}
+
+        {upMd && (isEnglish?"All your changes can be found here. 📋 If you need to make any adjustments, you can do so here. ✏️":' lahat ng iyong binago ay dito mo pwedeng matagpuan. 📋 Kung sakaling may kailangan kang baguhin, maaari kang magtungo rito. ✏️')}
       </Typography>
     </m.div>
   )
@@ -272,14 +276,16 @@ export default function UserLoginView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
+          right:upMd?100:null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
             <Box sx={{
               background: theme.palette.background.default,
-              height: 230,
-              width: 250,
-              left: 10,
+              height: 'auto',
+              width: 'auto',
+              maxWidth:250,
+              left: upMd?0:10,
               borderRadius: 5,
               zIndex: 99999,
               position: 'absolute',
@@ -287,15 +293,14 @@ export default function UserLoginView() {
               flexDirection: 'column',
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
-              pt: 3,
-              px: 2
+              p:3
             }}>
               {successProfile === 1 && successMessage1}
               {successProfile === 2 && successMessage2}
               {successProfile === 3 && successMessage3}
 
 
-              {successProfile !== 4 && <Box sx={{ width: '90%', display: 'flex', justifyContent: 'flex-end' }}>
+              {successProfile !== 4 && <Box sx={{ width: '90%', display: 'flex', justifyContent: 'flex-end', pt:2 }}>
                 <Button onClick={onIncrementSucc} variant="contained" size={'small'}>Continue</Button>
               </Box>}
             </Box>
@@ -330,7 +335,7 @@ export default function UserLoginView() {
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
       {(Number(currentStep) === 14 ) && successProfile !== 5 && renderDoneProfile}
 
-      {Number(currentStep) === 13 && step !== 3 && renderTwelveTutorial}
+      {Number(currentStep) === 13 && step !== 5 && renderTwelveTutorial}
 
       <Typography
         variant="h5"
@@ -344,7 +349,7 @@ export default function UserLoginView() {
       <Stack spacing={3}>
         <LoginUsername />
 
-        <LoginPassword recheck={handleRecheck} />
+        <LoginPassword tutsStart={step == 3} recheck={handleRecheck} />
 
         {/* <LoginContact /> */}
       </Stack>

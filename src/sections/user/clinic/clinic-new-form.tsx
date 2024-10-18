@@ -32,7 +32,7 @@ import FormProvider, {
   RHFMultiCheckbox,
   RHFUploadAvatar,
 } from 'src/components/hook-form';
-import './generalStyle.css'
+import './clinic.css'
 import { useTheme, alpha } from '@mui/material/styles';
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
@@ -353,12 +353,12 @@ export default function ClinicNewForm({
 
   const renderTutsFields = (
     <Box sx={{
-      mb: 5
+      mb: 5,
     }}>
       {renderConfirm}
       <Grid container spacing={3} sx={{ mt: 0.2, mb: 3 }}>
         <Grid xs={12} md={4}>
-          <div className={step === 3 ? 'showFields' : ''}>
+          <div className={step === 3 ? 'showFields-clinic' : ''}>
             <Box sx={{ py: 5, px: 3, textAlign: 'center' }}>
               <RHFUploadAvatar
                 name="avatarUrl"
@@ -387,11 +387,11 @@ export default function ClinicNewForm({
 
         <Grid xs={12} md={8}>
           <Stack spacing={3}>
-            <div className={step === 4 ? 'showFields' : ''}>
+            <div className={step === 4 ? 'showFields-clinic' : ''}>
               <RHFTextField name="clinic_name" label="Clinic/Hospital Name" />
               {step === 4 && <RenderChoices isRequired={true} />}
             </div>
-            <div className={step === 5 ? 'showFields' : ''}>
+            <div className={step === 5 ? 'showFields-clinic' : ''}>
               <RHFTextField name="location" label="Clinic Address" />
               {step === 5 && <RenderChoices isRequired={true} />}
             </div>
@@ -405,7 +405,7 @@ export default function ClinicNewForm({
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <div className={step === 6 ? 'showFields' : ''}>
+              <div className={step === 6 ? 'showFields-clinic' : ''}>
                 <RHFTextField
                   name="number"
                   type="number"
@@ -417,7 +417,7 @@ export default function ClinicNewForm({
               </div>
 
 
-              <div className={step === 7 ? 'showFields' : ''}>
+              <div className={step === 7 ? 'showFields-clinic' : ''}>
                 <RHFSelect name="Province" label="Province">
                   {provinces &&
                     provinces.map((option: any, index: Number) => (
@@ -439,7 +439,7 @@ export default function ClinicNewForm({
 
       <Stack spacing={3} sx={{ mt: 1 }}>
         <div>
-          <div className={step === 8 ? 'showFields' : ''}>
+          <div className={step === 8 ? 'showFields-clinic' : ''}>
             <RHFMultiCheckbox
               row
               name="type"
@@ -449,7 +449,7 @@ export default function ClinicNewForm({
             {step === 8 && <RenderChoices isRequired={true} />}
           </div>
 
-          <div className={step === 9 ? 'showFields' : ''}>
+          <div className={step === 9 ? 'showFields-clinic' : ''}>
             <RHFMultiCheckbox
               row
               name="days"
@@ -470,7 +470,7 @@ export default function ClinicNewForm({
             sm: 'repeat(3, 1fr)',
           }}
         >
-          <div className={step === 10 ? 'showFields' : ''}>
+          <div className={step === 10 ? 'showFields-clinic' : ''}>
             <Controller
               name="start_time"
               control={control}
@@ -495,7 +495,7 @@ export default function ClinicNewForm({
           </div>
 
 
-          <div className={step === 11 ? 'showFields' : ''}>
+          <div className={step === 11 ? 'showFields-clinic' : ''}>
             <Controller
               name="end_time"
               control={control}
@@ -519,7 +519,7 @@ export default function ClinicNewForm({
             {step === 11 && <RenderChoices isRequired={true} />}
           </div>
 
-          <div className={step === 12 ? 'showFields' : ''}>
+          <div className={step === 12 ? 'showFields-clinic' : ''}>
             <RHFSelect name="time_interval" label="Duration">
               <MenuItem value="15">15 Mins</MenuItem>
               <MenuItem value="30">30 Mins</MenuItem>
@@ -533,7 +533,7 @@ export default function ClinicNewForm({
           </div>
 
           {values.time_interval === '10' &&
-            <div className={(step === 13 && values.time_interval === '10') ? 'showFields' : ''}>
+            <div className={(step === 13 && values.time_interval === '10') ? 'showFields-clinic' : ''}>
               <RHFTextField label="Allowed Patient" name="limitValue" type="number">
               </RHFTextField>
               {step === 13 && <RenderChoices isRequired={true} />}
@@ -551,7 +551,8 @@ export default function ClinicNewForm({
         <Button variant="outlined" onClick={onClose}>
           Cancel
         </Button>
-        <div className={step === 14 ? 'showFields-submit' : ''}>
+        
+        <div className={step === 14 ? 'showFields-submit-clinic' : ''}>
           <LoadingButton
             type="submit"
             variant="contained"
@@ -566,11 +567,12 @@ export default function ClinicNewForm({
       <Box sx={{
         background: PRIMARY_MAIN,
         opacity: .4,
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+      
 
       }}>
 
@@ -578,12 +580,16 @@ export default function ClinicNewForm({
     </Box>
   )
 
+  console.log(currentStep,'currentStep')
   return (
     <>
-      <DialogContent>
+      <DialogContent sx={{
+        scrollBehavior:'smooth',
+       
+      }}>
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
 
-          {!currentStep ? <Box>
+          {!(currentStep < 20) ? <Box>
 
             <Typography variant="overline" color="text.disabled">
               Fill in clinic details

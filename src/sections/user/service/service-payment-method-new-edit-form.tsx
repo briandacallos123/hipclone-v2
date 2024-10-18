@@ -19,7 +19,7 @@ import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import Image from '@/components/image';
 import { borderRadius } from '@mui/system';
-import './styles/service.css';
+import './styles/payment.css';
 import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
 import { useTheme } from '@mui/material/styles';
@@ -144,7 +144,7 @@ export default function ServicePaymentMethodNewEditForm({
           if (currentStep && Number(currentStep) !== 100) {
             localStorage.setItem('currentStep', '12');
             router.push(paths.dashboard.user.manage.subaccount);
-            incrementTutsTab()
+            // incrementTutsTab()
           }
         })
 
@@ -311,14 +311,21 @@ export default function ServicePaymentMethodNewEditForm({
         <Button disabled={(() => {
           if (step === 7) {
             return false
-          } else {
+          }else if(step === 4){
+            if(values.attachment){
+              return false
+            }else{
+              return true
+            }
+          } 
+          else {
             return !isDirty
           }
         })()} onClick={handleContinue} variant="contained">Continue</Button>
 
       </Stack>
     )
-  }, [isDirty, step])
+  }, [isDirty, step, values.attachment])
 
 
   const tutsField = (
@@ -374,23 +381,13 @@ export default function ServicePaymentMethodNewEditForm({
 
 
       </DialogContent>
-      <Box sx={{
+      {/* <Box sx={{
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
         width: '100%',
       }}>
-        {isView ? <Image
-          alt="image"
-          src={values?.attachment}
-          sx={{
-            borderRadius: 5,
-            width: 400,
-            height: 400
-
-          }}
-        /> :
-          <div className={step === 4 ? 'showFields' : ''}>
+       <div className={step === 4 ? 'showFields' : ''}>
             <RHFUpload
               disabled={isView}
               thumbnail
@@ -402,8 +399,20 @@ export default function ServicePaymentMethodNewEditForm({
             />
             {step === 4 && <RenderChoices isRequired={false} />}
           </div>
-        }
-      </Box>
+      </Box> */}
+
+      <div className={step === 4 ? 'showFields' : ''}>
+      <RHFUpload
+              disabled={isView}
+              thumbnail
+              name="attachment"
+              maxSize={3145728}
+              onDrop={handleDrop}
+              onRemove={handleRemoveFile}
+              onRemoveAll={handleRemoveAllFiles}
+            />
+             {step === 4 && <RenderChoices isRequired={false} />}
+      </div>
 
       <Stack sx={{
         p:2
@@ -412,7 +421,9 @@ export default function ServicePaymentMethodNewEditForm({
           Cancel
         </Button>
 
-        <div className={step === 5 ? 'showFields-submit':''}>
+        {/* <div className={'showFields-submit-payment'}> */}
+
+        <div className={step === 5 ? 'showFields-submit-payment':''}>
           <LoadingButton
             type="submit"
             variant="contained"

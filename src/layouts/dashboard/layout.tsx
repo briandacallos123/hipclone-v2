@@ -19,13 +19,14 @@ import NavHorizontal from './nav-horizontal';
 import Image from '@/components/image';
 import { useTheme } from '@mui/material/styles';
 import Typewriter from "typewriter-effect";
-import { Button, Stack, Typography } from '@mui/material';
+import { Button, FormControl, InputLabel, MenuItem, Select, Stack, Typography } from '@mui/material';
 import { MotionContainer, varFade } from 'src/components/animate';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
 import { useAuthContext } from '@/auth/hooks';
 import Iconify from '@/components/iconify';
+import { position } from 'html2canvas/dist/types/css/property-descriptors/position';
 
 // ----------------------------------------------------------------------
 
@@ -99,9 +100,35 @@ export default function DashboardLayout({ children }: Props) {
 
   const myName = 'brian';
 
+
+  const [languageOptions, setLanguageOptions] = useState('english')
+  const [changed,setChanged] = useState(false);
+
+  useEffect(() => {
+    if (languageOptions) {
+      if(changed){
+        localStorage.setItem('languagePref', languageOptions);
+        setChanged(false)
+      }
+    }
+  }, [languageOptions, changed])
+
+  useEffect(() => {
+    let language = localStorage?.getItem('languagePref');
+    if (language) {
+      setLanguageOptions(language)
+    }
+  }, [languageOptions])
+
+  const handleChangeLanguage = (e) => {
+    console.log(e.target.value, 'e.target.value')
+    setLanguageOptions(e.target.value)
+    setChanged(true)
+  }
+
   const fourthStep = (
     <m.div>
-      <Typography
+      {languageOptions === 'english'?<Typography
         sx={{
           fontSize: 15,
           lineHeight: 1.25,
@@ -114,27 +141,65 @@ export default function DashboardLayout({ children }: Props) {
         }}
       >
         To get you started with <span>Mediko Connect</span>, we’d like to help you set up your profile. This will ensure you have access to all our features and resources tailored to your needs.
-      </Typography>
+      </Typography>:
+      <Typography
+      sx={{
+        fontSize: 15,
+        lineHeight: 1.25,
+        '& > span': {
+          color: theme.palette.primary.main,
+          fontSize: 16,
+          fontWeight: 'bold',
+          textTransform: 'capitalize'
+        },
+      }}
+    >
+      Upang makapagsimula ka sa <span>Mediko Connect</span>, nais naming tulungan kang i-set up ang iyong profile. Tinitiyak nito na magkakaroon ka ng access sa lahat ng aming mga tampok at resources na nakalaan para sa iyong mga pangangailangan.
+    </Typography>
+      }
     </m.div>
   )
 
   const secondStep = (
     <m.div>
-     
-      <Typography
-        sx={{
-          fontSize: 15,
-          lineHeight: 1.25,
-          '& > span': {
-            color: theme.palette.primary.main,
-            fontSize: 16,
-            fontWeight: 'bold',
-            textTransform: 'capitalize'
-          },
-        }}
-      >
-        Hello, and welcome to Mediko Connect! 🌟 <span>I’m Ruby</span>, your friendly virtual assistant. 🤖 
-      </Typography>
+
+      {languageOptions === 'english' ?
+
+        <Typography
+          sx={{
+            fontSize: 15,
+            lineHeight: 1.25,
+            '& > span': {
+              color: theme.palette.primary.main,
+              fontSize: 16,
+              fontWeight: 'bold',
+              textTransform: 'capitalize'
+            },
+          }}
+        >
+          Hello, and welcome to Mediko Connect! 🌟 <span>I’m Ruby</span>, your friendly virtual assistant. 🤖:
+        </Typography> :
+        <Typography
+          sx={{
+            fontSize: 15,
+            lineHeight: 1.25,
+            '& > span': {
+              color: theme.palette.primary.main,
+              fontSize: 16,
+              fontWeight: 'bold',
+              textTransform: 'capitalize'
+            },
+          }}
+        >
+
+          Kamusta, at maligayang pagdating sa Mediko Connect! 🌟 <span>Ako si Ruby</span>, ang iyong magiliw na virtual assistant. 🤖
+        </Typography>
+      }
+
+
+
+
+
     </m.div>
   )
 
@@ -153,39 +218,105 @@ export default function DashboardLayout({ children }: Props) {
           },
         }}
       >
-       I’m here to help you navigate our application and make your experience as smooth as possible 😊.
+
+
+        {languageOptions === 'english' ? "I’m here to help you navigate our application and make your experience as smooth as possible 😊." : 'Nandito ako upang tulungan kang mag-navigate sa aming aplikasyon at gawing kasing-smooth ng maaari ang iyong karanasan 😊.'}
       </Typography>
     </m.div>
   )
 
   // 
 
+
+
   const firstStep = (
     <m.div>
-      <Typography sx={{
+      {languageOptions === 'english' ? <Box>
+        <Typography sx={{
 
-        mb: 1
-      }} variant={'h5'}>Welcome! 🎉
+          mb: 1
+        }} variant={'h5'}>
+          Welcome! 🎉
 
-      </Typography>
+        </Typography>
 
-      <Typography
+        <Typography
 
-        sx={{
-          fontSize: 15,
-          lineHeight: 1.25,
-          '& > span': {
-            color: theme.palette.primary.main,
-            fontSize: 16,
-            fontWeight: 'bold',
-            textTransform: 'capitalize'
-          },
-        }}
-      >
-        Thank you for joining us! We’re thrilled to have you as part of our community.
-      </Typography>
+          sx={{
+            fontSize: 15,
+            lineHeight: 1.25,
+            '& > span': {
+              color: theme.palette.primary.main,
+              fontSize: 16,
+              fontWeight: 'bold',
+              textTransform: 'capitalize'
+            },
+          }}
+        >
+          Hello, and welcome to Mediko Connect! 🌟 <span>I’m Ruby</span>, your friendly virtual assistant. 🤖
+        </Typography>
+      </Box> :
+        <Box>
+          <Typography sx={{
+
+            mb: 1
+          }} variant={'h5'}>
+            Welcome! 🎉
+
+          </Typography>
+
+          <Typography
+
+            sx={{
+              fontSize: 15,
+              lineHeight: 1.25,
+              '& > span': {
+                color: theme.palette.primary.main,
+                fontSize: 16,
+                fontWeight: 'bold',
+                textTransform: 'capitalize'
+              },
+            }}
+          >
+            "Kamusta, at maligayang pagdating sa <span>Mediko Connect! 🌟</span> Ako si Ruby, ang iyong magiliw na virtual assistant. 🤖"
+          </Typography>
+        </Box>
+      }
     </m.div>
   )
+
+
+  const secondStep1 = (
+    <m.div>
+      <Stack rowGap={2}>
+        <Typography
+
+          sx={{
+            fontSize: 15,
+            lineHeight: 1.25,
+            '& > span': {
+              color: theme.palette.primary.main,
+              fontSize: 16,
+              fontWeight: 'bold',
+              textTransform: 'capitalize'
+            },
+          }}
+        >
+          May I ask what language you prefer? 🌍✨
+        </Typography>
+        <select style={{
+          padding: '10px',
+          border: '.5px solid gray'
+        }} onChange={handleChangeLanguage}>
+          <option value="english">English</option>
+          <option value="tagalog">Tagalog</option>
+        </select>
+
+      </Stack>
+    </m.div>
+  )
+
+
 
   const [step, setSteps] = useState(1);
 
@@ -331,7 +462,7 @@ export default function DashboardLayout({ children }: Props) {
 
 
   useEffect(() => {
-    if (step === 5) {
+    if (step === 6) {
       localStorage.setItem('currentStep', '3')
       router.push(paths.dashboard.user.manage.profile)
     }
@@ -351,7 +482,7 @@ export default function DashboardLayout({ children }: Props) {
       zIndex: 9999,
     }}>
 
-      {step !== 5 &&
+      {step !== 6 &&
         <>
           <Box sx={{
             background: PRIMARY_MAIN,
@@ -370,7 +501,7 @@ export default function DashboardLayout({ children }: Props) {
             zIndex: 99999,
             position: 'absolute',
             bottom: 0,
-            // right:0
+            right:mdUp ? 50:null
           }}>
             {/* message */}
             <m.div variants={varFade().inUp}>
@@ -390,9 +521,10 @@ export default function DashboardLayout({ children }: Props) {
                 p: 3
               }}>
                 {step === 1 && firstStep}
-                {step === 2 && secondStep}
-                {step === 3 && thirdStep}
-                {step === 4 && fourthStep}
+                {step === 2 && secondStep1}
+                {step === 3 && secondStep}
+                {step === 4 && thirdStep}
+                {step === 5 && fourthStep}
 
                 <Box sx={{ width: '90%', pt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                   <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>

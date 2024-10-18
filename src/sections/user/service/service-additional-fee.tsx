@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
@@ -24,6 +24,7 @@ import { UpdateFees, GetFees } from '@/libs/gqls/services';
 import { useMutation, useQuery } from '@apollo/client';
 import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
+import './styles/service.css'
 
 // ----------------------------------------------------------------------
 
@@ -34,7 +35,7 @@ type FormValuesProps = {
   isViewable: boolean;
 };
 
-export default function ServiceAdditionalFee({tutorialTab, incrementTutsTab}:any) {
+const ServiceAdditionalFee = forwardRef(({ tutorialTab, incrementTutsTab},ref) => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [user] = useState<IUserService>(_userService);
   const [snackKey, setSnackKey] = useState(null);
@@ -181,10 +182,13 @@ export default function ServiceAdditionalFee({tutorialTab, incrementTutsTab}:any
     [enqueueSnackbar, reset]
   );
 
+    const myRef = useRef(null);
+
+    console.log(tutorialTab,'myRefmyRef')
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-     <div className={tutorialTab && tutorialTab === 8 ? 'service-fee':''}>
-     <Card>
+     <div ref={ref} className={tutorialTab && tutorialTab === 8 ? 'service-fee service-fee-mt':''}>
+     <Card >
         <CardHeader title="Additional Request Fee (for Telemedicine only)" />
 
         <Stack spacing={3} sx={{ p: 3 }}>
@@ -312,4 +316,7 @@ export default function ServiceAdditionalFee({tutorialTab, incrementTutsTab}:any
      </div>
     </FormProvider>
   );
-}
+})
+
+
+export default ServiceAdditionalFee

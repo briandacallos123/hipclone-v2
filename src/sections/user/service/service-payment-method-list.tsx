@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, forwardRef } from 'react';
 // @mui
 import Card from '@mui/material/Card';
 import Table from '@mui/material/Table';
@@ -42,7 +42,7 @@ import { useMutation } from '@apollo/client';
 import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { useSnackbar } from 'src/components/snackbar';
-
+import './styles/service.css'
 // ----------------------------------------------------------------------
 
 type IUserPaymentItem = {
@@ -56,12 +56,12 @@ const TABLE_HEAD = [
   { id: 'name', label: 'Method' },
   { id: 'accountNumber', label: 'Account Number' },
   { id: 'instruction', label: 'Instruction' },
-  { id: '', label:'Action' },
+  { id: '', label: 'Action' },
 ];
 
 // ----------------------------------------------------------------------
 
-export default function ServicePaymentMethodList({tutorialTab, incrementTutsTab}:any) {
+const ServicePaymentMethodList = forwardRef(({ tutorialTab, incrementTutsTab }, ref) => {
   const upMd = useResponsive('up', 'md');
 
   const table = useTable({ defaultOrderBy: 'accountNumber' });
@@ -321,7 +321,7 @@ export default function ServicePaymentMethodList({tutorialTab, incrementTutsTab}
   );
   const [isView, setIsView] = useState(false)
 
-  const handleViewRow = async(row) => {
+  const handleViewRow = async (row) => {
     try {
       const response = await fetch('/api/getImage', {
         method: 'POST',
@@ -345,9 +345,9 @@ export default function ServicePaymentMethodList({tutorialTab, incrementTutsTab}
 
       setEditId({
         ...row,
-        attachment:{
-          id:row?.attachment?.id,
-          filename:objectUrl
+        attachment: {
+          id: row?.attachment?.id,
+          filename: objectUrl
         }
       });
       setIsView(true)
@@ -361,91 +361,91 @@ export default function ServicePaymentMethodList({tutorialTab, incrementTutsTab}
       console.error('Error fetching image:', error);
     }
 
-   
+
   }
 
   return (
     <>
-     <div className={tutorialTab && !openCreate.value && tutorialTab === 11 ? 'service-fee':''}>
-     <Card>
-        <CardHeader
-          title="Payment Method"
-          action={
-            <Button
-              onClick={openCreate.onTrue}
-              disabled={load}
-              variant="contained"
-              startIcon={<Iconify icon="mingcute:add-line" />}
-            >
-              New Method
-            </Button>
-          }
-        />
-
-        <TableContainer sx={{ mt: 3, position: 'relative', overflow: 'unset' }}>
-          <TableSelectedAction
-            dense={table.dense}
-            numSelected={table.selected.length}
-            rowCount={servicesData?.length}
-            onSelectAllRows={(checked) =>
-              table.onSelectAllRows(
-                checked,
-                servicesData.map((row: any) => row?.id)
-              )
-            }
+      <div className={tutorialTab && !openCreate.value && tutorialTab === 11 ? 'service-fee ' : ''}>
+        <Card ref={ref}>
+          <CardHeader
+            title="Payment Method"
             action={
-              <Tooltip title="Delete">
-                <IconButton
-                  color="primary"
-                  onClick={() => {
-                    confirm.onTrue();
-                  }}
-                >
-                  <Iconify icon="solar:trash-bin-trash-bold" />
-                </IconButton>
-              </Tooltip>
+              <Button
+                onClick={openCreate.onTrue}
+                disabled={load}
+                variant="contained"
+                startIcon={<Iconify icon="mingcute:add-line" />}
+              >
+                New Method
+              </Button>
             }
           />
 
-          <Scrollbar>
-            <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: { md: 800 } }}>
-              {upMd && (
-                <TableHeadCustom
-                  order={table.order}
-                  orderBy={table.orderBy}
-                  headLabel={TABLE_HEAD}
-                  rowCount={servicesData?.length}
-                  numSelected={table.selected.length}
-                  onSort={table.onSort}
+          <TableContainer sx={{ mt: 3, position: 'relative', overflow: 'unset' }}>
+            <TableSelectedAction
+              dense={table.dense}
+              numSelected={table.selected.length}
+              rowCount={servicesData?.length}
+              onSelectAllRows={(checked) =>
+                table.onSelectAllRows(
+                  checked,
+                  servicesData.map((row: any) => row?.id)
+                )
+              }
+              action={
+                <Tooltip title="Delete">
+                  <IconButton
+                    color="primary"
+                    onClick={() => {
+                      confirm.onTrue();
+                    }}
+                  >
+                    <Iconify icon="solar:trash-bin-trash-bold" />
+                  </IconButton>
+                </Tooltip>
+              }
+            />
+
+            <Scrollbar>
+              <Table size={table.dense ? 'small' : 'medium'} sx={{ minWidth: { md: 800 } }}>
+                {upMd && (
+                  <TableHeadCustom
+                    order={table.order}
+                    orderBy={table.orderBy}
+                    headLabel={TABLE_HEAD}
+                    rowCount={servicesData?.length}
+                    numSelected={table.selected.length}
+                    onSort={table.onSort}
                   // onSelectAllRows={(checked) =>
                   //   table.onSelectAllRows(
                   //     checked,
                   //     servicesData.map((row: any) => row?.id)
                   //   )
                   // }
-                />
-              )}
+                  />
+                )}
 
-              <TableBody>
-                {load &&
-                  [...Array(table.rowsPerPage)].map((_, i) => (
-                    <ServicePaymentMethodTableRowSkeleton key={i} />
-                  ))}
-                {!load &&
-                  servicesData &&
-                  servicesData?.map((row: any, index: number) => (
-                    <ServicePaymentMethodTableRow
-                      key={row.id}
-                      row={row}
-                      selected={table.selected.includes(row.id)}
-                      onSelectRow={() => table.onSelectRow(row.id)}
-                      onDeleteRow={() => handleDeleteRow(row)}
-                      onEditRow={() => handleEditRow(row)}
-                      onViewRow={()=>handleViewRow(row)}
-                    />
-                  ))}
+                <TableBody>
+                  {load &&
+                    [...Array(table.rowsPerPage)].map((_, i) => (
+                      <ServicePaymentMethodTableRowSkeleton key={i} />
+                    ))}
+                  {!load &&
+                    servicesData &&
+                    servicesData?.map((row: any, index: number) => (
+                      <ServicePaymentMethodTableRow
+                        key={row.id}
+                        row={row}
+                        selected={table.selected.includes(row.id)}
+                        onSelectRow={() => table.onSelectRow(row.id)}
+                        onDeleteRow={() => handleDeleteRow(row)}
+                        onEditRow={() => handleEditRow(row)}
+                        onViewRow={() => handleViewRow(row)}
+                      />
+                    ))}
 
-                {/* {services?.GetPaymentMethod?.data &&
+                  {/* {services?.GetPaymentMethod?.data &&
                   services?.GetPaymentMethod?.data?.slice(0, table.rowsPerPage).map((row) => {
                     if (load) return <ServicePaymentMethodTableRowSkeleton key={row.id} />;
 
@@ -460,7 +460,7 @@ export default function ServicePaymentMethodList({tutorialTab, incrementTutsTab}
                       />
                     );
                   })} */}
-                {/* {dataFiltered
+                  {/* {dataFiltered
                   .slice(
                     table.page * table.rowsPerPage,
                     table.page * table.rowsPerPage + table.rowsPerPage
@@ -480,90 +480,92 @@ export default function ServicePaymentMethodList({tutorialTab, incrementTutsTab}
                     );
                   })} */}
 
-                <TableEmptyRows
-                  height={denseHeight}
-                  emptyRows={emptyRows(
-                    table.page,
-                    table.rowsPerPage,
-                    services?.GetPaymentMethod?.totalRecords
-                  )}
-                />
+                  <TableEmptyRows
+                    height={denseHeight}
+                    emptyRows={emptyRows(
+                      table.page,
+                      table.rowsPerPage,
+                      services?.GetPaymentMethod?.totalRecords
+                    )}
+                  />
 
-                <TableNoData notFound={notFound} />
-              </TableBody>
-            </Table>
-          </Scrollbar>
-        </TableContainer>
+                  <TableNoData notFound={notFound} />
+                </TableBody>
+              </Table>
+            </Scrollbar>
+          </TableContainer>
 
-        <ServicePaymentMethodCreate
-          refetch={refetch}
-          isTuts={tutorialTab && tutorialTab === 11 ? true:false}
-          open={openCreate.value}
-          onClose={openCreate.onFalse}
-          appendData={appendData}
-          tempId={tempId}
-          resolveData={(d) => {
-            setServerData(d);
-            setTempId(uuidv4());
-          }}
-          incrementTutsTab={incrementTutsTab}
-        />
-
-        <ServicePaymentMethodEdit
-          open={openEdit.value}
-          onClose={() => {
-            setEditId(null);
-            openEdit.onFalse();
-            if(isView){
-              setIsView(false)
-            }
-          }}
-          isView={isView}
-          onSuccess={onSuccessUpdate}
-          id={editId}
-          updateData={updateData}
-          refetch={refetch}
-          appendData={appendData}
-        />
-
-        <TablePaginationCustom
-          count={services?.GetPaymentMethod?.totalRecords}
-          page={table.page}
-          rowsPerPage={table.rowsPerPage}
-          onPageChange={table.onChangePage}
-          onRowsPerPageChange={table.onChangeRowsPerPage}
-          //
-          dense={table.dense}
-          onChangeDense={table.onChangeDense}
-        />
-      </Card>
-
-      <ConfirmDialog
-        open={confirm.value}
-        onClose={confirm.onFalse}
-        title="Delete"
-        content={
-          <>
-            Are you sure want to delete <strong> {table.selected.length} </strong> items?
-          </>
-        }
-        action={
-          <Button
-            variant="contained"
-            color="error"
-            onClick={() => {
-              handleDeleteRows();
-              confirm.onFalse();
+          <ServicePaymentMethodCreate
+            refetch={refetch}
+            isTuts={tutorialTab && tutorialTab === 11 ? true : false}
+            open={openCreate.value}
+            onClose={openCreate.onFalse}
+            appendData={appendData}
+            tempId={tempId}
+            resolveData={(d) => {
+              setServerData(d);
+              setTempId(uuidv4());
             }}
-          >
-            Delete
-          </Button>
-        }
-      />
-     </div>
+            incrementTutsTab={incrementTutsTab}
+          />
+
+          <ServicePaymentMethodEdit
+            open={openEdit.value}
+            onClose={() => {
+              setEditId(null);
+              openEdit.onFalse();
+              if (isView) {
+                setIsView(false)
+              }
+            }}
+            isView={isView}
+            onSuccess={onSuccessUpdate}
+            id={editId}
+            updateData={updateData}
+            refetch={refetch}
+            appendData={appendData}
+          />
+
+          <TablePaginationCustom
+            count={services?.GetPaymentMethod?.totalRecords}
+            page={table.page}
+            rowsPerPage={table.rowsPerPage}
+            onPageChange={table.onChangePage}
+            onRowsPerPageChange={table.onChangeRowsPerPage}
+            //
+            dense={table.dense}
+            onChangeDense={table.onChangeDense}
+          />
+        </Card>
+
+        <ConfirmDialog
+          open={confirm.value}
+          onClose={confirm.onFalse}
+          title="Delete"
+          content={
+            <>
+              Are you sure want to delete <strong> {table.selected.length} </strong> items?
+            </>
+          }
+          action={
+            <Button
+              variant="contained"
+              color="error"
+              onClick={() => {
+                handleDeleteRows();
+                confirm.onFalse();
+              }}
+            >
+              Delete
+            </Button>
+          }
+        />
+      </div>
     </>
   );
-}
+})
+
+export default ServicePaymentMethodList
 
 // ----------------------------------------------------------------------
 
