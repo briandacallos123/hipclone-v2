@@ -13,9 +13,15 @@ const isValidFileTypes = (str: string) => {
 const validateMagicNumber = (buf: any) => {
   const magicNumberStr = buf.toString('hex', 0, 4).toLowerCase();
   return (
-    magicNumberStr === String('25504446').toLowerCase() ||
-    magicNumberStr === String('89504e47').toLowerCase() ||
-    magicNumberStr === String('ffd8ffe0').toLowerCase()
+    // magicNumberStr === String('25504446').toLowerCase() ||
+    // magicNumberStr === String('89504e47').toLowerCase() ||
+    // magicNumberStr === String('ffd8ffe0').toLowerCase()
+    magicNumberStr === '89504e47' ||
+    magicNumberStr === 'ffd8ffe0' ||
+    magicNumberStr === 'ffd8ffe1' ||
+    magicNumberStr === 'ffd8ffe2' ||
+    magicNumberStr === 'ffd8ffe3' ||
+    magicNumberStr === 'ffd8ffdb'
   );
 };
 
@@ -25,7 +31,6 @@ const calculateHash = (buffer: Buffer) => {
 const storage = new Storage({
   keyFilename: join(process.cwd(), 'json/adroit-solstice-257307-0068b54143dd.json'),
 });
-
 
 const bucket = storage.bucket('storage.apgitsolutions.com');
 
@@ -62,16 +67,15 @@ const useGoogleStorage = async (sFile: any, userId: any, folderUploadName: any) 
         : `${uuidv4()}_${file?.name}`;
       const fileName = `mediko_connect_files/${folderUploadName}/${userFolder}/${uniqueName}`;
       const isDefaults = await fileDefaults(fileName);
-      
+
       const blob = bucket.file(fileName);
       const blobStream = blob.createWriteStream();
 
-    //  blob.name = `mediko_connect_files/${blob.name}`;
-     
+      //  blob.name = `mediko_connect_files/${blob.name}`;
 
       if (isDefaults) {
         return new Promise((resolve) => {
-          const publicUrl = `https://${bucket.name}/${blob.name}`
+          const publicUrl = `https://${bucket.name}/${blob.name}`;
           resolve({
             hash: fileHash,
             fileName: fileName,
@@ -83,8 +87,6 @@ const useGoogleStorage = async (sFile: any, userId: any, folderUploadName: any) 
         });
       }
 
-    
-
       return new Promise((resolve, reject) => {
         blobStream.on('error', (err: any) => {
           reject(new GraphQLError(err));
@@ -92,8 +94,8 @@ const useGoogleStorage = async (sFile: any, userId: any, folderUploadName: any) 
 
         blobStream.on('finish', async () => {
           await blob.makePublic();
-          const publicUrl = `https://${bucket.name}/${blob.name}`
-       
+          const publicUrl = `https://${bucket.name}/${blob.name}`;
+
           resolve({
             hash: fileHash,
             fileName: fileName,
