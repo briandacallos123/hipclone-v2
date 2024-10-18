@@ -20,11 +20,13 @@ import StepLabel from '@mui/material/StepLabel';
 import { useAuthContext } from 'src/auth/hooks';
 import { useResponsive } from 'src/hooks/use-responsive';
 // components
+import EmptyContent from 'src/components/empty-content';
+import Iconify from 'src/components/iconify';
 import { useSettingsContext } from 'src/components/settings';
 import VitalChart from '../vital-chart';
 import PatientDataController from './_patientDataController';
 import FeedsView from '../../feeds/feeds-view';
-import { fDate } from '@/utils/format-time';
+import { fDate, fDateTime } from '@/utils/format-time';
 import VitalChartSmall from '../vital-chart-Small';
 import ProfileVitalViewDashboard from '@/sections/profile/vital/view/vital-view-dashboard';
 import { Skeleton } from '@mui/material';
@@ -61,9 +63,9 @@ export default function DashboardPatientView() {
   const weightData = chartData?.map((item: any) => item?.wt || 0)[0];
   const HeightData = chartData?.map((item: any) => item?.ht || 0)[0];
 
-  const mergeBp: any = []
-  mergeBp.push(BP1Data)
-  mergeBp.push(BP2Data)
+  const mergeBp: any = [];
+  mergeBp.push(BP1Data);
+  mergeBp.push(BP2Data);
 
   const BPCombinedData = [];
 
@@ -73,9 +75,11 @@ export default function DashboardPatientView() {
     BPCombinedData.push(bp1Value, bp2Value);
   }
 
-  const notFound = !getDataResult?.loading && !allData?.patientInfo?.allergy?.length
+  const notFound = !getDataResult?.loading && !allData?.patientInfo?.allergy?.length;
 
   const categories = dataDate?.map((_: any) => `${fDate(_, 'MMM dd')}`);
+
+  const isEmptyMedication = allData?.patientInfo?.medication.length <= 0;
 
   const SkeletonField = () => {
     return (
@@ -96,16 +100,45 @@ export default function DashboardPatientView() {
           <Skeleton variant="rectangular" width={'100%'} height={30} />
         </Grid>
       </Grid>
-    )
-  }
+    );
+  };
 
   return (
-    <Grid container  sx={{ width: '100%' }}>
+    <Grid container sx={{ width: '100%', pl: { md: 0, xs: 2 } }} spacing={3}>
       <Grid md={12} xs={12}>
-
-        <Card sx={{ p: { xs: 2, md: 3 }, mb: 2, width: '100%', display: 'flex', flexDirection:{xs:'column',md:'row'} }}>
-          <Grid gap={{ xs: 2, md: 0 }} alignItems='center' container xs={12} sm={12} lg={6}>
-            <Grid xs={12} item lg={4}>
+        <Card
+          sx={{
+            p: { xs: 2, md: 3 },
+            mb: 2,
+            width: '100%',
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+          }}
+        >
+          <Grid
+            gap={{ xs: 2, md: 0 }}
+            sx={{ position: 'relative' }}
+            alignItems="center"
+            container
+            xs={12}
+            sm={12}
+            lg={6}
+          >
+            {!upMd && (
+              <div
+                style={{
+                  rotate: '90deg',
+                  position: 'absolute',
+                  top: -300,
+                  left: 0,
+                  right: 0,
+                  color: theme.palette.primary.main,
+                }}
+              >
+                <Iconify icon="bxs:circle-half" width={460} />
+              </div>
+            )}
+            <Grid sx={{ zIndex: 2 }} xs={12} item lg={4}>
               <Avatar
                 src={user?.photoURL}
                 alt="IMG"
@@ -118,17 +151,30 @@ export default function DashboardPatientView() {
               />
             </Grid>
 
-            <Grid xs={12} item lg={4}>
+            <Grid
+              xs={12}
+              item
+              lg={4}
+              sx={{
+                zIndex: 2,
+                color: { md: 'black', xs: 'white' },
+              }}
+            >
               <Stack spacing={0.5} textAlign={{ xs: 'center' }}>
-                <Typography>{!user?.firstName ? user?.uname : `${user?.firstName} ${user?.lastName}`}</Typography>
+                <Typography>
+                  {!user?.firstName ? user?.uname : `${user?.firstName} ${user?.lastName}`}
+                </Typography>
                 <Typography>{user?.occupation}</Typography>
                 <Typography>{`+63${user?.contact}`}</Typography>
               </Stack>
             </Grid>
 
-            <Grid xs={12} item lg={4}>
-
-              <Stack sx={{ pl: { xs: 5, md: 0 } }} direction="column" alignItems={{ xs: 'flex-start', md: 'flex-start' }}>
+            <Grid xs={12} item lg={4} sx={{ zIndex: 2 }}>
+              <Stack
+                sx={{ pl: { xs: 5, md: 0 } }}
+                direction="column"
+                alignItems={{ xs: 'flex-start', md: 'flex-start' }}
+              >
                 <Stack direction="row" gap={1}>
                   <Typography sx={{ color: theme.palette.primary.main }}>Age</Typography>
                   <Typography>{allData?.patientInfo?.AGE}</Typography>
@@ -139,7 +185,7 @@ export default function DashboardPatientView() {
                 </Stack>
                 <Stack direction="row" gap={1}>
                   <Typography sx={{ color: theme.palette.primary.main }}>Birth Date</Typography>
-                  <Typography>{allData?.patientInfo?.BDAY}</Typography>
+                  <Typography>{fDate(allData?.patientInfo?.BDAY)}</Typography>
                 </Stack>
               </Stack>
             </Grid>
@@ -147,7 +193,7 @@ export default function DashboardPatientView() {
             {/* allergies & history */}
             <Grid xs={12} lg={12} item sx={{ width: '100%' }}>
               {/* allergy */}
-              <Stack sx={{ pt: 2, w:'100%' }}>
+              <Stack sx={{ pt: 2, w: '100%' }}>
                 <Typography variant="subtitle2" sx={{ textAlign: 'left', pl: 3, mb: -2 }}>
                   Allergies
                 </Typography>
@@ -157,30 +203,33 @@ export default function DashboardPatientView() {
                   columnGap={2}
                   display="grid"
                   gridTemplateColumns={{
-                    xs: 'repeat(1, 1fr)',
+                    xs: 'repeat(2, 1fr)',
                     sm: 'repeat(2, 1fr)',
-                    md: 'repeat(5, 1fr)'
+                    md: 'repeat(5, 1fr)',
                   }}
                   sx={{ p: 3 }}
                 >
-
                   {allData?.patientInfo?.allergy?.map((item: any) => (
                     <Chip label={item.allergy} color="primary" sx={{ fontSize: '10px' }} />
                   ))}
 
-                  {
-                    notFound && <Typography variant="body1" sx={{
-                      color: 'grey'
-                    }}>No allergies found.</Typography>
-                  }
-
+                  {notFound && (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: 'grey',
+                      }}
+                    >
+                      No allergies found.
+                    </Typography>
+                  )}
                 </Box>
               </Stack>
 
               {/* ewan */}
               <Stack sx={{ pt: 2 }}>
                 <Typography variant="subtitle2" sx={{ textAlign: 'left', pl: 3, mb: -2 }}>
-                Family history
+                  Family history
                 </Typography>
                 {getDataResult?.loading && <SkeletonField />}
                 <Box
@@ -188,30 +237,31 @@ export default function DashboardPatientView() {
                   columnGap={2}
                   display="grid"
                   gridTemplateColumns={{
-                    xs: 'repeat(1, 1fr)',
+                    xs: 'repeat(2, 1fr)',
                     sm: 'repeat(2, 1fr)',
-                    md: 'repeat(5, 1fr)'
+                    md: 'repeat(5, 1fr)',
                   }}
                   sx={{ p: 3 }}
                 >
-
                   {allData?.patientInfo?.family_history?.map((item: any) => (
                     <Chip label={item.family_history} color="primary" sx={{ fontSize: '10px' }} />
                   ))}
-                  {
-                    notFound && <Typography variant="body1" sx={{
-                      color: 'grey'
-                    }}>No family history found.</Typography>
-                  }
-
+                  {notFound && (
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        color: 'grey',
+                      }}
+                    >
+                      No family history found.
+                    </Typography>
+                  )}
                 </Box>
               </Stack>
-
             </Grid>
-
           </Grid>
           <Grid xs={12} sm={12} lg={6}>
-            <PatientUpcomingAppt/>
+            <PatientUpcomingAppt />
           </Grid>
           {/* <Grid sx={{
             width: '100%',
@@ -310,18 +360,10 @@ export default function DashboardPatientView() {
            */}
         </Card>
 
-
-
-
         <Card>
           <ProfileVitalViewDashboard />
         </Card>
       </Grid>
-
-
-
-
-
 
       <Grid md={12} xs={12}>
         <Grid md={12} xs={12}>
@@ -372,8 +414,6 @@ export default function DashboardPatientView() {
                   }}
                   loading={loading}
                 /> */}
-
-
               </Stack>
             </Grid>
           </Card>
@@ -386,13 +426,30 @@ export default function DashboardPatientView() {
         >
           <Card sx={{ width: upMd ? '70%' : '100%', p: 3 }}>
             <CardHeader title="Medication" />
-            <Stack alignItems="flex-start" justifyContent="center" sx={{ width: '100%' }}>
+            <Stack
+              alignItems={!isEmptyMedication ? 'center' : 'flex-start'}
+              justifyContent="center"
+              sx={{ width: '100%' }}
+            >
               <Stepper activeStep={allData?.patientInfo?.medication.length} orientation="vertical">
-                {allData?.patientInfo?.medication?.map((step: any, index: any) => (
-                  <Step key={index}>
-                    <StepLabel>{step.medication}</StepLabel>
-                  </Step>
-                ))}
+                {!isEmptyMedication ? (
+                  <>
+                    {allData?.patientInfo?.medication?.map((step: any, index: any) => (
+                      <Step key={index}>
+                        <StepLabel>{step.medication}</StepLabel>
+                      </Step>
+                    ))}
+                  </>
+                ) : (
+                  <Stack>
+                    <EmptyContent
+                      title="No Medication Data"
+                      sx={{
+                        '& span.MuiBox-root': { height: 160 },
+                      }}
+                    />
+                  </Stack>
+                )}
               </Stepper>
             </Stack>
           </Card>
@@ -405,20 +462,23 @@ export default function DashboardPatientView() {
                 {reader(allData?.patientInfo?.BLOOD_TYPE)}
               </Typography>
             </Stack>
-            {HeightData && <Stack>
-              <Typography variant="caption" sx={{ color: theme.palette.primary.main }}>
-                Height:
-              </Typography>
-              <Typography variant="subtitle1">{`${HeightData} Cm`}</Typography>
-            </Stack>}
-            {weightData && <Stack>
-              <Typography variant="caption" sx={{ color: theme.palette.primary.main }}>
-                Weight:
-              </Typography>
-              <Typography variant="subtitle1">{`${weightData} Kg`}</Typography>
-            </Stack>}
+            {HeightData && (
+              <Stack>
+                <Typography variant="caption" sx={{ color: theme.palette.primary.main }}>
+                  Height:
+                </Typography>
+                <Typography variant="subtitle1">{`${HeightData} Cm`}</Typography>
+              </Stack>
+            )}
+            {weightData && (
+              <Stack>
+                <Typography variant="caption" sx={{ color: theme.palette.primary.main }}>
+                  Weight:
+                </Typography>
+                <Typography variant="subtitle1">{`${weightData} Kg`}</Typography>
+              </Stack>
+            )}
             <Stack>
-
               <VitalChartSmall
                 isSmall={true}
                 title="Body Temperature"
@@ -429,7 +489,6 @@ export default function DashboardPatientView() {
                 loading={loading}
               />
             </Stack>
-
 
             <Box sx={{ position: 'absolute', top: 0, bottom: 0, right: -10 }}>
               <img

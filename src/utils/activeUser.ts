@@ -13,7 +13,7 @@ const activeUser = () => {
       notifyOnNetworkStatusChange: true,
     });
 
-    console.log(isIdle,'ISIDLEEE____________')
+    // console.log(isIdle,'ISIDLEEE____________')
 
     const {user, socket} = useAuthContext()
 

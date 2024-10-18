@@ -20,129 +20,262 @@ type Props = {
   items2: any;
   refetch?: any;
   openSingle?: any;
-  refetchP2?:any;
+  refetchP2?: any;
 };
 
-export default function VitalView({ refetchP2, refetch, openSingle, items2, items, loading, isDashboard, addedCategory }: Props) {
+export default function VitalView({
+  refetchP2,
+  refetch,
+  openSingle,
+  items2,
+  items,
+  loading,
+  isDashboard,
+  addedCategory,
+}: Props) {
   const upMd = useResponsive('up', 'md');
 
-  let weightData = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => {
-    return {
-      data: item?.wt,
-      id: item?.id
-    }
-  });
+  let weightData = items
+    ?.filter((item: any) => item?.wt !== '0' && item?.wt)
+    ?.map((item) => {
+      return {
+        data: item?.wt,
+        id: item?.id,
+      };
+    });
 
-  if(weightData?.length === 1){
+  const weightArray = items
+    ?.filter((item: any) => item?.wt !== '0' && item?.wt)
+    ?.map((item) => item?.wt);
+
+  const emptyWeight = weightArray.length <= 0;
+
+  if (weightData?.length === 1) {
     weightData.push({
-      data:'0',
-      id:0
-    })
+      data: '0',
+      id: 0,
+    });
   }
 
-  const weightDataDate = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => fDate(item?.date, 'MMM dd'));
+  const weightDataDate = items
+    ?.filter((item: any) => item?.wt !== '0' && item?.wt)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
   weightData = weightData.reverse();
-  const weightDataDateNoFormat = items?.filter((item: any) => item?.wt !== '0' && item?.wt)?.map((item) => item?.date)
+  const weightDataDateNoFormat = items
+    ?.filter((item: any) => item?.wt !== '0' && item?.wt)
+    ?.map((item) => item?.date);
 
   // --------------------------------
 
-  const HeightData = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => {
-    return {
-      data: item?.ht,
-      id: item?.id
-    }
-  })
-  const HeightDataDate = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const HeightDataDateNoFormat = items?.filter((item: any) => item?.ht !== '0' && item?.ht)?.map((item) => item?.date);
+  const HeightData = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => {
+      return {
+        data: item?.ht,
+        id: item?.id,
+      };
+    });
+
+  const heightArray = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => item?.ht);
+
+  const emptyHeight = heightArray.length <= 0;
+
+  const HeightDataDate = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const HeightDataDateNoFormat = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => item?.date);
 
   // --------------------------------
 
+  const BMIData = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => {
+      return {
+        data: item?.bmi,
+        id: item?.id,
+      };
+    });
 
-  const BMIData = items?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)?.map((item) => {
-    return {
-      data: item?.bmi,
-      id: item?.id
-    }
-  });
-  const BMIDataDate = items?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const BMIDataDateNoFormat = items?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)?.map((item) => item?.date);
+  const BMIArray = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => item?.bmi);
 
-  const BP1Data = items?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)?.map((item) => {
-    return {
-      data: item?.bp1,
-      id: item?.id
-    }
-  });
-  const BP1DataDate = items?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const BP1DataDateNoFormat = items?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)?.map((item) => item?.date);
+  const emptyBMI = BMIArray.length <= 0;
 
-  const BP2Data = items?.filter((item: any) => item?.bp2 !== '0' && item?.b2 !== '0.00' && item?.bp2)?.map((item) => {
-    return {
-      data: item?.bp2,
-      id: item?.id
-    }
-  });
+  const BMIDataDate = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const BMIDataDateNoFormat = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => item?.date);
 
+  const BP1Data = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => {
+      return {
+        data: item?.bp1,
+        id: item?.id,
+      };
+    });
 
-  const BP2DataDate = items?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const BP2DataDateNoFormat = items?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)?.map((item) => item?.date);
+  const BP1Array = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => item?.bp1);
 
-  const OxygenData = items?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)?.map((item) => {
-    return {
-      data: item?.spo2,
-      id: item?.id
-    }
-  });
-  const OxygenDataDate = items?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const OxygenDataDateNoFormat = items?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)?.map((item) => item?.date);
+  const emptyBP1 = BP1Array.length <= 0;
 
-  const HeartRateData = items?.filter((item: any) => item?.hr !== '0' && item?.hr)?.map((item) => {
-    return {
-      data: item?.hr,
-      id: item?.id
-    }
-  });
-  const HeartRateDataDate = items?.filter((item: any) => item?.hr !== '0' && item?.hr)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const HeartRateDataDateNoFormat = items?.filter((item: any) => item?.hr !== '0' && item?.hr)?.map((item) => item?.date);
+  const BP1DataDate = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const BP1DataDateNoFormat = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => item?.date);
 
+  const BP2Data = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.b2 !== '0.00' && item?.bp2)
+    ?.map((item) => {
+      return {
+        data: item?.bp2,
+        id: item?.id,
+      };
+    });
 
-  const RespData = items?.filter((item: any) => item?.rr !== '0' && item?.rr)?.map((item) => {
-    return {
-      data: item?.rr,
-      id: item?.id
-    }
-  });
-  const RespDataDate = items?.filter((item: any) => item?.rr !== '0' && item?.rr)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const RespDataDateNoFormat = items?.filter((item: any) => item?.rr !== '0' && item?.rr)?.map((item) => item?.date);
+  const BP2Array = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.b2 !== '0.00' && item?.bp2)
+    ?.map((item) => item?.bp2);
 
+  const emptyBP2 = BP2Array.length <= 0;
 
-  const TempData = items?.filter((item: any) => item?.bt !== '0' && item?.bt)?.map((item) => {
-    return {
-      data: item?.bt,
-      id: item?.id
-    }
-  });
-  const TempDataDate = items?.filter((item: any) => item?.bt !== '0' && item?.bt)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const TempDataDateNoFormat = items?.filter((item: any) => item?.bt !== '0' && item?.bt)?.map((item) => item?.date);
+  const BP2DataDate = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
 
-  const SugarMonitoringData = items?.filter((item: any) => item?.bsm !== '0' && item?.bsm)?.map((item) => {
-    return {
-      data: item?.bsm,
-      id: item?.id
-    }
-  });
-  const SugarMonitoringDataDate = items?.filter((item: any) => item?.bsm !== '0' && item?.bsm)?.map((item) => fDate(item?.date, 'MMM dd'));
-  const SugarMonitoringDataDateNoFormat = items?.filter((item: any) => item?.bsm !== '0' && item?.bsm)?.map((item) => item?.date);
+  const BP2DataDateNoFormat = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)
+    ?.map((item) => item?.date);
 
+  const OxygenData = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => {
+      return {
+        data: item?.spo2,
+        id: item?.id,
+      };
+    });
 
+  const OxygenArray = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => item?.spo2);
+
+  const emptyOxygen = OxygenArray.length <= 0;
+
+  const OxygenDataDate = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const OxygenDataDateNoFormat = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => item?.date);
+
+  const HeartRateData = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => {
+      return {
+        data: item?.hr,
+        id: item?.id,
+      };
+    });
+
+  const HeartRateArray = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => item?.hr);
+
+  const emptyHeartRate = HeartRateArray.length <= 0;
+
+  const HeartRateDataDate = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const HeartRateDataDateNoFormat = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => item?.date);
+
+  const RespData = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => {
+      return {
+        data: item?.rr,
+        id: item?.id,
+      };
+    });
+
+  const RespArray = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => item?.rr);
+
+  const emptyResp = RespArray.length <= 0;
+
+  const RespDataDate = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const RespDataDateNoFormat = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => item?.date);
+
+    
+
+  const TempData = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => {
+      return {
+        data: item?.bt,
+        id: item?.id,
+      };
+    });
+
+  const TempArray = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => item?.bt);
+
+  const emptyTemp = TempArray.length <= 0;
+
+  const TempDataDate = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const TempDataDateNoFormat = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => item?.date);
+
+  const SugarMonitoringData = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => {
+      return {
+        data: item?.bsm,
+        id: item?.id,
+      };
+    });
+
+  const SugarMonitoringArray = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => item?.bsm);
+
+  const emptySugarMonitoring = SugarMonitoringArray.length <= 0;
+
+  const SugarMonitoringDataDate = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const SugarMonitoringDataDateNoFormat = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => item?.date);
 
   const dataDate = items?.map((item: any) => item?.date || new Date());
   const categories = dataDate?.filter((_: any) => `${fDate(_, 'MMM dd')}`);
 
-
   let newData: any = [];
 
-  console.log(items)
+  console.log('items????',items);
 
   items2?.forEach((val: any) => {
     if (newData.length === 0) {
@@ -150,9 +283,9 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
       const vitalDateArr = [];
       const vitalDateArrNoFormat = [];
 
-      vitalDataArr.push(val.value)
-      vitalDateArr.push(fDate(val.createdAt))
-      vitalDateArrNoFormat.push(val.createdAt)
+      vitalDataArr.push(val.value);
+      vitalDateArr.push(fDate(val.createdAt));
+      vitalDateArrNoFormat.push(val.createdAt);
 
       const payload = {
         title: val?.vital_category?.title,
@@ -162,29 +295,28 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
         id: val?.id,
         date: vitalDateArr,
         data: vitalDataArr,
-        dateNoFormat: vitalDateArrNoFormat
+        dateNoFormat: vitalDateArrNoFormat,
+      };
 
-      }
-
-      newData.push(payload)
+      newData.push(payload);
     } else {
       const allTitles = newData?.map((item) => item.title);
 
       if (allTitles.includes(val?.vital_category?.title)) {
         const index = newData.findIndex((item) => item.title === val?.vital_category?.title);
         if (index !== -1) {
-          newData[index].data.push(val.value)
-          newData[index].date.push(fDate(val.createdAt))
-          newData[index].dateNoFormat.push(val.createdAt)
+          newData[index].data.push(val.value);
+          newData[index].date.push(fDate(val.createdAt));
+          newData[index].dateNoFormat.push(val.createdAt);
         }
       } else {
         const vitalDataArr = [];
         const vitalDateArr = [];
         const vitalDateArrNoFormat = [];
 
-        vitalDataArr.push(val.value)
-        vitalDateArr.push(fDate(val.createdAt))
-        vitalDateArrNoFormat.push(val.createdAt)
+        vitalDataArr.push(val.value);
+        vitalDateArr.push(fDate(val.createdAt));
+        vitalDateArrNoFormat.push(val.createdAt);
 
         const payload = {
           title: val?.vital_category?.title,
@@ -194,15 +326,14 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
           measuring_unit: val?.vital_category?.measuring_unit,
           measuring_id: val?.categoryId,
           date: vitalDateArr,
-          dateNoFormat: vitalDateArrNoFormat
-        }
-        newData.push(payload)
+          dateNoFormat: vitalDateArrNoFormat,
+        };
+        newData.push(payload);
       }
-
     }
-  })
+  });
 
-  console.log(newData,'newdaataaa')
+  // console.log(newData, 'newdaataaa');
 
   // newData = newData?.map((item)=>{
   //   const newDate = item?.date?.map((item)=>{
@@ -218,7 +349,6 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
 
   // console.log(newData,'AHEHEHEHEEEEEEEEEE_______________________________________________')
 
-
   // [2]?.forEach((item)=>{
 
   // })
@@ -229,14 +359,13 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
   //     data:[]
   //   }
 
-
   // })
-
 
   // console.log(newData,'WAWAWIIIIIIIII@@@@@@@@@@@@@@@@@@@@@@@@@@______________')
 
-
-
+  // console.log('itemsTemp++++++++++++++++', emptyWeight);
+  // console.log('itemsTemp++++++++++++++++', emptyTemp);
+  
 
   return (
     <>
@@ -251,6 +380,7 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
         >
           <VitalChart
             title="Weight"
+            emptyCondition={emptyWeight}
             refetch={refetch}
             subheader="by kilogram"
             chart={{
@@ -258,28 +388,31 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               data: [{ name: 'kg', data: weightData?.map((item) => item?.data) }],
             }}
             list={[...Array(weightDataDate?.length)].map((_, index) => ({
-              value: `${weightData[weightData?.find((item)=>item?.id === 0)?index+1:index]?.data} kg`,
+              value: `${
+                weightData[weightData?.find((item) => item?.id === 0) ? index + 1 : index]?.data
+              } kg`,
               date: weightDataDate[index],
-              id: weightData[weightData?.find((item)=>item?.id === 0)?index+1:index]?.id,
+              id: weightData[weightData?.find((item) => item?.id === 0) ? index + 1 : index]?.id,
               category: 'wt',
-              dataDate: weightDataDateNoFormat[index]
+              dataDate: weightDataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "weight",
+                name: 'weight',
                 type: 'number',
-                label: "Weight",
-                placeholder: "0",
-                adornment: "kg"
-              })
+                label: 'Weight',
+                placeholder: '0',
+                adornment: 'kg',
+              });
             }}
           />
 
           <VitalChart
             title="Height"
             subheader="by centimeter"
+            emptyCondition={emptyHeight}
             refetch={refetch}
             chart={{
               categories: [...HeightDataDate],
@@ -290,25 +423,25 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               date: HeightDataDate[index],
               id: HeightData[index]?.id,
               category: 'ht',
-              dataDate: HeightDataDateNoFormat[index]
-
+              dataDate: HeightDataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "height",
+                name: 'height',
                 type: 'number',
-                label: "Height",
-                placeholder: "0",
-                adornment: "cm"
-              })
+                label: 'Height',
+                placeholder: '0',
+                adornment: 'cm',
+              });
             }}
           />
 
           <VitalChart
             title="Body Mass Index"
             subheader="by kg/m2"
+            emptyCondition={emptyBMI}
             refetch={refetch}
             chart={{
               categories: [...BMIDataDate],
@@ -319,27 +452,26 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               date: BMIDataDate[index],
               id: BMIData[index]?.id,
               category: 'bmi',
-              dataDate: BMIDataDateNoFormat[index]
-
+              dataDate: BMIDataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "bmi",
+                name: 'bmi',
                 type: 'number',
-                label: "Body Mass Index",
-                placeholder: "0.00",
-                adornment: "kg/m2"
-              })
+                label: 'Body Mass Index',
+                placeholder: '0.00',
+                adornment: 'kg/m2',
+              });
             }}
-
           />
 
           <VitalChart
             title="Blood Pressure"
             subheader="by mm/Hg"
             refetch={refetch}
+            emptyCondition={emptyBP1 || emptyBP2}
             chart={{
               categories: [...BP1DataDate],
               data: [
@@ -352,25 +484,25 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               date: BP1DataDate[index],
               id: BP1Data[index]?.id,
               category: 'bp',
-              dataDate: BP1DataDateNoFormat[index]
+              dataDate: BP1DataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "bloodPresMM",
+                name: 'bloodPresMM',
                 type: 'number',
-                label: "Blood Pressure (mm)",
-                placeholder: "0",
-                adornment: "mm/Hg"
-              })
+                label: 'Blood Pressure (mm)',
+                placeholder: '0',
+                adornment: 'mm/Hg',
+              });
             }}
-
           />
 
           <VitalChart
             title="Oxygen Saturation"
             refetch={refetch}
+            emptyCondition={emptyOxygen}
             subheader="by percentage"
             chart={{
               categories: [...OxygenDataDate],
@@ -381,23 +513,24 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               date: OxygenDataDate[index],
               id: OxygenData[index]?.id,
               category: 'spo2',
-              dataDate: OxygenDataDateNoFormat[index]
+              dataDate: OxygenDataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "oxygen",
+                name: 'oxygen',
                 type: 'number',
-                label: "Oxygen Saturation",
-                placeholder: "0",
-                adornment: "%"
-              })
+                label: 'Oxygen Saturation',
+                placeholder: '0',
+                adornment: '%',
+              });
             }}
           />
 
           <VitalChart
             title="Respiratory Rate"
+            emptyCondition={emptyResp}
             refetch={refetch}
             subheader="by breathes per minutes "
             chart={{
@@ -409,23 +542,24 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               date: RespDataDate[index],
               id: RespData[index]?.id,
               category: 'rr',
-              dataDate: RespDataDateNoFormat[index]
+              dataDate: RespDataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "respRate",
+                name: 'respRate',
                 type: 'number',
-                label: "Respiratory Rate",
-                placeholder: "0",
-                adornment: "breathes/min"
-              })
+                label: 'Respiratory Rate',
+                placeholder: '0',
+                adornment: 'breathes/min',
+              });
             }}
           />
 
           <VitalChart
             title="Heart Rate"
+            emptyCondition={emptyHeartRate}
             subheader="by beats per minutes"
             refetch={refetch}
             chart={{
@@ -437,24 +571,24 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               date: HeartRateDataDate[index],
               id: HeartRateData[index]?.id,
               category: 'hr',
-              dataDate: HeartRateDataDateNoFormat[index]
-
+              dataDate: HeartRateDataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "heartRate",
+                name: 'heartRate',
                 type: 'number',
-                label: "Heart Rate",
-                placeholder: "0",
-                adornment: "bpm"
-              })
+                label: 'Heart Rate',
+                placeholder: '0',
+                adornment: 'bpm',
+              });
             }}
           />
 
           <VitalChart
             title="Body Temperature"
+            emptyCondition={emptyTemp}
             refetch={refetch}
             subheader="by Celcius"
             chart={{
@@ -466,23 +600,23 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               date: TempDataDate[index],
               id: TempData[index]?.id,
               category: 'bt',
-              dataDate: TempDataDateNoFormat[index]
-
+              dataDate: TempDataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "bodyTemp",
+                name: 'bodyTemp',
                 type: 'number',
-                label: "Body Temperature",
-                placeholder: "0",
-                adornment: "bpm"
-              })
+                label: 'Body Temperature',
+                placeholder: '0',
+                adornment: 'bpm',
+              });
             }}
           />
 
           <VitalChart
+            emptyCondition={emptySugarMonitoring}
             title="Blood Sugar Monitoring"
             subheader="by Percentage"
             refetch={refetch}
@@ -495,22 +629,20 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
               date: SugarMonitoringDataDate[index],
               id: SugarMonitoringData[index]?.id,
               category: 'bsm',
-              dataDate: SugarMonitoringDataDateNoFormat[index]
+              dataDate: SugarMonitoringDataDateNoFormat[index],
             }))}
             loading={loading}
             isDashboard={isDashboard}
             createNew={() => {
               openSingle({
-                name: "bsm",
+                name: 'bsm',
                 type: 'number',
-                label: "Blood Sugar Monitoring",
-                placeholder: "0",
-                adornment: "%"
-              })
+                label: 'Blood Sugar Monitoring',
+                placeholder: '0',
+                adornment: '%',
+              });
             }}
           />
-
-
 
           {newData?.map((item: any) => (
             <VitalChart
@@ -526,7 +658,7 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                 date: item?.dateNoFormat[index],
                 id: item?.id,
                 category: item?.measuring_id,
-                dataDate:item?.dateCreated,
+                dataDate: item?.dateCreated,
               }))}
               loading={loading}
               isDashboard={isDashboard}
@@ -535,10 +667,10 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                   name: item?.title,
                   type: 'number',
                   label: item?.title,
-                  placeholder: "0",
+                  placeholder: '0',
                   adornment: item?.measuring_unit,
-                  new:true
-                })
+                  new: true,
+                });
               }}
             />
           ))}
@@ -557,6 +689,7 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
             >
               <VitalChart
                 title="Weight"
+                emptyCondition={emptyWeight}
                 subheader="by kilogram"
                 chart={{
                   categories: [...weightDataDate],
@@ -567,23 +700,24 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                   date: weightDataDate[index],
                   id: weightData[index]?.id,
                   category: 'wt',
-                  dataDate: weightDataDateNoFormat[index]
+                  dataDate: weightDataDateNoFormat[index],
                 }))}
                 loading={loading}
                 isDashboard={isDashboard}
                 createNew={() => {
                   openSingle({
-                    name: "weight",
+                    name: 'weight',
                     type: 'number',
-                    label: "Weight",
-                    placeholder: "0",
-                    adornment: "kg"
-                  })
+                    label: 'Weight',
+                    placeholder: '0',
+                    adornment: 'kg',
+                  });
                 }}
               />
 
               <VitalChart
                 title="Height"
+                emptyCondition={emptyHeight}
                 subheader="by centimeter"
                 chart={{
                   categories: [...HeightDataDate],
@@ -597,17 +731,18 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                 isDashboard={isDashboard}
                 createNew={() => {
                   openSingle({
-                    name: "height",
+                    name: 'height',
                     type: 'number',
-                    label: "Height",
-                    placeholder: "0",
-                    adornment: "cm"
-                  })
+                    label: 'Height',
+                    placeholder: '0',
+                    adornment: 'cm',
+                  });
                 }}
               />
 
               <VitalChart
                 title="Body Mass Index"
+                emptyCondition={emptyBMI}
                 subheader="by kg/m2"
                 chart={{
                   categories: [...BMIDataDate],
@@ -621,16 +756,17 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                 isDashboard={isDashboard}
                 createNew={() => {
                   openSingle({
-                    name: "bmi",
+                    name: 'bmi',
                     type: 'number',
-                    label: "Body Mass Index",
-                    placeholder: "0.00",
-                    adornment: "kg/m2"
-                  })
+                    label: 'Body Mass Index',
+                    placeholder: '0.00',
+                    adornment: 'kg/m2',
+                  });
                 }}
               />
 
               <VitalChart
+                emptyCondition={emptyBP1 || emptyBP2}
                 title="Blood Pressure"
                 subheader="by mm/Hg"
                 chart={{
@@ -648,18 +784,19 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                 isDashboard={isDashboard}
                 createNew={() => {
                   openSingle({
-                    name: "bloodPresMM",
+                    name: 'bloodPresMM',
                     type: 'number',
-                    label: "Blood Pressure (mm)",
-                    placeholder: "0",
-                    adornment: "mm/Hg"
-                  })
+                    label: 'Blood Pressure (mm)',
+                    placeholder: '0',
+                    adornment: 'mm/Hg',
+                  });
                 }}
               />
 
               <VitalChart
                 title="Oxygen Saturation"
                 subheader="by percentage"
+                emptyCondition={emptyOxygen}
                 chart={{
                   categories: [...OxygenDataDate],
                   data: [{ name: 'percentage', data: OxygenData }],
@@ -672,18 +809,19 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                 isDashboard={isDashboard}
                 createNew={() => {
                   openSingle({
-                    name: "oxygen",
+                    name: 'oxygen',
                     type: 'number',
-                    label: "Oxygen Saturation",
-                    placeholder: "0",
-                    adornment: "%"
-                  })
+                    label: 'Oxygen Saturation',
+                    placeholder: '0',
+                    adornment: '%',
+                  });
                 }}
               />
 
               <VitalChart
                 title="Respiratory Rate"
                 subheader="by breathes per minutes "
+                emptyCondition={emptyResp}
                 chart={{
                   categories: [...RespDataDate],
                   data: [{ name: 'bpm', data: RespData }],
@@ -696,18 +834,19 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                 isDashboard={isDashboard}
                 createNew={() => {
                   openSingle({
-                    name: "respRate",
+                    name: 'respRate',
                     type: 'number',
-                    label: "Respiratory Rate",
-                    placeholder: "0",
-                    adornment: "breathes/min"
-                  })
+                    label: 'Respiratory Rate',
+                    placeholder: '0',
+                    adornment: 'breathes/min',
+                  });
                 }}
               />
 
               <VitalChart
                 title="Heart Rate"
                 subheader="by beats per minutes"
+                emptyCondition={emptyHeartRate}
                 chart={{
                   categories: [...HeartRateDataDate],
                   data: [{ name: 'bpm', data: HeartRateData }],
@@ -720,18 +859,19 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                 isDashboard={isDashboard}
                 createNew={() => {
                   openSingle({
-                    name: "heartRate",
+                    name: 'heartRate',
                     type: 'number',
-                    label: "Heart Rate",
-                    placeholder: "0",
-                    adornment: "bpm"
-                  })
+                    label: 'Heart Rate',
+                    placeholder: '0',
+                    adornment: 'bpm',
+                  });
                 }}
               />
 
               <VitalChart
                 title="Body Temperature"
                 subheader="by Celcius"
+                emptyCondition={emptyTemp}
                 chart={{
                   categories: [...TempDataDate],
                   data: [{ name: 'Celcius', data: TempData }],
@@ -744,12 +884,12 @@ export default function VitalView({ refetchP2, refetch, openSingle, items2, item
                 isDashboard={isDashboard}
                 createNew={() => {
                   openSingle({
-                    name: "bodyTemp",
+                    name: 'bodyTemp',
                     type: 'number',
-                    label: "Body Temperature",
-                    placeholder: "0",
-                    adornment: "bpm"
-                  })
+                    label: 'Body Temperature',
+                    placeholder: '0',
+                    adornment: 'bpm',
+                  });
                 }}
               />
             </Box>

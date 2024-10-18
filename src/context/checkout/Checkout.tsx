@@ -209,7 +209,7 @@ const Checkout = ({ children }: any) => {
     const [state, dispatch] = useReducer(reducer, initialState)
 
  
-    console.log(state,'STATAEEEEEEEEEEEEEE')
+    // console.log(state,'STATAEEEEEEEEEEEEEE')
     useEffect(() => {
         const isLast = localStorage?.getItem('isLast');
 

@@ -50,8 +50,6 @@ export default function VitalChart({
   loading,
   ...other
 }: Props) {
-
-
   const theme = useTheme();
   const upMd = useResponsive('up', 'md');
   const open = useBoolean();
@@ -81,8 +79,8 @@ export default function VitalChart({
     ...options,
   });
 
-  console.log(chartOptions,'CHARTOPTIONS_____________')
-  console.log(data,'DATA_____________')
+  // console.log(chartOptions, 'CHARTOPTIONS_____________');
+  // console.log(data, 'DATA_____________');
 
   return (
     <>
@@ -112,6 +110,7 @@ export default function VitalChart({
               width={upMd ? '100%' : 200}
             />
           )}
+         
         </Card>
       )}
     </>

@@ -115,10 +115,10 @@ export default function VitalChartSmall({
     ...options,
   });
 
-  console.log(chart.categories,'________________CATEGORRIES2___________________')
-  console.log(chartOptions,'________________CATEGORRIES2___________________')
+  // console.log(chart.categories,'________________CATEGORRIES2___________________')
+  // console.log(chartOptions,'________________CATEGORRIES2___________________')
   
-  console.log(data,'________________DATA2___________________')
+  // console.log(data,'________________DATA2___________________')
 
   return (
     <>

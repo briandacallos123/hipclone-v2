@@ -183,7 +183,7 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
     })
   },[])
 
-  console.log(list,'listtt')
+  // console.log(list,'listtt')
 
   const notFound = !dataFiltered.length;
   const renderList = (
