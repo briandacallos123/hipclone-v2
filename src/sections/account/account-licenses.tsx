@@ -391,6 +391,7 @@ export default function AccountLicenses() {
             incrementStep();
             clearUnsaved()
             confirm.onFalse();
+            reset({}, { keepValues: true });
           }}
         >
           Skip
@@ -464,18 +465,20 @@ export default function AccountLicenses() {
                 onChange={(newValue) => {
                   field.onChange(newValue);
                 }}
+
                 // onClose={() => {
                 //   setAngGulo(true)
                 // }}
-                // onOpen={() => {
-                //   setAngGulo(false)
-                  
-                // }}
+                onOpen={() => {
+                  setAngGulo(false)
+
+                }}
                 slotProps={{
                   textField: {
                     fullWidth: true,
                     error: !!error,
                     helperText: error?.message,
+
                   },
                 }}
               />
@@ -503,11 +506,9 @@ export default function AccountLicenses() {
 
 
         <Stack spacing={3} alignItems="flex-end" justifyContent="flex-end">
-          <div className={step === 8 ? 'showFields-submit' : ''}>
-          {/* <div className={ 'showFields-submit'}> */}
-
+          <div className={step === 8 ? 'showFields-submit-license' : ''}>
+            {/* <div className={ 'showFields-submit'}> */}
             <LoadingButton type={!hasChanges ? 'button' : 'submit'} variant="contained" loading={isSubmitting}>
-
               Save Changes
             </LoadingButton>
           </div>

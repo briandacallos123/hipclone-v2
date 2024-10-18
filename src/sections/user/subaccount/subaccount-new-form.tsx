@@ -163,10 +163,15 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
 
   const UpdateUserSchema = Yup.object().shape({
     password: Yup.string().required('New Password is required').min(6, 'Password must be at least 6 characters'),
-    confirmPassword: Yup.string().oneOf([Yup.ref('password')], 'Password must match'),
+    confirmPassword: Yup.string()
+    .required('Confirm password is required')
+    .oneOf([Yup.ref('password')], 'Passwords must match'),
     firstName: Yup.string().required('FirstName is required'),
     lastName: Yup.string().required('LastName is required'),
     middleName: Yup.string(),
+    phoneNumber: Yup.string().required('Phone number is required')
+        .matches(/^[0-9]{11}$/, 'Phone number must be exactly 11 digits')
+        .matches(/^\+?[0-9]\d{1,14}$/, 'Phone number must be valid'),
     gender: Yup.string().required('Gender is required'),
     email: Yup.string()
       .required('Email is required')
@@ -205,7 +210,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
           lname: values?.lastName,
           mname: values?.middleName,
           gender: values?.gender,
-          mobile_no: MobileNoValidation,
+          mobile_no: values.phoneNumber,
           email: values?.email,
           password: values?.password,
           confirmpasword: values?.confirmPassword,
@@ -333,6 +338,12 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
 
   const PRIMARY_MAIN = theme.palette.primary.main;
 
+  const clearUnsaved = () => {
+    if(step === 3){
+      setValue('middleName','')
+    }
+  }
+
   const renderConfirm = (
     <ConfirmDialog
       open={confirm.value}
@@ -348,7 +359,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
           color="error"
           onClick={() => {
             onIncrementStep();
-            // clearUnsaved()
+            clearUnsaved()
             confirm.onFalse();
             reset({}, { keepValues: true });
           }}
@@ -382,7 +393,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
   const [existsEmail, setExistsEmail] = useState(false)
 
   useEffect(()=>{
-    if(values.email && Object.keys(errors)?.length === 0){
+    if(values.email && !Object.keys(errors)?.includes('email')){
      (async()=>{
       validateEmail(values.email).then((res)=>{
        const {isExists} = res;
@@ -396,13 +407,14 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
       })
      })()
     }
-  },[values.email, Object.keys(errors)?.length === 0])
+  },[values.email, !Object.keys(errors)?.includes('email')])
+
 
   const [existsPhone, setExistsPhone] = useState(false)
 
 
   useEffect(()=>{
-    if(values.phoneNumber && Object.keys(errors)?.length === 0){
+    if(values.phoneNumber && !Object.keys(errors)?.includes('phoneNumber')){
      (async()=>{
       validatePhone({
         phone:String(values.phoneNumber)
@@ -419,11 +431,10 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
       })
      })()
     }
-  },[values.phoneNumber, Object.keys(errors)?.length === 0])
+  },[values.phoneNumber, !Object.keys(errors)?.includes('phoneNumber')])
 
-  console.log(Object.keys(errors),'error ba?')
-  console.log(values.phoneNumber ,'values.phoneNumber  ba?')
 
+  console.log(step,'step son')
 
   const RenderChoices = useCallback(({ isRequired }: any) => {
     return (
@@ -433,7 +444,21 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
         {!isRequired && <Button onClick={onSkip} variant="outlined">Skip</Button>}
         <LoadingButton loading={load} disabled={
           (() => {
-            if (step === 6) {
+            if(step === 7){
+              if(!values.password){
+                return true
+              }
+              if(passwordChange){
+                if (Object.keys(errors)?.length !== 0) {
+                  return true
+                } else {
+                  return false
+                }
+               }
+               else{
+                return true
+               }
+            }else if (step === 6) {
               if(!values.phoneNumber){
                 return true
               }else if(String(values.phoneNumber).length !== 11){
@@ -453,35 +478,14 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
               if(!values.email){
                 return true
               }
-
-              if(Object.keys(errors)?.length === 0){
-                if(existsEmail){
-                  return true;
-                }else{
-                  return false;
-                }
-              }else{
-                return true
-              }
+          
+                return false
+              
             }
-             else if (emailChange) {
-              if (Object.keys(errors)?.length !== 0) {
+            else if(step === 8){
+              if(!values.confirmPassword){
                 return true
-              } else {
-                return false
               }
-            }else if(step === 7){
-             if(passwordChange){
-              if (Object.keys(errors)?.length !== 0) {
-                return true
-              } else {
-                return false
-              }
-             }
-             else{
-              return true
-             }
-            }else if(step === 8){
               if(rePasswordChange){
                 if (Object.keys(errors)?.length !== 0) {
                   return true
@@ -491,7 +495,13 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
               }
               else{
                 return true
-               }
+              }
+            }else if (emailChange) {
+              if (Object.keys(errors)?.length !== 0) {
+                return true
+              } else {
+                return false
+              }
             }
              else {
               return !isDirty
@@ -501,9 +511,10 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
 
       </Stack>
     )
-  }, [isDirty, step, statusMobilePhoneData, Object.keys(errors), existsEmail])
+  }, [isDirty, step, statusMobilePhoneData, Object.keys(errors), existsEmail, values])
 
  
+
 
   const renderTutsFields = (
     <Box>
@@ -683,10 +694,29 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
               {/* <MenuItem value="unspecified">Unspecified</MenuItem> */}
             </RHFSelect>
 
+
+            {/* helperText={(errors.email ? errors.email.message : '') || existsEmail && 'Email already used.' }
+            name="email"
+            type='email'
+            error={!!errors.email || existsEmail}
+            label="Email Address"
+            onChange={(e) => {
+              setValue('email', e.target.value);
+              setEmailChange(true)
+              methods.trigger('email'); // Validate on change
+            }} */}
+
             <RHFTextField
               name="email"
               type='email'
               label="Email Address"
+              helperText={(errors.email ? errors.email.message : '') || existsEmail && 'Email already used.' }
+              error={!!errors.email || existsEmail}
+              onChange={(e) => {
+                setValue('email', e.target.value);
+                setEmailChange(true)
+                methods.trigger('email'); // Validate on change
+              }}
             // onChange={handleEmailChange}
             // onFocus={handleEmailChange}
             // onKeyDown={handleEmailChange}
@@ -710,23 +740,14 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
               name="phoneNumber"
               type='number'
               label="Phone Number"
-              onChange={handleMobileNoChange}
-              value={MobileNoValidation}
-              helperText={
-
-                <>
-                  {MobileNoValidation ?
-                    (statusMobilePhoneData === 'Failed' && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
-                      *{messageMobilePhoneData}
-                    </Typography>
-                    ) :
-                    (noValueMobilePhone && <Typography sx={{ typography: 'caption', color: 'error.main' }}>
-                      *Phone number is required
-                    </Typography>)
-                  }
-                </>
-
-              }
+              error={!!errors.phoneNumber || existsPhone}
+              helperText={(errors.phoneNumber ? errors.phoneNumber.message : '') || existsPhone && 'Phone already used'}
+              onChange={(e) => {
+                setValue('phoneNumber', e.target.value);
+                
+                methods.trigger('phoneNumber'); // Validate on change
+              }}
+              
             />
             {/* <Stack>
             

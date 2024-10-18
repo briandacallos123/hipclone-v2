@@ -216,6 +216,14 @@ function NextAuthProvider({ children }: Props) {
   const storageCleanup = () =>{
     localStorage?.removeItem('cart');
     localStorage?.getItem('invalidVoucher') && localStorage.removeItem('invalidVoucher')
+
+    localStorage.removeItem('currentStep');
+    localStorage.removeItem('esigCalled');
+    localStorage.removeItem('languagePref');
+
+
+
+    
   }
 
   const logout = useCallback(async () => {
@@ -226,6 +234,7 @@ function NextAuthProvider({ children }: Props) {
     dispatch({
       type: Types.LOGOUT,
     });
+
   }, []);
   const reInitialize = useCallback(async () => {
     initialize();

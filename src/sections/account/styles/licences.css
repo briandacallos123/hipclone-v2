@@ -64,7 +64,7 @@
 }
 
 
-.showFields-submit {
+.showFields-submit-license {
     position: relative;
     display: inline-block;
     z-index: 99999;
@@ -105,7 +105,7 @@
     color: white; /* Adjust color */
 }
 
-.showFields-submit::before {
+.showFields-submit-license::before {
     content: '➔'; /* You can replace this with an arrow icon */
     position: absolute;
     top: 20%; /* Adjust as needed to position the arrow */

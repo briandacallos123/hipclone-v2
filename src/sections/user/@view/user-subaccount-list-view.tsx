@@ -53,6 +53,9 @@ import { m } from 'framer-motion';
 import { MotionContainer, varFade } from 'src/components/animate';
 import Image from '@/components/image';
 import './sub-account.css'
+import { useRouter } from 'next/navigation';
+import { paths } from '@/routes/paths';
+
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -285,7 +288,15 @@ export default function UserSubaccountListView() {
   );
 
   const PRIMARY_MAIN = theme.palette.primary.main;
-  const [step, setSteps] = useState(1);
+  const [step, setSteps] = useState(null);
+
+  useEffect(()=>{
+    const isTuts = localStorage.getItem('currentStep');
+    if(isTuts && Number(isTuts < 20)){
+      setSteps(1)
+    }
+  },[])
+
   const incrementStep = () => setSteps((prev) => prev + 1)
   const currentStep = localStorage?.getItem('currentStep')
 
@@ -334,6 +345,7 @@ export default function UserSubaccountListView() {
     </m.div>
   )
 
+  const router = useRouter();
 
   const renderTwelveTutorial = (
     <Box sx={{
@@ -345,6 +357,25 @@ export default function UserSubaccountListView() {
       zIndex: 9999,
     }}>
 
+      {step === 3 && 
+      
+      <Box sx={{
+        background:'white',
+        position:'absolute',
+        top:20,
+        left:20,
+        zIndex:9999,
+        padding:1
+      }}>
+        <Button onClick={()=>{
+           if (currentStep && Number(currentStep) !== 100) {
+            localStorage.setItem('currentStep', '13');
+            router.push(paths.dashboard.user.manage.login)
+          }
+        }} variant="outlined">
+          Skip this part...
+        </Button>
+      </Box>}
 
       <>
         <Box sx={{

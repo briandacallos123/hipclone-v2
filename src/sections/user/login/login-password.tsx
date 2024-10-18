@@ -20,14 +20,14 @@ import { useLazyQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { useMutation } from '@apollo/client';
 import { USER_UPDATE_PASSWORD } from '@/libs/gqls/users';
-import './loginStyle.css'
-import { Button } from '@mui/material';
 import { ConfirmDialog } from '@/components/custom-dialog';
+import { Button } from '@mui/material';
+
 // ----------------------------------------------------------------------
 
 type FormValuesProps = { oldPassword: string; newPassword: string; confirmPassword: string };
 
-export default function LoginPassword({ recheck, tutsStart }: any) {
+export default function LoginPassword({ manualDone, recheck, tutsStart }: any) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const [isloading, setLoading]: any = useState(false);
@@ -88,7 +88,7 @@ export default function LoginPassword({ recheck, tutsStart }: any) {
     reset,
     watch,
     handleSubmit,
-    formState: { isSubmitting, isDirty},
+    formState: { isSubmitting, isDirty, errors },
   } = methods;
 
   const [user_password_update] = useMutation(USER_UPDATE_PASSWORD, {
@@ -221,16 +221,16 @@ export default function LoginPassword({ recheck, tutsStart }: any) {
       }
     />
   );
+ 
 
-
-  useEffect(()=>{
-    if(step === 5){
+  useEffect(() => {
+    if (step === 5) {
       if (currentStep && Number(currentStep) !== 100) {
         localStorage.setItem('currentStep', '14')
         recheck();
       }
     }
-  },[step])
+  }, [step])
 
   const onSkip = useCallback(() => {
     if (isDirty) {
@@ -254,105 +254,30 @@ export default function LoginPassword({ recheck, tutsStart }: any) {
         p: 1
       }} direction="row" alignItems='center' gap={2} justifyContent='flex-end'>
         {!isRequired && <Button onClick={onSkip} variant="outlined">Skip</Button>}
-        <Button disabled={(()=>{
-          if(step === 7){
+        <Button disabled={(() => {
+          if (step === 7) {
             return false
-          }else{
+          } else {
             return !isDirty
           }
         })()} onClick={handleContinue} variant="contained">Continue</Button>
 
       </Stack>
     )
-  },[isDirty, step])
+  }, [isDirty, step])
 
   const renderTutsFields = (
     <Box sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
       {INPUT_FIELD.map((field, index) => (
-       <div className={(()=>{
-        if(index === 0 && step === 1){
-          return 'showFields-login'
-        }else if(index === 1 && step === 2){
-          return 'showFields-login'
-        }else if(index === 2 && step ===3 ){
-          return 'showFields-login'
-        }
-       })()}>
-         <Box
-          key={field.label}
-          gap={1}
-          display="grid"
-          gridTemplateColumns={{
-            xs: 'repeat(1, 1fr)',
-            sm: '1fr 3fr',
-          }}
-        >
-          <div>
-            <Typography variant="overline" gutterBottom>
-              {field.label}
-            </Typography>
-            {field.value === 'newPassword' && (
-              <Stack
-                component="span"
-                direction="row"
-                alignItems="center"
-                sx={{ typography: 'body2', color: 'text.disabled' }}
-              >
-                <Iconify icon="eva:info-fill" width={16} sx={{ mr: 0.5 }} /> Password must be
-                minimum 6+
-              </Stack>
-            )}
-          </div>
-
-          <RHFTextField
-            name={field.value}
-            placeholder={field.label}
-            type={field.state ? 'text' : 'password'}
-            InputProps={{
-              endAdornment: (
-                <InputAdornment position="end">
-                  <IconButton onClick={field.func} edge="end">
-                    <Iconify icon={field.state ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-        </Box>
-        {
-          (()=>{
-            if(index === 0 && step === 1){
-              return <RenderChoices isRequired={false} />
-            }else if(index === 1 && step === 2){
-              return <RenderChoices isRequired={false} />
-            }else if(index === 2 && step ===3 ){
-              return <RenderChoices isRequired={false} />
-            }
-            // RenderChoices
-          })()
-        }
-       </div>
-      ))}
-     {renderConfirm}
-      <Stack spacing={3} alignItems="flex-end">
-        <div className={step === 4 ? 'showFields-submit-login' : ''}>
-        {isDirty ? <LoadingButton type="submit" variant="contained" loading={isloading}>
-          Save Changes
-        </LoadingButton>:
-        <LoadingButton onClick={incrementStep} variant="contained" loading={isloading}>
-        Proceed
-      </LoadingButton>
-        }
-        </div>
-      </Stack>
-    </Box>
-  )
-
-  return (
-    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      {!currentStep ? 
-      <Card sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        {INPUT_FIELD.map((field) => (
+        <div className={(() => {
+          if (index === 0 && step === 1) {
+            return 'showFields-login'
+          } else if (index === 1 && step === 2) {
+            return 'showFields-login'
+          } else if (index === 2 && step === 3) {
+            return 'showFields-login'
+          }
+        })()}>
           <Box
             key={field.label}
             gap={1}
@@ -394,17 +319,91 @@ export default function LoginPassword({ recheck, tutsStart }: any) {
               }}
             />
           </Box>
-        ))}
-
-        <Stack spacing={3} alignItems="flex-end">
-          <LoadingButton type="submit" variant="contained" loading={isloading}>
+          {
+            (() => {
+              if (index === 0 && step === 1) {
+                return <RenderChoices isRequired={false} />
+              } else if (index === 1 && step === 2) {
+                return <RenderChoices isRequired={false} />
+              } else if (index === 2 && step === 3) {
+                return <RenderChoices isRequired={false} />
+              }
+              // RenderChoices
+            })()
+          }
+        </div>
+      ))}
+      {renderConfirm}
+      <Stack spacing={3} alignItems="flex-end">
+        <div className={step === 4 ? 'showFields-submit-login' : ''}>
+          {isDirty ? <LoadingButton type="submit" variant="contained" loading={isloading}>
             Save Changes
-          </LoadingButton>
-        </Stack>
-      </Card> :
-        <>
-          {renderTutsFields}
-        </>
+          </LoadingButton> :
+            <LoadingButton onClick={incrementStep} variant="contained" loading={isloading}>
+              Proceed
+            </LoadingButton>
+          }
+        </div>
+      </Stack>
+    </Box>
+  )
+
+  console.log(manualDone, 'manulaaa')
+
+  return (
+    <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
+      {(!currentStep || manualDone) ?
+        <Card sx={{ p: 3, display: 'flex', flexDirection: 'column', gap: 3 }}>
+          {INPUT_FIELD.map((field) => (
+            <Box
+              key={field.label}
+              gap={1}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: '1fr 3fr',
+              }}
+            >
+              <div>
+                <Typography variant="overline" gutterBottom>
+                  {field.label}
+                </Typography>
+                {field.value === 'newPassword' && (
+                  <Stack
+                    component="span"
+                    direction="row"
+                    alignItems="center"
+                    sx={{ typography: 'body2', color: 'text.disabled' }}
+                  >
+                    <Iconify icon="eva:info-fill" width={16} sx={{ mr: 0.5 }} /> Password must be
+                    minimum 6+
+                  </Stack>
+                )}
+              </div>
+
+              <RHFTextField
+                name={field.value}
+                placeholder={field.label}
+                type={field.state ? 'text' : 'password'}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <IconButton onClick={field.func} edge="end">
+                        <Iconify icon={field.state ? 'solar:eye-bold' : 'solar:eye-closed-bold'} />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
+          ))}
+
+          <Stack spacing={3} alignItems="flex-end">
+            <LoadingButton type="submit" variant="contained" loading={isloading}>
+              Save Changes
+            </LoadingButton>
+          </Stack>
+        </Card> : renderTutsFields
       }
     </FormProvider>
   );

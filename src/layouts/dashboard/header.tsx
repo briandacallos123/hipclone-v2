@@ -129,9 +129,7 @@ export default function Header({ onOpenNav }: Props) {
     </>
   );
 
-  const isTutorial = localStorage?.getItem('currentStep');
-
-
+  const isTutorial = localStorage?.getItem('currentStep') && Number(localStorage?.getItem('currentStep')) < 25
 
   const PRIMARY_MAIN = theme.palette.primary.main;
 

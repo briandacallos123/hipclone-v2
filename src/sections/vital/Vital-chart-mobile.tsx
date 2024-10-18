@@ -10,6 +10,7 @@ import IconButton from '@mui/material/IconButton';
 // utils
 import { fNumber, fPercent } from 'src/utils/format-number';
 // components
+import EmptyContent from 'src/components/empty-content';
 import { useBoolean } from 'src/hooks/use-boolean';
 import Iconify from 'src/components/iconify';
 import Chart, { useChart } from 'src/components/chart';
@@ -18,13 +19,14 @@ import VitalFullscreen from './vital-fullscreen';
 
 interface Props extends CardProps {
   chartFull: any;
+  emptyCondition: any;
   list: any;
   title: string;
   total: number;
   subheader: string;
   percent: number;
   dashboardVital?: any;
-  refetch:()=>void;
+  refetch: () => void;
   chart: {
     colors?: string[];
     series: number[];
@@ -35,6 +37,7 @@ interface Props extends CardProps {
 export default function VitalChartMobile({
   title,
   percent,
+  emptyCondition,
   total,
   chart,
   dashboardVital,
@@ -48,7 +51,7 @@ export default function VitalChartMobile({
   const theme = useTheme();
   const open = useBoolean();
   const dashboard = dashboardVital;
-  console.log('dashboard', dashboard);
+
   const {
     colors = [
       [theme.palette.primary.light, theme.palette.primary.main],
@@ -57,7 +60,7 @@ export default function VitalChartMobile({
     series,
     options,
   } = chart;
-
+  // console.log('series', series);
   const chartOptions = useChart({
     colors: colors.map((colr) => colr[1]),
     fill: {
@@ -97,6 +100,7 @@ export default function VitalChartMobile({
 
     ...options,
   });
+  // console.log('emptyCondition1', emptyCondition);
 
   const renderTrending = (
     <Stack direction="row" alignItems="center" sx={{ mt: 2, mb: 1 }}>
@@ -150,16 +154,45 @@ export default function VitalChartMobile({
 
       <Box sx={{ mt: 1 }}>
         <Stack direction="row">
-          <Chart type="line" series={series} options={chartOptions} width={175} height={80} />
-          <IconButton sx={{ alignSelf: 'flex-start', mb: 2 }} onClick={open.onTrue}>
-            <Iconify icon="solar:maximize-bold" />
-          </IconButton>
+          {!emptyCondition ? (
+            <Chart type="line" series={series} options={chartOptions} width={175} height={80} />
+          ) : (
+            <Stack
+              flexGrow={1}
+              alignItems="center"
+              justifyContent="center"
+              sx={{
+                px: 3,
+                height: 1,
+              }}
+            >
+              <Box
+                component="img"
+                alt="empty content"
+                src="/assets/icons/empty/ic_content.svg"
+                sx={{ width: 1, maxWidth: 30 }}
+              />
+
+              <Typography
+                variant="caption"
+                sx={{ mt: 0.5, color: 'text.disabled', textAlign: 'center' }}
+              >
+                no data
+              </Typography>
+            </Stack>
+          )}
+
+          {!emptyCondition && (
+            <IconButton sx={{ alignSelf: 'flex-start', mb: 2 }} onClick={open.onTrue}>
+              <Iconify icon="solar:maximize-bold" />
+            </IconButton>
+          )}
         </Stack>
       </Box>
       {!dashboard && (
         <VitalFullscreen
           title={title}
-         refetch={refetch}
+          refetch={refetch}
           list={list}
           open={open.value}
           onClose={open.onFalse}

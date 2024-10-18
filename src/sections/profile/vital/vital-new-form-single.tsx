@@ -20,11 +20,11 @@ import { useParams } from 'next/navigation';
 // ----------------------------------------------------------------------
 
 type dataProps = {
-  name:string;
-  type:string;
-  label:string;
-  placeholder:string;
-  adornment:string;
+  name: string;
+  type: string;
+  label: string;
+  placeholder: string;
+  adornment: string;
 
 }
 
@@ -34,15 +34,15 @@ type Props = {
   refetch: any;
   user: any;
   addedCategory: any;
-  data:dataProps;
+  data: dataProps;
 };
 
-export default function ProfileVitalNewEditFormSingle({data, addedCategory, onClose, items, refetch, user }: Props) {
+export default function ProfileVitalNewEditFormSingle({ data, addedCategory, onClose, items, refetch, user }: Props) {
   // user na to
-  const addedCategoryTitle = addedCategory?.map((item)=>item.title)
-    const {id} = useParams();
+  const addedCategoryTitle = addedCategory?.map((item) => item.title)
+  const { id } = useParams();
 
-  const { enqueueSnackbar } = useSnackbar();
+  const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [condition, setCondition] = useState<boolean>(false);
   // console.log(addedCategory,'?????????')
 
@@ -73,15 +73,15 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
   //   })
   //   return data;
   // })()
-  
+
   // console.log(defFields,'YEYYYYYYYYYYYYYYYYYYYYY')?
-  
+
 
 
 
   const NewVitalSchema = Yup.object().shape({
     [data?.name]: Yup.number().moreThan(0, `${data?.name} must be greater than 0`).required('Weight is required'),
-      // ...dynamicFields
+    // ...dynamicFields
   });
 
   // const {
@@ -103,7 +103,7 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
   //   return () => drClinicFetch();
   // }, []);
 
-  console.log(data,"DATA NA PINAPASA")
+  console.log(data, "DATA NA PINAPASA")
 
   const defaultValues = useMemo(
     () => ({
@@ -138,17 +138,17 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
       // values.respiratory === 0 &&
       // values.heart === 0 &&
       // values.temperature === 0 &&
-      (()=>{
+      (() => {
         let noZero = true;
 
-        Object.values(values).forEach((item)=>{
-          if(item !== 0){
+        Object.values(values).forEach((item) => {
+          if (item !== 0) {
             noZero = false
           }
         })
         return noZero;
       })()
-     
+
 
 
     ) {
@@ -171,37 +171,58 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
   ]);
   // user
   // console.log(id,'IDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD');
+  const [snackKey, setSnackKey] = useState(null);
 
-  const [createVitals] = useMutation(id ? POST_VITALS : POST_VITALS_USER);
-  // const [createVitals] = useMutation(POST_VITALS_USER);
+  const [createVitals, createVitalsResult] = useMutation(id ? POST_VITALS : POST_VITALS_USER);
+
 
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const field = data?.name;
-      let payload:any;
-      if(!model?.new){
-        payload ={
-          [field]:String(model[`${data?.name}`]),
-          uuid:id
-         }
-      }else{
-        payload ={
-          categoryValues : model?.categoryData,
-          uuid:id
-         }
+      let payload: any;
+
+      if (!model?.new) {
+        if (data?.name !== "bloodPresMM") {
+          payload = {
+            [field]: String(model[`${data?.name}`]),
+            uuid: id
+          }
+        } else {
+          payload = {
+            bloodPresMM: String(model?.bloodPresMM),
+            bloodPresHG: String(model?.bloodPresHG),
+            uuid: id
+          }
+        }
+      } else {
+        payload = {
+          categoryValues: model?.categoryData,
+          uuid: id
+        }
       }
 
 
 
       createVitals({
         variables: {
-          data:{...payload},
+          data: { ...payload },
         },
       })
         .then(async (res) => {
-          enqueueSnackbar('Create success!');
-          refetch();
-          reset();
+
+
+          if (snackKey) {
+
+            closeSnackbar(snackKey);
+            enqueueSnackbar('Created Successfully');
+            refetch();
+            reset();
+            onClose()
+
+            // enqueueSnackbar('Create success!');
+            // refetch();
+            // 
+          }
         })
         .catch((error) => {
           console.log(error, 'ano error?');
@@ -211,9 +232,9 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
       // const data: NexusGenInputs['notesVitalInputType'] = {
       //   field: String(model.weight)
       // };
-    
+
     },
-    [createVitals, enqueueSnackbar, items?.patientID, items?.report_id, refetch, reset]
+    [createVitals, data, snackKey, enqueueSnackbar, items?.patientID, items?.report_id, refetch, reset]
   );
 
   useEffect(() => {
@@ -226,43 +247,63 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
     }
   }, [setValue, values.weight, values.height]);
 
-  const onSubmit = useCallback(
-    async (datas: any) => {
-      try {
-        
-        const categoryData:any = [];
-        
-        Object.entries(datas).forEach((item)=>{
+  const [datas, setData] = useState({});
+
+  useEffect(() => {
+    if (snackKey) {
+      (async () => {
+        // await handleSubmitValue(values);
+        // setSnackKey(null);
+        const categoryData: any = [];
+
+        Object.entries(datas).forEach((item) => {
           const [key, val] = item;
-          if(addedCategoryTitle.includes(key)){
+          if (addedCategoryTitle.includes(key)) {
             categoryData.push({
-              title:key,
-              value:val
+              title: key,
+              value: val
             })
           }
         })
 
-       
-      
-        if(data?.new){
+        if (datas?.new) {
           await handleSubmitValue({
-            new:true,
-            categoryData:[...categoryData]
+            new: true,
+            categoryData: [...categoryData]
           });
-        }else{
+        } else {
 
           await handleSubmitValue({
             ...datas,
-            categoryData:[...categoryData]
+            categoryData: [...categoryData]
           });
         }
-        onClose();
-        
+
+      })();
+    }
+  }, [snackKey]);
+
+  const onSubmit = useCallback(
+    async (datas: any) => {
+      try {
+
+        setData(datas)
+
+        const snackbarKey = enqueueSnackbar('Saving Data...', {
+          variant: 'info',
+          key: 'savingEducation',
+          persist: true, // Do not auto-hide
+        });
+        setSnackKey(snackbarKey);
+
+
+        // onClose();
+
       } catch (error) {
         console.error(error);
       }
     },
-    [enqueueSnackbar,data, handleSubmitValue, onClose, refetch, reset, addedCategoryTitle]
+    [enqueueSnackbar, data, handleSubmitValue, onClose, refetch, reset, addedCategoryTitle]
   );
   // console.log(addedCategoryTitle,'????')
 
@@ -280,17 +321,46 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
             }}
             sx={{ mt: 3 }}
           >
-            <RHFTextField
-              fullWidth
-              type={data?.type}
-              name={data?.name}
-              label={data?.label}
-              placeholder={data?.placeholder}
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                endAdornment: <InputAdornment position="end">{data?.adornment}</InputAdornment>,
-              }}
-            />
+            {data?.name === 'bloodPresMM' ?
+              <>
+                <RHFTextField
+                  fullWidth
+                  type={data?.type}
+                  name={data?.name}
+                  label={data?.label}
+                  placeholder={data?.placeholder}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">{data?.adornment}</InputAdornment>,
+                  }}
+                />
+                <RHFTextField
+                  fullWidth
+                  type={data?.type}
+                  name={'bloodPresHG'}
+                  label={'Blood Pressure'}
+                  placeholder={'0'}
+                  InputLabelProps={{ shrink: true }}
+                  InputProps={{
+                    endAdornment: <InputAdornment position="end">{data?.adornment}</InputAdornment>,
+                  }}
+                />
+              </>
+
+              :
+              <RHFTextField
+                fullWidth
+                type={data?.type}
+                name={data?.name}
+                label={data?.label}
+                placeholder={data?.placeholder}
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{data?.adornment}</InputAdornment>,
+                }}
+              />
+            }
+
           </Box>
         </FormProvider>
       </DialogContent>
@@ -303,7 +373,7 @@ export default function ProfileVitalNewEditFormSingle({data, addedCategory, onCl
         <LoadingButton
           type="submit"
           variant="contained"
-          loading={isSubmitting}
+          loading={createVitalsResult.loading}
           onClick={handleSubmit(onSubmit)}
         >
           Create

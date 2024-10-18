@@ -18,7 +18,7 @@ import Image from 'src/components/image';
 import Iconify from 'src/components/iconify';
 //
 import ServiceHmoEditForm from './service-hmo-edit-form';
-import { useQuery } from '@apollo/client';
+import { useLazyQuery, useQuery } from '@apollo/client';
 import { GET_ALL_HMO } from '@/libs/gqls/hmo';
 import { useTheme, alpha } from '@mui/material/styles';
 import { v4 as uuidv4 } from 'uuid';
@@ -34,17 +34,34 @@ const ServiceHmo = forwardRef(({tutorialTab, incrementTutsTab }, ref) =>{
 
   const openEdit = useBoolean();
 
-  const { loading, data, refetch } = useQuery(GET_ALL_HMO);
+  // const { loading, data, refetch } = useQuery(GET_ALL_HMO);
 
   const [tableData, setTableData]: any = useState([]);
+  const [hmoData, setHmoData] = useState([]);
 
   const upMd = useResponsive('up', 'md');
 
+  const [getHmo, getHmoResult] = useLazyQuery(GET_ALL_HMO, {
+    context: {
+       requestTrackerId: 'prescriptions[QueryAllPrescriptionUser]',
+       },
+       notifyOnNetworkStatusChange: true,
+    //    fetchPolicy:'no-cache'
+   });
+
   useEffect(() => {
-    if (data) {
-      setTableData(data?.Hmo.hmo);
-    }
-  }, [data]);
+    getHmo().then((res)=>{
+      // const {}
+      // console.log(res?.data,'awit sayo idol');
+      setHmoData(res?.data)
+      setTableData(res?.data?.Hmo.hmo,'awit sayo idol');
+    })
+
+   
+  }, [getHmoResult.data]);
+
+  const refetch = ()=> getHmoResult.refetch()
+  const loading = getHmoResult.loading;
 
   const appendData = (d: any) => {
     // ids from real data
@@ -81,7 +98,7 @@ const ServiceHmo = forwardRef(({tutorialTab, incrementTutsTab }, ref) =>{
       const items: any = [];
       const ids: any = [];
 
-      data?.Hmo?.HmoList?.forEach((i: any) => {
+      hmoData?.Hmo?.HmoList?.forEach((i: any) => {
         tempIds?.forEach((c: any) => {
           if (Number(i.id) === Number(c)) {
             if (!ids.includes(Number(c))) {
@@ -235,7 +252,7 @@ const ServiceHmo = forwardRef(({tutorialTab, incrementTutsTab }, ref) =>{
           </Box>
         </Card>
         <ServiceHmoEditForm
-        currentItem={data}
+        currentItem={hmoData}
         open={openEdit.value}
         refetch={refetch}
         appendData={appendData}

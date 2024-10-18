@@ -45,7 +45,8 @@ export default function FooterNav() {
         bottom: 0,
         left: 0,
         right: 0,
-       
+        zIndex: 20,
+
         boxShadow: `0 -20px 20px ${
           isLight ? alpha(theme.palette.grey[500], 0.2) : alpha(theme.palette.common.black, 0.2)
         }`,
@@ -57,7 +58,6 @@ export default function FooterNav() {
         onChange={(event, newValue) => {
           setValue(newValue);
         }}
-       
       >
         <BottomNavigationAction
           component={RouterLink}
@@ -94,8 +94,8 @@ export default function FooterNav() {
           label="Health Bites"
           value="health bites"
           sx={{
-            textAlign:'center',
-            lineHeight:1
+            textAlign: 'center',
+            lineHeight: 1,
           }}
           icon={<Iconify icon="mdi:newspaper-variant-multiple" />}
         />
@@ -105,7 +105,6 @@ export default function FooterNav() {
           href={paths.dashboard.user.account}
           label="Profile"
           value="account"
-        
           icon={<Iconify icon="solar:user-bold-duotone" />}
         />
       </BottomNavigation>

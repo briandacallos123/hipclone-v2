@@ -5,8 +5,10 @@ import { useEffect, useState } from 'react';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
+import { Skeleton } from '@mui/material';
 // hooks
 import { useAuthContext } from 'src/auth/hooks';
+import { useResponsive } from 'src/hooks/use-responsive';
 
 import { useBoolean } from 'src/hooks/use-boolean';
 // types
@@ -21,7 +23,7 @@ import { get_note_vitals_user } from '@/libs/gqls/notes/notesVitals';
 import { VitalView } from 'src/sections/vital/view';
 import ProfileVitalCreateView from './vital-create-view';
 import VitalCreateNew from './vital-create-new';
-import {GetAllVitalCategories, QueryAllVitalData} from '@/libs/gqls/vitals'
+import { GetAllVitalCategories, QueryAllVitalData } from '@/libs/gqls/vitals';
 import VitalCreateNewSingle from './vital-create-new-single';
 
 // ----------------------------------------------------------------------
@@ -30,7 +32,7 @@ import VitalCreateNewSingle from './vital-create-new-single';
 //   data: any;
 // };
 
-export default function   ProfileVitalViewDashboard() {
+export default function ProfileVitalViewDashboard() {
   const openCreate = useBoolean();
   const openCreateVital = useBoolean();
   const openCreateSingle = useBoolean();
@@ -38,12 +40,13 @@ export default function   ProfileVitalViewDashboard() {
   const { user } = useAuthContext();
   const [chartData, setChartData] = useState<any>([]);
   const [chart2Data, setChart2Data] = useState([]);
-  const [addCategory, setAddCategory] = useState([])
+  const [addCategory, setAddCategory] = useState([]);
   const [isLoading, setLoading] = useState(null);
 
+  const upMd = useResponsive('up', 'md');
   const [
     getDataUser,
-    dateResult
+    dateResult,
     // { data: dataUser, loading: userloading, error: userError, refetch: userRefetch },
   ] = useLazyQuery(get_note_vitals_user, {
     context: {
@@ -52,39 +55,31 @@ export default function   ProfileVitalViewDashboard() {
     notifyOnNetworkStatusChange: true,
   });
 
-  console.log(dateResult.loading, 'LOADING BA????????????????????????????????????????????');
+  // console.log(dateResult.loading, 'LOADING BA????????????????????????????????????????????');
 
-
-  const [
-    getVitalDataDynamic,
-    vitalDataResults,
-  ] = useLazyQuery(QueryAllVitalData, {
+  const [getVitalDataDynamic, vitalDataResults] = useLazyQuery(QueryAllVitalData, {
     context: {
       requestTrackerId: 'getVitalsDynamicData[getDynamicVitals]',
     },
     notifyOnNetworkStatusChange: true,
   });
 
-
-  const [
-    getVitalsData,
-    vitalsResult,
-  ] = useLazyQuery(GetAllVitalCategories, {
+  const [getVitalsData, vitalsResult] = useLazyQuery(GetAllVitalCategories, {
     context: {
       requestTrackerId: 'getVitalsCategory[getRecVitals]',
     },
     notifyOnNetworkStatusChange: true,
   });
 
-  useEffect(()=>{
-    getVitalsData().then(async(res:any)=>{
-      const {data} = res;
-      if(data){ 
-        const {QueryAllCategory} = data;
-        setAddCategory(QueryAllCategory?.dataList)
+  useEffect(() => {
+    getVitalsData().then(async (res: any) => {
+      const { data } = res;
+      if (data) {
+        const { QueryAllCategory } = data;
+        setAddCategory(QueryAllCategory?.dataList);
       }
-    })
-  },[vitalsResult.data])
+    });
+  }, [vitalsResult.data]);
 
   useEffect(() => {
     if (user?.role === 'patient') {
@@ -96,7 +91,7 @@ export default function   ProfileVitalViewDashboard() {
         },
       }).then(async (result: any) => {
         const { data } = result;
-    
+
         if (data) {
           const { QueryAllVitalData } = data;
           setChart2Data(QueryAllVitalData?.listData);
@@ -107,7 +102,7 @@ export default function   ProfileVitalViewDashboard() {
 
   useEffect(() => {
     if (user?.role === 'patient') {
-      setLoading(true)
+      setLoading(true);
       getDataUser({
         variables: {
           data: {
@@ -119,29 +114,28 @@ export default function   ProfileVitalViewDashboard() {
         if (data) {
           const { QueryNotesVitalsUser } = data;
           setChartData(QueryNotesVitalsUser?.vitals_data);
-      setLoading(false)
-
+          setLoading(false);
         }
       });
     }
   }, [dateResult.data, user?.role, user?.uuid]);
 
-  
   const openVitalCategory = () => {
-    openCreateVital.onTrue()
-  }
+    openCreateVital.onTrue();
+  };
 
   const [singleData, setSingleData] = useState(null);
 
-  const openVitalSingle = (props:any) => {
-    setSingleData(props)
-    openCreateSingle.onTrue()
-
-  }
+  const openVitalSingle = (props: any) => {
+    setSingleData(props);
+    openCreateSingle.onTrue();
+  };
+  console.log('chart2Data', chart2Data);
+  console.log('chartData', chartData);
 
   return (
     <>
-      <Box>
+      <Box sx={{ m: 2 }}>
         {/* <Stack  gap={1} direction="row" alignItems="center" justifyContent="flex-end" sx={{ mb: 3}}>
           <Button
             onClick={openCreate.onTrue}
@@ -152,28 +146,52 @@ export default function   ProfileVitalViewDashboard() {
           </Button>
         
         </Stack> */}
-
-        {chartData && <VitalView isDashboard={true} openSingle={openVitalSingle} items2={chart2Data} items={chartData} loading={isLoading} />}
+        {dateResult.loading && (
+          <Box
+            display="grid"
+            columnGap={2}
+            rowGap={2}
+            gridTemplateColumns={upMd ? 'repeat(5, 1fr)' : 'repeat(1, 2fr)'}
+          >
+            <Skeleton variant="rounded" height={120} />
+            <Skeleton variant="rounded" height={120} />
+            <Skeleton variant="rounded" height={120} />
+            <Skeleton variant="rounded" height={120} />
+            <Skeleton variant="rounded" height={120} />
+            <Skeleton variant="rounded" height={120} />
+            <Skeleton variant="rounded" height={120} />
+            <Skeleton variant="rounded" height={120} />
+          </Box>
+        )}
+        {chartData.length > 0 && (
+          <VitalView
+            isDashboard={true}
+            openSingle={openVitalSingle}
+            items2={chart2Data}
+            items={chartData}
+            loading={isLoading}
+          />
+        )}
       </Box>
 
       <ProfileVitalCreateView
         open={openCreate.value}
         onClose={openCreate.onFalse}
-        refetch={()=>{
-          dateResult.refetch()
-          vitalDataResults.refetch()
+        refetch={() => {
+          dateResult.refetch();
+          vitalDataResults.refetch();
         }}
         items={chartData}
         addedCategory={addCategory}
         openCategory={openVitalCategory}
         user={user}
       />
-       <VitalCreateNewSingle
+      <VitalCreateNewSingle
         open={openCreateSingle.value}
         onClose={openCreateSingle.onFalse}
-        refetch={()=>{
-          dateResult.refetch()
-          vitalDataResults.refetch()
+        refetch={() => {
+          dateResult.refetch();
+          vitalDataResults.refetch();
         }}
         items={chartData}
         addedCategory={addCategory}
@@ -183,11 +201,10 @@ export default function   ProfileVitalViewDashboard() {
       />
 
       <VitalCreateNew
-
         open={openCreateVital.value}
         onClose={openCreateVital.onFalse}
-        refetch={()=>{
-          vitalsResult.refetch()
+        refetch={() => {
+          vitalsResult.refetch();
         }}
         items={chartData}
         addedCategory={addCategory}

@@ -602,8 +602,8 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
                           <Image
                             src={user?.esig?.filename}
                             sx={{
-                              width: 150,
-                              height: 150,
+                              width: 200,
+                              height: 180,
 
                             }}
                             alt="best"

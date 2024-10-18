@@ -204,7 +204,7 @@ export default function UserServiceView() {
 
       {Number(currentStep) === 7 && step !== 2 && renderFifthTutorial}
 
-      {tutorialTab && step !== 1 && renderTuts}
+      {tutorialTab  && renderTuts}
       <Typography
         variant="h5"
         sx={{

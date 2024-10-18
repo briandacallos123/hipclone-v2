@@ -36,8 +36,9 @@ interface Props extends CardProps {
   };
   loading: boolean;
   isDashboard: any;
-  createNew:any;
-  refetch:any;
+  createNew: any;
+  refetch: any;
+  emptyCondition?: any;
 }
 
 export default function VitalChart({
@@ -48,6 +49,7 @@ export default function VitalChart({
   chart,
   isDashboard,
   loading,
+  emptyCondition,
   createNew,
   ...other
 }: Props) {
@@ -69,7 +71,6 @@ export default function VitalChart({
     options,
   } = chart;
 
-
   const chartOptions = useChart({
     colors: colors.map((colr) => colr[1]),
     fill: {
@@ -87,7 +88,7 @@ export default function VitalChart({
 
     ...options,
   });
-
+  console.log('+++++++data', data)
 
   return (
     <>
@@ -97,16 +98,14 @@ export default function VitalChart({
             title={title}
             subheader={subheader}
             action={
-              (
-                <>
-                  <IconButton onClick={createNew}>
-                    <Iconify icon="ic:baseline-add" />
-                  </IconButton>
-                  <IconButton onClick={open.onTrue}>
-                    <Iconify icon="solar:maximize-bold" />
+              <>
+                <IconButton onClick={createNew}>
+                  <Iconify icon="ic:baseline-add" />
                 </IconButton>
-                </>
-              )
+                <IconButton onClick={open.onTrue}>
+                  <Iconify icon="solar:maximize-bold" />
+                </IconButton>
+              </>
             }
             sx={{ p: { xs: 0.7, md: 2 } }}
           />
@@ -127,16 +126,16 @@ export default function VitalChart({
           )}
         </Card>
       )}
-      {!upMd && (
+      {!upMd && isDoctor && (
         <VitalChartMobile
+          emptyCondition={emptyCondition}
           chartFull={chart}
           list={list}
           title={title}
           subheader={subheader}
           percent={2.6}
           total={765}
-        refetch={refetch}
-
+          refetch={refetch}
           chart={{
             series: data,
           }}
@@ -144,6 +143,7 @@ export default function VitalChart({
       )}
       {!isDoctor && dashboardVital && (
         <VitalChartMobile
+          emptyCondition={emptyCondition}
           dashboardVital={dashboardVital}
           chartFull={chart}
           list={list}

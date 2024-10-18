@@ -13,8 +13,20 @@ export const validateEmail = async(data) => {
             }
         });
 
+        const isExistsSub = await prisma.sub_account.findFirst({
+            where:{
+                email:data
+            }
+        })
+
+        const emr_existingUserEmail = await prisma.emr_patient.findFirst({
+            where: {
+                email:data
+            },
+          });
+
         return {
-            isExists:isExists
+            isExists:isExists || isExistsSub || emr_existingUserEmail
         }
     } catch (error) {
         return error;

@@ -42,6 +42,7 @@ type Props = {
   appendData?: any;
   onSuccess?: any;
   incrementTutsTab?:()=>void;
+  refetch?:()=>void;
 };
 
 export default function ServiceHmoEditForm({
@@ -78,6 +79,9 @@ export default function ServiceHmoEditForm({
     }),
     [currentItem]
   );
+
+
+  console.log(currentItem,'currentItemcurrentItem')
 
   const [snackKey, setSnackKey] = useState(null);
 
@@ -116,12 +120,14 @@ const currentStep = localStorage.getItem('currentStep');
             closeSnackbar(snackKey);
             enqueueSnackbar('Updated Successfully');
             setToggleUpdate(false);
+           
             if(currentStep && Number(currentStep) !== 100){
               localStorage.setItem('currentStep','11');
               incrementTutsTab()
             }
-            // refetch();
           }
+          refetch();
+
         })
         .catch((error) => {
           closeSnackbar(snackKey);

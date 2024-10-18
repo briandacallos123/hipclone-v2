@@ -18,6 +18,8 @@ import { useEffect, useState } from 'react';
 import { useTheme, alpha } from '@mui/material/styles';
 import { useTutorialProvider } from '@/context/tut-step';
 import { useResponsive } from '@/hooks/use-responsive';
+import { useRouter } from 'next/navigation';
+import { paths } from '@/routes/paths';
 
 // ----------------------------------------------------------------------
 
@@ -25,9 +27,8 @@ export default function UserLoginView() {
   const settings = useSettingsContext();
   const [step, setSteps] = useState(1);
   const incrementStep = () => setSteps((prev) => prev + 1)
+  const { setCurrentStep: setStep }: any = useTutorialProvider();
   const upMd = useResponsive('up', 'md');
-
-  const {setCurrentStep:setStep}:any = useTutorialProvider();
 
   const [currentStep, setCurrentStep] = useState(null);
 
@@ -38,8 +39,10 @@ export default function UserLoginView() {
   useEffect(() => {
     setCurrentStep(localStorage?.getItem('currentStep'))
   }, [localStorage?.getItem('currentStep')])
-  // const currentStep = 
+
   const theme = useTheme();
+
+
 
   const PRIMARY_MAIN = theme.palette.primary.main;
 
@@ -59,8 +62,8 @@ export default function UserLoginView() {
           },
         }}
       >
-        <span>{isEnglish?"Keep Your Account Secure!":"Panatilihing Ligtas ang Iyong Account!"} 🔒</span><br /><br />
-        {isEnglish ? "As a valued doctor, maintaining the security of your account is essential":"Bilang isang mahalagang doktor, mahalaga ang pagpapanatili ng seguridad ng iyong account."}
+        <span>{isEnglish ? "Keep Your Account Secure!" : "Panatilihing Ligtas ang Iyong Account!"} 🔒</span><br /><br />
+        {isEnglish ? "As a valued doctor, maintaining the security of your account is essential" : "Bilang isang mahalagang doktor, mahalaga ang pagpapanatili ng seguridad ng iyong account."}
       </Typography>
     </m.div>
   )
@@ -81,12 +84,14 @@ export default function UserLoginView() {
           },
         }}
       >
-         <span>{isEnglish?"Keep Your Account Secure!":"Panatilihing Ligtas ang Iyong Account!"} 🔒</span><br /><br />
-       
-        {isEnglish ? "You can easily change your password to ensure your personal and patient information remains safe.":"Maaari mong madaling baguhin ang iyong password upang matiyak na mananatiling ligtas ang iyong personal at impormasyon ng pasyente."}
+        <span>{isEnglish ? "Keep Your Account Secure!" : "Panatilihing Ligtas ang Iyong Account!"} 🔒</span><br /><br />
+
+        {isEnglish ? "You can easily change your password to ensure your personal and patient information remains safe." : "Maaari mong madaling baguhin ang iyong password upang matiyak na mananatiling ligtas ang iyong personal at impormasyon ng pasyente."}
       </Typography>
     </m.div>
   )
+
+  const [manualDone, setManualDone] = useState(false);
 
   const renderTwelveTutorial = (
     <Box sx={{
@@ -98,6 +103,25 @@ export default function UserLoginView() {
       zIndex: 9999,
     }}>
 
+      {step >= 3 && <Box sx={{
+        background: 'white',
+        position: 'absolute',
+        top: 20,
+        left: 20,
+        zIndex: 9999,
+        padding: 1
+      }}>
+        <Button onClick={() => {
+          if (currentStep && Number(currentStep) !== 100) {
+            localStorage.setItem('currentStep', '14');
+            setCurrentStep(14)
+            setManualDone(true)
+            // router.push(paths.dashboard.user.manage.login)
+          }
+        }} variant="outlined">
+          Skip this part...
+        </Button>
+      </Box>}
 
       <>
         <Box sx={{
@@ -113,11 +137,11 @@ export default function UserLoginView() {
 
         </Box>
 
-       {step < 3 &&  <Box sx={{
+        {step < 3 && <Box sx={{
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
-          right:upMd? 100:null
+          right: upMd ? 100 : null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -126,7 +150,7 @@ export default function UserLoginView() {
               height: 'auto',
               width: 'auto',
               maxWidth: 250,
-              left: upMd?0:10,
+              left: upMd ? 0 : 10,
               borderRadius: 2,
               zIndex: 99999,
               position: 'absolute',
@@ -179,9 +203,9 @@ export default function UserLoginView() {
           },
         }}
       >
-        <span>{isEnglish?'Congratulations, Doctor!':'Maligayang bati, Doktor'} 🎉</span><br /><br />
-       
-        {isEnglish?' You’ve successfully completed the setup of your profile and necessary data. You\'re now ready to start using the system effectively!':'Matagumpay mong nakumpleto ang pag-set up ng iyong profile at kinakailangang datos. Handa ka nang simulan ang epektibong paggamit ng sistema!'}
+        <span>{isEnglish ? 'Congratulations, Doctor!' : 'Maligayang bati, Doktor'} 🎉</span><br /><br />
+
+        {isEnglish ? ' You’ve successfully completed the setup of your profile and necessary data. You\'re now ready to start using the system effectively!' : 'Matagumpay mong nakumpleto ang pag-set up ng iyong profile at kinakailangang datos. Handa ka nang simulan ang epektibong paggamit ng sistema!'}
       </Typography>
     </m.div>
   )
@@ -203,8 +227,8 @@ export default function UserLoginView() {
           },
         }}
       >
-       <span>{isEnglish?'Congratulations, Doctor!':'Maligayang bati, Doktor'} 🎉</span><br /><br />
-        {isEnglish ? 'I know you’re excited, and I\'m here to help you explore other sections of our system that will assist you in your practice':'Alam kong sabik ka, at nandito ako upang tulungan kang tuklasin ang iba pang mga bahagi ng aming sistema na makakatulong sa iyong praktis'}
+        <span>{isEnglish ? 'Congratulations, Doctor!' : 'Maligayang bati, Doktor'} 🎉</span><br /><br />
+        {isEnglish ? 'I know you’re excited, and I\'m here to help you explore other sections of our system that will assist you in your practice' : 'Alam kong sabik ka, at nandito ako upang tulungan kang tuklasin ang iba pang mga bahagi ng aming sistema na makakatulong sa iyong praktis'}
       </Typography>
     </m.div>
   )
@@ -224,11 +248,11 @@ export default function UserLoginView() {
           },
         }}
       >
-         <span>{isEnglish?'Congratulations, Doctor!':'Maligayang bati, Doktor'} 🎉</span><br /><br />
-        
-        {!upMd && (isEnglish?"By the way, all the information you fill out can be accessed through the icon up there 🛠️. You can go back 🔙 if you need to make any changes.":'Sa pamamagitan ng lahat ng impormasyon na iyong pupunan ay maa-access sa icon na iyon sa itaas 🛠️. Maaari kang bumalik 🔙 kung kailangan mong gumawa ng anumang pagbabago')}
+        <span>{isEnglish ? 'Congratulations, Doctor!' : 'Maligayang bati, Doktor'} 🎉</span><br /><br />
 
-        {upMd && (isEnglish?"All your changes can be found here. 📋 If you need to make any adjustments, you can do so here. ✏️":' lahat ng iyong binago ay dito mo pwedeng matagpuan. 📋 Kung sakaling may kailangan kang baguhin, maaari kang magtungo rito. ✏️')}
+        {!upMd && (isEnglish ? "By the way, all the information you fill out can be accessed through the icon up there 🛠️. You can go back 🔙 if you need to make any changes." : 'Sa pamamagitan ng lahat ng impormasyon na iyong pupunan ay maa-access sa icon na iyon sa itaas 🛠️. Maaari kang bumalik 🔙 kung kailangan mong gumawa ng anumang pagbabago')}
+
+        {upMd && (isEnglish ? "All your changes can be found here. 📋 If you need to make any adjustments, you can do so here. ✏️" : ' lahat ng iyong binago ay dito mo pwedeng matagpuan. 📋 Kung sakaling may kailangan kang baguhin, maaari kang magtungo rito. ✏️')}
       </Typography>
     </m.div>
   )
@@ -246,6 +270,8 @@ export default function UserLoginView() {
   }, [successProfile])
 
   const onIncrementSucc = () => setSuccProfile(successProfile + 1)
+  const router = useRouter();
+
 
   const renderDoneProfile = (
     <Box sx={{
@@ -276,7 +302,7 @@ export default function UserLoginView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
-          right:upMd?100:null
+          right: upMd ? 100 : null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -284,8 +310,8 @@ export default function UserLoginView() {
               background: theme.palette.background.default,
               height: 'auto',
               width: 'auto',
-              maxWidth:250,
-              left: upMd?0:10,
+              maxWidth: 250,
+              left: upMd ? 0 : 10,
               borderRadius: 5,
               zIndex: 99999,
               position: 'absolute',
@@ -293,14 +319,14 @@ export default function UserLoginView() {
               flexDirection: 'column',
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
-              p:3
+              p: 3
             }}>
               {successProfile === 1 && successMessage1}
               {successProfile === 2 && successMessage2}
               {successProfile === 3 && successMessage3}
 
 
-              {successProfile !== 4 && <Box sx={{ width: '90%', display: 'flex', justifyContent: 'flex-end', pt:2 }}>
+              {successProfile !== 4 && <Box sx={{ width: '90%', display: 'flex', justifyContent: 'flex-end', pt: 2 }}>
                 <Button onClick={onIncrementSucc} variant="contained" size={'small'}>Continue</Button>
               </Box>}
             </Box>
@@ -333,7 +359,7 @@ export default function UserLoginView() {
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-      {(Number(currentStep) === 14 ) && successProfile !== 5 && renderDoneProfile}
+      {(Number(currentStep) === 14) && successProfile !== 5 && renderDoneProfile}
 
       {Number(currentStep) === 13 && step !== 5 && renderTwelveTutorial}
 
@@ -349,7 +375,7 @@ export default function UserLoginView() {
       <Stack spacing={3}>
         <LoginUsername />
 
-        <LoginPassword tutsStart={step == 3} recheck={handleRecheck} />
+        <LoginPassword manualDone={manualDone} tutsStart={step == 3} recheck={handleRecheck} />
 
         {/* <LoginContact /> */}
       </Stack>

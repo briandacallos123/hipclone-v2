@@ -24,6 +24,8 @@ import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
 import { useTheme } from '@mui/material/styles';
 import { Stack } from '@mui/material';
+import { useBoolean } from 'src/hooks/use-boolean';
+import { ConfirmDialog } from '@/components/custom-dialog';
 
 // ----------------------------------------------------------------------
 
@@ -297,9 +299,48 @@ export default function ServicePaymentMethodNewEditForm({
     onIncrementStep();
   }, [values])
 
+  const confirm = useBoolean();
+
+  const clearUnsaved = () => {
+    if(step === 4){
+      setValue('attachment','')
+    }
+  }
+
+  const renderConfirm = (
+    <ConfirmDialog
+      open={confirm.value}
+      onClose={confirm.onFalse}
+      title="Unsaved Changes"
+      content="You have unsaved changes, are you sure you want to skip?"
+      sx={{
+        zIndex: 99999
+      }}
+      action={
+        <Button
+          variant="contained"
+          color="error"
+          onClick={() => {
+            onIncrementStep();
+            clearUnsaved()
+            confirm.onFalse();
+            reset({}, { keepValues: true });
+          }}
+        >
+          Skip
+        </Button>
+      }
+    />
+  );
+
   const onSkip = useCallback(() => {
-    onIncrementStep()
-  }, [isDirty])
+    if (isDirty || values.attachment) {
+      confirm.onTrue()
+    } else {
+      onIncrementStep()
+    }
+  }, [isDirty, values.attachment])
+
 
   const RenderChoices = useCallback(({ isRequired }: any) => {
     return (

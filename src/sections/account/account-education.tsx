@@ -48,7 +48,7 @@ export default function AccountEducation() {
   // console.log('QUERY: ', queryData);
   const currentStep = localStorage?.getItem('currentStep')
   const language = localStorage?.getItem('languagePref');
-    const isEnglish = language && language === 'english';
+  const isEnglish = language && language === 'english';
 
   // useEffect(() => {
   //   if (queryData) {
@@ -213,8 +213,8 @@ export default function AccountEducation() {
           },
         }}
       >
-        {isEnglish ? 'Please ensure that all education-related fields are completed. 🎓':'Pakisigurong kumpleto ang lahat ng field na may kaugnayan sa edukasyon. 🎓'}
-        
+        {isEnglish ? 'Please ensure that all education-related fields are completed. 🎓' : 'Pakisigurong kumpleto ang lahat ng field na may kaugnayan sa edukasyon. 🎓'}
+
       </Typography>
     </m.div>
   )
@@ -236,9 +236,9 @@ export default function AccountEducation() {
           },
         }}
       >
-        
 
-        {isEnglish ? 'Accurately providing your educational background is essential for verifying your qualifications and credentials. 📚🔍':'Ang tumpak na pagbibigay ng iyong background sa edukasyon ay mahalaga para sa pagpapatunay ng iyong mga kwalipikasyon at kredensyal. 📚'}
+
+        {isEnglish ? 'Accurately providing your educational background is essential for verifying your qualifications and credentials. 📚🔍' : 'Ang tumpak na pagbibigay ng iyong background sa edukasyon ay mahalaga para sa pagpapatunay ng iyong mga kwalipikasyon at kredensyal. 📚'}
       </Typography>
     </m.div>
   )
@@ -256,7 +256,27 @@ export default function AccountEducation() {
       zIndex: 99999,
     }}>
 
-
+      {step >= 3 && <Box sx={{
+        background: 'white',
+        position: 'absolute',
+        top: 20,
+        left: 20,
+        zIndex: 9999,
+        padding: 1
+      }}>
+        <Button onClick={() => {
+          if (currentStep && Number(currentStep) !== 100) {
+            if (currentStep && Number(currentStep) !== 100) {
+              localStorage.setItem('currentStep', '6')
+              router.push(paths.dashboard.user.manage.clinic)
+            }
+          
+            // router.push(paths.dashboard.user.manage.login)
+          }
+        }} variant="outlined">
+          Skip this part...
+        </Button>
+      </Box>}
       <>
         <Box sx={{
           background: PRIMARY_MAIN,
@@ -275,7 +295,7 @@ export default function AccountEducation() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
-          right:upMd ? 100:null
+          right: upMd ? 100 : null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -344,8 +364,8 @@ export default function AccountEducation() {
     <ConfirmDialog
       open={confirm.value}
       onClose={confirm.onFalse}
-      title={isEnglish ? 'Unsaved Changes':"Mga Hindi Nai-save na Pagbabago"}
-      content={isEnglish ? "You have unsaved changes, are you sure you want to skip":'Mayroon kang mga hindi nai-save na pagbabago. Sigurado ka bang nais mong laktawan ito?'}
+      title={isEnglish ? 'Unsaved Changes' : "Mga Hindi Nai-save na Pagbabago"}
+      content={isEnglish ? "You have unsaved changes, are you sure you want to skip" : 'Mayroon kang mga hindi nai-save na pagbabago. Sigurado ka bang nais mong laktawan ito?'}
       sx={{
         zIndex: 99999
       }}
@@ -477,14 +497,14 @@ export default function AccountEducation() {
 
       ))}
       <Stack spacing={3} alignItems="flex-end" justifyContent="flex-end">
-          <div className={step === 7 ? 'showFields-submit-profile-education' : ''}>
-            <LoadingButton type={!hasChanges ? 'button':'submit'} variant="contained" loading={isSubmitting}>
+        <div className={step === 7 ? 'showFields-submit-profile-education' : ''}>
+          <LoadingButton type={!hasChanges ? 'button' : 'submit'} variant="contained" loading={isSubmitting}>
 
             Save Changes
-            </LoadingButton>
-          </div>
+          </LoadingButton>
+        </div>
 
-        </Stack>
+      </Stack>
     </Stack>
   )
 

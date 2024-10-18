@@ -29,6 +29,7 @@ import { m } from 'framer-motion';
 import { MotionContainer, varFade } from 'src/components/animate';
 import { useRouter } from 'next/navigation';
 import Image from '@/components/image';
+import { userDoneSetup } from './server-action';
 
 // ----------------------------------------------------------------------
 
@@ -44,7 +45,7 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
   const router = useRouter();
 
   const language = localStorage?.getItem('languagePref');
-  const isEnglish = language && language === 'english';
+
 
   useEffect(() => {
     setCurrentStep(localStorage.getItem('currentStep'))
@@ -138,67 +139,31 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
   const onIncrementSucc = () => setSuccProfile(successProfile + 1)
 
 
+  const isEnglish = false
 
-  const renderDoneProfile = (
-    <Box sx={{
-      position: 'fixed',
-      top: 0,
-      left: 0,
-      width: openNavIn ? `calc(100vw - ${NAV.W_VERTICAL}px)` : '100vw',
-      bottom: 0,
-      zIndex: 50000
-    }}>
-      <>
-        <Box sx={{
-          background: PRIMARY_MAIN,
-          opacity: .4,
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          bottom: 0,
-          zIndex: 99999
-        }}>
+  const successMessage1Lg = (
+    <m.div>
+      <Typography
+        sx={{
+          fontSize: 15,
+          lineHeight: 1.25,
+          '& > span': {
+            color: theme.palette.primary.main,
+            fontSize: 16,
+            fontWeight: 'bold',
+            textTransform: 'capitalize'
+          },
+        }}
+      >
+        <span>{isEnglish ? 'Congratulations, Doctor!' : 'Maligayang bati, Doktor'} 🎉</span><br /><br />
 
-        </Box>
-
-        <Box sx={{
-          zIndex: 99999,
-          position: 'absolute',
-          bottom: 0,
-        }}>
-          {/* message */}
-          <m.div variants={varFade().inUp}>
-            <Box sx={{
-              // background: theme.palette.background.default,
-              height: 'auto',
-              width: 'auto',
-              maxWidth: 250,
-              left: 10,
-              borderRadius: 2,
-              zIndex: 99999,
-              position: 'absolute',
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'flex-start',
-              alignItems: 'flex-start',
-              p: 3
-            }}>
-
-
-
-              <Box sx={{ width: '90%', display: 'flex', justifyContent: 'flex-end' }}>
-                <Button onClick={onIncrementSucc} variant="contained" size={'small'}>Continue</Button>
-              </Box>
-            </Box>
-          </m.div>
-
-          {/*  */}
-        </Box>
-      </>
-
-    </Box>
+        {isEnglish ? ' You’ve successfully completed the setup of your profile and necessary data. You\'re now ready to start using the system effectively!' : 'Matagumpay mong nakumpleto ang pag-set up ng iyong profile at kinakailangang datos. Handa ka nang simulan ang epektibong paggamit ng sistema!'}
+      </Typography>
+    </m.div>
   )
+
+
+
 
   const successMessage1 = (
     <m.div>
@@ -253,6 +218,13 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
     </m.div>
   )
 
+  useEffect(()=>{
+    if(successProfile > 2){
+      (async()=>{
+        userDoneSetup(user.id)
+      })()  
+    }
+  },[successProfile])
 
 
   const renderBot = (
@@ -306,7 +278,80 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
     </Box>
   )
 
+  const renderDoneProfile = (
+    <Box sx={{
+      position: 'fixed',
+      top: 0,
+      left: 0,
+      width: openNavIn ? `calc(100vw - ${NAV.W_VERTICAL}px)` : '100vw',
+      bottom: 0,
+      zIndex: 50000
+    }}>
+      <>
+        <Box sx={{
+          background: PRIMARY_MAIN,
+          opacity: .4,
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 99999
+        }}>
 
+        </Box>
+
+        {lgUp && <Box sx={{
+          zIndex: 99999,
+          position: 'absolute',
+          bottom: 0,
+          right: 100
+        }}>
+          {/* message */}
+          <m.div variants={varFade().inUp}>
+            <Box sx={{
+              background: theme.palette.background.default,
+              height: 'auto',
+              width: 'auto',
+              maxWidth: 250,
+              left: 0,
+              borderRadius: 2,
+              zIndex: 99999,
+              position: 'absolute',
+              display: 'flex',
+              top: -20,
+              flexDirection: 'column',
+              justifyContent: 'flex-start',
+              alignItems: 'flex-start',
+              p: 3
+            }}>
+
+              {successProfile === 1 && successMessage1}
+              {successProfile === 2 && successMessage2}
+
+              {successProfile <= 2 &&
+                <Box sx={{ width: '90%', display: 'flex', justifyContent: 'flex-end' }}>
+                  <Button onClick={onIncrementSucc} variant="contained" size={'small'}>Continue</Button>
+                </Box>}
+            </Box>
+          </m.div>
+
+          <Image
+            sx={{
+              width: 350,
+              height: 450,
+              position: 'relative',
+              bottom: -100,
+              right: -120,
+
+            }}
+            src={'/assets/tutorial-doctor/nurse-tutor.png'}
+          />
+        </Box>}
+      </>
+
+    </Box>
+  )
   return (
     <Box
       component="nav"
@@ -317,7 +362,7 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
 
       }}
     >
-      {Number(cStep) === 15 && renderDoneProfile}
+      {Number(cStep) === 15 && successProfile <= 2 && renderDoneProfile}
 
       {Number(cStep) === 15 && openNavIn && successProfile !== 3 && renderBot}
 
@@ -327,13 +372,13 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
         width: 50,
         float: 'right',
       }}>
-        <div className={Number(cStep) === 15 && !openNavIn ? 'nav-toggle' : ''}>
+        <div className={Number(cStep) === 15 && !lgUp && !openNavIn ? 'nav-toggle' : ''}>
           {!lgUp && customToggle}
         </div>
       </Box>
 
       {lgUp ? (
-        <div className={(Number(cStep) === 15 && successProfile !== 3) ? 'showFields-nav':''}>
+        <div className={(Number(cStep) === 15 && successProfile !== 3) ? 'showFields-nav' : ''}>
           <Stack
             sx={{
               height: 1,

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ApexOptions } from 'apexcharts';
 // @mui
 import { useTheme } from '@mui/material/styles';
@@ -81,6 +81,28 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
   const handleToggleNav = () => {
     setCollapseDesktop(!collapseDesktop);
   };
+
+  const [dataList, setDataList] = useState([])
+  const [tempData, setTempData] = useState(false);
+
+  const isTemp = dataList.find((item)=>Number(item.id) === 0);
+
+
+  // console.log(tempData,'tempData');
+
+  // useEffect(()=>{
+  //   if(dataList.find((item)=>Number(item.id) === 0)){
+  //     setTempData(true)
+  //   }
+  // },[dataList])
+
+  useEffect(()=>{
+    if(list?.length !== 0){
+      setDataList(list)
+    }
+  },[list])
+
+ 
 
 
   const renderBtn = (
@@ -183,7 +205,16 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
     })
   },[])
 
-  console.log(list,'listtt')
+
+  const [listData, setListData] = useState([]);
+
+  useEffect(()=>{
+    console.log(list,'awit bosing');
+  },[list])
+
+  // let isContainNull = list?.find((item)=>Number(item?.id)=== 0);
+
+
 
   const notFound = !dataFiltered.length;
   const renderList = (
@@ -203,10 +234,10 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
             <TableBody>
              
 
-               {list?.length !== 0 && 
-               list?.filter((item)=>Number(item?.data) !== 0 && item)
+              
+               {list?.filter((item)=>Number(item?.data) !== 0 && item)
                 ?.slice(
-                  table.page * table.rowsPerPage,
+                  isTemp ? 1:table.page * table.rowsPerPage,
                   table.page * table.rowsPerPage + table.rowsPerPage
                 )
                 .map((row) => (
@@ -217,7 +248,7 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
                   }}
                   />
                 
-                ))} 
+                ))}
 
               <TableEmptyRows
                 height={denseHeight}

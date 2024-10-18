@@ -371,7 +371,6 @@ export const CreateHMO = extendType({
             },
             data: {
               HMO: serializedIds,
-              isDeleted:1
             },
           });
           
