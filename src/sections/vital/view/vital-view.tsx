@@ -35,8 +35,6 @@ export default function VitalView({
 }: Props) {
   const upMd = useResponsive('up', 'md');
 
-  //  ---------------------------------------------
-
   let weightData = items
     ?.filter((item: any) => item?.wt !== '0' && item?.wt)
     ?.map((item) => {
@@ -45,6 +43,7 @@ export default function VitalView({
         id: item?.id,
       };
     });
+
 
   const weightDataDateNoFormat = items
     ?.filter((item: any) => item?.wt !== '0' && item?.wt)
@@ -142,6 +141,29 @@ export default function VitalView({
   }
 
   // --------------------------------
+
+  const HeightData = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => {
+      return {
+        data: item?.ht,
+        id: item?.id,
+      };
+    });
+
+
+  const heightArray = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => item?.ht);
+
+  const emptyHeight = heightArray.length <= 0;
+
+  const HeightDataDate = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const HeightDataDateNoFormat = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => item?.date);
 
 
   const BP1Data = items
@@ -372,13 +394,190 @@ export default function VitalView({
 
   // --------------------------------
 
+  const BMIData = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => {
+      return {
+        data: item?.bmi,
+        id: item?.id,
+      };
+    });
+
+  const BMIArray = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => item?.bmi);
+
+  const emptyBMI = BMIArray.length <= 0;
+
+  const BMIDataDate = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const BMIDataDateNoFormat = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => item?.date);
+
+  const BP1Data = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => {
+      return {
+        data: item?.bp1,
+        id: item?.id,
+      };
+    });
+
+  const BP1Array = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => item?.bp1);
+
+  const emptyBP1 = BP1Array.length <= 0;
+
+  const BP1DataDate = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const BP1DataDateNoFormat = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => item?.date);
+
+  const BP2Data = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.b2 !== '0.00' && item?.bp2)
+    ?.map((item) => {
+      return {
+        data: item?.bp2,
+        id: item?.id,
+      };
+    });
+
+  const BP2Array = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.b2 !== '0.00' && item?.bp2)
+    ?.map((item) => item?.bp2);
+
+  const emptyBP2 = BP2Array.length <= 0;
+
+  const BP2DataDate = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const BP2DataDateNoFormat = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)
+    ?.map((item) => item?.date);
+
+  const OxygenData = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => {
+      return {
+        data: item?.spo2,
+        id: item?.id,
+      };
+    });
+
+  const OxygenArray = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => item?.spo2);
+
+  const emptyOxygen = OxygenArray.length <= 0;
+
+  const OxygenDataDate = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const OxygenDataDateNoFormat = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => item?.date);
+
+  const HeartRateData = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => {
+      return {
+        data: item?.hr,
+        id: item?.id,
+      };
+    });
+
+  const HeartRateArray = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => item?.hr);
+
+  const emptyHeartRate = HeartRateArray.length <= 0;
+
+  const HeartRateDataDate = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const HeartRateDataDateNoFormat = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => item?.date);
+
+  const RespData = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => {
+      return {
+        data: item?.rr,
+        id: item?.id,
+      };
+    });
+
+  const RespArray = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => item?.rr);
+
+  const emptyResp = RespArray.length <= 0;
+
+  const RespDataDate = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const RespDataDateNoFormat = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => item?.date);
+
+    
+
+  const TempData = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => {
+      return {
+        data: item?.bt,
+        id: item?.id,
+      };
+    });
+
+  const TempArray = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => item?.bt);
+
+  const emptyTemp = TempArray.length <= 0;
+
+  const TempDataDate = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const TempDataDateNoFormat = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => item?.date);
+
+  const SugarMonitoringData = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => {
+      return {
+        data: item?.bsm,
+        id: item?.id,
+      };
+    });
+
+  const SugarMonitoringArray = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => item?.bsm);
+
+  const emptySugarMonitoring = SugarMonitoringArray.length <= 0;
+
+  const SugarMonitoringDataDate = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const SugarMonitoringDataDateNoFormat = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => item?.date);
 
   const dataDate = items?.map((item: any) => item?.date || new Date());
   const categories = dataDate?.filter((_: any) => `${fDate(_, 'MMM dd')}`);
 
   let newData: any = [];
 
-  console.log('items????', items);
 
   items2?.forEach((val: any) => {
     if (newData.length === 0) {
@@ -491,6 +690,7 @@ export default function VitalView({
               data: [{ name: 'kg', data: weightData?.map((item) => item?.data) }],
             }}
             list={[...Array(weightDataDate?.length)].map((_, index) => ({
+
               value: `${weightData[index]?.data
                 } kg`,
               date: weightDataDate[index],

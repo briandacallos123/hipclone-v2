@@ -206,6 +206,8 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
   },[])
 
 
+=======
+
   const [listData, setListData] = useState([]);
 
   useEffect(()=>{

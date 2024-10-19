@@ -6,22 +6,23 @@ import { GraphQLError } from 'graphql/error/GraphQLError';
 import { join } from 'path';
 
 const isValidFileTypes = (str: string) => {
-  const validFileType = ['application/pdf', 'image/png', 'image/jpeg'];
+  const validFileType = ['application/pdf', 'image/png', 'image/jpeg', 'image/webp'];
   const isValid = validFileType.find((v: any) => String(v) === String(str));
   return isValid;
 };
 const validateMagicNumber = (buf: any) => {
   const magicNumberStr = buf.toString('hex', 0, 4).toLowerCase();
+  const webpSignature = buf.toString('hex', 8, 12).toLowerCase(); // Check for WEBP after RIFF
+
   return (
-    // magicNumberStr === String('25504446').toLowerCase() ||
-    // magicNumberStr === String('89504e47').toLowerCase() ||
-    // magicNumberStr === String('ffd8ffe0').toLowerCase()
-    magicNumberStr === '89504e47' ||
-    magicNumberStr === 'ffd8ffe0' ||
-    magicNumberStr === 'ffd8ffe1' ||
-    magicNumberStr === 'ffd8ffe2' ||
-    magicNumberStr === 'ffd8ffe3' ||
-    magicNumberStr === 'ffd8ffdb'
+    magicNumberStr === '25504446' || // PDF
+    magicNumberStr === '89504e47' || // PNG
+    magicNumberStr === 'ffd8ffe0' || // JPEG (EXIF)
+    magicNumberStr === 'ffd8ffe1' || // JPEG (EXIF alternate)
+    magicNumberStr === 'ffd8ffe2' || // JPEG (Canon)
+    magicNumberStr === 'ffd8ffe3' || // JPEG (EXIF alternate 2)
+    magicNumberStr === 'ffd8ffdb' || // JPEG (standalone DQT)
+    (magicNumberStr === '52494646' && webpSignature === '57454250') // WebP
   );
 };
 
