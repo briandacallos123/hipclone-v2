@@ -337,7 +337,7 @@ export const QueryFYD = extendType({
                   SpecializationInfo: true,
                 },
               }),
-              client.employees.aggregate({
+              client.employees.count({
                 where: {
                   isDeleted: 0,
                   ...whereconditions,
@@ -347,13 +347,14 @@ export const QueryFYD = extendType({
                     },
                   },
                 },
-                _count: {
-                  EMPID: true,
-                },
+                
               }),
             ]);
+        
+            // console.log(_count1,'_count1 value')
             result = result1;
             _count = _count1;
+
           } else {
             const patientDoctors = await client.records.findMany({
               where: {
@@ -422,7 +423,7 @@ export const QueryFYD = extendType({
                   SpecializationInfo: true,
                 },
               }),
-              client.employees.aggregate({
+              client.employees.count({
                 where: {
                   isDeleted: 0,
                   ...whereconditions,
@@ -435,12 +436,11 @@ export const QueryFYD = extendType({
                     in: patientDoctors?.map((item) => Number(item?.doctorID))
                   }
 
-                },
-                _count: {
-                  EMPID: true,
-                },
+                }
               }),
             ]);
+     
+
             result = result1;
             _count = _count1;
 
@@ -452,7 +452,7 @@ export const QueryFYD = extendType({
           const _total: any = _count;
           const response: any = {
             FYD_data: _result,
-            fyd_totalRecords: Number(_total?._count?.EMPID),
+            fyd_totalRecords: _total
           };
           return response;
         } catch (error) {

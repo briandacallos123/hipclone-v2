@@ -32,10 +32,11 @@ import FormProvider, {
   RHFMultiCheckbox,
   RHFUploadAvatar,
 } from 'src/components/hook-form';
-import './generalStyle.css'
+import './clinic.css'
 import { useTheme, alpha } from '@mui/material/styles';
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
+import { validatePhone } from '../subaccount/action/sub-account-act';
 // ----------------------------------------------------------------------
 
 const PROVINCE_OPTIONS = ['Abra', 'Bataan', 'Cagayan'];
@@ -93,10 +94,13 @@ export default function ClinicNewForm({
 
   const CreateUserSchema = Yup.object().shape({
     clinic_name: Yup.string().required('Clinic name is required'),
-    number: Yup.number().required('Number is required').typeError('Number must be a number'),
+
     location: Yup.string().required('Location is required'),
-    Province: Yup.string().required('Province is required'),
+    // Province: Yup.string().required('Province is required'),
     // avatarUrl: '',
+    phoneNumber: Yup.string().required('Phone number is required')
+      .matches(/^[0-9]{11}$/, 'Phone number must be exactly 10 digits')
+      .matches(/^\+?[0-9]\d{1,14}$/, 'Phone number must be valid'),
     type: Yup.array().required('Type is required').min(1, 'At least one type is required'),
     days: Yup.array().required('Days are required').min(1, 'At least one day is required'),
     start_time: Yup.string().required('Start time is required'),
@@ -115,7 +119,7 @@ export default function ClinicNewForm({
   const defaultValues = useMemo(
     () => ({
       clinic_name: '',
-      number: null,
+      phoneNumber: null,
       location: '',
       Province: 'Zamboanga',
       avatarUrl: '',
@@ -138,7 +142,7 @@ export default function ClinicNewForm({
     setValue,
     watch,
     handleSubmit,
-    formState: { isSubmitting, isDirty },
+    formState: { isSubmitting, isDirty, errors },
   } = methods;
   const values = watch();
 
@@ -158,29 +162,36 @@ export default function ClinicNewForm({
 
   console.log(values.limitValue, 'ano valuee')
 
-  const currentStep = localStorage?.getItem('currentStep')
+
+  const [currentStep, setCurrentStep] = useState(null)
+
+  useEffect(()=>{
+    const currentStepLocal = localStorage?.getItem('currentStep')
+
+    if(currentStepLocal){
+      setCurrentStep(currentStepLocal)
+    }
+  },[])
 
   const [step, setStep] = useState(3);
 
+  console.log(step, 'steppp')
+
   const onIncrementStep = useCallback(() => {
-    if(values.time_interval){
-      if(values.time_interval === '10'){
+
+    if (values.time_interval) {
+      if (values.time_interval === '10') {
         setStep(step + 1);
-      }else{
+      } else {
         setStep(step + 2);
       }
-    }else{
+    } else {
       setStep(step + 1);
 
     }
-    // if(values.time_interval === '10'){
-    //   setStep(step + 1);
-    // }else{
-    //   setStep(step + 2);
-    // }
-    reset({}, { keepValues: true });
 
-  },[values])
+
+  }, [values])
 
   const [createClinic] = useMutation(CLINIC_POST);
   const [snackKey, setSnackKey] = useState(null);
@@ -190,7 +201,7 @@ export default function ClinicNewForm({
       const data: any = {
         clinic_name: model.clinic_name,
         location: model.location,
-        number: String(model.number),
+        number: String(model.phoneNumber),
         Province: model.Province,
         type: model.type,
         days: model.days,
@@ -279,7 +290,7 @@ export default function ClinicNewForm({
       if (file) {
         setValue('avatarUrl', newFile, { shouldValidate: true });
       }
-      onIncrementStep()
+
     },
     [setValue]
   );
@@ -289,6 +300,15 @@ export default function ClinicNewForm({
 
 
   const PRIMARY_MAIN = theme.palette.primary.main;
+
+  const clearUnsaved = useCallback(() => {
+    if (step === 3) {
+      setValue('avatarUrl', '')
+    }
+    else if (step === 7) {
+      setValue('Province', '')
+    }
+  }, [values])
 
   const renderConfirm = (
     <ConfirmDialog
@@ -304,8 +324,8 @@ export default function ClinicNewForm({
           variant="contained"
           color="error"
           onClick={() => {
-            // incrementStep();
-            // clearUnsaved()
+            onIncrementStep();
+            clearUnsaved()
             confirm.onFalse();
             reset({}, { keepValues: true });
           }}
@@ -317,14 +337,15 @@ export default function ClinicNewForm({
   );
 
   const onSkip = useCallback(() => {
-    if (isDirty) {
+
+    if (isDirty || values.avatarUrl || values.Province) {
       confirm.onTrue()
     } else {
       onIncrementStep()
     }
-  }, [isDirty])
+  }, [isDirty, values])
 
-  console.log(isDirty,'isDirtyisDirty')
+  console.log(isDirty, 'isDirtyisDirty')
 
   const handleContinue = useCallback(() => {
     // Resetting isDirty by setting the values to the current values
@@ -333,32 +354,84 @@ export default function ClinicNewForm({
     onIncrementStep();
   }, [values])
 
+  const [existsPhone, setExistsPhone] = useState(false)
+
+
+  useEffect(() => {
+    if (values.phoneNumber && !Object.keys(errors)?.includes('phoneNumber')) {
+      (async () => {
+        validatePhone({
+          phone: String(values.phoneNumber)
+        }).then((res) => {
+          const { isExists } = res;
+          console.log(res, 'isExistsisExistsisExists')
+          if (isExists) {
+            setExistsPhone(true)
+          } else {
+            setExistsPhone(false)
+          }
+        }).catch((err) => {
+          console.log(err, 'errorrrrrrrr')
+        })
+      })()
+    }
+  }, [values.phoneNumber, !Object.keys(errors)?.includes('phoneNumber')])
+
   const RenderChoices = useCallback(({ isRequired }: any) => {
     return (
       <Stack sx={{
         p: 1
       }} direction="row" alignItems='center' gap={2} justifyContent='flex-end'>
         {!isRequired && <Button onClick={onSkip} variant="outlined">Skip</Button>}
-        <Button disabled={(()=>{
-          if(step === 7){
+
+        <Button disabled={(() => {
+          if (step === 7) {
             return false
-          }else{
+          } else if (step === 6) {
+            if (!values.phoneNumber) {
+              return true;
+            }
+            else if (String(values.phoneNumber).length !== 11) {
+              return true
+            }
+            if (Object.keys(errors)?.length === 0) {
+              if (existsPhone) {
+                return true;
+              } else {
+                return false;
+              }
+            } else {
+              return true
+            }
+          }
+          else if(step === 3){
+            if (!values.avatarUrl) {
+              return true;
+            }else{
+              return false
+            }
+            
+          }
+          else {
             return !isDirty
           }
         })()} onClick={handleContinue} variant="contained">Continue</Button>
 
       </Stack>
     )
-  },[isDirty, step])
+  }, [isDirty, step, Object.keys(errors), values])
+
+
+  console.log(values, 'valuess')
 
   const renderTutsFields = (
     <Box sx={{
-      mb: 5
+      mb: 5,
     }}>
       {renderConfirm}
       <Grid container spacing={3} sx={{ mt: 0.2, mb: 3 }}>
         <Grid xs={12} md={4}>
-          <div className={step === 3 ? 'showFields' : ''}>
+          <div className={step === 3 ? 'showFields-clinic' : ''}>
             <Box sx={{ py: 5, px: 3, textAlign: 'center' }}>
               <RHFUploadAvatar
                 name="avatarUrl"
@@ -387,11 +460,11 @@ export default function ClinicNewForm({
 
         <Grid xs={12} md={8}>
           <Stack spacing={3}>
-            <div className={step === 4 ? 'showFields' : ''}>
+            <div className={step === 4 ? 'showFields-clinic' : ''}>
               <RHFTextField name="clinic_name" label="Clinic/Hospital Name" />
               {step === 4 && <RenderChoices isRequired={true} />}
             </div>
-            <div className={step === 5 ? 'showFields' : ''}>
+            <div className={step === 5 ? 'showFields-clinic' : ''}>
               <RHFTextField name="location" label="Clinic Address" />
               {step === 5 && <RenderChoices isRequired={true} />}
             </div>
@@ -405,19 +478,26 @@ export default function ClinicNewForm({
                 sm: 'repeat(2, 1fr)',
               }}
             >
-              <div className={step === 6 ? 'showFields' : ''}>
+              <div className={step === 6 ? 'showFields-clinic' : ''}>
                 <RHFTextField
-                  name="number"
+                  name="phoneNumber"
                   type="number"
+                  error={!!errors.phoneNumber || existsPhone}
+
                   label="Clinic Phone Number"
-                  helperText="This number will be visible to the public. Please indicate the clinic official contact number."
+                  helperText={(errors.phoneNumber ? errors.phoneNumber.message : '') || existsPhone && 'Phone already used' || 'This number will be visible to the public. Please indicate the clinic official contact number.'}
+                  onChange={(e) => {
+                    setValue('phoneNumber', e.target.value);
+
+                    methods.trigger('phoneNumber'); // Validate on change
+                  }}
                 />
                 {step === 6 && <RenderChoices isRequired={true} />}
 
               </div>
 
 
-              <div className={step === 7 ? 'showFields' : ''}>
+              <div className={step === 7 ? 'showFields-clinic' : ''}>
                 <RHFSelect name="Province" label="Province">
                   {provinces &&
                     provinces.map((option: any, index: Number) => (
@@ -426,7 +506,7 @@ export default function ClinicNewForm({
                       </MenuItem>
                     ))}
                 </RHFSelect>
-                {step === 7 && <RenderChoices isRequired={true} />}
+                {step === 7 && <RenderChoices isRequired={false} />}
               </div>
 
             </Box>
@@ -439,7 +519,7 @@ export default function ClinicNewForm({
 
       <Stack spacing={3} sx={{ mt: 1 }}>
         <div>
-          <div className={step === 8 ? 'showFields' : ''}>
+          <div className={step === 8 ? 'showFields-clinic' : ''}>
             <RHFMultiCheckbox
               row
               name="type"
@@ -449,7 +529,7 @@ export default function ClinicNewForm({
             {step === 8 && <RenderChoices isRequired={true} />}
           </div>
 
-          <div className={step === 9 ? 'showFields' : ''}>
+          <div className={step === 9 ? 'showFields-clinic' : ''}>
             <RHFMultiCheckbox
               row
               name="days"
@@ -470,7 +550,7 @@ export default function ClinicNewForm({
             sm: 'repeat(3, 1fr)',
           }}
         >
-          <div className={step === 10 ? 'showFields' : ''}>
+          <div className={step === 10 ? 'showFields-clinic' : ''}>
             <Controller
               name="start_time"
               control={control}
@@ -495,7 +575,7 @@ export default function ClinicNewForm({
           </div>
 
 
-          <div className={step === 11 ? 'showFields' : ''}>
+          <div className={step === 11 ? 'showFields-clinic' : ''}>
             <Controller
               name="end_time"
               control={control}
@@ -519,7 +599,7 @@ export default function ClinicNewForm({
             {step === 11 && <RenderChoices isRequired={true} />}
           </div>
 
-          <div className={step === 12 ? 'showFields' : ''}>
+          <div className={step === 12 ? 'showFields-clinic' : ''}>
             <RHFSelect name="time_interval" label="Duration">
               <MenuItem value="15">15 Mins</MenuItem>
               <MenuItem value="30">30 Mins</MenuItem>
@@ -533,7 +613,7 @@ export default function ClinicNewForm({
           </div>
 
           {values.time_interval === '10' &&
-            <div className={(step === 13 && values.time_interval === '10') ? 'showFields' : ''}>
+            <div className={(step === 13 && values.time_interval === '10') ? 'showFields-clinic' : ''}>
               <RHFTextField label="Allowed Patient" name="limitValue" type="number">
               </RHFTextField>
               {step === 13 && <RenderChoices isRequired={true} />}
@@ -551,7 +631,7 @@ export default function ClinicNewForm({
         <Button variant="outlined" onClick={onClose}>
           Cancel
         </Button>
-        <div className={step === 14 ? 'showFields-submit' : ''}>
+        <div className={step === 14 ? 'showFields-submit-clinic' : ''}>
           <LoadingButton
             type="submit"
             variant="contained"
@@ -566,11 +646,12 @@ export default function ClinicNewForm({
       <Box sx={{
         background: PRIMARY_MAIN,
         opacity: .4,
-        position: 'absolute',
+        position: 'fixed',
         top: 0,
         left: 0,
         right: 0,
         bottom: 0,
+      
 
       }}>
 
@@ -578,12 +659,16 @@ export default function ClinicNewForm({
     </Box>
   )
 
+  console.log(currentStep, 'currentStep')
   return (
     <>
-      <DialogContent>
+      <DialogContent sx={{
+        scrollBehavior: 'smooth',
+
+      }}>
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
 
-          {!currentStep ? <Box>
+          {!(currentStep && currentStep < 20) ? <Box>
 
             <Typography variant="overline" color="text.disabled">
               Fill in clinic details
@@ -630,7 +715,7 @@ export default function ClinicNewForm({
                     }}
                   >
                     <RHFTextField
-                      name="number"
+                      name="phoneNumber"
                       label="Clinic Phone Number"
                       helperText="This number will be visible to the public. Please indicate the clinic official contact number."
                     />

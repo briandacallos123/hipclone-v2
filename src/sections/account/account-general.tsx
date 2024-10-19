@@ -48,13 +48,14 @@ import { useUnsavedChanges } from '@/context/changes-watcher';
 import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
 
+import './generalStyle.css'
 // ----------------------------------------------------------------------
 
 interface FormValuesProps extends Omit<IUserProfile, 'avatarUrl'> {
   avatarUrl: CustomFile | string | null;
 }
 
-export default function AccountGeneral({handleChangeTabTuts}:any) {
+export default function AccountGeneral({ handleChangeTabTuts }: any) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const upMd = useResponsive('up', 'md');
   const { user, reInitialize } = useAuthContext();
@@ -65,8 +66,10 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
     address: Yup.string().required('Address is required'),
   };
 
+  const targetRef = useRef();
+
   // Inside your component
-  const { isDirty, setIsDirty }:any = useUnsavedChanges();
+  const { isDirty, setIsDirty }: any = useUnsavedChanges();
 
 
   const UpdateUserSchema = Yup.object().shape({
@@ -130,7 +133,7 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
     getValues,
     formState: { isSubmitting },
   } = methods;
- 
+
   // Warn on page unload
 
 
@@ -179,7 +182,7 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
           closeSnackbar(snackKey);
           enqueueSnackbar('Updated successfully!');
           reInitialize();
-          if(currentStep && Number(currentStep) !== 100){
+          if (currentStep && Number(currentStep) !== 100) {
             localStorage.setItem('currentStep', '4');
           }
         })
@@ -228,8 +231,8 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
   const values = watch();
 
 
-  useEffect(()=>{
-  },[values, defaultValues])
+  useEffect(() => {
+  }, [values, defaultValues])
 
 
 
@@ -273,6 +276,15 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
     console.log(b, o);
   };
 
+  const [step, setSteps] = useState(null);
+
+  useEffect(()=>{
+    if(currentStep){
+      setSteps(1)
+    }
+  },[])
+
+
   const handleDrop = useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
@@ -287,15 +299,18 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
       if (file) {
         setValue('avatarUrl', newFile, { shouldValidate: true });
       }
+      if(step || esigCalled){
+        console.log("hellow")
+        targetRef.current.scrollIntoView({ behavior: 'smooth' });
+        setSteps(2)
+      }
     },
     [setValue]
   );
 
   const openPay = useBoolean();
 
-  const openSig = () => {
-    openPay.onTrue();
-  };
+  
 
   useEffect(() => {
     if (snackKey2) {
@@ -352,14 +367,20 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
     }
   }, [user]);
 
-  const [step, setSteps] = useState(1);
   const theme = useTheme();
 
-  console.log(currentStep, 'steeppp')
   const PRIMARY_MAIN = theme.palette.primary.main;
 
   const incrementStep = () => setSteps((prev) => prev + 1)
 
+  const openSig = () => {
+    openPay.onTrue();
+    if(currentStep){
+      incrementStep()
+    }
+  };
+
+  const languagePrefer = localStorage?.getItem('languagePref');
 
   const firstStep = (
     <m.div>
@@ -380,7 +401,7 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
           },
         }}
       >
-        Before you start using the system, we need to set up your medical profile, including images and other important information.
+        {languagePrefer === 'english' ?"Before you start using the system, we need to set up your medical profile, including images and other important information.":"Bago mo simulan ang paggamit ng sistema, kailangan nating i-set up ang iyong medical profile, kasama na ang mga larawan at iba pang mahalagang impormasyon."}
       </Typography>
     </m.div>
   )
@@ -399,7 +420,9 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
           },
         }}
       >
-        After updating all your needs, don’t forget to save the changes! 💾✍️
+        
+
+        {languagePrefer === 'english'?'After updating all your needs, don’t forget to save the changes! 💾✍️':'Matapos i-update ang lahat ng iyong pangangailangan, huwag kalimutang i-save ang mga pagbabago! 💾✍️'}
       </Typography>
     </m.div>
   )
@@ -429,10 +452,11 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
 
         </Box>
 
-        <Box sx={{
+        {step < 3 && !esigCalled && <Box sx={{
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
+          right:upMd ? 100:null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -440,8 +464,8 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
               background: theme.palette.background.default,
               height: 'auto',
               width: 'auto',
-              maxWidth:250,
-              left: 10,
+              maxWidth: 250,
+              left: upMd ? 0:10,
               borderRadius: 2,
               zIndex: 99999,
               position: 'absolute',
@@ -449,12 +473,12 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
               flexDirection: 'column',
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
-              p:3
+              p: 3
             }}>
               {step === 1 && firstStep}
               {step === 2 && secondStep}
 
-              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ width: '90%', pt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                 <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
                 {/* <Button onClick={decrementStep} variant="contained" size={'small'}>Back</Button> */}
               </Box>
@@ -473,19 +497,20 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
             src={'/assets/tutorial-doctor/nurse-tutor.png'}
 
           />
-        </Box>
+        </Box>}
       </>
 
     </Box>
   )
 
+
   return (
     <Box>
-      {Number(currentStep) === 3 && step !== 3 && !esigCalled && renderSecondTutorial}
+      {Number(currentStep) === 3 && step < 4 && renderSecondTutorial}
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
           <Grid xs={12} md={4} spacing={3}>
-            <Card sx={{ py: { md: 10, xs: 1 }, px: { md: 3, xs: 1 }, mb: 3, textAlign: 'center' }}>
+            {!(step && step === 1 && esigCalled) ? <Card sx={{ py: { md: 10, xs: 1 }, px: { md: 3, xs: 1 }, mb: 3, textAlign: 'center' }}>
               <RHFUploadAvatar
                 name="avatarUrl"
                 maxSize={3145728}
@@ -506,101 +531,132 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
                   </Typography>
                 }
               />
-            </Card>
+            </Card>:
+              <div className="showFields-profile">
+                <Box sx={{ py: { md: 10, xs: 1 }, px: { md: 3, xs: 1 }, mb: 3, textAlign: 'center' }}>
+               <RHFUploadAvatar
+                name="avatarUrl"
+                maxSize={3145728}
+                onDrop={handleDrop}
+                helperText={
+                  <Typography
+                    variant="caption"
+                    sx={{
+                      mt: 3,
+                      mx: 'auto',
+                      display: 'block',
+                      textAlign: 'center',
+                      color: 'text.disabled',
+                    }}
+                  >
+                    Allowed *.jpeg, *.jpg, *.png, *.gif
+                    <br /> max size of {fData(3145728)}
+                  </Typography>
+                }
+              />
+            </Box>
+              </div>
+            }
 
             {user?.role === 'doctor' && (
-              <Card sx={{ py: { md: 2, xs: 1 }, px: { md: 3, xs: 1 }, textAlign: 'center' }}>
-                <Stack spacing={1.5} sx={{ mt: 3 }}>
-                  <Button
-                    onClick={openSig}
-                    variant="contained"
-                    color="primary"
-                    sx={{
-                      position: 'absolute',
-                      right: 10,
-                      top: 5,
-                      fontSize: '11px',
-                      width: '30px',
-                      height: '25px',
-                    }}
-                    startIcon={
-                      <Iconify icon="tabler:edit" sx={{ width: '15px', height: '15px' }} />
-                    }
-                  >
-                    {user?.esig?.filename ? 'Edit' : 'Create'}
-
-
-                  </Button>
-                  <Stack direction="column">
-                    <span
-                      style={{
-                        marginBottom: '8px',
-                        position: 'absolute',
-                        top: 0,
-                        paddingBottom: '88px',
-                      }}
-                    >
-                      E-Signature Preview
-                    </span>
-                    <Box sx={{ width: '100%', height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      {user?.esig?.filename ? (
-                        <Image
-                          src={user?.esig?.filename}
+              <div className={step === 3 ? 'showFields-profile' : ''}>
+                <Box sx={{ py: { md: 2, xs: 1 }, px: { md: 3, xs: 1 }, textAlign: 'center' }}>
+                  <Stack spacing={1.5} sx={{ mt: 3 }}>
+                    <Stack  justifyContent='flex-end' alignItems='flex-end'>
+                      <div className={step === 3 ? 'showFields-submit-edit-profile' : ''}>
+                        <Button
+                          onClick={openSig}
+                          variant="contained"
+                          color="primary"
                           sx={{
-                            width: 150,
-                            height: 150,
-
+                            position: 'absolute',
+                            right: 10,
+                            top: 5,
+                            fontSize: '11px',
+                            width: '30px',
+                            height: '25px',
                           }}
-                          alt="best"
-                        />
+                          startIcon={
+                            <Iconify icon="tabler:edit" sx={{ width: '15px', height: '15px' }} />
+                          }
+                        >
+                          {user?.esig?.filename ? 'Edit' : 'Create'}
 
-                      ) :
-                        <Box>
+
+                        </Button>
+                      </div>
+                    </Stack>
+                    <Stack direction="column">
+                      <span
+                        style={{
+                          marginBottom: '8px',
+                          position: 'absolute',
+                          top: 0,
+                          paddingBottom: '88px',
+                        }}
+                      >
+                        E-Signature Preview
+                      </span>
+                      <Box sx={{ width: '100%', height: 200, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                        {user?.esig?.filename ? (
                           <Image
-                            src={'/assets/icons/empty/ic_content.svg'}
+                            src={user?.esig?.filename}
                             sx={{
-                              width: 150,
-                              height: 150
+                              width: 200,
+                              height: 180,
+
                             }}
+                            alt="best"
                           />
-                          <Typography variant="h6" color="gray">No signature created.</Typography>
 
-                        </Box>
-                      }
-                    </Box>
+                        ) :
+                          <Box>
+                            <Image
+                              src={'/assets/icons/empty/ic_content.svg'}
+                              sx={{
+                                width: 150,
+                                height: 150
+                              }}
+                            />
+                            <Typography variant="h6" color="gray">No signature created.</Typography>
 
-                    {user?.esig?.filename && <Stack sx={{
-                      width: '100%',
-                      textAlign: 'center'
+                          </Box>
+                        }
+                      </Box>
 
-                    }} direction="column" alignSelf="flex-end">
-                      <Typography variant="subtitle2">
-                        {user?.middleName
-                          ? `${user?.firstName} ${user?.middleName} ${user?.lastName}, ${user?.title}`
-                          : `${user?.firstName} ${user?.lastName},  ${user?.title}`}
-                      </Typography>
+                      {user?.esig?.filename && <Stack sx={{
+                        width: '100%',
+                        textAlign: 'center'
 
-                      {getValues('prcNumber') && (
-                        <Typography sx={{ fontSize: 11 }}>
-                          License No: {getValues('prcNumber')}
+                      }} direction="column" alignSelf="flex-end">
+                        <Typography variant="subtitle2">
+                          {user?.middleName
+                            ? `${user?.firstName} ${user?.middleName} ${user?.lastName}, ${user?.title}`
+                            : `${user?.firstName} ${user?.lastName},  ${user?.title}`}
                         </Typography>
-                      )}
 
-                      {getValues('ptrNumber') && (
-                        <Typography sx={{ fontSize: 11 }}>
-                          PTR No: {getValues('ptrNumber')}
-                        </Typography>
-                      )}
-                      {getValues('s2Number') && (
-                        <Typography sx={{ fontSize: 11 }}>
-                          S2 No: {getValues('s2Number')}
-                        </Typography>
-                      )}
-                    </Stack>}
+                        {getValues('prcNumber') && (
+                          <Typography sx={{ fontSize: 11 }}>
+                            License No: {getValues('prcNumber')}
+                          </Typography>
+                        )}
 
+                        {getValues('ptrNumber') && (
+                          <Typography sx={{ fontSize: 11 }}>
+                            PTR No: {getValues('ptrNumber')}
+                          </Typography>
+                        )}
+                        {getValues('s2Number') && (
+                          <Typography sx={{ fontSize: 11 }}>
+                            S2 No: {getValues('s2Number')}
+                          </Typography>
+                        )}
+                      </Stack>}
+
+                    </Stack>
                   </Stack>
-                </Stack>
-              </Card>
+                </Box>
+              </div>
             )}
           </Grid>
 
@@ -666,12 +722,16 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
                 <RHFTextField name="contact" label="Phone Number" />
               </Box>
 
-              <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
-                <LoadingButton type="submit" variant="contained" loading={isSubmitting}>
-                  Save Changes
-                </LoadingButton>
-              </Stack>
+            
             </Card>
+            <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
+                <div className={(step === 2 && esigCalled) ? 'showFields-submit-profile':''}>
+                  <LoadingButton ref={targetRef} type="submit" variant="contained" loading={isSubmitting}>
+                    Save Changes
+                  </LoadingButton>
+                </div>
+              </Stack>
+          
           </Grid>
         </Grid>
       </FormProvider>
@@ -680,6 +740,14 @@ export default function AccountGeneral({handleChangeTabTuts}:any) {
         reset={() => setRefetch(true)}
         isOpen={openPay.value}
         onClose={() => openPay.onFalse()}
+        step={step > 3 ? step:null}
+        onIncrementStep={incrementStep}
+        decrementStep={()=>{
+          setSteps((prev)=>prev-1)
+        }}
+        setStep={(stepVal)=>{
+          setSteps(stepVal)
+        }}
       // setImageResult={(res: any) => {
       //   setImgName(res?.MutationESign?.message);
       // }}

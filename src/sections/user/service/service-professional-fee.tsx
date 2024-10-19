@@ -29,7 +29,7 @@ import './styles/service.css';
 
 type FormValuesProps = { price: number; isViewable: boolean };
 
-export default function ServiceProfessionalFee({ tutorialTab, incrementTutsTab }: any) {
+export default function ServiceProfessionalFee({step, tutorialTab, incrementTutsTab }: any) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const { data, loading, refetch } = useQuery(GetProfFees);
@@ -169,7 +169,7 @@ export default function ServiceProfessionalFee({ tutorialTab, incrementTutsTab }
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <div className={tutorialTab && tutorialTab === 7 ? 'service-fee':''}>
+      <div className={(tutorialTab && tutorialTab === 7 && step === 2) ? 'showFields-service':''}>
         <Card>
           <CardHeader title="Professional Fee (for Telemedicine only)" />
 

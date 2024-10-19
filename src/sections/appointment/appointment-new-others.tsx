@@ -175,7 +175,7 @@ export default function AppointmentNewOthers({ values, hmoData }: Props) {
         </Stack>
       </Card>
 
-      {hmoData?.length!==0 && (
+      {(hmoData && hmoData?.length !== 0) && (
         <Card>
           <CardHeader title="HMO ACCREDITATION (if applicable)" />
 

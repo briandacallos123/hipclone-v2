@@ -1,4 +1,4 @@
-.showFields-profile {
+.showFields-license {
     position: relative;
     display: inline-block;
     z-index: 99999;
@@ -12,38 +12,34 @@
     position: relative;
     display: inline-block;
     z-index: 99999;
-    /* background-color: red; */
     background-color: white;
-
     border-radius: 10px;
-    width: 70%;
+    width: 100%;
     padding:15px;
     
 }
 
-.showFields-esig-write-general{
+.showFields-esig-write{
     position: relative;
     display: inline-block;
     z-index: 99999;
-    /* background-color: red; */
     background-color: white;
-
     border-radius: 10px;
-    width: 80%;
+    width: 100%;
     padding:15px;
     margin-top:50px;
-    height:auto;
-    padding:20px;
+    height:auto
     
 }
 @media screen and (max-width:400px){
-    .showFields-esig-write-general{
+    .showFields-esig-write{
         position: relative;
         display: inline-block;
         z-index: 99999;
         background-color: white;
         border-radius: 10px;
         width: 100%;
+        padding:15px;
         margin-top:50px;
         height:auto;
 
@@ -68,7 +64,7 @@
 }
 
 
-.showFields-submit {
+.showFields-submit-license {
     position: relative;
     display: inline-block;
     z-index: 99999;
@@ -77,7 +73,7 @@
     
 }
 
-.showFields-submit-edit-profile {
+.showFields-submit-edit {
     position: relative;
     z-index: 99999;
     border-radius: 10px;
@@ -109,24 +105,24 @@
     color: white; /* Adjust color */
 }
 
-.showFields-submit::before {
+.showFields-submit-license::before {
     content: '➔'; /* You can replace this with an arrow icon */
     position: absolute;
-    top: 0%; /* Adjust as needed to position the arrow */
-    left: -30%;
+    top: 20%; /* Adjust as needed to position the arrow */
+    left:-10%;
     transform: translateX(-50%);
     font-size: 24px; /* Adjust the size of the arrow */
     animation: scale .7s infinite alternate; /* Animation for scaling */
     color: white; /* Adjust color */
 }
 
-.showFields-submit-edit-profile::before {
+.showFields-submit-edit::before {
     content: '➔'; /* You can replace this with an arrow icon */
     position: absolute;
     top: 0%; /* Adjust as needed to position the arrow */
     left: -30%;
     transform: translateX(-50%);
-    font-size: 28px; /* Adjust the size of the arrow */
+    font-size: 24px; /* Adjust the size of the arrow */
     animation: scale .7s infinite alternate; /* Animation for scaling */
     color: green; /* Adjust color */
 }

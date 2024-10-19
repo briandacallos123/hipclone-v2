@@ -12,9 +12,9 @@ import { RoleBasedGuard } from '@/auth/guard';
 };
  */
 export default function UserSubaccountPage() {
- return(
-  <RoleBasedGuard hasContent roles={['doctor']}>  
-  <UserSubaccountListView />;
-  </RoleBasedGuard>
+  return (
+    <RoleBasedGuard hasContent roles={['doctor']}>
+      <UserSubaccountListView />;
+    </RoleBasedGuard>
   )
 }

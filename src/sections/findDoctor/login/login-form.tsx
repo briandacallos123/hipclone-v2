@@ -75,28 +75,35 @@ const LoginForm = () => {
     const [snackKey, setSnackKey]: any = useState(null);
 
     const handleSubmitValue = useCallback(async (fData) => {
-        try {
-            await login?.(fData.email, fData.password, 'patient', path);
+
+        login?.(fData.email, fData.password, 'patient', path).then(() => {
             setLoadingBtn(false)
             closeSnackbar(snackKey);
             window.location.href = PATH_AFTER_LOGIN
             enqueueSnackbar('Login Successfully')
-
-        } catch (error) {
+        }).catch((err) => {
             setLoadingBtn(false)
             closeSnackbar(snackKey);
-            enqueueSnackbar(error.message, { variant: 'error' })
+            setSnackKey(null)
+            enqueueSnackbar(err.message, { variant: 'error' })
 
-        }
+        })
+
+
+
     }, [snackKey])
 
     useEffect(() => {
-        if (snackKey) {
+        if (snackKey || myData) {
+
             (async () => {
                 await handleSubmitValue({ ...myData });
             })();
+
+            console.log("Wala na dito")
         }
     }, [snackKey, myData]);
+    console.log(myData, "myData myData")
 
     const onSubmit = useCallback(
         async (data: any) => {
@@ -110,6 +117,7 @@ const LoginForm = () => {
                     key: 'savingEducation',
                     persist: true, // Do not auto-hide
                 });
+                console.log("nag run naman")
                 setSnackKey(snackbarKey);
                 setMyData(data)
 
@@ -121,7 +129,7 @@ const LoginForm = () => {
                 setErrorMsg(typeof error === 'string' ? error : error.message);
             }
         },
-        []
+        [snackKey, myData]
     );
 
 

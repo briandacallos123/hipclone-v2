@@ -412,6 +412,7 @@ export const QueryNotesVitalsPatient = extendType({
             include: {
               patientRelation: true,
             },
+          
           });
 
           const { data }: any = await customFuncVitalPatient(
@@ -549,7 +550,7 @@ const customFuncVitalPatient = async (
           take: args?.data?.take,
           skip: args?.data?.skip,
           orderBy: {
-            id: 'desc',
+            id: 'asc',
           },
           where: {
             // date: {
@@ -585,7 +586,7 @@ const customFuncVitalPatient = async (
           take: args?.data?.take,
           skip: args?.data?.skip,
           orderBy: {
-            id: 'desc',
+            id: 'asc',
           },
           where: {
             // date: {

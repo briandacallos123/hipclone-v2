@@ -39,7 +39,7 @@ export default function PatientVitalView({ items, uuid }: Props) {
   const [isPatient, setIspatient] = useState(true);
   const [chart2Data, setChart2Data] = useState([]);
   const [addCategory, setAddCategory] = useState([])
-  const [take, setTake] = useState(10);
+  const [take, setTake] = useState(50);
   const [skip, setSkip] = useState(0)
 
   const [chartData, setChartData] = useState<any>([]);

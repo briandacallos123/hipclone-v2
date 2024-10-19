@@ -21,6 +21,7 @@ import { useResponsive } from '@/hooks/use-responsive';
 import { paths } from '@/routes/paths';
 import Image from '@/components/image';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { validateEmail, validatePhone } from '@/sections/user/subaccount/action/sub-account-act';
 
 
 const RegisterSchema = Yup.object().shape({
@@ -31,7 +32,7 @@ const RegisterSchema = Yup.object().shape({
         .email('Email must be a valid email address')
         .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email must be a valid email format'),
     phoneNumber: Yup.string().required('Phone number is required')
-        .matches(/^[0-9]{11}$/, 'Phone number must be exactly 10 digits')
+        .matches(/^[0-9]{11}$/, 'Phone number must be exactly 11 digits')
         .matches(/^\+?[0-9]\d{1,14}$/, 'Phone number must be valid'),
     password: Yup.string()
         .required('Password is required')
@@ -126,6 +127,8 @@ const RegisterForm = ({ spec }: any) => {
         specialization: '',
         phoneNumber: "",
         password: "",
+        confirmPassword:'',
+        birthDate:""
     };
 
 
@@ -140,6 +143,7 @@ const RegisterForm = ({ spec }: any) => {
         watch,
         reset,
         control,
+        setValue,
         formState: { isSubmitting, errors },
     } = methods;
 
@@ -153,7 +157,6 @@ const RegisterForm = ({ spec }: any) => {
 
     const handleSubmitValue = useCallback(async (fData) => {
 
-
         try {
 
             createMedFunc({
@@ -164,11 +167,12 @@ const RegisterForm = ({ spec }: any) => {
                 }
             }).then(() => {
                 // enqueueSnackbar('Register successfully');
-                reset();
+             
                 noticeDialogValue.onTrue()
                 setLoadingBtn(false)
 
                 closeSnackbar(snackKey);
+                reset();
             }).catch((error) => {
                 enqueueSnackbar(error.message, { variant: 'error' })
                 if (error.message === 'Email already used') {
@@ -199,6 +203,7 @@ const RegisterForm = ({ spec }: any) => {
     const onSubmit = useCallback(
         async (data: any) => {
             const s = bcrypt.genSaltSync(12);
+            
 
             const newPassword = bcrypt.hashSync(data.password, s);
             delete data.password;
@@ -378,7 +383,48 @@ const RegisterForm = ({ spec }: any) => {
     }, [values.email])
 
 
-    console.log(isSubmitting, 'isSubmittingisSubmitting')
+    const [existsEmail, setExistsEmail] = useState(false)
+
+
+    useEffect(() => {
+        if (values.email && !Object.keys(errors)?.includes('email')) {
+            (async () => {
+                validateEmail(values.email).then((res) => {
+                    const { isExists } = res;
+                    if (isExists) {
+                        setExistsEmail(true)
+                    } else {
+                        setExistsEmail(false)
+                    }
+                }).catch((err) => {
+                    console.log(err, 'errorrrrrrrr')
+                })
+            })()
+        }
+    }, [values.email, !Object.keys(errors)?.includes('email')])
+
+    const [existsPhone, setExistsPhone] = useState(false)
+
+
+    useEffect(() => {
+        if (values.phoneNumber && !Object.keys(errors)?.includes('phoneNumber')) {
+            (async () => {
+                validatePhone({
+                    phone: String(values.phoneNumber)
+                }).then((res) => {
+                    const { isExists } = res;
+                    console.log(res, 'isExistsisExistsisExists')
+                    if (isExists) {
+                        setExistsPhone(true)
+                    } else {
+                        setExistsPhone(false)
+                    }
+                }).catch((err) => {
+                    console.log(err, 'errorrrrrrrr')
+                })
+            })()
+        }
+    }, [values.phoneNumber, !Object.keys(errors)?.includes('phoneNumber')])
 
 
     return (
@@ -445,11 +491,18 @@ const RegisterForm = ({ spec }: any) => {
                         />
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                        <RHFTextField type="email" name="email" label="Email" />
+                        <RHFTextField
+                            helperText={(errors.email ? errors.email.message : '') || existsEmail && 'Email already used.'}
+                            error={!!errors.email || existsEmail}
+                            onChange={(e) => {
+                                setValue('email', e.target.value);
+                                methods.trigger('email'); // Validate on change
+                            }}
+                            type="email" name="email" label="Email" />
 
 
 
-                        <RHFSelect 
+                        <RHFSelect
                             name="specialization" label="Specialization">
 
                             {
@@ -464,7 +517,16 @@ const RegisterForm = ({ spec }: any) => {
 
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
-                        <RHFTextField name="phoneNumber" label="Mobile Phone" />
+                        <RHFTextField 
+                        type='number'
+                        error={!!errors.phoneNumber || existsPhone}
+                        helperText={(errors.phoneNumber ? errors.phoneNumber.message : '') || existsPhone && 'Phone already used'}
+                        onChange={(e) => {
+                          setValue('phoneNumber', e.target.value);
+                          
+                          methods.trigger('phoneNumber'); // Validate on change
+                        }}
+                        name="phoneNumber" label="Mobile Phone" />
 
 
                     </Stack>

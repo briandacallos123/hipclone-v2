@@ -217,6 +217,8 @@ export default function UserClinicListView() {
     },
     [snackKey]
   );
+  const language = localStorage?.getItem('languagePref');
+    const isEnglish = language && language === 'english';
 
   useEffect(() => {
     if (clinicData) {
@@ -516,7 +518,8 @@ export default function UserClinicListView() {
           },
         }}
       >
-       Please ensure you fill in all required clinic management fields. 🏥✅
+       
+       {isEnglish ? 'Please ensure you fill in all required clinic management fields. 🏥✅':'Pakisigurong punan ang lahat ng kinakailangang field para sa pamamahala ng klinika. 🏥✅'}
       </Typography>
     </m.div>
   )
@@ -537,7 +540,8 @@ export default function UserClinicListView() {
           },
         }}
       >
-        Accurate clinic information is crucial! 🏥 Patients won't be able to find you if your clinic isn't listed. 📍
+        
+        {isEnglish?'Accurate clinic information is crucial! 🏥 Patients won\'t be able to find you if your clinic isn\'t listed. 📍':'Mahalaga ang tumpak na impormasyon ng klinika! 🏥 Hindi makikita ng mga pasyente kung hindi nakalista ang iyong klinika. 📍'}
       </Typography>
     </m.div>
   )
@@ -556,9 +560,9 @@ export default function UserClinicListView() {
           },
         }}
       >
-        <span>Congratulations! 🎉</span>  <br/>
+        <span>{isEnglish?'Congratulations':'Maligayang bati!'} 🎉</span>  <br/>
         <br/>
-        Your new clinic has been successfully created!
+        {isEnglish?'Your new clinic has been successfully created!':'Matagumpay na naitayo ang iyong bagong klinika'}
       </Typography>
     </m.div>
   )
@@ -577,7 +581,7 @@ export default function UserClinicListView() {
           },
         }}
       >
-        Patients will now be able to find and visit your clinic for their healthcare needs! 🌟🏥
+       {isEnglish?' Patients will now be able to find and visit your clinic for their healthcare needs! 🌟🏥':'Ngayon ay makikita na ng mga pasyente ang iyong klinika at maaari na silang bumisita para sa kanilang mga pangangailangang pangkalusugan! 🌟🏥'}
       </Typography>
     </m.div>
   )
@@ -589,7 +593,7 @@ export default function UserClinicListView() {
       left: 0,
       right: 0,
       bottom: 0,
-      zIndex: 1000,
+      zIndex: 9000,
 
     }}>
 
@@ -611,6 +615,7 @@ export default function UserClinicListView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
+          right:upMd ? 100:null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -717,7 +722,8 @@ export default function UserClinicListView() {
       <Box sx={{
         zIndex: 99999,
         position: 'absolute',
-        bottom: 0,
+        right: upMd ? 100:null,
+        bottom:0
       }}>
         {/* message */}
         <m.div variants={varFade().inUp}>
@@ -767,7 +773,7 @@ export default function UserClinicListView() {
   return (
     <>
       <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-        {Number(currentStep) === 6 && step !== 14 && renderFifthTutorial}
+        {Number(currentStep) === 6 && step !== 3 && renderFifthTutorial}
         {Number(currentStep) === 6 && step === 3 && !openCreate.value && addHighlight}
         {Number(currentStep) === 7 && successStep !== 3 && successClinic}
 

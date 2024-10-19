@@ -119,7 +119,7 @@ export const QueryAllVitalData = extendType({
                                 vital_category: true
                             },
                             orderBy:{
-                                createdAt:'desc'
+                                createdAt:'asc'
                             }
                         })
                     })

@@ -44,26 +44,31 @@ export default function VitalView({
       };
     });
 
+
+  const weightDataDateNoFormat = items
+    ?.filter((item: any) => item?.wt !== '0' && item?.wt)
+    ?.map((item) => item?.date);
+
+  const weightDataDate = items
+    ?.filter((item: any) => item?.wt !== '0' && item?.wt)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  if (weightData?.length === 1) {
+    weightData.unshift({
+      data: '0',
+      id: 0,
+    });
+    weightDataDate.unshift(weightDataDate[0]);
+  }
+
+  //  ---------------------------------------------
+
   const weightArray = items
     ?.filter((item: any) => item?.wt !== '0' && item?.wt)
     ?.map((item) => item?.wt);
 
   const emptyWeight = weightArray.length <= 0;
 
-  if (weightData?.length === 1) {
-    weightData.push({
-      data: '0',
-      id: 0,
-    });
-  }
-
-  const weightDataDate = items
-    ?.filter((item: any) => item?.wt !== '0' && item?.wt)
-    ?.map((item) => fDate(item?.date, 'MMM dd'));
-  weightData = weightData.reverse();
-  const weightDataDateNoFormat = items
-    ?.filter((item: any) => item?.wt !== '0' && item?.wt)
-    ?.map((item) => item?.date);
 
   // --------------------------------
 
@@ -75,6 +80,77 @@ export default function VitalView({
         id: item?.id,
       };
     });
+
+  const HeightDataDate = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const HeightDataDateNoFormat = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => item?.date);
+
+
+  const heightArray = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => item?.ht);
+
+  if (HeightData?.length === 1) {
+    HeightData.unshift({
+      data: '0',
+      id: 0,
+    });
+    HeightDataDate.unshift(HeightDataDate[0]);
+  }
+
+
+  const emptyHeight = heightArray.length <= 0;
+
+
+  // --------------------------------
+
+  const BMIData = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => {
+      return {
+        data: item?.bmi,
+        id: item?.id,
+      };
+    });
+
+  const BMIArray = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => item?.bmi);
+
+  const emptyBMI = BMIArray.length <= 0;
+
+  const BMIDataDate = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const BMIDataDateNoFormat = items
+    ?.filter((item: any) => item?.bmi !== '0.00' && item?.bmi !== '0' && item?.bmi)
+    ?.map((item) => item?.date);
+
+
+  if (BMIData?.length === 1) {
+    BMIData.unshift({
+      data: '0',
+      id: 0,
+    });
+    BMIDataDate.unshift(BMIDataDate[0]);
+  }
+
+  // --------------------------------
+
+  const HeightData = items
+    ?.filter((item: any) => item?.ht !== '0' && item?.ht)
+    ?.map((item) => {
+      return {
+        data: item?.ht,
+        id: item?.id,
+      };
+    });
+
 
   const heightArray = items
     ?.filter((item: any) => item?.ht !== '0' && item?.ht)
@@ -88,6 +164,233 @@ export default function VitalView({
   const HeightDataDateNoFormat = items
     ?.filter((item: any) => item?.ht !== '0' && item?.ht)
     ?.map((item) => item?.date);
+
+
+  const BP1Data = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => {
+      return {
+        data: item?.bp1,
+        id: item?.id,
+      };
+    });
+
+  const BP1Array = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => item?.bp1);
+
+  const emptyBP1 = BP1Array.length <= 0;
+
+  const BP1DataDate = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const BP1DataDateNoFormat = items
+    ?.filter((item: any) => item?.bp1 !== '0' && item?.bp1)
+    ?.map((item) => item?.date);
+
+  if (BP1Data?.length === 1) {
+    BP1Data.unshift({
+      data: '0',
+      id: 0,
+    });
+    BP1DataDate.unshift(BP1DataDate[0]);
+  }
+
+  // --------------------------------
+
+
+  const BP2Data = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.b2 !== '0.00' && item?.bp2)
+    ?.map((item) => {
+      return {
+        data: item?.bp2,
+        id: item?.id,
+      };
+    });
+
+  const BP2Array = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.b2 !== '0.00' && item?.bp2)
+    ?.map((item) => item?.bp2);
+
+  const emptyBP2 = BP2Array.length <= 0;
+
+  const BP2DataDate = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const BP2DataDateNoFormat = items
+    ?.filter((item: any) => item?.bp2 !== '0' && item?.bp2)
+    ?.map((item) => item?.date);
+
+
+  // --------------------------------
+  const OxygenData = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => {
+      return {
+        data: item?.spo2,
+        id: item?.id,
+      };
+    });
+
+
+  const OxygenArray = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => item?.spo2);
+
+  const emptyOxygen = OxygenArray.length <= 0;
+
+  const OxygenDataDate = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const OxygenDataDateNoFormat = items
+    ?.filter((item: any) => item?.spo2 !== '0' && item?.spo2)
+    ?.map((item) => item?.date);
+
+  if (OxygenData?.length === 1) {
+    OxygenData.unshift({
+      data: '0',
+      id: 0,
+    });
+    OxygenDataDate.unshift(OxygenDataDate[0]);
+  }
+
+  // --------------------------------
+
+  const HeartRateData = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => {
+      return {
+        data: item?.hr,
+        id: item?.id,
+      };
+    });
+
+  const HeartRateArray = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => item?.hr);
+
+  const emptyHeartRate = HeartRateArray.length <= 0;
+
+  const HeartRateDataDate = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const HeartRateDataDateNoFormat = items
+    ?.filter((item: any) => item?.hr !== '0' && item?.hr)
+    ?.map((item) => item?.date);
+
+  if (HeartRateData?.length === 1) {
+    HeartRateData.unshift({
+      data: '0',
+      id: 0,
+    });
+    HeartRateDataDate.unshift(HeartRateDataDate[0]);
+  }
+
+
+  // --------------------------------
+
+
+  const RespData = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => {
+      return {
+        data: item?.rr,
+        id: item?.id,
+      };
+    });
+
+  const RespArray = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => item?.rr);
+
+  const emptyResp = RespArray.length <= 0;
+
+  const RespDataDate = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+  const RespDataDateNoFormat = items
+    ?.filter((item: any) => item?.rr !== '0' && item?.rr)
+    ?.map((item) => item?.date);
+
+  if (RespData?.length === 1) {
+    RespData.unshift({
+      data: '0',
+      id: 0,
+    });
+    RespDataDate.unshift(RespDataDate[0]);
+  }
+
+  // --------------------------------
+
+  const TempData = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => {
+      return {
+        data: item?.bt,
+        id: item?.id,
+      };
+    });
+
+  const TempArray = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => item?.bt);
+
+  const emptyTemp = TempArray.length <= 0;
+
+  const TempDataDate = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const TempDataDateNoFormat = items
+    ?.filter((item: any) => item?.bt !== '0' && item?.bt)
+    ?.map((item) => item?.date);
+
+  if (TempData?.length === 1) {
+    TempData.unshift({
+      data: '0',
+      id: 0,
+    });
+    TempDataDate.unshift(TempDataDate[0]);
+  }
+
+
+  // --------------------------------
+
+  const SugarMonitoringData = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => {
+      return {
+        data: item?.bsm,
+        id: item?.id,
+      };
+    });
+
+  const SugarMonitoringArray = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => item?.bsm);
+
+  const emptySugarMonitoring = SugarMonitoringArray.length <= 0;
+
+  const SugarMonitoringDataDate = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => fDate(item?.date, 'MMM dd'));
+
+  const SugarMonitoringDataDateNoFormat = items
+    ?.filter((item: any) => item?.bsm !== '0' && item?.bsm)
+    ?.map((item) => item?.date);
+
+    if (SugarMonitoringData?.length === 1) {
+      SugarMonitoringData.unshift({
+        data: '0',
+        id: 0,
+      });
+      SugarMonitoringDataDate.unshift(SugarMonitoringDataDate[0]);
+    }
+  
 
   // --------------------------------
 
@@ -275,7 +578,6 @@ export default function VitalView({
 
   let newData: any = [];
 
-  console.log('items????',items);
 
   items2?.forEach((val: any) => {
     if (newData.length === 0) {
@@ -365,7 +667,7 @@ export default function VitalView({
 
   // console.log('itemsTemp++++++++++++++++', emptyWeight);
   // console.log('itemsTemp++++++++++++++++', emptyTemp);
-  
+
 
   return (
     <>
@@ -388,11 +690,11 @@ export default function VitalView({
               data: [{ name: 'kg', data: weightData?.map((item) => item?.data) }],
             }}
             list={[...Array(weightDataDate?.length)].map((_, index) => ({
-              value: `${
-                weightData[weightData?.find((item) => item?.id === 0) ? index + 1 : index]?.data
-              } kg`,
+
+              value: `${weightData[index]?.data
+                } kg`,
               date: weightDataDate[index],
-              id: weightData[weightData?.find((item) => item?.id === 0) ? index + 1 : index]?.id,
+              id: weightData[index]?.id,
               category: 'wt',
               dataDate: weightDataDateNoFormat[index],
             }))}

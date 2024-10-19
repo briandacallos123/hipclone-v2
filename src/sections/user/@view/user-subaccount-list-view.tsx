@@ -52,7 +52,10 @@ import { Box } from '@mui/material';
 import { m } from 'framer-motion';
 import { MotionContainer, varFade } from 'src/components/animate';
 import Image from '@/components/image';
-import './generalStyle.css'
+import './sub-account.css'
+import { useRouter } from 'next/navigation';
+import { paths } from '@/routes/paths';
+
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -130,6 +133,8 @@ export default function UserSubaccountListView() {
   const notFound = !tableLoading && !tableData?.length;
   // const getStatusLength = (status: boolean) =>
   //   tableData.filter((item) => item.status.toString() === status.toString()).length;
+  const language = localStorage?.getItem('languagePref');
+    const isEnglish = language && language === 'english';
 
   const {
     data: subData,
@@ -283,7 +288,15 @@ export default function UserSubaccountListView() {
   );
 
   const PRIMARY_MAIN = theme.palette.primary.main;
-  const [step, setSteps] = useState(1);
+  const [step, setSteps] = useState(null);
+
+  useEffect(()=>{
+    const isTuts = localStorage.getItem('currentStep');
+    if(isTuts && Number(isTuts < 20)){
+      setSteps(1)
+    }
+  },[])
+
   const incrementStep = () => setSteps((prev) => prev + 1)
   const currentStep = localStorage?.getItem('currentStep')
 
@@ -303,8 +316,9 @@ export default function UserSubaccountListView() {
           },
         }}
       >
-        <span>Manage Your Team! 🌟</span><br /><br />
-        As a doctor, you can now create sub-accounts for your assistants.
+        <span>{isEnglish?"Manage Your Team! 🌟":"Pamahalaan ang Iyong Koponan! 🌟"}</span><br /><br />
+        
+        {isEnglish ? 'As a doctor, you can now create sub-accounts for your assistants.':'Bilang isang doktor, maaari ka nang lumikha ng mga sub-account para sa iyong mga katulong.'}
       </Typography>
     </m.div>
   )
@@ -325,12 +339,13 @@ export default function UserSubaccountListView() {
           },
         }}
       >
-        <span>Manage Your Team! 🌟</span><br /><br />
-        This feature allows you to delegate tasks and enhance your practice's efficiency.
+          <span>{isEnglish?"Manage Your Team! 🌟":"Pamahalaan ang Iyong Koponan! 🌟"}</span><br /><br />
+       {isEnglish?" This feature allows you to delegate tasks and enhance your practice's efficiency.":"Ang tampong ito ay nagbibigay-daan sa iyo upang i-delegate ang mga gawain at pagbutihin ang kahusayan ng iyong praktis."}
       </Typography>
     </m.div>
   )
 
+  const router = useRouter();
 
   const renderTwelveTutorial = (
     <Box sx={{
@@ -342,6 +357,25 @@ export default function UserSubaccountListView() {
       zIndex: 9999,
     }}>
 
+      {step === 3 && 
+      
+      <Box sx={{
+        background:'white',
+        position:'absolute',
+        top:20,
+        left:20,
+        zIndex:9999,
+        padding:1
+      }}>
+        <Button onClick={()=>{
+           if (currentStep && Number(currentStep) !== 100) {
+            localStorage.setItem('currentStep', '13');
+            router.push(paths.dashboard.user.manage.login)
+          }
+        }} variant="outlined">
+          Skip this part...
+        </Button>
+      </Box>}
 
       <>
         <Box sx={{
@@ -361,6 +395,7 @@ export default function UserSubaccountListView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
+          right:upMd ? 100:0
         }}>
           <m.div variants={varFade().inUp}>
             <Box sx={{
@@ -424,7 +459,7 @@ export default function UserSubaccountListView() {
         >
           <Typography variant="h5">Manage Sub-account</Typography>
 
-          <div className={step === 3 ? `showFields-submit`:''}> 
+          <div className={step === 3 ? `showFields-submit-sub`:''}> 
             <LoadingButton
               onClick={()=>{
                 openCreate.onTrue();

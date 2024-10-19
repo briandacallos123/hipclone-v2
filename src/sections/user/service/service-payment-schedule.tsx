@@ -1,5 +1,5 @@
 import * as Yup from 'yup';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 // @mui
@@ -19,12 +19,12 @@ import FormProvider, { RHFRadioGroup } from 'src/components/hook-form';
 import { useQuery, useMutation } from '@apollo/client';
 import { GetPaymentSched, UpdatePaymentSched } from '../../../libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
-
+import './styles/service.css';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = IUserService;
 
-export default function ServicePaymentSchedule({tutorialTab, incrementTutsTab}:any) {
+const ServicePaymentSchedule = forwardRef(({ tutorialTab, incrementTutsTab}, ref) => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const [user] = useState<IUserService>(_userService);
@@ -143,7 +143,7 @@ export default function ServicePaymentSchedule({tutorialTab, incrementTutsTab}:a
 
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-      <div className={tutorialTab && tutorialTab === 9 ?'service-fee':''}>
+      <div ref={ref} className={tutorialTab && tutorialTab === 9 ?'service-fee service-fee-mt':''}>
       <Card>
         <CardHeader title="Payment Schedule (for Telemedicine only)" />
 
@@ -174,4 +174,7 @@ export default function ServicePaymentSchedule({tutorialTab, incrementTutsTab}:a
       </div>
     </FormProvider>
   );
-}
+})
+
+
+export default ServicePaymentSchedule

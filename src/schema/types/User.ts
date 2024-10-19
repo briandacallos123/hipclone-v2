@@ -1139,7 +1139,8 @@ export const registerEmployee = extendType({
               password,
               userType:2,
               register_date:new Date(),
-              uname:`${firstName}-${lastName}`
+              uname:`${firstName}-${lastName}`,
+              mobile_number:String(phoneNumber)
             }
           })
 
