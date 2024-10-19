@@ -50,8 +50,10 @@ export default function Header({ onOpenNav }: Props) {
   useEffect(()=>{
     if (socket?.connected) {
       socket.on('getNotification', async(u: any) => {
+        console.log(u?.recepient,'u?.recepient')
         
         if(typeof u?.recepient === 'object'){
+          // const r = u?.recepient;
           const r = u?.recepient;
           let foundUser = r.find((item:any)=>{
             if(Number(item) === Number(user?.id)){
@@ -64,8 +66,7 @@ export default function Header({ onOpenNav }: Props) {
          
           return true;
         }
-
-        if(Number(u?.recepient) === Number(user?.id)){
+        if(Number(u?.recepient[0]) === Number(user?.id)){
           await queryResults.refetch()
         }
         

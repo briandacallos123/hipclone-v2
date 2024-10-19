@@ -82,7 +82,7 @@ export default function useChat(props?: any) {
   
   const onSendMessage = useCallback(
     (body: string, attachment? : File) => {
-      console.log(body, attachment,'TANGINA MO BOYYYYYYYYYYY!!!!!!!!!!!!!!')
+      
     /*   try {
         if (currentConversationId) {
           dispatch(sendMessage(currentConversationId, body));
@@ -132,6 +132,7 @@ export default function useChat(props?: any) {
         let targetUser = targetConvo?.participants?.filter((item:any)=>Number(item?.id) !== Number(user?.id));
         targetUser = targetUser?.map((item:any)=>Number(item.id));
 
+        console.log(targetUser,'targetuserrrrr')
        
 
         if(targetUser?.length){

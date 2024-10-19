@@ -48,6 +48,7 @@ import Checkout from '@/context/checkout/Checkout';
 import { getServerSession } from "next-auth";
 import SessionProvider from '../context/auth/AuthSession'
 import CreateOrder from '@/context/checkout/CreateOrder';
+import ChatWrapper from '@/context/components/chat-wrapper';
 // ----------------------------------------------------------------------
 
 export const viewport: Viewport = {
@@ -123,7 +124,10 @@ export default async function RootLayout({ children }: Props) {
                           <MerchantContext>
                             <Checkout>
                               <CreateOrder>
-                              <SessionProvider session={session}>{children}</SessionProvider>
+                                <ChatWrapper>
+                                <SessionProvider session={session}>{children}</SessionProvider>
+
+                                </ChatWrapper>
                               </CreateOrder>
                             </Checkout>
                           </MerchantContext>

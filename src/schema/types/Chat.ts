@@ -849,6 +849,38 @@ export const CreateConversation = extendType({
                         });
 
                         let notifParent: any = res.map(async (item: any) => {
+                            console.log(item,'itemmmmm___________');
+                            let targetUser:any = await client.user.findFirst({
+                                where:{
+                                    id:item?.userId
+                                }
+                            })
+
+                            let targetTypeId:any;
+
+                            if(targetUser.userType === 0){
+                                targetTypeId = 5;
+                            }else if(targetUser?.userType === 2){
+                                targetTypeId = 2;
+                            }
+
+
+                            let targetSender:any =  await client.user.findFirst({
+                                where:{
+                                    id:session?.user?.id
+                                }
+                            })
+                            
+
+                            let targetTypeSenderId:any;
+
+                            if(targetSender.userType === 0){
+                                targetTypeSenderId = 5;
+                            }else if(targetSender?.userType === 2){
+                                targetTypeSenderId = 2;
+                            }
+                          
+
                             let notif = await client.notification.create({
                                 data: {
                                     user_id: Number(session?.user?.id),
@@ -856,7 +888,9 @@ export const CreateConversation = extendType({
                                     notification_type_id: 6,
                                     notification_content_id: Number(notifContent?.id),
                                     chat_id: data?.id,
-                                    conversation_id: getMessageID?.id
+                                    notifiable_user_role:Number(targetTypeId),
+                                    conversation_id: getMessageID?.id,
+                                    user_id_user_role:Number(targetTypeSenderId)
                                 }
                             });
                             return notif;

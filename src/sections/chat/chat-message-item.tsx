@@ -37,8 +37,6 @@ export default function ChatMessageItem({ message, participants, onOpenLightbox 
   const { body, createdAt, lastActivity, attachments, id } = message;
 
 
-  console.log(body, " : ",attachments,'PISTIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
-
   const renderInfo = (
     <Typography
       noWrap

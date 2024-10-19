@@ -181,10 +181,16 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
 
   const values = watch();
 
+  console.log(values,'valuesss')
+
   useEffect(() => {
     if (getValues('useHmo')) {
       setRequireHmo(true);
-    } else setRequireHmo(false);
+    } else {
+
+      setRequireHmo(false)
+      setValue('hmo', { name: '', mid: '' });
+    }
   }, [getValues('useHmo')]);
 
 

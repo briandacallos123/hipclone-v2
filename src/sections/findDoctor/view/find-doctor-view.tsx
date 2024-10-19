@@ -246,7 +246,7 @@ export default function FindDoctorView() {
                   setLoading={setLoading}
                   data={hmoData?.HMO}
                 />
-                <AppointmentBookFee isLoading={isLoading} setLoading={setLoading} data={hmoData} />
+               {hmoData?.isFeeShow !== 0 || hmoData?.isAddReqFeeShow !== 0 &&  <AppointmentBookFee isLoading={isLoading} setLoading={setLoading} data={hmoData} />}
 
                 <Card>
                   <CardHeader title="Hospitals" />

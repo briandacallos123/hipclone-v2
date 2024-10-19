@@ -34,7 +34,9 @@ export const GET_HMO_BY_UUID = gql`
       EMP_FULLNAME
       EMP_ID
       EMP_LNAME
+      isFeeShow
       EMP_MNAME
+      isAddReqFeeShow
       EMP_SUFFIX
       EMP_TITLE
       EMP_EMAIL

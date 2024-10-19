@@ -108,8 +108,9 @@ export default function AppointmentCreateView() {
             // justifyContent="center"
             // alignItems="center"
           >
-            <AppointmentBookHmo data={hmoData?.HMO} />
-            <AppointmentBookFee data={hmoData} />
+            {hmoData?.HMO && <AppointmentBookHmo data={hmoData?.HMO} />}
+            {(hmoData?.isFeeShow !== 0 || hmoData?.isAddReqFeeShow !== 0) && <AppointmentBookFee data={hmoData} />}
+            {/* {hmoData?.isFeeShow !== 0 || hmoData?.isAddReqFeeShow !== 0 && />} */}
             <AppointmentNewForm
               currentItem={hmoData}
               hmoData={hmoData?.HMO}

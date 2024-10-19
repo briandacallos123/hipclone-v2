@@ -45,7 +45,8 @@ export default function AppointmentBookFee({
 
   return (
     <Card sx={{ p: 3 }}>
-      <Stack direction="row">
+      {data?.isFeeShow !== 0 && <>
+        <Stack direction="row">
         <Stack sx={{ width: 1 }}>
           <Typography variant="h6">Professional fee</Typography>
         </Stack>
@@ -60,8 +61,10 @@ export default function AppointmentBookFee({
       <Typography sx={{ mb: 3, typography: 'caption', color: 'error.main', lineHeight: 1.5 }}>
         Not applicable for HMO consultations.
       </Typography>
+      </>}
 
-      <Typography variant="h6" sx={{ marginBottom: isLoading && 2 }}>
+      {data?.isAddReqFeeShow !== 0 && <>
+        <Typography variant="h6" sx={{ marginBottom: isLoading && 2 }}>
         Additional fees
       </Typography>
       {!isLoading
@@ -86,6 +89,7 @@ export default function AppointmentBookFee({
       <Typography sx={{ typography: 'caption', color: 'error.main', lineHeight: 1.5 }}>
         Requests not covered by HMO will be charged to patient.
       </Typography>
+      </>}
     </Card>
   );
 }

@@ -409,6 +409,8 @@ const DoctorInfoObj4HMO = objectType({
     t.nullable.string('EMP_TITLE');
     t.nullable.string('SUBSPECIALTY');
     t.nullable.string('EMP_EMAIL');
+    t.nullable.int('isFeeShow');
+    t.nullable.int('isAddReqFeeShow');
     t.nullable.int('FEES');
     t.nullable.int('MEDCERT_FEE');
     t.nullable.int('MEDCLEAR_FEE');

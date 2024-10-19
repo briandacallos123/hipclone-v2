@@ -364,8 +364,14 @@ export default function AppointmentDetails({
           reset()
           resetState()
 
+          // socket.emit('send notification',{
+          //   recepient:targetUser,
+          //   notification_type:6
+          // })
+
           socket.emit('send notification', {
-            recepient: Number(userId)
+            recepient: Number(userId),
+            notification_type:1
 
           })
           socket.emit('updateAppointment', {

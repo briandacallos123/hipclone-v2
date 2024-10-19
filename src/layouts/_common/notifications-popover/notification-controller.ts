@@ -6,10 +6,11 @@ import { useLazyQuery, useMutation } from '@apollo/client';
 import { NexusGenInputs, NexusGenObjects } from 'generated/nexus-typegen';
 import { notification_query_final, notification_read, NotificationReadFinal } from 'src/libs/gqls/notification';
 import { useAuthContext } from '@/auth/hooks'
+import { useNotificationWrapper } from '@/context/components/chat-wrapper';
 
 export default function NotificationController({ isRun }: { isRun: boolean }) {
   const [allData, setAllData]: any = useState([]);
-
+  const {setChatUnread, setApptCount}:any = useNotificationWrapper();
   const [summarize, setSummarize]: any = useState(null);
   const [isLoading, setLoading] = useState(true)
   const [chatLength, setChatLength] = useState([])
@@ -62,14 +63,25 @@ export default function NotificationController({ isRun }: { isRun: boolean }) {
       // Initialize counters
       let unread = 0;
       let totalData = 0;
+      let unreadMsgs = 0;
+      let unreadAppt = 0;
       // console.log(notifDataFinal,'BOSSSSSSSSSSSSSSSS??????????????')
       // Iterate over the notifications
       notifDataFinal?.forEach((item) => {
+
         if (!item?.is_read) {
           unread += 1; // Assuming each item is an object, increment by 1
         }
+        if(item?.notification_type === 'sent a message' && !item?.is_read){
+          unreadMsgs += item?.chat?.length
+        }
+        if(item?.notification_type === "to approve appointment" && !item?.is_read){
+          unreadAppt += item?.length
+        }
         totalData += 1; // Increment by 1 for each notification
       });
+
+      // console.log(item,'itemmmm')
 
 
 
@@ -95,11 +107,13 @@ export default function NotificationController({ isRun }: { isRun: boolean }) {
 
       // console.log(notifDataFinal,'BOSSSSSSSSSSSSSSSSSSSSSSSSSS??????????');
       
-
+      
       // notifDataFinal.sort((a:any, b:any) => new Date(a.date) - new Date(b.date));
       if (data) {
         setAllData(notifDataFinal);
         setSummarize({ all: totalData, unread })
+        setChatUnread(unreadMsgs)
+        setApptCount(unreadAppt)
       }
     }).catch((err) => {
       setLoading(false)

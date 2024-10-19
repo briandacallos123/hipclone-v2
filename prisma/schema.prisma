@@ -474,7 +474,7 @@ model emr_patient {
   doctorID                  Int?
   isEMR                     Int                         @default(1)
   link                      Int?
-  idno                      BigInt
+  idno                      String?                      @unique(map: "uuid") @default(dbgenerated("(uuid())")) @db.Char(36)
   fname                     String?                     @db.VarChar(255)
   mname                     String?                     @db.VarChar(255)
   lname                     String?                     @db.VarChar(255)

@@ -11,6 +11,8 @@ import Iconify from '../../iconify';
 import { NavItemProps, NavConfigProps } from '../types';
 import { StyledItem, StyledIcon, StyledDotIcon } from './styles';
 import Label from '@/components/label';
+import { Badge, Stack } from '@mui/material';
+import { useNotificationWrapper } from '@/context/components/chat-wrapper';
 
 // ----------------------------------------------------------------------
 
@@ -18,12 +20,12 @@ type Props = NavItemProps & {
   config: NavConfigProps;
 };
 
-const renderValue = (value:any) => {
+const renderValue = (value: any) => {
   return (
-        <Label variant="soft" color="error">
-        {value}
-      </Label>
-      
+    <Label variant="soft" color="error">
+      {value}
+    </Label>
+
   )
 }
 
@@ -37,6 +39,8 @@ export default function NavItem({
   ...other
 }: Props) {
   const { title, path, icon, info, children, disabled, caption, roles, value } = item;
+
+  const { chatUnreadCount, newAppt } = useNotificationWrapper();
 
   const subItem = depth !== 1;
 
@@ -59,11 +63,31 @@ export default function NavItem({
         )}
       </>
 
-    
+
       {!(config.hiddenLabel && !subItem) && (
         <ListItemText
-      
-          primary={title}
+
+          primary={title !== 'appointment' && title !== 'chat' ? title : <Stack direction={'row'} alignItems={'center'} gap={3}>
+            <span> {title}</span>
+
+
+            {
+              (() => {
+                if (title === 'appointment') {
+                  return (newAppt !== 0 && <Badge badgeContent={newAppt} color="error" max={10}>
+
+                  </Badge>)
+                } else {
+                  return (
+                    chatUnreadCount !== 0 && <Badge badgeContent={chatUnreadCount} color="error" max={10}>
+
+                    </Badge>
+                  )
+                }
+              })()
+            }
+
+          </Stack>}
           secondary={
             caption ? (
               <Tooltip title={caption} placement="top-start">
@@ -75,6 +99,7 @@ export default function NavItem({
             noWrap: true,
             typography: 'body2',
             textTransform: 'capitalize',
+
             fontWeight: active ? 'fontWeightSemiBold' : 'fontWeightMedium',
           }}
           secondaryTypographyProps={{
@@ -86,7 +111,7 @@ export default function NavItem({
         />
       )}
 
-      {value &&  <Label variant="soft" color="error">
+      {value && <Label variant="soft" color="error">
         {value}
       </Label>}
 
@@ -146,14 +171,14 @@ export default function NavItem({
         ...(disabled && {
           cursor: 'default',
         }),
-        display:'flex',
-        alignItems:'center',
-        
+        display: 'flex',
+        alignItems: 'center',
+
 
       }}
     >
       {renderContent}
-      
+
     </Link>
   );
 }

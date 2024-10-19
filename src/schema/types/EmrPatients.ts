@@ -820,17 +820,21 @@ export const MutationEmrPatient = extendType({
 
           let idno_id: any;
           if (newPost_fm) {
-            idno_id = Number(newPost_fm[0].idno) + 1;
+            if(newPost_fm.length !== 0){
+              idno_id = Number(newPost_fm[0].idno) + 1;
+            }else{
+              idno_id = 100000
+            }
           }
 
           // emr_patient
           const link = 0;
-          const idno = idno_id; // static lang to
-          const doctorID = session?.user?.id;
+       
+          const doctorID = session?.user?.doctor_id;
           const doctor = String(session?.user?.doctorId);
           const newPost = await client.emr_patient.create({
             data: {
-              idno,
+              idno:String(idno_id),
               fname,
               suffix,
               lname,
