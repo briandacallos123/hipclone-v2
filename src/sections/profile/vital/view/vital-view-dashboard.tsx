@@ -111,14 +111,14 @@ export default function ProfileVitalViewDashboard() {
         },
       }).then(async (result: any) => {
         const { data } = result;
-        if (data) {
+        if (dateResult.data || data) {
           const { QueryNotesVitalsUser } = data;
           setChartData(QueryNotesVitalsUser?.vitals_data);
           setLoading(false);
         }
       });
     }
-  }, [dateResult.data, user?.role, user?.uuid]);
+  }, [dateResult.data, getDataUser, user?.role, user?.uuid]);
 
   const openVitalCategory = () => {
     openCreateVital.onTrue();
@@ -133,6 +133,8 @@ export default function ProfileVitalViewDashboard() {
   console.log('chart2Data', chart2Data);
   console.log('chartData', chartData);
 
+  console.log('dateResult.loading', dateResult.loading);
+
   return (
     <>
       <Box sx={{ m: 2 }}>
@@ -146,7 +148,7 @@ export default function ProfileVitalViewDashboard() {
           </Button>
         
         </Stack> */}
-        {dateResult.loading && (
+        {dateResult.loading ? (
           <Box
             display="grid"
             columnGap={2}
@@ -162,8 +164,7 @@ export default function ProfileVitalViewDashboard() {
             <Skeleton variant="rounded" height={120} />
             <Skeleton variant="rounded" height={120} />
           </Box>
-        )}
-        {chartData.length > 0 && (
+        ) : (
           <VitalView
             isDashboard={true}
             openSingle={openVitalSingle}
@@ -172,6 +173,9 @@ export default function ProfileVitalViewDashboard() {
             loading={isLoading}
           />
         )}
+        {/* {chartData.length > 0 && ( */}
+
+        {/* )} */}
       </Box>
 
       <ProfileVitalCreateView

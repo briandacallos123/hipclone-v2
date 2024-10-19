@@ -43,7 +43,7 @@ import { MenuItem } from '@mui/material';
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
 import { useMutation } from '@apollo/client';
-import {  DeleteNotesVitalPatient } from '@/libs/gqls/notes/notesVitals';
+import { DeleteNotesVitalPatient } from '@/libs/gqls/notes/notesVitals';
 import VitalFullScreenRow from './vital-fs-row';
 import { useSnackbar } from 'notistack';
 
@@ -53,7 +53,6 @@ const TABLE_HEAD = [
   { id: 'date', label: 'Date' },
   { id: 'value', label: 'Value' },
   { id: '', label: 'Action' },
-
 ];
 
 type Props = {
@@ -61,7 +60,7 @@ type Props = {
   open: boolean;
   onClose: VoidFunction;
   list: { value: string; date: string }[];
-  refetch:any;
+  refetch: any;
   chart: {
     categories: string[];
     data: {
@@ -73,7 +72,7 @@ type Props = {
   };
 };
 const NAV_WIDTH = 800;
-export default function VitalFullscreen({refetch, title, open, onClose, chart, list }: Props) {
+export default function VitalFullscreen({ refetch, title, open, onClose, chart, list }: Props) {
   const [openMobile, setOpenMobile] = useState(true);
   const [collapseDesktop, setCollapseDesktop] = useState(false);
   const theme = useTheme();
@@ -82,11 +81,10 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
     setCollapseDesktop(!collapseDesktop);
   };
 
-  const [dataList, setDataList] = useState([])
+  const [dataList, setDataList] = useState([]);
   const [tempData, setTempData] = useState(false);
 
-  const isTemp = dataList.find((item)=>Number(item.id) === 0);
-
+  const isTemp = dataList.find((item) => Number(item.id) === 0);
 
   // console.log(tempData,'tempData');
 
@@ -96,14 +94,11 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
   //   }
   // },[dataList])
 
-  useEffect(()=>{
-    if(list?.length !== 0){
-      setDataList(list)
+  useEffect(() => {
+    if (list?.length !== 0) {
+      setDataList(list);
     }
-  },[list])
-
- 
-
+  }, [list]);
 
   const renderBtn = (
     <IconButton
@@ -176,7 +171,7 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
   const denseHeight = table.dense ? 52 : 72;
   const popover = usePopover();
   const confirm = useBoolean();
-  const [deleteRow, setDeleteRow] = useState(null)
+  const [deleteRow, setDeleteRow] = useState(null);
 
   const [deleteNotesVitals] = useMutation(DeleteNotesVitalPatient, {
     context: {
@@ -185,38 +180,30 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
     notifyOnNetworkStatusChange: true,
   });
 
-
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-
-
 
   const handleDeleteRow = useCallback((row) => {
     deleteNotesVitals({
-      variables:{
-        data:{
-          vital_id:Number(row?.id),
-          category_delete:String(row?.category),
-          dateCreated:row?.dataDate
-        }
-      }
-    }).then(()=>{
+      variables: {
+        data: {
+          vital_id: Number(row?.id),
+          category_delete: String(row?.category),
+          dateCreated: row?.dataDate,
+        },
+      },
+    }).then(() => {
       refetch();
-      enqueueSnackbar("Deleted successfully!")
-    })
-  },[])
-
-
-=======
+      enqueueSnackbar('Deleted successfully!');
+    });
+  }, []);
 
   const [listData, setListData] = useState([]);
 
-  useEffect(()=>{
-    console.log(list,'awit bosing');
-  },[list])
+  useEffect(() => {
+    console.log(list, 'awit bosing');
+  }, [list]);
 
   // let isContainNull = list?.find((item)=>Number(item?.id)=== 0);
-
-
 
   const notFound = !dataFiltered.length;
   const renderList = (
@@ -234,22 +221,19 @@ export default function VitalFullscreen({refetch, title, open, onClose, chart, l
             />
 
             <TableBody>
-             
-
-              
-               {list?.filter((item)=>Number(item?.data) !== 0 && item)
+              {list
+                ?.filter((item) => Number(item?.data) !== 0 && item)
                 ?.slice(
-                  isTemp ? 1:table.page * table.rowsPerPage,
+                  isTemp ? 1 : table.page * table.rowsPerPage,
                   table.page * table.rowsPerPage + table.rowsPerPage
                 )
                 .map((row) => (
                   <VitalFullScreenRow
-                  row={row}
-                  handleDelete={()=>{
-                    handleDeleteRow(row)
-                  }}
+                    row={row}
+                    handleDelete={() => {
+                      handleDeleteRow(row);
+                    }}
                   />
-                
                 ))}
 
               <TableEmptyRows
