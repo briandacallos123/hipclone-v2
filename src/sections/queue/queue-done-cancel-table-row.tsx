@@ -118,7 +118,7 @@ export default function QueueDoneCancelTableRow({ row, onViewRow }: Props) {
 
       <TableCell>
           <Label
-            color={(row?.payment_status || row?.pendingPayment && 'success') || 'error'}
+            color={((row?.payment_status || row?.pendingPayment) && 'success') || 'error'}
             sx={{ textTransform: 'capitalize' }}
           >
 

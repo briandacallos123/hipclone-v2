@@ -102,19 +102,21 @@ export default function AppointmentTableRow({
           )}
         
 
-          <ListItemText
+        <ListItemText
             primary={!isPatient ? fullName : row?.clinicInfo?.clinic_name}
             secondary={
               <>
                 <Typography variant="caption">
                   {format(new Date(row?.date), `dd MMM yyyy`)}&nbsp;({convertTime(row?.time_slot)})
-                </Typography>
+                </Typography>Object
                 <Stack direction="row" spacing={1} sx={{ typography: 'caption' }}>
-                  <Label variant="soft" color={(row?.type === 1 && 'success') || 'info'}>
+                  <Label variant="soft" 
+                  color={(row?.type === 1 && 'success') || 'info'}
+                  >
                     {row?.type === 1 ? 'telemedicine' : 'face-to-face'}
                   </Label>
                   <Label
-                    color={(row?.payment_status ||row?.pendingPayment && 'success') || 'error'}
+                    color={((row?.payment_status || row?.pendingPayment) && 'success') || 'error'}
                     sx={{ textTransform: 'capitalize' }}
                   >
                     {row?.pendingPayment === 1 && 'Payment: For Approval' || row?.payment_status ? 'paid' : 'unpaid'}
@@ -294,25 +296,25 @@ export default function AppointmentTableRow({
           variant="soft"
           color={
             row?.status === 0
-              ? 'warning'
-              : row?.status === 1
-                ? 'info'
-                : row?.status === 2
-                  ? 'error'
-                  : row?.status === 3
-                    ? 'success'
-                    : 'info'
+              && 'warning'
+              || row?.status === 1
+                && 'info'
+                || row?.status === 2
+                  && 'error'
+                  || row?.status === 3
+                    && 'success'
+                    || 'info'
           }
         >
           {row?.status === 0
-            ? 'Pending'
-            : row?.status === 1
-              ? 'Approved'
-              : row?.status === 2
-                ? 'Cancelled'
-                : row?.status === 3
-                  ? 'Done'
-                  : 'unknown'}
+            && 'Pending'
+            || row?.status === 1
+              && 'Approved'
+             || row?.status === 2
+                && 'Cancelled'
+                || row?.status === 3
+                  &&'Done'
+                  ||'unknown'}
         </Label>
       </TableCell>
 

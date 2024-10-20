@@ -82,6 +82,11 @@ export default function AppointmentDetails({
   const { triggerR, cRefetch }: any = useMyContext();
   const [payId, setPayId] = useState('');
   const openPay = useBoolean();
+
+  const [loadingPayment, setLoadingPayment] = useState();
+
+  const loadPayment = () =>setLoadingPayment(!loadingPayment)
+
   const handlePay = useCallback(
     (id: string) => {
       openPay.onTrue();
@@ -811,7 +816,7 @@ export default function AppointmentDetails({
                       justifyContent: 'center'
                     }}>
                       {Boolean(currentItem?.payment_status === 1 || currentItem?.pendingPayment === 1) &&
-                        currentItem?.type === 1 && !Object.keys(currentItem.patient_hmo).length && (currentItem?.status === 1 || currentItem?.status == 3) && !isHistory && <Button
+                        currentItem?.type === 1 && !currentItem?.patient_hmo  && (currentItem?.status === 1 || currentItem?.status == 3) && !isHistory && <Button
                           variant="contained"
                           onClick={viewPay.onTrue}
                           startIcon={<Iconify icon="solar:eye-bold" />}
@@ -826,13 +831,14 @@ export default function AppointmentDetails({
                         user?.role === 'patient' &&
                         currentItem?.pendingPayment !== 1 &&
                         !isHistory && (
-                          <Button
+                          <LoadingButton
                             variant="contained"
+                            loading={loadingPayment}
                             onClick={() => handlePay(currentItem)}
                             startIcon={<Iconify icon="solar:dollar-bold" />}
                           >
                             Pay
-                          </Button>
+                          </LoadingButton>
                         )}
                       {currentItem?.pendingPayment === 1 &&
                         <Typography sx={{ mt: 2, mr: 1 }} color="success.main" variant="overline">
@@ -1081,6 +1087,7 @@ export default function AppointmentDetails({
       <AppointmentPaymentView
         refetch={refetch}
         open={openPay.value}
+        loadPayment={loadPayment}
         onClose={openPay.onFalse}
         id={payId}
       />

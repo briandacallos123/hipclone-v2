@@ -84,13 +84,13 @@ type Props = {
   refetch?: any;
 };
 
-export default function AppointmentPaymentForm({ currentItem, onClose, refetch }: Props) {
+export default function AppointmentPaymentForm({loadPayment, currentItem, onClose, refetch }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [selectId, setSelectId] = useState('');
   const open = useBoolean();
   const [snackKey, setSnackKey]: any = useState(null);
   console.log(currentItem, 'CURRENT ITEM@@@');
-  const [uploadData] = useMutation(mutation_patient_payment, {
+  const [uploadData, paymentResult ] = useMutation(mutation_patient_payment, {
     context: {
       requestTrackerId: 'Prescription_data[Prescription_data]',
     },
@@ -160,6 +160,7 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
   useEffect(() => {
     if (snackKey) {
       (async () => {
+        loadPayment();
         await handleSubmitValue(values);
         setSnackKey(null);
       })();
@@ -247,6 +248,8 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
           closeSnackbar(snackKey);
           enqueueSnackbar("Payment Successfully, please wait for doctor's confirmation");
           refetch();
+        loadPayment();
+
           // reInitialize();
         })
         .catch((error) => {
@@ -406,7 +409,7 @@ export default function AppointmentPaymentForm({ currentItem, onClose, refetch }
         <LoadingButton
           type="submit"
           variant="contained"
-          loading={isSubmitting}
+          loading={paymentResult.loading}
           onClick={handleSubmit(onSubmit)}
         >
           Submit

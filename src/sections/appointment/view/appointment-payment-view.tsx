@@ -16,12 +16,13 @@ type Props = {
   id: string | null;
   open: boolean;
   onClose: VoidFunction;
+  loadPayment:()=>void;
   refetch?: any;
 };
 
 // ----------------------------------------------------------------------
 
-export default function AppointmentPaymentView({ id, open, onClose, refetch }: Props) {
+export default function AppointmentPaymentView({loadPayment, id, open, onClose, refetch }: Props) {
   // const currentItem = _appointmentList.find((item) => item.id === id);
 
   const isSm = useResponsive('down', 'md');
@@ -39,7 +40,7 @@ export default function AppointmentPaymentView({ id, open, onClose, refetch }: P
     >
       <DialogTitle>Appointment Payment</DialogTitle>
 
-      <AppointmentPaymentForm refetch={refetch} currentItem={id} onClose={onClose} />
+      <AppointmentPaymentForm loadPayment={loadPayment} refetch={refetch} currentItem={id} onClose={onClose} />
     </Dialog>
   );
 }
