@@ -9,6 +9,7 @@ import { useUpload } from '../../hooks/use-upload';
 import { resolve } from 'path';
 import beamsClient from './beams'
 import { FieldClinics } from './DoctorClinics';
+import useGoogleStorage from '@/hooks/use-google-storage-uploads2';
 
 const ClinicObjectFields = objectType({
   name: 'ClinicObjectFields',
@@ -861,13 +862,13 @@ export const QueryAllAppointments = extendType({
               doctorID: session?.user?.permissions?.doctorID,
             };
 
-            const doctorID = await client.employees.findFirst({
-              where:{
-                EMP_EMAIL:session?.user?.email
-              }
-            })
+          const doctorID = await client.employees.findFirst({
+            where: {
+              EMP_EMAIL: session?.user?.email
+            }
+          })
 
-         
+
 
           return {
             doctorID: doctorID?.EMP_ID,
@@ -1387,8 +1388,8 @@ export const QueryTodaysAPRRenew = extendType({
         );
 
         const doctorD = await client.employees.findFirst({
-          where:{
-            EMP_EMAIL:session?.user?.email
+          where: {
+            EMP_EMAIL: session?.user?.email
           }
         })
 
@@ -1707,11 +1708,11 @@ export const QueueAll = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`appointments`', 'TodaysDone');
         let doctorDetails = await client.employees.findFirst({
-          where:{
+          where: {
             EMP_EMAIL: session?.user?.email
           }
         })
-        
+
         const checkUser = (() => {
           if (args?.data!.userType === 'secretary')
             return {
@@ -2324,10 +2325,10 @@ export const query_all_appointment_calendar = extendType({
 
         let doctorDetails;
 
-        if(session?.user?.role === 'doctor'){
+        if (session?.user?.role === 'doctor') {
           doctorDetails = await client.employees.findFirst({
-            where:{
-              EMP_EMAIL:session?.user?.email
+            where: {
+              EMP_EMAIL: session?.user?.email
             }
           })
         }
@@ -2535,39 +2536,39 @@ export const BookAppointment = extendType({
           timeInput.setMinutes(timeInput.getMinutes() - timeInput.getTimezoneOffset()); // Convert to UTC
 
 
-          if(e_time?.isLimited === 1){
-            if(e_time?.number_patient === 0){
+          if (e_time?.isLimited === 1) {
+            if (e_time?.number_patient === 0) {
               throw new GraphQLError('Sorry, no more available slot.')
-            }else{
+            } else {
               const newTime = addTimeInterval(timeInput, e_time?.time_interval);
 
               let isExists = true;
               let VoucherCode: any;
-    
+
               while (isExists) {
                 VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
-    
+
                 const result = await client.prescriptions.findFirst({
                   where: {
                     presCode: VoucherCode
                   }
                 })
-    
+
                 if (!result) {
                   isExists = false;
                 }
               }
-    
-    
-    
-    
-    
-    
+
+
+
+
+
+
               const timeInputEnd = new Date(createData.end_time);
               timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
-    
+
               console.log(newTime, 'TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE', e_time?.time_interval)
-    
+
               const BookTransaction = await client.$transaction(async (trx) => {
                 const BookPost = await trx.appointments.create({
                   data: {
@@ -2589,18 +2590,18 @@ export const BookAppointment = extendType({
                     e_time: newTime,
                   },
                 });
-    
+
                 return {
                   ...BookPost,
                 };
               });
-    
+
               const notifContent = await client.notification_content.create({
                 data: {
                   content: "book an appointment"
                 }
               })
-    
+
               await client.records.create({
                 data: {
                   patientID: Number(session?.user?.s_id),
@@ -2610,20 +2611,20 @@ export const BookAppointment = extendType({
                   APPID: String(BookTransaction?.id)
                 }
               })
-    
+
               const empDetails = await client.employees.findFirst({
-                where:{
-                  EMP_ID:Number(createData.doctorID)
+                where: {
+                  EMP_ID: Number(createData.doctorID)
                 }
               })
-    
-    
+
+
               const empUser = await client.user.findFirst({
-                where:{
-                  email:empDetails?.EMP_EMAIL
+                where: {
+                  email: empDetails?.EMP_EMAIL
                 }
               })
-    
+
               await client.notification.create({
                 data: {
                   user_id: Number(session?.user?.id),
@@ -2635,10 +2636,10 @@ export const BookAppointment = extendType({
                   notifiable_user_role: 2
                 }
               })
-    
-    
+
+
               let PatientHMO;
-    
+
               if (createData?.hmo) {
                 PatientHMO = await client.patient_hmo.create({
                   data: {
@@ -2650,68 +2651,111 @@ export const BookAppointment = extendType({
                   },
                 });
               }
-    
+
               const sFile = await args?.file;
               if (sFile) {
-                // console.log(sFile, 'FILE@@@');
-                const res: any = useUpload(sFile, 'public/documents/');
-                res?.map(async (v: any) => {
+                const uploadResult: any = await useGoogleStorage(
+                  sFile,
+                  session?.user?.id,
+                  'booking'
+                );
+
+                const fileUpload = uploadResult;
+
+                console.log(fileUpload, 'fileuploaddd')
+
+                const res = fileUpload.map(async (v: any) => {
                   await client.appt_hmo_attachment.create({
                     data: {
                       filename: String(v!.fileName),
                       file_url: String(v!.path),
-                      patientID: Number(session?.user?.id),
+                      patientID: Number(session?.user?.s_id),
                       doctorID: Number(createData.doctorID),
                       clinic: Number(createData.clinic),
                       appt_hmo_id: Number(BookTransaction?.id),
                     },
                   });
-                });
+                })
+                await Promise.all(res);
+
+
+                // await Promise.all(fileUpload.map((v: any) => {
+                //   client.appt_hmo_attachment.create({
+                //     data: {
+                //       filename: String(v!.fileName),
+                //       file_url: String(v!.path),
+                //       patientID: Number(session?.user?.id),
+                //       doctorID: Number(createData.doctorID),
+                //       clinic: Number(createData.clinic),
+                //       appt_hmo_id: Number(BookTransaction?.id),
+                //     },
+                //   });
+                // }))
+
+                // const uploadResult: any = await useGoogleStorage(
+                //   sFile,
+                //   session?.user?.id,
+                //   'booking'
+                // );
+                // // console.log(sFile, 'FILE@@@');
+                // const res: any = useUpload(sFile, 'public/documents/');
+                // res?.map(async (v: any) => {
+                //   await client.appt_hmo_attachment.create({
+                //     data: {
+                //       filename: String(v!.fileName),
+                //       file_url: String(v!.path),
+                //       patientID: Number(session?.user?.s_id),
+                //       doctorID: Number(createData.doctorID),
+                //       clinic: Number(createData.clinic),
+                //       appt_hmo_id: Number(BookTransaction?.id),
+                //     },
+                //   });
+                // });
               }
-    
+
               // end
               await client.clinic_schedule.update({
-                data:{
-                  number_patient:e_time?.number_patient - 1
+                data: {
+                  number_patient: e_time?.number_patient - 1
                 },
                 where: {
-                  id:e_time?.id
+                  id: e_time?.id
                 }
               })
-    
+
               const res: any = { ...BookTransaction, ...PatientHMO };
               return res;
             }
-          }else{
+          } else {
             const newTime = addTimeInterval(timeInput, e_time?.time_interval);
 
             let isExists = true;
             let VoucherCode: any;
-  
+
             while (isExists) {
               VoucherCode = Math.random().toString(36).substring(2, 8).toUpperCase()
-  
+
               const result = await client.prescriptions.findFirst({
                 where: {
                   presCode: VoucherCode
                 }
               })
-  
+
               if (!result) {
                 isExists = false;
               }
             }
-  
-  
-  
-  
-  
-  
+
+
+
+
+
+
             const timeInputEnd = new Date(createData.end_time);
             timeInputEnd.setMinutes(timeInputEnd.getMinutes() - timeInputEnd.getTimezoneOffset()); // Convert to UTC
-  
+
             console.log(newTime, 'TIMEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE', e_time?.time_interval)
-  
+
             const BookTransaction = await client.$transaction(async (trx) => {
               const BookPost = await trx.appointments.create({
                 data: {
@@ -2733,18 +2777,18 @@ export const BookAppointment = extendType({
                   e_time: newTime,
                 },
               });
-  
+
               return {
                 ...BookPost,
               };
             });
-  
+
             const notifContent = await client.notification_content.create({
               data: {
                 content: "book an appointment"
               }
             })
-  
+
             await client.records.create({
               data: {
                 patientID: Number(session?.user?.s_id),
@@ -2754,20 +2798,20 @@ export const BookAppointment = extendType({
                 APPID: String(BookTransaction?.id)
               }
             })
-  
+
             const empDetails = await client.employees.findFirst({
-              where:{
-                EMP_ID:Number(createData.doctorID)
+              where: {
+                EMP_ID: Number(createData.doctorID)
               }
             })
-  
-  
+
+
             const empUser = await client.user.findFirst({
-              where:{
-                email:empDetails?.EMP_EMAIL
+              where: {
+                email: empDetails?.EMP_EMAIL
               }
             })
-  
+
             await client.notification.create({
               data: {
                 user_id: Number(session?.user?.id),
@@ -2779,10 +2823,10 @@ export const BookAppointment = extendType({
                 notifiable_user_role: 2
               }
             })
-  
-  
+
+
             let PatientHMO;
-  
+
             if (createData?.hmo) {
               PatientHMO = await client.patient_hmo.create({
                 data: {
@@ -2794,12 +2838,18 @@ export const BookAppointment = extendType({
                 },
               });
             }
-  
+
             const sFile = await args?.file;
             if (sFile) {
-              // console.log(sFile, 'FILE@@@');
-              const res: any = useUpload(sFile, 'public/documents/');
-              res?.map(async (v: any) => {
+              const uploadResult: any = await useGoogleStorage(
+                sFile,
+                session?.user?.id,
+                'booking'
+              );
+
+              const fileUpload = uploadResult;
+
+              const res = fileUpload.map(async (v: any) => {
                 await client.appt_hmo_attachment.create({
                   data: {
                     filename: String(v!.fileName),
@@ -2810,15 +2860,44 @@ export const BookAppointment = extendType({
                     appt_hmo_id: Number(BookTransaction?.id),
                   },
                 });
-              });
+              })
+              await Promise.all(res);
+
+
+              // await Promise.all(fileUpload.map((v: any) => {
+              //   client.appt_hmo_attachment.create({
+              //     data: {
+              //       filename: String(v!.fileName),
+              //       file_url: String(v!.path),
+              //       patientID: Number(session?.user?.id),
+              //       doctorID: Number(createData.doctorID),
+              //       clinic: Number(createData.clinic),
+              //       appt_hmo_id: Number(BookTransaction?.id),
+              //     },
+              //   });
+              // }))
+
+              // const res: any = useUpload(sFile, 'public/documents/');
+              // res?.map(async (v: any) => {
+              //   await client.appt_hmo_attachment.create({
+              //     data: {
+              //       filename: String(v!.fileName),
+              //       file_url: String(v!.path),
+              //       patientID: Number(session?.user?.id),
+              //       doctorID: Number(createData.doctorID),
+              //       clinic: Number(createData.clinic),
+              //       appt_hmo_id: Number(BookTransaction?.id),
+              //     },
+              //   });
+              // });
             }
-  
-  
-  
+
+
+
             const res: any = { ...BookTransaction, ...PatientHMO };
             return res;
           }
-       
+
         } catch (error) {
           console.log(error);
 

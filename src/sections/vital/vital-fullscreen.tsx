@@ -84,9 +84,20 @@ export default function VitalFullscreen({ refetch, title, open, onClose, chart, 
   const [dataList, setDataList] = useState([]);
   const [tempData, setTempData] = useState(false);
 
-  const isTemp = dataList.find((item) => Number(item.id) === 0);
+  const isTemp = dataList && dataList.find((item) => Number(item.id) === 0)
 
-  // console.log(tempData,'tempData');
+  console.log(dataList,'awit')
+  
+
+  // const isTemp = dataList && dataList.find((item) =>item.id.includes(0));
+
+
+
+
+  // console.log(dataList?.id,'list')
+
+  // console.log(isTemp,'isTemp')
+
 
   // useEffect(()=>{
   //   if(dataList.find((item)=>Number(item.id) === 0)){
@@ -199,9 +210,7 @@ export default function VitalFullscreen({ refetch, title, open, onClose, chart, 
 
   const [listData, setListData] = useState([]);
 
-  useEffect(() => {
-    console.log(list, 'awit bosing');
-  }, [list]);
+
 
   // let isContainNull = list?.find((item)=>Number(item?.id)=== 0);
 

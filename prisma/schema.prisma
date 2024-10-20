@@ -229,7 +229,7 @@ model likes {
   liker     Int?
   postsId   Int?
   unlike    Boolean? @default(true)
-  likerData patient? @relation(fields: [liker], references: [S_ID])
+  likerData user?    @relation(fields: [liker], references: [id])
   postID    posts?   @relation(fields: [postsId], references: [id])
 
   @@index([liker], map: "likes_liker_fkey")
@@ -288,7 +288,6 @@ model clinic_schedule {
   clinic         Int?
   clinic_id      Int?
   doctor_idno    Int?
-  isLimited      Int?       @default(0)
   SchedName      String?    @db.LongText
   days           String?    @db.LongText
   type           String?    @db.LongText
@@ -297,6 +296,7 @@ model clinic_schedule {
   end_time       String?    @db.LongText
   isDeleted      Int?       @default(0)
   number_patient Int?
+  isLimited      Int?       @default(0)
   doctorInfo     employees? @relation(fields: [doctorID], references: [EMP_ID], onDelete: Cascade, map: "clinic_schedule_ibfk_1")
   clinicInfo     clinic?    @relation("clinic_schedule_clinicToclinic", fields: [clinic], references: [id], onDelete: Cascade, map: "clinic_schedule_ibfk_2")
 
@@ -474,7 +474,7 @@ model emr_patient {
   doctorID                  Int?
   isEMR                     Int                         @default(1)
   link                      Int?
-  idno                      String?                      @unique(map: "uuid") @default(dbgenerated("(uuid())")) @db.Char(36)
+  idno                      String?                     @unique(map: "uuid") @default(dbgenerated("(uuid())")) @db.Char(36)
   fname                     String?                     @db.VarChar(255)
   mname                     String?                     @db.VarChar(255)
   lname                     String?                     @db.VarChar(255)
@@ -1197,7 +1197,6 @@ model patient {
   family_history            family_history[]
   labreport                 labreport[]
   labreport_attachments     labreport_attachments[]
-  likes                     likes[]
   logActionInfo             log_action[]
   medicalhistory            medicalhistory[]
   medication                medication[]
@@ -1569,18 +1568,19 @@ model user {
   birthDate                                     DateTime?           @db.Date
   firstName                                     String?             @db.VarChar(255)
   lastName                                      String?             @db.VarChar(255)
+  is_new                                        Int?                @default(1)
   accounts                                      Account[]
   message                                       Message[]
   participant                                   Participant[]
   display_picture                               display_picture[]
   doctorInfo                                    employees[]
+  likes                                         likes[]
   notification                                  notification[]
   notification_notification_notifiable_idTouser notification[]      @relation("notification_notifiable_idTouser")
   notification_read                             notification_read[]
   patientInfo                                   patient?
   sessions                                      Session[]
   subAccountInfo                                sub_account[]
-  is_new                                        Int?                @default(1)
 
   @@unique([email, userType], map: "unique_user_email_userType")
   @@index([email, userType], map: "idx_user_email_userType")

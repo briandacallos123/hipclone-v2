@@ -118,6 +118,14 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
       : Yup.number()
         .moreThan(0, 'Temperature must be greater than 0')
         .required('Temperature is required'),
+        sugarMonitoring: !condition
+    ? Yup.number().default(0)
+    : Yup.number()
+      .moreThan(0, 'Sugar Monitoring must be greater than 0')
+      .required('Sugar Monitoring is required'),
+  
+
+        
     ...dynamicFields
   });
 
@@ -165,6 +173,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
             noZero = false
           }
         })
+        console.log(noZero,'code zero')
         return noZero;
       })()
     ) {
@@ -198,7 +207,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
   // console.log(values, '@ffff');
   // console.log(condition, '@#####');
 
-  const [createVitals] = useMutation(POST_VITALS);
+  const [createVitals, createVitalsResult] = useMutation(POST_VITALS);
 
   useEffect(() => {
     const calculatedBMI = Number((values.weight / (values.height * 0.01) ** 2).toFixed(2));
@@ -241,11 +250,14 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
           enqueueSnackbar('Create success!');
           refetch();
           reset();
+          onClose()
         })
         .catch((error) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
           console.log(error, 'ano error?');
+          onClose()
+
           enqueueSnackbar('Something went wrong', { variant: 'error' });
         });
     },
@@ -260,6 +272,18 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
   //     })();
   //   }
   // }, [snackKey, myData]);
+
+  const [datas, setData] = useState({});
+
+  useEffect(()=>{
+    if(snackKey){
+
+     handleSubmitValue(myData);
+    // alert(1)
+    }
+  },[snackKey])
+
+  console.log(snackKey,'snackKey')
 
   const onSubmit = useCallback(
     async (data: NexusGenInputs['notesVitalInputType']) => {
@@ -278,13 +302,29 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
           }
         })
 
-
-
-        await handleSubmitValue({
+        
+        setMyData({
           ...data,
           categoryData: [...categoryData]
+        })
+
+        const snackbarKey = enqueueSnackbar('Saving Data...', {
+          variant: 'info',
+          key: 'savingEducation',
+          persist: true, // Do not auto-hide
         });
-        onClose();
+
+
+
+        setSnackKey(snackbarKey)
+
+
+
+        // await handleSubmitValue({
+        //   ...data,
+        //   categoryData: [...categoryData]
+        // });
+        // onClose();
 
 
         // const snackbarKey: any = enqueueSnackbar('Saving Data...', {
@@ -307,7 +347,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
         console.error(error);
       }
     },
-    [enqueueSnackbar, handleSubmitValue, onClose, reset, refetch, addedCategoryTitle]
+    [enqueueSnackbar,snackKey, handleSubmitValue, onClose, reset, refetch, addedCategoryTitle]
   );
 
   const { getItem } = useSessionStorage()
@@ -318,6 +358,8 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
       setValue('hospitalId', Number(data?.clinic?.id))
     }
   }, [])
+
+  console.log(createVitalsResult,'createVitalsResultcreateVitalsResult')
 
 
   return (
@@ -489,14 +531,14 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
       </DialogContent>
 
       <DialogActions>
-        <Button variant="outlined" onClick={onClose}>
+        <Button disabled={createVitalsResult.loading} variant="outlined" onClick={onClose}>
           Cancel
         </Button>
 
         <LoadingButton
           type="submit"
           variant="contained"
-          loading={isSubmitting}
+          loading={createVitalsResult.loading}
           onClick={handleSubmit(onSubmit)}
         >
           Create

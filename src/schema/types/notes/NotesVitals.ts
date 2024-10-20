@@ -794,25 +794,27 @@ export const PostVitals = extendType({
 
           if (createData?.categoryValues && createData?.categoryValues?.length !== 0) {
             const result = createData?.categoryValues.map(async (item) => {
-              const categoryId = await client.vital_category.findFirst({
-                where: {
-                  title: item?.title,
-                  patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
-                  isDeleted: 0
-                }
-              })
-              console.log(categoryId, "categoryId")
-
-              const vitalData = await client.vital_data.create({
-                data: {
-                  patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
-                  doctorId: Number(doctorData?.EMP_ID),
-                  categoryId: Number(categoryId?.id),
-                  value: item?.value,
-                }
-              })
-
-              return vitalData
+              if(Number(item?.value) !== 0){
+                const categoryId = await client.vital_category.findFirst({
+                  where: {
+                    title: item?.title,
+                    patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
+                    isDeleted: 0
+                  }
+                })
+                console.log(categoryId, "categoryId")
+  
+                const vitalData = await client.vital_data.create({
+                  data: {
+                    patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
+                    doctorId: Number(doctorData?.EMP_ID),
+                    categoryId: Number(categoryId?.id),
+                    value: item?.value,
+                  }
+                })
+  
+                return vitalData
+              }
             })
 
             await Promise.all(result)

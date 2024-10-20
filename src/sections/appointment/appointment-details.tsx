@@ -811,7 +811,7 @@ export default function AppointmentDetails({
                       justifyContent: 'center'
                     }}>
                       {Boolean(currentItem?.payment_status === 1 || currentItem?.pendingPayment === 1) &&
-                        currentItem?.type === 1 && (currentItem?.status === 1 || currentItem?.status == 3) && !isHistory && <Button
+                        currentItem?.type === 1 && !Object.keys(currentItem.patient_hmo).length && (currentItem?.status === 1 || currentItem?.status == 3) && !isHistory && <Button
                           variant="contained"
                           onClick={viewPay.onTrue}
                           startIcon={<Iconify icon="solar:eye-bold" />}

@@ -72,7 +72,8 @@ export default function FeedsController(
                 isPublic: model.isPublic,
               },
             },
-          });
+          })
+          await queryResults.refetch();
         } else {
           await createFunc({
             variables: {
@@ -82,7 +83,9 @@ export default function FeedsController(
               },
               file: model.attachment,
             },
-          });
+          })
+        await queryResults.refetch();
+
         }
 
         await queryResults.refetch();
@@ -176,5 +179,6 @@ export default function FeedsController(
     queryResults,
     createResults,
     isLoading,
+    createTextesults,
   };
 }

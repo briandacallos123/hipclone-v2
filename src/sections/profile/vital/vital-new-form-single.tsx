@@ -181,7 +181,9 @@ export default function ProfileVitalNewEditFormSingle({ data, addedCategory, onC
       const field = data?.name;
       let payload: any;
 
-      if (!model?.new) {
+    
+
+      if (model?.categoryData?.length === 0) {
         if (data?.name !== "bloodPresMM") {
           payload = {
             [field]: String(model[`${data?.name}`]),

@@ -15,7 +15,7 @@ import VitalChart from '../vital-chart';
 
 type Props = {
   items: any;
-  loading?: boolean;
+  loading?: any;
   isDashboard?: any;
   addedCategory?: any;
   items2: any;
@@ -347,22 +347,28 @@ export default function VitalView({
 
   let newData: any = [];
 
+  console.log(items2,'huh?')
+
   items2?.forEach((val: any) => {
     if (newData.length === 0) {
       const vitalDataArr = [];
       const vitalDateArr = [];
       const vitalDateArrNoFormat = [];
+      const vitalIds = [];
+
+   
 
       vitalDataArr.push(val.value);
       vitalDateArr.push(fDate(val.createdAt));
       vitalDateArrNoFormat.push(val.createdAt);
+      vitalIds.push(val.id);
 
       const payload = {
         title: val?.vital_category?.title,
         measuring_unit: val?.vital_category?.measuring_unit,
         measuring_id: val?.categoryId,
         dateCreated: val?.createdAt,
-        id: val?.id,
+        id: vitalIds,
         date: vitalDateArr,
         data: vitalDataArr,
         dateNoFormat: vitalDateArrNoFormat,
@@ -378,20 +384,26 @@ export default function VitalView({
           newData[index].data.push(val.value);
           newData[index].date.push(fDate(val.createdAt));
           newData[index].dateNoFormat.push(val.createdAt);
+          newData[index].id.push(val.id);
+
         }
       } else {
         const vitalDataArr = [];
         const vitalDateArr = [];
         const vitalDateArrNoFormat = [];
+        const vitalIds = [];
+
+  
 
         vitalDataArr.push(val.value);
         vitalDateArr.push(fDate(val.createdAt));
         vitalDateArrNoFormat.push(val.createdAt);
+        vitalIds.push(val.id);
 
         const payload = {
           title: val?.vital_category?.title,
           data: vitalDataArr,
-          id: val?.id,
+          id: vitalIds,
           dateCreated: val?.createdAt,
           measuring_unit: val?.vital_category?.measuring_unit,
           measuring_id: val?.categoryId,
@@ -403,38 +415,46 @@ export default function VitalView({
     }
   });
 
-  // console.log(newData, 'newdaataaa');
 
-  // newData = newData?.map((item:any)=>{
-  //   const newDate = item?.date?.map((item:any)=>{
-  //     const data = item?.split(" ");
-  //     const month = data[1];
-  //     const day = data[0];
-  //     return `${month} ${day}`
-  //   });
-  //   console.log(newDate)
-  //   return {...item, date:newDate}
-  // })
-  // console.log(categories,'dataDatedataDatedataDatedataDate_______________________________________________')
+  newData = newData?.map((item:any)=>{
+    if(item?.data?.length === 1){
+      const newdata2 = [];
+      newdata2[0] = 0;
+      newdata2[1] = item?.data[0];
 
-  // console.log(newData,'AHEHEHEHEEEEEEEEEE_______________________________________________')
+      const newDate = [];
+      newDate[0] = (item?.date[0]);
+      newDate[1] = (item?.date[0]);
 
-  // [2]?.forEach((item:any)=>{
+      const newDateNoF = [];
+      newDateNoF[0] = item?.dateNoFormat[0]
+      newDateNoF[1] = item?.dateNoFormat[0]
 
-  // })
+      const newIds = [];
+      newIds[0] = 0
+      newIds[1] = item?.id[0]
 
-  // const vitalsDynamicData = items2?.map((item:any)=>{
-  //   const payload = {
-  //     title:"",
-  //     data:[]
-  //   }
+      console.log(newDate,'nyudata2')
 
-  // })
+      delete item.data;
+      delete item.date;
+      delete item.dateNoFormat;
+      delete item.id;
 
-  // console.log(newData,'WAWAWIIIIIIIII@@@@@@@@@@@@@@@@@@@@@@@@@@______________')
+      return {
+        data:newdata2,
+        date:newDate,
+        dateNoFormat:newDateNoF,
+        id:newIds,
+        ...item,
+      }
+    }else{
+      return item
+    }
+  })
 
-  // console.log('itemsTemp++++++++++++++++', emptyWeight);
-  // console.log('itemsTemp++++++++++++++++', emptyTemp);
+  console.log(newData,'newDAtaaaaaaaaaa')
+
 
   return (
     <>
@@ -725,7 +745,8 @@ export default function VitalView({
               list={[...Array(item?.dateNoFormat?.length)].map((_, index) => ({
                 value: `${item?.data[index]} ${item?.measuring_unit}`,
                 date: item?.dateNoFormat[index],
-                id: item?.id,
+                id: item?.id[index],
+                isDynamic:true,
                 category: item?.measuring_id,
                 dataDate: item?.dateCreated,
               }))}

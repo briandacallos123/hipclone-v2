@@ -670,7 +670,11 @@ export const PostNotesSoap = extendType({
 
             const patientID = await getPatientId(createData?.uuid);
 
-            const prescriptionParent = await client.prescriptions.create({
+            let presChild:any;
+            let prescriptionParent:any;
+            
+           if(createData?.prescriptions?.length !== 0){
+             prescriptionParent = await client.prescriptions.create({
               data: {
                 CLINIC: createData?.clinic,
                 patientID,
@@ -678,7 +682,7 @@ export const PostNotesSoap = extendType({
               },
             });
 
-            const presChild = createData?.prescriptions?.map(async (item: any) => {
+             presChild = createData?.prescriptions?.map(async (item: any) => {
               const child = await client.prescriptions_child.create({
                 data: {
                   PR_ID: prescriptionParent?.ID,
@@ -691,7 +695,8 @@ export const PostNotesSoap = extendType({
               return child;
             });
             const cildren = await Promise.all(presChild);
-            console.log(cildren, 'yay@');
+           }
+ 
 
             return {
               ...recordSoap,

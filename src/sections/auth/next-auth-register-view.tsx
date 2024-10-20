@@ -126,7 +126,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
   const searchParams: any = useSearchParams();
 
-  const {id} = useParams()
+  const { id } = useParams()
 
   const returnTo = searchParams.get('returnTo');
 
@@ -145,7 +145,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
-  const [snackKey, setSnackKey]:any = useState(null);
+  const [snackKey, setSnackKey]: any = useState(null);
 
 
 
@@ -185,7 +185,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         phoneNumber: model.phoneNumber,
         latitude: model?.latitude,
         longitude: model?.longitude,
-        birthDate:model?.birthDate
+        birthDate: model?.birthDate
       };
       registerUser({
         variables: {
@@ -196,19 +196,19 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
           const { registerUser: regData } = res.data;
           closeSnackbar(snackKey);
 
-        enqueueSnackbar('Register Successfully!')
+          enqueueSnackbar('Register Successfully!')
 
           await login(regData.email, model.password);
 
           window.location.href =
-          returnTo ||
-          (id && pathname === `/find-doctor/${id}/`
-            ? (() => {
+            returnTo ||
+            (id && pathname === `/find-doctor/${id}/`
+              ? (() => {
                 if (user?.role !== 'doctor') {
                   return paths.dashboard.appointment.book(id);
                 }
               })()
-            : PATH_AFTER_LOGIN);
+              : PATH_AFTER_LOGIN);
 
           // window.location.href = returnTo || PATH_AFTER_LOGIN;
         })
@@ -230,7 +230,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
     address: '',
     phoneNumber: "",
     confirmPassword: "",
-    birthDate:null
+    birthDate: null
   };
 
   const methods = useForm<NexusGenInputs['UserProfileUpsertType']>({
@@ -261,8 +261,14 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
 
   }, [errors?.password, passError])
 
+  const [myData, setData] = useState(null);
 
+  useEffect(() => {
+    if (snackKey) {
+      handleSubmitValue(myData);
 
+    }
+  }, [snackKey, myData])
 
 
   const values = watch()
@@ -273,6 +279,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         const newData: any = { ...data }
         newData.latitude = mapData?.lat
         newData.longitude = mapData?.lng
+        setData(newData)
 
         const snackbarKey = enqueueSnackbar('Saving Data...', {
           variant: 'info',
@@ -280,8 +287,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
           persist: true, // Do not auto-hide
         });
         setSnackKey(snackbarKey);
-       
-        await handleSubmitValue(newData);
+
       } catch (error) {
         setErrorMsg(typeof error === 'string' ? error : error.message);
       }
@@ -386,7 +392,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         padding: 10,
         borderRadius: 10,
         zIndex: 100,
-        
+
       }}>
         <Stack direction="row" justifyContent="space-between" alignItems="center">
           <h3>Password must meet the following requirements:</h3>
@@ -442,29 +448,29 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
           <RHFTextField name="email" label="Email address" />
           <RHFTextField name="phoneNumber" label="Phone number" />
         </Stack>
-        <Stack direction={{xs:'column',sm:'row'}} spacing={2}>
+        <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
           <RHFTextField fullWidth name="address" label="Address" />
 
           <Controller
-                  name="birthDate"
-                  control={control}
-                  render={({ field, fieldState: { error } }: CustomRenderInterface) => (
-                    <DatePicker
-                      label="Date of Birth"
-                      value={field.value}
-                      onChange={(newValue) => {
-                        field.onChange(newValue);
-                      }}
-                      slotProps={{
-                        textField: {
-                          fullWidth: true,
-                          error: !!error,
-                          helperText: error?.message,
-                        },
-                      }}
-                    />
-                  )}
-                />
+            name="birthDate"
+            control={control}
+            render={({ field, fieldState: { error } }: CustomRenderInterface) => (
+              <DatePicker
+                label="Date of Birth"
+                value={field.value}
+                onChange={(newValue) => {
+                  field.onChange(newValue);
+                }}
+                slotProps={{
+                  textField: {
+                    fullWidth: true,
+                    error: !!error,
+                    helperText: error?.message,
+                  },
+                }}
+              />
+            )}
+          />
         </Stack>
         <Stack>
           {map && <MapContainer lat={mapData?.lat} lng={mapData?.lng} />}
@@ -553,7 +559,7 @@ export default function NextAuthRegisterView({ open, onClose }: Props) {
         <PrivacyDialog open={privacyModal.value} handleClose={privacyModal.onFalse} />
 
       </DialogContent>
-      
+
 
     </Dialog>
   );
