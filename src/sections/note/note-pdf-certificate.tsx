@@ -1,13 +1,17 @@
-import { useMemo } from 'react';
+/* eslint-disable react/no-unstable-nested-components */
+import { useMemo, useEffect, useState } from 'react';
 import { capitalize } from 'lodash';
 import { Page, View, Text, Image, Document, Font, StyleSheet } from '@react-pdf/renderer';
 // _mock
 import { _doctorList, _hospitals, _noteCertificateList, _patientList } from 'src/_mock';
+
 // utils
 import { fDate } from 'src/utils/format-time';
 // types
 import { INoteItem } from 'src/types/document';
 import { NexusGenObjects } from 'generated/nexus-typegen';
+import { AnyAaaaRecord } from 'dns';
+
 // ----------------------------------------------------------------------
 
 Font.register({
@@ -74,10 +78,11 @@ const useStyles = () =>
 
 type Props = {
   item?: NexusGenObjects['NotesMedCertObj'];
-  qrImage?:any
+  qrImage?: any;
+  esigData?: AnyAaaaRecord;
 };
 
-export default function NotePDFCertificate({qrImage, item }: Props) {
+export default function NotePDFCertificate({ qrImage, item, esigData }: Props) {
   // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
 
   // const keyDoctor = _doctorList.filter((_) => _.id === item?.doctor.id)[0].doctor;
@@ -85,6 +90,10 @@ export default function NotePDFCertificate({qrImage, item }: Props) {
   // const keyHospital = _hospitals.filter((_) => _.id === item?.hospitalId)[0];
 
   // const document = _noteCertificateList.filter((_) => _.id === item?.documentId)[0];
+  const callIcon = `${process.env.NEXT_PUBLIC_DOMAIN}/assets/icons/pdf/call.png`;
+  const ImageClinic = `${process.env.NEXT_PUBLIC_DOMAIN}/assets/icons/pdf/hospital-buildings.png`;
+  console.log('_________item__________', item);
+  console.log('_________item____imageDataURL______, callIcon', callIcon);
 
   const doctorName = `${item?.doctorInfo?.EMP_FULLNAME}, ${item?.doctorInfo?.EMP_TITLE}`;
 
@@ -111,42 +120,52 @@ export default function NotePDFCertificate({qrImage, item }: Props) {
   const ESIG = () => {
     let text: any;
     if (item.doctorInfo?.esig_dp?.[0]?.type === 0) {
-        text = <></>;
+      text = <></>;
     } else if (item.doctorInfo?.esig_dp?.[0]?.type === 1) {
-        text = <>
-        <Image source={item.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
-        </>;
+      text = (
+        <>
+          <Image src={esigData} style={{ height: 72, width: 180 }} />
+        </>
+      );
     } else if (item.doctorInfo?.esig_dp?.[0]?.type === 2) {
-      text = <>
-        <Image source={item.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]} style={{ height: 72, width: 180 }} />
-        </>;
-    } 
+      text = (
+        <>
+          <Image src={esigData} style={{ height: 72, width: 180 }} />
+        </>
+      );
+    }
     return text;
   };
 
-
-  
   const LIC = () => {
     let text: any;
-    if (item?.doctorInfo?.PTR_LIC === "") {
-        text = <></>;
+    if (item?.doctorInfo?.PTR_LIC === '') {
+      text = <></>;
     } else if (item?.doctorInfo?.PTR_LIC) {
-        text = <>
-        <Text style={{...styles.body1,fontSize: 8}}>Ptr License No.: {item?.doctorInfo?.PTR_LIC}</Text>
-        </>;
-    } 
+      text = (
+        <>
+          <Text style={{ ...styles.body1, fontSize: 8 }}>
+            Ptr License No.: {item?.doctorInfo?.PTR_LIC}
+          </Text>
+        </>
+      );
+    }
     return text;
   };
 
   const S2 = () => {
     let text: any;
-    if (item?.doctorInfo?.S2_LIC === "") {
-        text = <></>;
+    if (item?.doctorInfo?.S2_LIC === '') {
+      text = <></>;
     } else if (item?.doctorInfo?.S2_LIC) {
-        text = <>
-         <Text style={{...styles.body1,fontSize: 8}}>S2 License No.: {item?.doctorInfo?.S2_LIC}</Text>
-        </>;
-    } 
+      text = (
+        <>
+          <Text style={{ ...styles.body1, fontSize: 8 }}>
+            S2 License No.: {item?.doctorInfo?.S2_LIC}
+          </Text>
+        </>
+      );
+    }
     return text;
   };
 
@@ -171,12 +190,12 @@ export default function NotePDFCertificate({qrImage, item }: Props) {
           </View>
 
           <View style={styles.listContainer}>
-          {item?.doctorInfo?.ClinicList?.slice(0, 5).map((clinic: any) => (
+            {item?.doctorInfo?.ClinicList?.slice(0, 5).map((clinic: any) => (
               <View key={clinic.id} style={[styles.col6, styles.mb8]}>
                 {clinic.clinic_name && (
                   <View style={styles.listContainer}>
                     <Image
-                      source="/assets/icons/pdf/hospital-buildings.png"
+                      src="/assets/icons/pdf/hospital-buildings.png"
                       style={{ height: 10, minWidth: 10, paddingRight: 5 }}
                     />
                     <Text style={styles.subtitle2}>{clinic.clinic_name}</Text>
@@ -186,7 +205,7 @@ export default function NotePDFCertificate({qrImage, item }: Props) {
                 {clinic.location && (
                   <View style={styles.listContainer}>
                     <Image
-                      source="/assets/icons/pdf/navigation.png"
+                      src="/assets/icons/pdf/navigation.png"
                       style={{ height: 8, minWidth: 8, paddingRight: 5 }}
                     />
                     <Text style={styles.caption}>{clinic.location}</Text>
@@ -195,15 +214,15 @@ export default function NotePDFCertificate({qrImage, item }: Props) {
                 {clinic?.number && (
                   <View style={styles.listContainer}>
                     <Image
-                      source="/assets/icons/pdf/call.png"
+                      src="/assets/icons/pdf/call.png"
                       style={{ height: 8, minWidth: 8, paddingRight: 5 }}
                     />
                     <Text style={styles.caption}>{clinic?.number}</Text>
                   </View>
                 )}
 
-                {/* <Text style={styles.caption}>{clinic.location}</Text>
-                <Text style={styles.caption}>{clinic?.Province || ''}</Text> */}
+                <Text style={styles.caption}>{clinic.location}</Text>
+                <Text style={styles.caption}>{clinic?.Province || ''}</Text>
               </View>
             ))}
           </View>
@@ -225,12 +244,8 @@ export default function NotePDFCertificate({qrImage, item }: Props) {
             <Text style={styles.h4}>Medical Certificate: #{item?.id}</Text>
           </View>
 
-            <View style={styles.col4}>
-            <Image
-                alt="yes"
-                src={qrImage}
-                style={[styles.mb8, { height: 70, width: 70 }]}
-            />
+          <View style={styles.col4}>
+            <Image alt="yes" src={qrImage} style={[styles.mb8, { height: 70, width: 70 }]} />
           </View>
         </View>
 
@@ -301,8 +316,12 @@ export default function NotePDFCertificate({qrImage, item }: Props) {
 
           <View style={styles.col5}>
             {ESIG()}
-            <Text style={{...styles.subtitle2,fontSize: 10}}>{item?.doctorInfo?.EMP_FULLNAME}, {item?.doctorInfo?.EMP_TITLE}</Text>
-            <Text style={{...styles.body1,fontSize: 8}}>License No.: {item?.doctorInfo?.LIC_NUMBER}</Text>
+            <Text style={{ ...styles.subtitle2, fontSize: 10 }}>
+              {item?.doctorInfo?.EMP_FULLNAME}, {item?.doctorInfo?.EMP_TITLE}
+            </Text>
+            <Text style={{ ...styles.body1, fontSize: 8 }}>
+              License No.: {item?.doctorInfo?.LIC_NUMBER}
+            </Text>
             {LIC()}
             {S2()}
           </View>

@@ -1,17 +1,26 @@
-import { QueryPatientIncomingAppt } from '@/libs/gqls/drappts';
+/* eslint-disable @next/next/no-img-element */
 import { useLazyQuery } from '@apollo/client';
+// react
 import React, { useCallback, useEffect, useState } from 'react';
-import PatientUpcommingCarousel from './patientUpcommingCarousel';
-import { Avatar, Box, Button, Grid, IconButton, Stack, Typography } from '@mui/material';
+import { Avatar, Box, Button, Grid, IconButton, Stack, Typography, Card } from '@mui/material';
+import { alpha, Theme, styled, useTheme, SxProps } from '@mui/material/styles';
+import { borderRadius } from '@mui/system';
+// gql
+import { QueryPatientIncomingAppt } from '@/libs/gqls/drappts';
+// uitls
+import { dateForAppt, formatMilitaryTime } from '@/utils/format-time';
+// hooks
+import { useResponsive } from '@/hooks/use-responsive';
+// routes
+import { paths } from '@/routes/paths';
+// theme
+import { bgGradient } from 'src/theme/css';
+// component
 import Image from '@/components/image';
 import { Icon } from '@iconify/react';
-import { dateForAppt, formatMilitaryTime } from '@/utils/format-time';
-import { useResponsive } from '@/hooks/use-responsive';
-import { alpha, Theme, styled, useTheme, SxProps } from '@mui/material/styles';
 import Iconify from '@/components/iconify';
-import { borderRadius } from '@mui/system';
 import UpcomingSkeleton from './upcoming-skeleton';
-import { paths } from '@/routes/paths';
+import PatientUpcommingCarousel from './patientUpcommingCarousel';
 
 const IconButtonStyle = styled(IconButton)(({ theme }) => ({
   color: alpha(theme.palette.common.white, 0.8),
@@ -26,6 +35,7 @@ const IconButtonStyle = styled(IconButton)(({ theme }) => ({
 }));
 
 const PatientUpcomingAppt = () => {
+  const theme = useTheme();
   const [take, setTake] = useState(5);
   const [skip, setSkip] = useState(0);
   const [data, setData]: any = useState({
@@ -142,32 +152,64 @@ const PatientUpcomingAppt = () => {
     [data?.tableData, activeDoctor?.id, isLeftEnd, onIncrement, take, skip]
   );
 
+  console.log('dataAppt', data);
+  console.log(`${process.env.NEXT_PUBLIC_DOMAIN}/assets/illustrations/doctor.png`);
+
   const NoDataDetails = (
-    <Box
-      rowGap={2}
-      sx={{
-        display: 'flex',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        alignItems: 'center',
-        color: 'white',
-        minHeight: '210px',
-      }}
-    >
-      <Typography variant="h5">No Upcoming Appointment</Typography>
-      <Button component="a" href={paths.dashboard.appointment.find} variant="contained">
-        Book Now!
-      </Button>
-    </Box>
+    <>
+      {upMd ? (
+        <Box
+          rowGap={2}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            alignItems: 'center',
+            color: 'white',
+            minHeight: '210px',
+          }}
+        >
+          <Typography variant="h5">No Upcoming Appointment</Typography>
+          <Button component="a" href={paths.dashboard.appointment.find} variant="contained">
+            Book Now!
+          </Button>
+        </Box>
+      ) : (
+        <Box
+          rowGap={2}
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            flexDirection: 'row',
+            alignItems: 'center',
+            color: 'white',
+          }}
+        >
+          <Grid container spacing={1} sx={{ position: 'relative' }}>
+            <Grid item xs={7}>
+              <Stack direction="column" sx={{ p: 2 }} spacing={2}>
+                <Typography variant="h6">Book and schedule with the nearest Doctor</Typography>
+                <Button component="a" href={paths.dashboard.appointment.find} variant="contained">
+                  Book Now!
+                </Button>
+              </Stack>
+            </Grid>
+
+            <Stack sx={{ position: 'absolute', right: -25, bottom: 0, top: 20 }}>
+              <img
+                src="/assets/illustrations/doctorMale.png"
+                alt=""
+                style={{ width: '260px', height: '300px' }}
+              />
+            </Stack>
+          </Grid>
+        </Box>
+      )}
+    </>
   );
 
   return (
-    <Stack
-      sx={{
-        px: !upMd && 3,
-      }}
-      gap={2}
-    >
+    <Stack gap={2} sx={{ pb: 3 }}>
       {upMd && (
         <>
           <Typography variant="h5">Your Up-coming Appointments</Typography>
@@ -281,11 +323,17 @@ const PatientUpcomingAppt = () => {
       )}
 
       {!upMd && (
-        <Box
+        <Card
           sx={{
-            background: '#3156e3',
+            ...bgGradient({
+              color: alpha(theme.palette.primary.darker, 0.8),
+              // imgUrl: user?.coverURL,
+            }),
             p: 2,
-            borderRadius: 2,
+            background: 'url(/assets/background/bg-blueee.jpg)',
+            backgroundSize: 'cover',
+            height: '300px',
+            color: 'common.white',
           }}
         >
           {upcommingResult?.loading ? (
@@ -308,7 +356,7 @@ const PatientUpcomingAppt = () => {
               )}
             </>
           )}
-        </Box>
+        </Card>
       )}
     </Stack>
   );

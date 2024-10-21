@@ -1,11 +1,18 @@
-/* eslint-disable arrow-body-style */
 'use client';
 
+/* eslint-disable arrow-body-style */
+
+import { useCallback, useEffect, useState, useRef } from 'react';
 // @mui
+import { alpha, Theme, styled, useTheme, SxProps } from '@mui/material/styles';
 import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
+import IconButton from '@mui/material/IconButton';
+import Typography from '@mui/material/Typography';
 // utils
 import { fDate } from 'src/utils/format-time';
+import Iconify from 'src/components/iconify';
+import Carousel, { CarouselArrows, useCarousel } from 'src/components/carousel';
 //
 import Scrollbar from 'src/components/scrollbar';
 import { useResponsive } from 'src/hooks/use-responsive';
@@ -24,6 +31,18 @@ type Props = {
   refetchP2?: any;
 };
 
+const IconButtonStyle = styled(IconButton)(({ theme }) => ({
+  color: alpha(theme.palette.common.white, 0.8),
+  backgroundColor: alpha(theme.palette.grey[900], 0.48),
+  transition: theme.transitions.create('all', {
+    duration: theme.transitions.duration.shorter,
+  }),
+  '&:hover': {
+    color: theme.palette.common.white,
+    backgroundColor: theme.palette.grey[900],
+  },
+}));
+
 export default function VitalView({
   refetchP2,
   refetch,
@@ -34,6 +53,7 @@ export default function VitalView({
   isDashboard,
   addedCategory,
 }: Props) {
+  const theme = useTheme();
   const upMd = useResponsive('up', 'md');
 
   let weightData = items
@@ -456,6 +476,40 @@ export default function VitalView({
   console.log(newData,'newDAtaaaaaaaaaa')
 
 
+  const [currentIndex, setCurrentIndex] = useState(0);
+
+  // Initialize the carousel settings
+  const carousel = useCarousel({
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    rtl: theme.direction === 'rtl',
+    initialSlide: currentIndex,
+    infinite: false,
+    responsive: [
+      { breakpoint: 1024, settings: { slidesToShow: 3 } },
+      { breakpoint: 600, settings: { slidesToShow: 2 } },
+      { breakpoint: 480, settings: { slidesToShow: 1 } },
+    ],
+  });
+
+  const { carouselRef } = carousel;
+  useEffect(() => {
+    if (carouselRef.current?.slickGoTo) {
+      carouselRef.current.slickGoTo(currentIndex);
+    }
+  }, [carouselRef, currentIndex]);
+
+  // Ensure the carousel moves when currentIndex changes
+  const handleMove = useCallback(
+    (index) => {
+      if (carouselRef.current) {
+        carouselRef.current.slickGoTo(index); // Move the carousel
+      }
+      setCurrentIndex(index);
+    },
+    [carouselRef]
+  );
+
   return (
     <>
       {!isDashboard ? (
@@ -767,224 +821,480 @@ export default function VitalView({
         </Box>
       ) : (
         // for dashboard --------------------------------------------------------------------------------------------------------------------
-        <Stack sx={{ height: 'auto', width: '100%' }}>
-          <Scrollbar>
+        <>
+          {upMd ? (
+            <Stack sx={{ height: 'auto', width: '100%' }}>
+              <Scrollbar>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    columnGap: { md: 1, xs: 1 },
+                    rowGap: { md: 1, xs: 1 },
+                    gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' },
+                  }}
+                >
+                  <VitalChart
+                    title="Weight"
+                    emptyCondition={emptyWeight}
+                    subheader="by kilogram"
+                    chart={{
+                      categories: [...weightDataDate],
+                      data: [{ name: 'kg', data: weightData?.map((item: any) => item?.data) }],
+                    }}
+                    list={[...Array(weightDataDate?.length)].map((_, index) => ({
+                      value: `${weightData[index]?.data} kg`,
+                      date: weightDataDate[index],
+                      id: weightData[index]?.id,
+                      category: 'wt',
+                      dataDate: weightDataDateNoFormat[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'weight',
+                        type: 'number',
+                        label: 'Weight',
+                        placeholder: '0',
+                        adornment: 'kg',
+                      });
+                    }}
+                  />
+
+                  <VitalChart
+                    title="Height"
+                    emptyCondition={emptyHeight}
+                    subheader="by centimeter"
+                    chart={{
+                      categories: [...HeightDataDate],
+                      data: [{ name: 'cm', data: HeightData }],
+                    }}
+                    list={[...Array(HeightData?.length)].map((_, index) => ({
+                      value: `${HeightData[index]} cm`,
+                      date: HeightDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'height',
+                        type: 'number',
+                        label: 'Height',
+                        placeholder: '0',
+                        adornment: 'cm',
+                      });
+                    }}
+                  />
+
+                  <VitalChart
+                    title="Body Mass Index"
+                    emptyCondition={emptyBMI}
+                    subheader="by kg/m2"
+                    chart={{
+                      categories: [...BMIDataDate],
+                      data: [{ name: 'bmi', data: BMIData }],
+                    }}
+                    list={[...Array(BMIData?.length)].map((_, index) => ({
+                      value: `${BMIData[index]} bmi`,
+                      date: BMIDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'bmi',
+                        type: 'number',
+                        label: 'Body Mass Index',
+                        placeholder: '0.00',
+                        adornment: 'kg/m2',
+                      });
+                    }}
+                  />
+
+                  <VitalChart
+                    emptyCondition={emptyBP1 || emptyBP2}
+                    title="Blood Pressure"
+                    subheader="by mm/Hg"
+                    chart={{
+                      categories: [...BP1DataDate],
+                      data: [
+                        { name: 'mm', data: BP1Data },
+                        { name: 'Hg', data: BP2Data },
+                      ],
+                    }}
+                    list={[...Array(BP1Data?.length)].map((_, index) => ({
+                      value: `${BP1Data[index]}mm / ${BP2Data[index]}Hg`,
+                      date: dataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'bloodPresMM',
+                        type: 'number',
+                        label: 'Blood Pressure (mm)',
+                        placeholder: '0',
+                        adornment: 'mm/Hg',
+                      });
+                    }}
+                  />
+
+                  <VitalChart
+                    title="Oxygen Saturation"
+                    subheader="by percentage"
+                    emptyCondition={emptyOxygen}
+                    chart={{
+                      categories: [...OxygenDataDate],
+                      data: [{ name: 'percentage', data: OxygenData }],
+                    }}
+                    list={[...Array(OxygenData?.length)].map((_, index) => ({
+                      value: `${OxygenData[index]}%`,
+                      date: OxygenDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'oxygen',
+                        type: 'number',
+                        label: 'Oxygen Saturation',
+                        placeholder: '0',
+                        adornment: '%',
+                      });
+                    }}
+                  />
+
+                  <VitalChart
+                    title="Respiratory Rate"
+                    subheader="by breathes per minutes "
+                    emptyCondition={emptyResp}
+                    chart={{
+                      categories: [...RespDataDate],
+                      data: [{ name: 'bpm', data: RespData }],
+                    }}
+                    list={[...Array(RespData?.length)].map((_, index) => ({
+                      value: `${RespData[index]} bpm`,
+                      date: RespDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'respRate',
+                        type: 'number',
+                        label: 'Respiratory Rate',
+                        placeholder: '0',
+                        adornment: 'breathes/min',
+                      });
+                    }}
+                  />
+
+                  <VitalChart
+                    title="Heart Rate"
+                    subheader="by beats per minutes"
+                    emptyCondition={emptyHeartRate}
+                    chart={{
+                      categories: [...HeartRateDataDate],
+                      data: [{ name: 'bpm', data: HeartRateData }],
+                    }}
+                    list={[...Array(categories?.length)].map((_, index) => ({
+                      value: `${HeartRateData[index]} bpm`,
+                      date: HeartRateDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'heartRate',
+                        type: 'number',
+                        label: 'Heart Rate',
+                        placeholder: '0',
+                        adornment: 'bpm',
+                      });
+                    }}
+                  />
+
+                  <VitalChart
+                    title="Body Temperature"
+                    subheader="by Celcius"
+                    emptyCondition={emptyTemp}
+                    chart={{
+                      categories: [...TempDataDate],
+                      data: [{ name: 'Celcius', data: TempData }],
+                    }}
+                    list={[...Array(categories?.length)].map((_, index) => ({
+                      value: `${TempData[index]} °C`,
+                      date: TempDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'bodyTemp',
+                        type: 'number',
+                        label: 'Body Temperature',
+                        placeholder: '0',
+                        adornment: 'bpm',
+                      });
+                    }}
+                  />
+                </Box>
+              </Scrollbar>
+            </Stack>
+          ) : (
             <Box
               sx={{
-                display: 'grid',
-                columnGap: { md: 1, xs: 1 },
-                rowGap: { md: 1, xs: 1 },
-                gridTemplateColumns: { xs: 'repeat(2, 1fr)', lg: 'repeat(5, 1fr)' },
+                overflow: 'hidden',
+                position: 'relative',
               }}
             >
-              <VitalChart
-                title="Weight"
-                emptyCondition={emptyWeight}
-                subheader="by kilogram"
-                chart={{
-                  categories: [...weightDataDate],
-                  data: [{ name: 'kg', data: weightData?.map((item: any) => item?.data) }],
-                }}
-                list={[...Array(weightDataDate?.length)].map((_, index) => ({
-                  value: `${weightData[index]?.data} kg`,
-                  date: weightDataDate[index],
-                  id: weightData[index]?.id,
-                  category: 'wt',
-                  dataDate: weightDataDateNoFormat[index],
-                }))}
-                loading={loading}
-                isDashboard={isDashboard}
-                createNew={() => {
-                  openSingle({
-                    name: 'weight',
-                    type: 'number',
-                    label: 'Weight',
-                    placeholder: '0',
-                    adornment: 'kg',
-                  });
-                }}
-              />
+              <Typography variant="h5"> Vitals</Typography>
+              <Stack
+                flexGrow={1}
+                direction="row"
+                alignItems="center"
+                spacing={1.5}
+                sx={{ mb: { md: 2 } }}
+              >
+                <Box sx={{ flexGrow: 1 }} />
 
-              <VitalChart
-                title="Height"
-                emptyCondition={emptyHeight}
-                subheader="by centimeter"
-                chart={{
-                  categories: [...HeightDataDate],
-                  data: [{ name: 'cm', data: HeightData }],
-                }}
-                list={[...Array(HeightData?.length)].map((_, index) => ({
-                  value: `${HeightData[index]} cm`,
-                  date: HeightDataDate[index],
-                }))}
-                loading={loading}
-                isDashboard={isDashboard}
-                createNew={() => {
-                  openSingle({
-                    name: 'height',
-                    type: 'number',
-                    label: 'Height',
-                    placeholder: '0',
-                    adornment: 'cm',
-                  });
-                }}
-              />
+                {!upMd && (
+                  <>
+                    <IconButtonStyle
+                      onClick={() => handleMove(currentIndex - 1)}
+                      sx={{ width: 32, height: 32 }}
+                    >
+                      <Iconify icon="solar:alt-arrow-left-bold" />
+                    </IconButtonStyle>
 
-              <VitalChart
-                title="Body Mass Index"
-                emptyCondition={emptyBMI}
-                subheader="by kg/m2"
-                chart={{
-                  categories: [...BMIDataDate],
-                  data: [{ name: 'bmi', data: BMIData }],
-                }}
-                list={[...Array(BMIData?.length)].map((_, index) => ({
-                  value: `${BMIData[index]} bmi`,
-                  date: BMIDataDate[index],
-                }))}
-                loading={loading}
-                isDashboard={isDashboard}
-                createNew={() => {
-                  openSingle({
-                    name: 'bmi',
-                    type: 'number',
-                    label: 'Body Mass Index',
-                    placeholder: '0.00',
-                    adornment: 'kg/m2',
-                  });
-                }}
-              />
-
-              <VitalChart
-                emptyCondition={emptyBP1 || emptyBP2}
-                title="Blood Pressure"
-                subheader="by mm/Hg"
-                chart={{
-                  categories: [...BP1DataDate],
-                  data: [
-                    { name: 'mm', data: BP1Data },
-                    { name: 'Hg', data: BP2Data },
-                  ],
-                }}
-                list={[...Array(BP1Data?.length)].map((_, index) => ({
-                  value: `${BP1Data[index]}mm / ${BP2Data[index]}Hg`,
-                  date: dataDate[index],
-                }))}
-                loading={loading}
-                isDashboard={isDashboard}
-                createNew={() => {
-                  openSingle({
-                    name: 'bloodPresMM',
-                    type: 'number',
-                    label: 'Blood Pressure (mm)',
-                    placeholder: '0',
-                    adornment: 'mm/Hg',
-                  });
-                }}
-              />
-
-              <VitalChart
-                title="Oxygen Saturation"
-                subheader="by percentage"
-                emptyCondition={emptyOxygen}
-                chart={{
-                  categories: [...OxygenDataDate],
-                  data: [{ name: 'percentage', data: OxygenData }],
-                }}
-                list={[...Array(OxygenData?.length)].map((_, index) => ({
-                  value: `${OxygenData[index]}%`,
-                  date: OxygenDataDate[index],
-                }))}
-                loading={loading}
-                isDashboard={isDashboard}
-                createNew={() => {
-                  openSingle({
-                    name: 'oxygen',
-                    type: 'number',
-                    label: 'Oxygen Saturation',
-                    placeholder: '0',
-                    adornment: '%',
-                  });
-                }}
-              />
-
-              <VitalChart
-                title="Respiratory Rate"
-                subheader="by breathes per minutes "
-                emptyCondition={emptyResp}
-                chart={{
-                  categories: [...RespDataDate],
-                  data: [{ name: 'bpm', data: RespData }],
-                }}
-                list={[...Array(RespData?.length)].map((_, index) => ({
-                  value: `${RespData[index]} bpm`,
-                  date: RespDataDate[index],
-                }))}
-                loading={loading}
-                isDashboard={isDashboard}
-                createNew={() => {
-                  openSingle({
-                    name: 'respRate',
-                    type: 'number',
-                    label: 'Respiratory Rate',
-                    placeholder: '0',
-                    adornment: 'breathes/min',
-                  });
-                }}
-              />
-
-              <VitalChart
-                title="Heart Rate"
-                subheader="by beats per minutes"
-                emptyCondition={emptyHeartRate}
-                chart={{
-                  categories: [...HeartRateDataDate],
-                  data: [{ name: 'bpm', data: HeartRateData }],
-                }}
-                list={[...Array(categories?.length)].map((_, index) => ({
-                  value: `${HeartRateData[index]} bpm`,
-                  date: HeartRateDataDate[index],
-                }))}
-                loading={loading}
-                isDashboard={isDashboard}
-                createNew={() => {
-                  openSingle({
-                    name: 'heartRate',
-                    type: 'number',
-                    label: 'Heart Rate',
-                    placeholder: '0',
-                    adornment: 'bpm',
-                  });
-                }}
-              />
-
-              <VitalChart
-                title="Body Temperature"
-                subheader="by Celcius"
-                emptyCondition={emptyTemp}
-                chart={{
-                  categories: [...TempDataDate],
-                  data: [{ name: 'Celcius', data: TempData }],
-                }}
-                list={[...Array(categories?.length)].map((_, index) => ({
-                  value: `${TempData[index]} °C`,
-                  date: TempDataDate[index],
-                }))}
-                loading={loading}
-                isDashboard={isDashboard}
-                createNew={() => {
-                  openSingle({
-                    name: 'bodyTemp',
-                    type: 'number',
-                    label: 'Body Temperature',
-                    placeholder: '0',
-                    adornment: 'bpm',
-                  });
-                }}
-              />
+                    <IconButtonStyle
+                      onClick={() => handleMove(currentIndex + 1)}
+                      sx={{ width: 32, height: 32 }}
+                    >
+                      <Iconify icon="solar:alt-arrow-right-bold" />
+                    </IconButtonStyle>
+                  </>
+                )}
+              </Stack>
+              <Carousel ref={carouselRef} {...carousel.carouselSettings}>
+                <Box sx={{ px: 1 }}>
+                  <VitalChart
+                    title="Weight"
+                    emptyCondition={emptyWeight}
+                    subheader="by kilogram"
+                    chart={{
+                      categories: [...weightDataDate],
+                      data: [{ name: 'kg', data: weightData?.map((item: any) => item?.data) }],
+                    }}
+                    list={[...Array(weightDataDate?.length)].map((_, index) => ({
+                      value: `${weightData[index]?.data} kg`,
+                      date: weightDataDate[index],
+                      id: weightData[index]?.id,
+                      category: 'wt',
+                      dataDate: weightDataDateNoFormat[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'weight',
+                        type: 'number',
+                        label: 'Weight',
+                        placeholder: '0',
+                        adornment: 'kg',
+                      });
+                    }}
+                  />
+                </Box>
+                <Box sx={{ px: 1 }}>
+                  <VitalChart
+                    title="Height"
+                    emptyCondition={emptyHeight}
+                    subheader="by centimeter"
+                    chart={{
+                      categories: [...HeightDataDate],
+                      data: [{ name: 'cm', data: HeightData }],
+                    }}
+                    list={[...Array(HeightData?.length)].map((_, index) => ({
+                      value: `${HeightData[index]} cm`,
+                      date: HeightDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'height',
+                        type: 'number',
+                        label: 'Height',
+                        placeholder: '0',
+                        adornment: 'cm',
+                      });
+                    }}
+                  />
+                </Box>
+                <Box sx={{ px: 1 }}>
+                  <VitalChart
+                    title="Body Mass Index"
+                    emptyCondition={emptyBMI}
+                    subheader="by kg/m2"
+                    chart={{
+                      categories: [...BMIDataDate],
+                      data: [{ name: 'bmi', data: BMIData }],
+                    }}
+                    list={[...Array(BMIData?.length)].map((_, index) => ({
+                      value: `${BMIData[index]} bmi`,
+                      date: BMIDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'bmi',
+                        type: 'number',
+                        label: 'Body Mass Index',
+                        placeholder: '0.00',
+                        adornment: 'kg/m2',
+                      });
+                    }}
+                  />
+                </Box>
+                <Box sx={{ px: 1 }}>
+                  <VitalChart
+                    emptyCondition={emptyBP1 || emptyBP2}
+                    title="Blood Pressure"
+                    subheader="by mm/Hg"
+                    chart={{
+                      categories: [...BP1DataDate],
+                      data: [
+                        { name: 'mm', data: BP1Data },
+                        { name: 'Hg', data: BP2Data },
+                      ],
+                    }}
+                    list={[...Array(BP1Data?.length)].map((_, index) => ({
+                      value: `${BP1Data[index]}mm / ${BP2Data[index]}Hg`,
+                      date: dataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'bloodPresMM',
+                        type: 'number',
+                        label: 'Blood Pressure (mm)',
+                        placeholder: '0',
+                        adornment: 'mm/Hg',
+                      });
+                    }}
+                  />
+                </Box>
+                <Box sx={{ px: 1 }}>
+                  <VitalChart
+                    title="Oxygen Saturation"
+                    subheader="by percentage"
+                    emptyCondition={emptyOxygen}
+                    chart={{
+                      categories: [...OxygenDataDate],
+                      data: [{ name: 'percentage', data: OxygenData }],
+                    }}
+                    list={[...Array(OxygenData?.length)].map((_, index) => ({
+                      value: `${OxygenData[index]}%`,
+                      date: OxygenDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'oxygen',
+                        type: 'number',
+                        label: 'Oxygen Saturation',
+                        placeholder: '0',
+                        adornment: '%',
+                      });
+                    }}
+                  />
+                </Box>
+                <Box sx={{ px: 1 }}>
+                  <VitalChart
+                    title="Respiratory Rate"
+                    subheader="by breathes per minutes "
+                    emptyCondition={emptyResp}
+                    chart={{
+                      categories: [...RespDataDate],
+                      data: [{ name: 'bpm', data: RespData }],
+                    }}
+                    list={[...Array(RespData?.length)].map((_, index) => ({
+                      value: `${RespData[index]} bpm`,
+                      date: RespDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'respRate',
+                        type: 'number',
+                        label: 'Respiratory Rate',
+                        placeholder: '0',
+                        adornment: 'breathes/min',
+                      });
+                    }}
+                  />
+                </Box>
+                <Box sx={{ px: 1 }}>
+                  <VitalChart
+                    title="Heart Rate"
+                    subheader="by beats per minutes"
+                    emptyCondition={emptyHeartRate}
+                    chart={{
+                      categories: [...HeartRateDataDate],
+                      data: [{ name: 'bpm', data: HeartRateData }],
+                    }}
+                    list={[...Array(categories?.length)].map((_, index) => ({
+                      value: `${HeartRateData[index]} bpm`,
+                      date: HeartRateDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'heartRate',
+                        type: 'number',
+                        label: 'Heart Rate',
+                        placeholder: '0',
+                        adornment: 'bpm',
+                      });
+                    }}
+                  />
+                </Box>
+                <Box sx={{ px: 1 }}>
+                  <VitalChart
+                    title="Body Temperature"
+                    subheader="by Celcius"
+                    emptyCondition={emptyTemp}
+                    chart={{
+                      categories: [...TempDataDate],
+                      data: [{ name: 'Celcius', data: TempData }],
+                    }}
+                    list={[...Array(categories?.length)].map((_, index) => ({
+                      value: `${TempData[index]} °C`,
+                      date: TempDataDate[index],
+                    }))}
+                    loading={loading}
+                    isDashboard={isDashboard}
+                    createNew={() => {
+                      openSingle({
+                        name: 'bodyTemp',
+                        type: 'number',
+                        label: 'Body Temperature',
+                        placeholder: '0',
+                        adornment: 'bpm',
+                      });
+                    }}
+                  />
+                </Box>
+              </Carousel>
             </Box>
-          </Scrollbar>
-        </Stack>
+          )}
+        </>
       )}
     </>
   );

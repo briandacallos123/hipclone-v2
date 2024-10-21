@@ -10,6 +10,9 @@ import IconButton from '@mui/material/IconButton';
 import CardHeader from '@mui/material/CardHeader';
 import Typography from '@mui/material/Typography';
 import InputAdornment from '@mui/material/InputAdornment';
+// hooks
+import { useResponsive } from 'src/hooks/use-responsive';
+
 // components
 import Iconify from 'src/components/iconify';
 import { RHFRadioGroup, RHFTextField } from 'src/components/hook-form';
@@ -41,6 +44,8 @@ export default function NoteNewFormSoapObjective() {
     control,
     name: 'remarkObjective',
   });
+
+  const upMd = useResponsive('up', 'md');
 
   const values = watch();
 
@@ -190,24 +195,16 @@ export default function NoteNewFormSoapObjective() {
         }}
         sx={{ pt: 2 }}
       >
-        <Box
-          rowGap={3}
-          columnGap={2}
-          display="grid"
-          gridTemplateColumns={{
-            xs: 'repeat(1, 1fr)',
-            sm: 'repeat(2, 1fr)',
-          }}
-        >
+        <Box rowGap={3} columnGap={2} display="grid" gridTemplateColumns="repeat(2, 1fr)">
           <RHFTextField
             type="number"
             name="visionLeft"
             label="Left"
             placeholder="0"
             InputLabelProps={{ shrink: true }}
-            InputProps={{
-              startAdornment: <InputAdornment position="start">20 /</InputAdornment>,
-            }}
+            // InputProps={{
+            //   startAdornment: <InputAdornment position="start">20 /</InputAdornment>,
+            // }}
           />
 
           <RHFTextField
@@ -216,9 +213,9 @@ export default function NoteNewFormSoapObjective() {
             label="Right"
             placeholder="0"
             InputLabelProps={{ shrink: true }}
-            InputProps={{
-              startAdornment: <InputAdornment position="start">20 /</InputAdornment>,
-            }}
+            // InputProps={{
+            //   startAdornment: <InputAdornment position="start">20 /</InputAdornment>,
+            // }}
           />
         </Box>
 

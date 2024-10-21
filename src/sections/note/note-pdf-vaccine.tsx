@@ -77,10 +77,11 @@ const useStyles = () =>
 
 type Props = {
   item?: NexusGenObjects['NotesPedCertObj'];
-  qrImage?:any;
+  qrImage?: any;
+  esigData?: any;
 };
 
-export default function NotePDFVaccine({qrImage, item }: Props) {
+export default function NotePDFVaccine({ qrImage, item, esigData }: Props) {
   // const keyPatient = _patientList.filter((_) => _.id === item?.patientId)[0].patient;
 
   // const keyDoctor = _doctorList.filter((_) => _.id === item?.doctor.id)[0].doctor;
@@ -139,19 +140,13 @@ export default function NotePDFVaccine({qrImage, item }: Props) {
     } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 1) {
       text = (
         <>
-          <Image
-            source={item?.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]}
-            style={{ height: 72, width: 180 }}
-          />
+          <Image source={esigData} style={{ height: 72, width: 180 }} />
         </>
       );
     } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 2) {
       text = (
         <>
-          <Image
-            source={item?.doctorInfo?.esig_dp?.[0]?.filename.split('public')[1]}
-            style={{ height: 72, width: 180 }}
-          />
+          <Image source={esigData} style={{ height: 72, width: 180 }} />
         </>
       );
     }

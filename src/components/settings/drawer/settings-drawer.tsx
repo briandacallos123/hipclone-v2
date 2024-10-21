@@ -181,7 +181,7 @@ export default function SettingsDrawer() {
 
           {renderContrast}
 
-          {renderDirection}
+          {/* {renderDirection} */}
 
           {renderLayout}
 
