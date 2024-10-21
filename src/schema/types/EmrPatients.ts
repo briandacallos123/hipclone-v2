@@ -1232,7 +1232,7 @@ export const QueryAllEMR = extendType({
               doctorID: session?.user?.permissions?.doctorID,
             };
           return {
-            doctorID: session?.user?.id,
+            doctorID: session?.user?.doctor_id,
           };
         })();
 

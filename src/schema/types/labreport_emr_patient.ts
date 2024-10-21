@@ -13,7 +13,7 @@ const emr_labreport = objectType({
     t.nullable.int('id');
     t.nullable.int('isEMR');
     t.nullable.string('patient');
-    t.nullable.string('patientID');
+    t.nullable.int('patientID');
     t.nullable.string('doctor');
     t.nullable.int('clinic');
     t.nullable.date('dateCreated');
@@ -35,6 +35,9 @@ const emr_labreport = objectType({
     t.nullable.field('patientInfo', {
       type: lab_patient_info,
       async resolve(root, _arg, _ctx) {
+        if(!root?.patientID) return;
+        console.log("Wag kana dito")
+
         const result: any = await client.patient.findFirst({
           where: {
             S_ID: Number(root?.patientID),
@@ -172,7 +175,7 @@ export const emr_labreport_attachments = objectType({
 const emr_doctorInfoObjectType = objectType({
   name: 'emr_doctorInfoObjectType',
   definition(t) {
-    t.id('EMPID');
+    t.nullable.id('EMPID');
     t.nullable.string('EMP_FULLNAME');
     t.nullable.string('EMP_FNAME');
     t.nullable.string('EMP_MNAME');
@@ -189,7 +192,7 @@ const emr_doctorInfoObjectType = objectType({
 const emr_clinicInfoObjetType = objectType({
   name: 'emr_clinicInfoObjetType',
   definition(t) {
-    t.id('id');
+    t.nullable.id('id');
     t.nullable.string('doctor_idno');
     t.nullable.string('clinic_name');
     t.nullable.string('schedule');
@@ -229,7 +232,7 @@ const emr_lab_clinicDPInfos = objectType({
 const emr_patientInfoObjectType = objectType({
   name: 'emr_patientInfoObjectType',
   definition(t) {
-    t.id('id');
+    t.nullable.id('id');
     t.nullable.int('patientID');
     t.nullable.int('doctorID');
     t.nullable.int('isEMR');
@@ -249,7 +252,7 @@ const emr_patientInfoObjectType = objectType({
     t.nullable.string('address');
     t.nullable.int('status');
     t.nullable.int('isdeleted');
-    t.field('patientRelation', {
+    t.nullable.field('patientRelation', {
       type: emr_patient_object,
     });
   },
@@ -260,7 +263,7 @@ const emr_patientInfoObjectType = objectType({
 const emr_patient_object = objectType({
   name: 'emr_patient_object',
   definition(t) {
-    t.id('IDNO');
+    t.nullable.id('IDNO');
     t.nullable.string('FULLNAME');
     t.nullable.string('FNAME');
     t.nullable.string('LNAME');
@@ -400,7 +403,7 @@ export const e_m_r_labreport_attachments_l = objectType({
 export const emr_patient_lab_attachments_requests = inputObjectType({
   name: 'emr_patient_lab_attachments_requests',
   definition(t) {
-    t.nullable.int('uuid');
+    t.nullable.string('uuid');
     t.nullable.int('take');
     t.nullable.int('skip');
     t.nullable.string('orderBy');
@@ -485,6 +488,21 @@ const filters = (args: any) => {
         lte: args?.data?.endDate,
       },
     };
+  }
+  if (args?.data!.startDate && !args?.data!.endDate) {
+    whereDate = {
+      dateCreated: {
+        gte: args?.data!.startDate,
+      },
+    };
+  }
+
+  if (!args?.data!.startDate && args?.data!.endDate) {
+    whereDate = {
+      dateCreated: {
+        lte: args?.data!.endDate,
+      },
+    }
   }
 
   const clinicIDs: any = args?.data?.clinicIds;
@@ -895,6 +913,9 @@ export const emr_labreport_patient_data = extendType({
             const _result: any = emr_labreport;
             const _total: any = count;
             ////////////////////////////////////////////////
+            console.log(_result[0]?.labreport_attachments,'labreport_attachments sa kabila________________')
+
+
             // OVERALL RESPONSE
             const response: any = {
               e_labreport_patient: _result,
@@ -1083,7 +1104,7 @@ export const emr_mutation_lab_report = extendType({
                 doctorID,
                 isEMR,
                 patient,
-                doctor,
+                doctor:doctor !== 'null' ? doctor:null,
                 clinic,
                 type,
                 resultDate,
@@ -1097,17 +1118,18 @@ export const emr_mutation_lab_report = extendType({
             const sFile = await args?.file;
             // console.log(sFile);
             console.log(session?.user,'HAHAHAHAHAAAAAAAAAAAAAAAAAAAAAAAA')
+            console.log(res,'resulttttttttttt')
 
             if (sFile) {
               const uploadResult = await useUpload(sFile, 'public/documents/');
-              uploadResult.map(async (v: any) => {
-                await client.labreport_attachments.create({
+              const result = uploadResult.map(async (v: any) => {
+                 await client.labreport_attachments.create({
                   data: {
                     emrPatientID,
                     doctorID,
                     isEMR,
                     patient:patient || session?.user?.S_ID,
-                    doctor,
+                    doctor:doctor !== 'null' ? doctor:null,
                     clinic,
                     labreport_id: labReportID,
                     file_name: String(v.fileName),
@@ -1117,6 +1139,7 @@ export const emr_mutation_lab_report = extendType({
                   },
                 });
               });
+              await Promise.all(result);
             }
   
             res = {
@@ -1125,6 +1148,7 @@ export const emr_mutation_lab_report = extendType({
               lab_report_data: res,
             };
           } catch (error) {
+            console.log(error,'errorrrrrrr')
             throw new GraphQLError(error);
           }
         }

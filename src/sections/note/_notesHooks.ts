@@ -80,13 +80,13 @@ export default function useNotesHooks(payloads: any) {
         }
       }).then((data)=>{
         // console.log(data,'DATA KOTO')
-        const { allRecordsbyPatientNew } = data?.data;
+        // const { allRecordsbyPatientNew } = data?.data;
         setLoading(false)
-        setTableData1(allRecordsbyPatientNew?.Records_data);
-        setIds(allRecordsbyPatientNew?.RecordIds);
-        setTotalData(allRecordsbyPatientNew?.total_records);
+        setTableData1(data?.data?.allRecordsbyPatientNew?.Records_data);
+        setIds(data?.data?.allRecordsbyPatientNew?.RecordIds);
+        setTotalData(data?.data?.allRecordsbyPatientNew?.total_records);
         setIsLoadingPatient(false);
-        setClinicData(allRecordsbyPatientNew?.clinic)
+        setClinicData(data?.data?.allRecordsbyPatientNew?.clinic)
       })
     }
   },[recordPatientResult.data,

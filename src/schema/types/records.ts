@@ -3001,7 +3001,7 @@ const customFuncEMR = async (
         doctorID: session?.user?.permissions?.doctorID,
       };
     return {
-      doctorID: session?.user?.id,
+      doctorID: session?.user?.doctor_id,
     };
   })();
 
@@ -3029,7 +3029,6 @@ const customFuncEMR = async (
   if (emrData) {
     const isLinked = emrData.link !== 0;
     if (isLinked) {
-      console.log('Linked naman');
       const [medNoteData, _count]: any = await client.$transaction([
         client.records.findMany({
           skip,
@@ -3173,7 +3172,6 @@ const customFuncEMR = async (
           ...orderConditions,
         }),
       ]);
-      console.log(medNoteData, 'dito pala tnginaa!');
 
       records = medNoteData;
       count = _count;

@@ -16,6 +16,7 @@ import { POST_VITALS_USER } from '@/libs/gqls/notes/notesVitals';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { POST_VITALS_CATEGORY } from '@/libs/gqls/vitals';
+import { useParams, usePathname } from 'next/navigation';
 // import { DR_CLINICS } from 'src/libs/gqls/drprofile';
 // ----------------------------------------------------------------------
 
@@ -35,6 +36,7 @@ export default function VitalNewCategoryForm({addedCategory, onClose, items, ref
     // title: Yup.string().required("Title is required"),
     // unit: Yup.string().required("Unit is required"),
   });
+  const {id} = useParams();
 
   // const {
   //   data: drClinicData,
@@ -106,12 +108,18 @@ export default function VitalNewCategoryForm({addedCategory, onClose, items, ref
   // user
   // console.log('@@@', items);
 
+  const pathname = usePathname()
+
+  const isEmr =pathname.includes('my-emr');
+
   const [createVitals] = useMutation(POST_VITALS_CATEGORY);
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: any = {
         title: String(model.title),
         unit: String(model.unit),
+        isEmr,
+        uuid:id
       };
       createVitals({
         variables: {
@@ -129,7 +137,7 @@ export default function VitalNewCategoryForm({addedCategory, onClose, items, ref
           enqueueSnackbar('Something went wrong', { variant: 'error' });
         });
     },
-    [createVitals, enqueueSnackbar, items?.patientID, items?.report_id, refetch, reset]
+    [createVitals,isEmr, id, enqueueSnackbar, items?.patientID, items?.report_id, refetch, reset]
   );
 
   // useEffect(() => {
@@ -298,6 +306,8 @@ export default function VitalNewCategoryForm({addedCategory, onClose, items, ref
               }}
             />
           </Box> */}
+
+          
         </FormProvider>
       </DialogContent>
 

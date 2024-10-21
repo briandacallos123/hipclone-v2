@@ -79,7 +79,7 @@ export const DoctorClinics = extendType({
               doctorID: session?.user?.permissions?.doctorID,
             };
           return {
-            doctorID: session?.user?.id,
+            doctorID: session?.user?.doctor_id,
           };
         })();
 

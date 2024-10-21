@@ -28,9 +28,10 @@ type Props = {
   items: any;
   refetch: any;
   repID: any;
+  addedCategory:any;
 };
 
-export default function EmrVitalNewEditForm({ onClose, items, refetch, repID }: Props) {
+export default function EmrVitalNewEditForm({addedCategory, onClose, items, refetch, repID }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const params = useParams();
@@ -67,36 +68,41 @@ export default function EmrVitalNewEditForm({ onClose, items, refetch, repID }: 
     bodyMass: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Body Mass must be greater than 0')
-          .required('Body Mass is required'),
+        .moreThan(0, 'Body Mass must be greater than 0')
+        .required('Body Mass is required'),
     bloodPressureMm: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Blood Pressure (mm) must be greater than 0')
-          .required('Blood Pressure (mm) is required'),
+        .moreThan(0, 'Blood Pressure (mm) must be greater than 0')
+        .required('Blood Pressure (mm) is required'),
     bloodPressureHg: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Blood Pressure (Hg) must be greater than 0')
-          .required('Blood Pressure (Hg) is required'),
+        .moreThan(0, 'Blood Pressure (Hg) must be greater than 0')
+        .required('Blood Pressure (Hg) is required'),
     oxygen: !condition
       ? Yup.number().default(0)
       : Yup.number().moreThan(0, 'Oxygen must be greater than 0').required('Oxygen is required'),
     respiratory: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Respiratory rate must be greater than 0')
-          .required('Respiratory rate is required'),
+        .moreThan(0, 'Respiratory rate must be greater than 0')
+        .required('Respiratory rate is required'),
     heart: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Heart rate must be greater than 0')
-          .required('Heart rate is required'),
+        .moreThan(0, 'Heart rate must be greater than 0')
+        .required('Heart rate is required'),
     temperature: !condition
       ? Yup.number().default(0)
       : Yup.number()
-          .moreThan(0, 'Temperature must be greater than 0')
-          .required('Temperature is required'),
+        .moreThan(0, 'Temperature must be greater than 0')
+        .required('Temperature is required'),
+    sugarMonitoring: !condition
+      ? Yup.number().default(0)
+      : Yup.number()
+        .moreThan(0, 'Sugar Monitoring must be greater than 0')
+        .required('Sugar Monitoring is required'),
   });
 
   const defaultValues = useMemo(
@@ -107,6 +113,7 @@ export default function EmrVitalNewEditForm({ onClose, items, refetch, repID }: 
       bodyMass: 0,
       bloodPressureMm: 0,
       bloodPressureHg: 0,
+      sugarMonitoring: 0,
       oxygen: 0,
       respiratory: 0,
       heart: 0,
@@ -184,6 +191,7 @@ export default function EmrVitalNewEditForm({ onClose, items, refetch, repID }: 
         oxygen: String(model.oxygen),
         heartRate: String(model.heart),
         bodyTemp: String(model.temperature),
+        bsm: String(model?.sugarMonitoring),
         respRate: String(model.respiratory),
       };
       createVitals({
@@ -384,6 +392,30 @@ export default function EmrVitalNewEditForm({ onClose, items, refetch, repID }: 
                 endAdornment: <InputAdornment position="end">°C</InputAdornment>,
               }}
             />
+
+            <RHFTextField
+              type="number"
+              name="sugarMonitoring"
+              label="Blood sugar monitoring"
+              placeholder="0"
+              InputLabelProps={{ shrink: true }}
+              InputProps={{
+                endAdornment: <InputAdornment position="end">%</InputAdornment>,
+              }}
+            />
+
+            {addedCategory?.map((item) => (
+              <RHFTextField
+                type="number"
+                name={item?.title}
+                label={item?.title}
+                placeholder="0"
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  endAdornment: <InputAdornment position="end">{item?.measuring_unit}</InputAdornment>,
+                }}
+              />
+            ))}
           </Box>
         </FormProvider>
       </DialogContent>

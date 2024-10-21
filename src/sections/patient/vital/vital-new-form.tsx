@@ -118,14 +118,14 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
       : Yup.number()
         .moreThan(0, 'Temperature must be greater than 0')
         .required('Temperature is required'),
-        sugarMonitoring: !condition
-    ? Yup.number().default(0)
-    : Yup.number()
-      .moreThan(0, 'Sugar Monitoring must be greater than 0')
-      .required('Sugar Monitoring is required'),
-  
+    sugarMonitoring: !condition
+      ? Yup.number().default(0)
+      : Yup.number()
+        .moreThan(0, 'Sugar Monitoring must be greater than 0')
+        .required('Sugar Monitoring is required'),
 
-        
+
+
     ...dynamicFields
   });
 
@@ -137,7 +137,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
       bodyMass: 0,
       bloodPressureMm: 0,
       bloodPressureHg: 0,
-      sugarMonitoring:0,
+      sugarMonitoring: 0,
       oxygen: 0,
       respiratory: 0,
       heart: 0,
@@ -173,7 +173,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
             noZero = false
           }
         })
-        console.log(noZero,'code zero')
+        console.log(noZero, 'code zero')
         return noZero;
       })()
     ) {
@@ -234,7 +234,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
         oxygen: String(model.oxygen),
         heartRate: String(model.heart),
         bodyTemp: String(model.temperature),
-        bsm:String(model?.sugarMonitoring),
+        bsm: String(model?.sugarMonitoring),
         respRate: String(model.respiratory),
         categoryValues: [...model.categoryData]
 
@@ -275,15 +275,15 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
 
   const [datas, setData] = useState({});
 
-  useEffect(()=>{
-    if(snackKey){
+  useEffect(() => {
+    if (snackKey) {
 
-     handleSubmitValue(myData);
-    // alert(1)
+      handleSubmitValue(myData);
+      // alert(1)
     }
-  },[snackKey])
+  }, [snackKey])
 
-  console.log(snackKey,'snackKey')
+  console.log(snackKey, 'snackKey')
 
   const onSubmit = useCallback(
     async (data: NexusGenInputs['notesVitalInputType']) => {
@@ -302,7 +302,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
           }
         })
 
-        
+
         setMyData({
           ...data,
           categoryData: [...categoryData]
@@ -347,7 +347,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
         console.error(error);
       }
     },
-    [enqueueSnackbar,snackKey, handleSubmitValue, onClose, reset, refetch, addedCategoryTitle]
+    [enqueueSnackbar, snackKey, handleSubmitValue, onClose, reset, refetch, addedCategoryTitle]
   );
 
   const { getItem } = useSessionStorage()
@@ -359,7 +359,7 @@ export default function PatientVitalNewEditForm({ addedCategory, onClose, items,
     }
   }, [])
 
-  console.log(createVitalsResult,'createVitalsResultcreateVitalsResult')
+  console.log(createVitalsResult, 'createVitalsResultcreateVitalsResult')
 
 
   return (

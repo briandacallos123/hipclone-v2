@@ -20,6 +20,7 @@ import { useNavData } from './config-navigation';
 import { NavToggleButton, NavFooter } from '../_common';
 import Link from 'next/link';
 import { paths } from '@/routes/paths';
+import NotificationController from '../_common/notifications-popover/notification-controller';
 
 // ----------------------------------------------------------------------
 
@@ -32,6 +33,7 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
   const { user } = useAuthContext();
 
 
+  
 
   const pathname = usePathname();
 

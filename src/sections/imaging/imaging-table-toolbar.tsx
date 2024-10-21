@@ -144,7 +144,7 @@ export default function ImagingTableToolbar({
             fullWidth
             value={filters.name}
             onChange={handleFilterName}
-            placeholder="Search type or lab name..."
+            placeholder="Search  lab name..."
             InputProps={{
               startAdornment: (
                 <InputAdornment position="start">

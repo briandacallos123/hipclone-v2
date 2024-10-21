@@ -79,6 +79,7 @@ export const notesVitalInputType = inputObjectType({
     t.nullable.string('dateCreated');
     t.nullable.int('doctorID');
     t.nullable.int('skip');
+    t.nullable.boolean('isEmr');
     t.nullable.int('take');
     t.nullable.int('emrID');
     t.nullable.string('weight');
@@ -687,19 +688,18 @@ const customFuncVitalEMRPatient = async (
         doctorID: session?.user?.permissions?.doctorID,
       };
     return {
-      doctorID: session?.user?.id,
+      doctorID: session?.user?.doctor_id,
     };
   })();
 
   if (emrData) {
     const isLinked = emrData.link === 1;
     if (isLinked) {
-      console.log(emrData, 'lnked');
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
-          take: 10,
+          take: args?.data?.take,
           orderBy: {
-            id: 'desc',
+            id: 'asc',
           },
           where: {
             // date: {
@@ -731,7 +731,7 @@ const customFuncVitalEMRPatient = async (
         client.notes_vitals.findMany({
           take: 10,
           orderBy: {
-            id: 'desc',
+            id: 'asc',
           },
           where: {
             // date: {
@@ -802,7 +802,6 @@ export const PostVitals = extendType({
                     isDeleted: 0
                   }
                 })
-                console.log(categoryId, "categoryId")
   
                 const vitalData = await client.vital_data.create({
                   data: {
@@ -867,7 +866,8 @@ export const PostVitalsEMR = extendType({
               clinic: createData?.clinicID,
               report_id: createData?.recordID,
               emrPatientID: createData?.emrID,
-              doctorID: session?.user?.id,
+              doctorID: session?.user?.doctor_id,
+              isEMR:1,
 
               wt: createData?.weight,
               ht: createData?.height,
@@ -876,6 +876,7 @@ export const PostVitalsEMR = extendType({
               bp2: createData?.bloodPresHG,
               spo2: createData?.oxygen,
               hr: createData?.heartRate,
+              bsm:createData?.bsm,
               bt: createData?.bodyTemp,
               rr: createData?.respRate,
             },

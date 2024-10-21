@@ -108,8 +108,8 @@ export const QueryAllVitalData = extendType({
                     }).then(async (res) => {
 
                         result = await client.vital_data.findMany({
-                            skip:createData?.skip,
-                            take:createData?.take,
+                            skip: createData?.skip,
+                            take: createData?.take,
                             where: {
                                 patientId: Number(res),
                                 isDeleted: 0,
@@ -118,8 +118,8 @@ export const QueryAllVitalData = extendType({
                             include: {
                                 vital_category: true
                             },
-                            orderBy:{
-                                createdAt:'asc'
+                            orderBy: {
+                                createdAt: 'asc'
                             }
                         })
                     })
@@ -143,7 +143,9 @@ export const QueryAllVitalData = extendType({
 const QueryAllCategoryInput = inputObjectType({
     name: "QueryAllCategoryInput",
     definition(t) {
-        t.nullable.string('uuid')
+        t.nullable.string('uuid');
+        t.nullable.boolean('isEmr');
+
     },
 })
 
@@ -157,7 +159,7 @@ export const QueryAllCategory = extendType({
 
                 const { session } = ctx;
                 let patientId: any;
-                let response:any;
+                let response: any;
 
                 await new Promise((resolve, reject) => {
                     if (session?.user?.role === 'patient') {
@@ -165,31 +167,50 @@ export const QueryAllCategory = extendType({
                         resolve(session?.user?.s_id)
                     } else {
                         (async () => {
-                            const patient = await client.user.findFirst({
-                                where: {
-                                    uuid: args?.data?.uuid
-                                }
-                            });
-                            patientId = await client.patient?.findFirst({
-                                where: {
-                                    EMAIL:patient?.email
-                                }
-                            });
-                            resolve(patientId?.S_ID)
+                            let id: any;
+
+                            if (!args?.data?.isEmr) {
+                                const patient = await client.user.findFirst({
+                                    where: {
+                                        uuid: args?.data?.uuid
+                                    }
+                                });
+                                patientId = await client.patient?.findFirst({
+                                    where: {
+                                        EMAIL: patient?.email
+                                    }
+                                });
+                                id = patientId?.S_ID
+                            } else {
+
+                                id = args?.data?.uuid;
+                            }
+                            resolve(id)
                         })()
                     }
-                }).then(async(res)=>{
+                }).then(async (res) => {
+                    console.log(res, 'ressssssssssssssssssssssssssss')
 
-                    
+                    const target = (() => {
+                        if (!args?.data?.isEmr) {
+                            return {
+                                patientId: Number(res)
+                            }
+                        }
+                        return {
+                            emrPatientId: Number(res)
+                        }
+                    })()
+
                     response = await client.vital_category.findMany({
                         where: {
-                            patientId: Number(res),
+                            ...target,
                             isDeleted: 0
                         }
                     })
                 })
 
-          
+
 
                 return {
                     dataList: response,
@@ -211,7 +232,8 @@ const CreateNewCategoryVitalsInp = inputObjectType({
     definition(t) {
         t.string("title");
         t.string("unit");
-        t.nullable.string('uuid')
+        t.nullable.string('uuid');
+        t.nullable.boolean('isEmr')
     },
 })
 
@@ -227,29 +249,35 @@ export const CreateNewCategoryVitals = extendType({
                     const { session } = ctx;
                     const { user } = session;
 
+                    const isEmr = args?.data?.isEmr
+
                     const { title, unit }: any = args?.data
                     let patientId: any;
 
-                    await new Promise((resolve, reject)=>{
+                    await new Promise((resolve, reject) => {
                         if (user?.role === 'patient') {
                             patientId = Number(user?.s_id)
                             resolve(Number(user?.s_id))
-                        }else{
-                            (async () => {
-                                const patient = await client.user.findFirst({
-                                    where: {
-                                        uuid: args?.data?.uuid
-                                    }
-                                });
-                                const res = await client.patient?.findFirst({
-                                    where: {
-                                        EMAIL:patient?.email
-                                    },
+                        } else {
+                            if (!isEmr) {
+                                (async () => {
+                                    const patient = await client.user.findFirst({
+                                        where: {
+                                            uuid: args?.data?.uuid
+                                        }
+                                    });
+                                    const res = await client.patient?.findFirst({
+                                        where: {
+                                            EMAIL: patient?.email
+                                        },
 
-                                });
-                                patientId = res?.S_ID
-                                resolve(patientId?.S_ID)
-                            })()
+                                    });
+                                    patientId = res?.S_ID
+                                    resolve(patientId?.S_ID)
+                                })()
+                            } else {
+                                resolve(args?.data?.uuid)
+                            }
                         }
                     })
 
@@ -257,7 +285,7 @@ export const CreateNewCategoryVitals = extendType({
                     //     if (user?.role === 'patient') {
                     //         return Number(user?.s_id)
                     //     } else {
-                          
+
 
                     //         return Number(args?.data?.patientId)
                     //     }
@@ -265,17 +293,30 @@ export const CreateNewCategoryVitals = extendType({
 
                     const doctorIdVal = (() => {
                         if (user?.role !== 'patient') {
-                            return Number(user?.id)
+                            return Number(user?.doctor_id)
                         } else {
                             return null;
                         }
                     })()
 
+                    const patientValEmr = (()=>{
+                        if(isEmr){
+                            return {
+                                emrPatientId:Number(args?.data?.uuid)
+                            }
+                        }
+                        return {
+                            patientId: patientId
+                        }
+                    })()
+
+                    console.log(patientValEmr,'awitt')
+
                     await client.vital_category.create({
                         data: {
                             measuring_unit: unit,
                             title,
-                            patientId: patientId,
+                            ...patientValEmr,
                             createdBy: Number(user?.id),
                             doctorId: doctorIdVal
 

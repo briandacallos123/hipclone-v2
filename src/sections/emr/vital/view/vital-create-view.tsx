@@ -6,6 +6,8 @@ import DialogTitle from '@mui/material/DialogTitle';
 //
 import { useResponsive } from 'src/hooks/use-responsive';
 import EmrVitalNewEditForm from '../vital-new-form';
+import { Button, Stack } from '@mui/material';
+import Iconify from '@/components/iconify';
 
 // ----------------------------------------------------------------------
 
@@ -15,11 +17,14 @@ type Props = {
   items: any;
   refetch: any;
   repID: any;
+  openCategory:()=>void;
+  addedCategory:any;
+
 };
 
 // ----------------------------------------------------------------------
 
-export default function EmrVitalCreateView({ open, onClose, items, refetch, repID }: Props) {
+export default function EmrVitalCreateView({addedCategory, open, onClose,openCategory, items, refetch, repID }: Props) {
   const upMd = useResponsive('up', 'md');
   return (
     <Dialog
@@ -32,9 +37,18 @@ export default function EmrVitalCreateView({ open, onClose, items, refetch, repI
         sx: { maxWidth: 720 },
       }}
     >
-      <DialogTitle>Add New Vital Reading</DialogTitle>
+      {/* <DialogTitle>Add New Vital Reading</DialogTitle> */}
 
-      <EmrVitalNewEditForm onClose={onClose} items={items} refetch={refetch} />
+      <Stack direction="row" sx={{ pr: 2 }} alignItems="center" justifyContent="space-between">
+        <DialogTitle>Add New Vital Reading</DialogTitle>
+        
+        <Button size={upMd?'medium':'small'} sx={{
+          fontSize:!upMd && 14
+        }} onClick={openCategory} startIcon={<Iconify icon="mingcute:add-line" />} variant="contained">Add Category</Button>
+      </Stack>
+
+
+      <EmrVitalNewEditForm addedCategory={addedCategory} onClose={onClose} items={items} refetch={refetch} />
     </Dialog>
   );
 }

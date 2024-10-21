@@ -6,7 +6,7 @@ import Box from '@mui/material/Box';
 import Stack from '@mui/material/Stack';
 import Button from '@mui/material/Button';
 // hooks
-import { usePathname } from 'src/routes/hook';
+import { useParams, usePathname } from 'src/routes/hook';
 import { useBoolean } from 'src/hooks/use-boolean';
 // types
 // components
@@ -16,6 +16,10 @@ import { useLazyQuery } from '@apollo/client';
 import { get_note_vitals, get_note_vitals_patient_emr } from '@/libs/gqls/notes/notesVitals';
 import { VitalView } from 'src/sections/vital/view';
 import EmrVitalCreateView from './vital-create-view';
+import VitalCreateNewSingle from '@/sections/profile/vital/view/vital-create-new-single';
+import { useAuthContext } from '@/auth/hooks';
+import { GetAllVitalCategories } from '@/libs/gqls/vitals';
+import VitalCreateNew from '@/sections/profile/vital/view/vital-create-new';
 
 // ----------------------------------------------------------------------
 
@@ -27,9 +31,19 @@ type Props = {
 export default function EmrVitalView({ items, uuid }: Props) {
   const openCreate = useBoolean();
   // console.log('vitals Data: ', items);
+  const [take, setTake] = useState(100);
+
+  const {id} = useParams()
 
   const pathname = usePathname();
+
+  const isEmr = pathname.includes('my-emr')
+
+  const { user } = useAuthContext();
+
   const [isPatient, setIspatient] = useState(true);
+
+  const [addCategory, setAddCategory] = useState([])
 
   useEffect(() => {
     if (pathname.includes('user')) {
@@ -39,7 +53,38 @@ export default function EmrVitalView({ items, uuid }: Props) {
     }
   }, [pathname]);
 
+  const [
+    getVitalsData,
+    vitalsResult,
+  ] = useLazyQuery(GetAllVitalCategories, {
+    context: {
+      requestTrackerId: 'getVitalsCategory[getRecVitals]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+
+  useEffect(() => {
+    getVitalsData({
+      variables: {
+        data: {
+          uuid,
+          isEmr
+        }
+      }
+    }).then(async (res: any) => {
+      const { data } = res;
+      if (data) {
+        const { QueryAllCategory } = data;
+        setAddCategory(QueryAllCategory?.dataList)
+      }
+    })
+  }, [vitalsResult.data])
+
+  console.log(addCategory,'addCategory')
+
   const [chartData, setChartData] = useState<any>([]);
+  
   const [getData, { data, loading, error, refetch }] = useLazyQuery(get_note_vitals_patient_emr, {
     context: {
       requestTrackerId: 'getVitals[gREC]',
@@ -53,6 +98,7 @@ export default function EmrVitalView({ items, uuid }: Props) {
         data: {
           patientID: Number(items?.patientInfo?.S_ID),
           emrID: Number(uuid),
+          take
         },
       },
     }).then(async (result: any) => {
@@ -82,9 +128,23 @@ export default function EmrVitalView({ items, uuid }: Props) {
     });
   };
 
+  const openCreateVital = useBoolean();
+
+  const openVitalCategory = () => {
+    openCreateVital.onTrue()
+  }
+
   const report_ID = chartData[0]?.report_id;
-  // console.log('newData2: ', report_ID);
-  // console.log('newData2: ', chartData);
+
+  const [singleData, setSingleData] = useState(null);
+
+  const openCreateSingle = useBoolean();
+
+  const openVitalSingle = (props:any) => {
+    setSingleData(props)
+    openCreateSingle.onTrue()
+  }
+
   return (
     <>
       <Box>
@@ -98,15 +158,45 @@ export default function EmrVitalView({ items, uuid }: Props) {
           </Button>
         </Stack>
 
-        {chartData && <VitalView items={chartData} loading={loading} />}
+        {chartData && <VitalView  refetch={refetch} openSingle={openVitalSingle} items={chartData} loading={loading} />}
       </Box>
+
+      <VitalCreateNew
+        open={openCreateVital.value}
+        onClose={openCreateVital.onFalse}
+        refetch={() => {
+          vitalsResult.refetch()
+        }}
+        uuid={id}
+        items={chartData}
+        addedCategory={addCategory}
+        user={user}
+      />
+
+      <VitalCreateNewSingle
+        open={openCreateSingle.value}
+        onClose={openCreateSingle.onFalse}
+        refetch={() => {
+          // vitalDataResults.refetch()
+          // dataResults.refetch()
+        }}
+        items={chartData}
+        addedCategory={addCategory}
+        openCategory={openVitalCategory}
+        data={singleData}
+        user={user}
+      />
 
       <EmrVitalCreateView
         open={openCreate.value}
         onClose={openCreate.onFalse}
         items={items}
         repID={report_ID}
+        addedCategory={addCategory}
+        
         refetch={handleRefetch}
+        openCategory={openVitalCategory}
+
       />
     </>
   );

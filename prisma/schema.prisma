@@ -511,6 +511,7 @@ model emr_patient {
   prescriptions_child       prescriptions_child[]
   records                   records[]
   smoking                   smoking[]
+  vital_category            vital_category[]
 
   @@unique([id, isEMR])
   @@index([doctorID], map: "emr_patient_ibfk_1")
@@ -1761,17 +1762,21 @@ model notification_group {
 model vital_category {
   id             Int          @id @default(autoincrement())
   title          String       @db.VarChar(255)
-  patientId      Int
+  patientId      Int?
   doctorId       Int?
+  isEmr          Int?         @default(0)
+  emrPatientId   Int?
   createdBy      Int
   isCategory     Int          @default(1)
   createdAt      DateTime     @default(now()) @db.DateTime(0)
   isDeleted      Int          @default(0)
   measuring_unit String       @db.VarChar(255)
-  patient        patient      @relation(fields: [patientId], references: [S_ID], onUpdate: Restrict, map: "vital_category_ibfk_1")
+  patient        patient?     @relation(fields: [patientId], references: [S_ID], onDelete: Restrict, onUpdate: Restrict, map: "vital_category_ibfk_1")
+  emr_patient    emr_patient? @relation(fields: [emrPatientId], references: [id], onDelete: Restrict, onUpdate: Restrict, map: "vital_category_ibfk_2")
   vital_data     vital_data[]
 
   @@index([patientId], map: "patientId")
+  @@index([emrPatientId], map: "emrPatientId")
 }
 
 model vital_data {
@@ -1781,6 +1786,7 @@ model vital_data {
   categoryId     Int
   value          Int
   isEMR          Int?
+  emrPatientId   Int?
   clinicId       Int?
   reportId       Int?
   createdAt      DateTime       @default(now()) @db.DateTime(0)

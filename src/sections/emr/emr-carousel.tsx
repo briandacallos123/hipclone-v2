@@ -115,7 +115,7 @@ export default function EmrCarousel({ data, loading }: Props) {
   // }, [getData]);
 
   const carousel = useCarousel({
-    slidesToShow: 4,
+    slidesToShow: data?.length === 1 && 1 || data?.length === 2 && 2 || data?.length === 3 && 3 || 4,
     slidesToScroll: 1,
     rtl: Boolean(theme.direction === 'rtl'),
     initialSlide: currentIndex,

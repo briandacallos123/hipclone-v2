@@ -512,7 +512,7 @@ export const PostNotesVaccEMR = extendType({
                 patientID: createData.isLinked === 1 ? Number(createData.patientID) : null,
                 emrPatientID: Number(createData.emrPatientID),
                 R_TYPE: String(createData.R_TYPE), // 9
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(session?.user?.doctor_id),
                 isEMR: Number(1)
               },
             });
@@ -528,7 +528,7 @@ export const PostNotesVaccEMR = extendType({
                 diagnosis: String(createData.diagnosis),
                 eval: String(createData.eval),
 
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(session?.user?.doctor_id),
                 report_id: Number(recordVacc.R_ID),
 
                 // InOutPatient

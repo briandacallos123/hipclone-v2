@@ -45,7 +45,7 @@ export default function FeedsView() {
 
   const [feedDataNew, setFeedDataNew] = useState<any>([]);
   const [feedData, setFeedData] = useState<any>([]);
-  const { queryResults, handleSubmitCreate } = FeedsController({
+  const { queryResults, handleSubmitCreate} = FeedsController({
     skip: 0,
     take: Take,
     setFeedData: setFeedData,

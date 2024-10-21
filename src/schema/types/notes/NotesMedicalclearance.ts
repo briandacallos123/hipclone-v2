@@ -514,7 +514,7 @@ export const PostNotesClerEMR = extendType({
                 patientID: createData.isLinked === 1 ? Number(createData.patientID) : null,
                 emrPatientID: Number(createData.emrPatientID),
                 R_TYPE: String(createData.R_TYPE), // 10
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(session?.user?.doctor_id),
                 isEMR: Number(1),
               },
             });
@@ -523,7 +523,7 @@ export const PostNotesClerEMR = extendType({
                 clinic: Number(recordCler.CLINIC),
                 patientID: createData.isLinked === 1 ? Number(createData.patientID) : null,
                 emrPatientID: Number(createData.emrPatientID),
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(session?.user?.doctor_id),
                 isEMR: Number(1),
                 report_id: Number(recordCler.R_ID),
 

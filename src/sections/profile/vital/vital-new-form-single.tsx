@@ -15,7 +15,7 @@ import FormProvider, { RHFTextField } from 'src/components/hook-form';
 import { POST_VITALS, POST_VITALS_USER } from '@/libs/gqls/notes/notesVitals';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 // import { DR_CLINICS } from 'src/libs/gqls/drprofile';
 // ----------------------------------------------------------------------
 
@@ -41,20 +41,15 @@ export default function ProfileVitalNewEditFormSingle({ data, addedCategory, onC
   // user na to
   const addedCategoryTitle = addedCategory?.map((item) => item.title)
   const { id } = useParams();
+  
+  const pathname = usePathname();
+
+  const isEmr = pathname.includes('my-emr');
+ 
 
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [condition, setCondition] = useState<boolean>(false);
-  // console.log(addedCategory,'?????????')
-
-  // const dynamicFields = (() => {
-  //   const validationSchema = addedCategory?.reduce((acc, item) => {
-  //     const { title } = item;
-  //     acc[title] = !condition  ? Yup.number().default(0) : Yup.number().moreThan(0, `${title} must be greater than 0`).required(`${title} is required`);
-  //     return acc;
-  //   }, {});
-  //   return validationSchema;
-  // })();
-
+  
 
   const defFields = (() => {
     const validationSchema = addedCategory?.reduce((acc, item) => {
@@ -65,18 +60,6 @@ export default function ProfileVitalNewEditFormSingle({ data, addedCategory, onC
     return validationSchema;
   })();
 
-  // const defFields = (()=>{
-  //   const data = addedCategory?.map((item)=>{
-  //     return {
-  //       [item?.title]:0
-  //     }
-  //   })
-  //   return data;
-  // })()
-
-  // console.log(defFields,'YEYYYYYYYYYYYYYYYYYYYYY')?
-
-
 
 
   const NewVitalSchema = Yup.object().shape({
@@ -84,26 +67,8 @@ export default function ProfileVitalNewEditFormSingle({ data, addedCategory, onC
     // ...dynamicFields
   });
 
-  // const {
-  //   data: drClinicData,
-  //   error: drClinicError,
-  //   loading: drClinicLoad,
-  //   refetch: drClinicFetch,
-  // }: any = useQuery(DR_CLINICS);
-  // const [clinicData, setclinicData] = useState<any>([]);
 
-  // useEffect(() => {
-  //   drClinicFetch().then((result: any) => {
-  //     const { data } = result;
-  //     if (data) {
-  //       const { doctorClinics } = data;
-  //       setclinicData(doctorClinics);
-  //     }
-  //   });
-  //   return () => drClinicFetch();
-  // }, []);
 
-  console.log(data, "DATA NA PINAPASA")
 
   const defaultValues = useMemo(
     () => ({
@@ -207,7 +172,11 @@ export default function ProfileVitalNewEditFormSingle({ data, addedCategory, onC
 
       createVitals({
         variables: {
-          data: { ...payload },
+          data: { 
+            ...payload,
+            isEmr
+          
+          },
         },
       })
         .then(async (res) => {
@@ -236,7 +205,7 @@ export default function ProfileVitalNewEditFormSingle({ data, addedCategory, onC
       // };
 
     },
-    [createVitals, data, snackKey, enqueueSnackbar, items?.patientID, items?.report_id, refetch, reset]
+    [createVitals,isEmr, data, snackKey, enqueueSnackbar, items?.patientID, items?.report_id, refetch, reset]
   );
 
   useEffect(() => {

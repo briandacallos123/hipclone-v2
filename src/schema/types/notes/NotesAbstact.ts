@@ -544,7 +544,7 @@ export const PostNotesAbsEMR = extendType({
                 emrPatientID: Number(createData.emrPatientID),
                 // ...ifLinked,
                 R_TYPE: String(createData.R_TYPE), // 10
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(session?.user?.doctor_id),
                 isEMR: Number(1),
               },
             });
@@ -556,7 +556,7 @@ export const PostNotesAbsEMR = extendType({
                 // ...ifLinked,
 
                 isEMR: Number(1),
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(session?.user?.doctor_id),
                 report_id: Number(recordAbs.R_ID),
 
                 complaint: String(createData.complaint),

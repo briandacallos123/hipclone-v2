@@ -604,7 +604,7 @@ export const PostNotesTxtEMR = extendType({
                 patientID: createData.isLinked === 1 ? Number(createData.patientID) : null,
                 emrPatientID: Number(createData.emrPatientID),
                 R_TYPE: String(createData.R_TYPE),
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(session?.user?.doctor_id),
                 isEMR: Number(1),
               },
             });
@@ -617,7 +617,7 @@ export const PostNotesTxtEMR = extendType({
                 dateCreated: String(createData.dateCreated),
                 title: String(createData.title),
                 text_data: String(createData.text_data),
-                doctorID: Number(session?.user?.id),
+                doctorID: Number(session?.user?.doctor_id),
                 report_id: Number(recordNotes.R_ID),
               },
             });
@@ -635,7 +635,7 @@ export const PostNotesTxtEMR = extendType({
                 await client.notes_text_attachments.create({
                   data: {
                     emrPatientID: createData?.emrPatientID,
-                    doctorID: session?.user?.id,
+                    doctorID: session?.user?.doctor_id,
                     clinic: Number(createData?.CLINIC),
                     notes_text_id: newChild?.id,
                     // userID: session?.user?.id,

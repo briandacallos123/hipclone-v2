@@ -40,7 +40,9 @@ export default function PatientVitalCreateView({addedCategory, openCategory, ope
        */}
 
       <Stack direction="row" sx={{ pr: 2 }} alignItems="center" justifyContent="space-between">
+        
         <DialogTitle>Add New Vital Reading</DialogTitle>
+
         <Button size={upMd?'medium':'small'} sx={{
           fontSize:!upMd && 14
         }} onClick={openCategory} startIcon={<Iconify icon="mingcute:add-line" />} variant="contained">Add Category</Button>

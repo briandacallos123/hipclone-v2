@@ -44,6 +44,9 @@ export default function ImagingTableFiltersResult({
     onFilters('endDate', null);
   };
 
+  console.log(hospitalOptions,'clinicss')
+  console.log(filters.clinic,'hospitalll')
+
   return (
     <Stack spacing={1.5} {...other}>
       <Box sx={{ typography: 'body2' }}>

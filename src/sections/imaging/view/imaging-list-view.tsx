@@ -200,19 +200,6 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
 
 
 
-
-
-
-  useEffect(() => {
-    if (isRefetch) {
-      labRefetch().then(() => {
-        setRefetch(false);
-      });
-      // drClinicFetch()
-
-    }
-  }, [isRefetch]);
-
   const handleResetFilters = useCallback(() => {
     setFilters({
       name: '',
@@ -287,13 +274,33 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
 
   //////////////////////////////////////////////////////////////////////////
  
+  useEffect(() => {
+    if (isRefetch) {
+      labRefetch().then(() => {
+        setRefetch(false);
+      });
+      // drClinicFetch()
+
+    }
+  }, [isRefetch]);
+
+  const {
+    data: drClinicData,
+    error: drClinicError,
+    loading: drClinicLoad,
+    refetch: drClinicFetch,
+  }: any = useQuery(DoctorClinicsHistory);
+
+  
+  const [doctorClinics, setDoctorClinics] = useState([]);
 
 
-  // useEffect(() => {
-  //   if ((drClinicData && user?.role === 'doctor') || user?.role === 'secretary') {
-  //     setclinicData(drClinicData?.DoctorClinicsHistory);
-  //   }
-  // }, [drClinicData]);
+
+  useEffect(() => {
+    if ((drClinicData && user?.role === 'doctor') || user?.role === 'secretary') {
+      setDoctorClinics(drClinicData?.DoctorClinicsHistory);
+    }
+  }, [drClinicData]);
 
   // import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
   const [clinicPayload, setClinicPayload] = useState<any>([]);
@@ -427,7 +434,7 @@ const renderView = (
         onFilters={handleFilters}
         action={action}
         //
-        hospitalOptions={clinicData || clinicDataPatient}
+        hospitalOptions={clinicData || doctorClinics || clinicDataPatient}
         // hospitalOptions={HOSPITAL_OPTIONS.map((option) => option)}
       />
 
@@ -435,7 +442,7 @@ const renderView = (
         <ProfileImagingTableFiltersResult
           filters={filters}
           onFilters={handleFilters}
-          hospitalOptions={clinicData}
+          hospitalOptions={clinicData || doctorClinics}
           //
           onResetFilters={handleResetFilters}
           //
