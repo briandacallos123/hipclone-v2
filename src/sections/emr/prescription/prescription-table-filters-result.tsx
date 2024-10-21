@@ -42,6 +42,8 @@ export default function EmrPrescriptionTableFiltersResult({
     onFilters('endDate', null);
   };
 
+  console.log(filters.hospital,'hospitallll')
+
   return (
     <Stack spacing={1.5} {...other}>
       <Box sx={{ typography: 'body2' }}>
@@ -65,7 +67,7 @@ export default function EmrPrescriptionTableFiltersResult({
           </Block>
         )}
 
-        {filters.startDate && filters.endDate && (
+        {(filters.startDate || filters.endDate) && (
           <Block label="Date:">
             <Chip size="small" label={shortLabel} onDelete={handleRemoveDate} />
           </Block>

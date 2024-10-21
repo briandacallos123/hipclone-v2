@@ -1,4 +1,4 @@
-import { fDateTime } from 'src/utils/format-time';
+import { fDateTime, fDate } from 'src/utils/format-time';
 // @mui
 import { styled, alpha } from '@mui/material/styles';
 import Avatar from '@mui/material/Avatar';
@@ -57,7 +57,9 @@ export default function EmrPrescriptionTableRow({ row, onEditRow, onViewRow }: P
 
   const { DATE, clinicInfo, ID } = row;
 
-  const date = new Date(Number(DATE));
+  // const date = new Date(Number(DATE));
+  const date = new Date(DATE);
+  // console.log(new Date('2024-10-21T00:00:00'), 'date');
 
   if (!upMd) {
     return (
@@ -142,7 +144,7 @@ export default function EmrPrescriptionTableRow({ row, onEditRow, onViewRow }: P
       </TableCell>
 
       {/* <TableCell>{format(new Date(date), 'dd MMM yyyy')}</TableCell> */}
-      <TableCell>{fDateTime(date)}</TableCell>
+      <TableCell>{fDate(date)}</TableCell>
 
       <TableCell align="right" sx={{ px: 1, whiteSpace: 'nowrap' }}>
         <Tooltip title="View Details" placement="top" arrow>

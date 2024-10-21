@@ -192,9 +192,12 @@ export default function VitalFullscreen({ refetch, title, open, onClose, chart, 
   });
 
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+  const [showSaving, setShowSaving] = useState(true);
+  const [snackKey, setSnackKey]: any = useState(null);
+  const [deleteData, setDeleteData] = useState(null);
 
-  const handleDeleteRow = useCallback((row) => {
-    deleteNotesVitals({
+  const handleSubmitValue = useCallback((row)=>{
+     deleteNotesVitals({
       variables: {
         data: {
           vital_id: Number(row?.id),
@@ -203,10 +206,36 @@ export default function VitalFullscreen({ refetch, title, open, onClose, chart, 
         },
       },
     }).then(() => {
+      setShowSaving(false)
       refetch();
+      closeSnackbar(snackKey)
       enqueueSnackbar('Deleted successfully!');
     });
-  }, []);
+  },[dataList, snackKey])
+
+
+  useEffect(() => {
+    if (snackKey) {
+      handleSubmitValue(deleteData);
+    }
+  }, [snackKey, deleteData]);
+
+  const handleDeleteRow = useCallback((row) => {
+    // {showSaving && enqueueSnackbar('Saving Data...',  {
+    //   variant: 'info',
+    //   persist: true, // Do not auto-hide
+    // });}
+
+    const snackbarKey = enqueueSnackbar('Saving Data...', {
+      variant: 'info',
+      key: 'savingGeneral',
+      persist: true, // Do not auto-hide
+    });
+    setSnackKey(snackbarKey);
+    setDeleteData(row)
+
+   
+  }, [showSaving]);
 
   const [listData, setListData] = useState([]);
 

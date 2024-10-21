@@ -347,7 +347,7 @@ export default function VitalView({
 
   let newData: any = [];
 
-  console.log(items2,'huh?')
+
 
   items2?.forEach((val: any) => {
     if (newData.length === 0) {
@@ -736,7 +736,7 @@ export default function VitalView({
           {newData?.map((item: any) => (
             <VitalChart
               title={item?.title}
-              refetch={refetchP2}
+              refetch={refetch}
               subheader={`by ${item?.measuring_unit}`}
               chart={{
                 categories: item?.date?.map((item: any) => fDate(item, 'MMM dd')),

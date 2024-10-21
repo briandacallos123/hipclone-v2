@@ -490,7 +490,7 @@ export const QueryAllPatient = extendType({
         const patientIdsData = await client.records.findMany({
 
           where: {
-            doctorID: session?.user?.id,
+            doctorID: session?.user?.doctor_id,
             NOT: [{ R_TYPE: '3' }],
             isDeleted: 0,
             isEMR: 0,
@@ -2467,7 +2467,7 @@ export const QueryRecordBypatientNew = extendType({
 
         try {
 
-          const patientData = await client.user.findFirst({
+          const patientData:any = await client.user.findFirst({
             where: {
               ...patientInfo
             },
@@ -2477,14 +2477,21 @@ export const QueryRecordBypatientNew = extendType({
           });
 
 
-          const recordData = await client.records.findFirst({
-            where: {
-              patientID: Number(patientData?.patientInfo?.S_ID),
-            },
-            include: {
-              patientInfo: true,
-            },
-          });
+          const emrPatientData = await client.emr_patient.findFirst({
+            where:{
+              patientID:patientData?.patientInfo.S_ID
+            }
+          })
+          // const recordData = await client.records.findFirst({
+          //   where: {
+          //     patientID: Number(patientData?.patientInfo?.S_ID),
+          //   },
+          //   include: {
+          //     patientInfo: true,
+          //   },
+          // });
+
+          console.log(emrPatientData,'recordData');
 
           const recordDataClinics: any = await client.records.findMany({
             where: {
@@ -2505,7 +2512,7 @@ export const QueryRecordBypatientNew = extendType({
           const { data, count }: any = await customFuncPatient(
             args,
             // myData,
-            recordData,
+            emrPatientData,
             session,
             whereconditions,
             orderConditions,
@@ -2529,7 +2536,7 @@ export const QueryRecordBypatientNew = extendType({
 const customFuncPatient = async (
   args: any,
   // myData: any,
-  recordData: any,
+  emrPatientData: any,
   session: any,
   whereconditions: any,
   orderConditions: any,
@@ -2644,7 +2651,8 @@ const customFuncPatient = async (
     records = medNoteData;
     count = _count;
   } else if (patientData) {
-    const isLinked = recordData.emrPatientID !== null;
+    const isLinked = emrPatientData
+
     if (isLinked) {
 
       const [medNoteData, _count]: any = await client.$transaction([
@@ -2659,7 +2667,7 @@ const customFuncPatient = async (
                 patientID: Number(patientData?.patientInfo?.S_ID),
               },
               {
-                emrPatientID: Number(recordData.emrPatientID),
+                emrPatientID: Number(emrPatientData.id),
               },
             ],
 
@@ -2696,7 +2704,7 @@ const customFuncPatient = async (
                 patientID: Number(patientData?.patientInfo?.S_ID),
               },
               {
-                emrPatientID: Number(recordData.emrPatientID),
+                emrPatientID: Number(emrPatientData.id),
               },
             ],
             NOT: [{ clinicInfo: null }, { R_TYPE: '3' }, { R_TYPE: '0' }],

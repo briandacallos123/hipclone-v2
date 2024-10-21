@@ -190,6 +190,7 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
 
       setRequireHmo(false)
       setValue('hmo', { name: '', mid: '' });
+      setValue('attachment',null)
     }
   }, [getValues('useHmo')]);
 
@@ -235,6 +236,8 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
           setSnackKey(null);
           reset();
           setTriggerRef(true);
+          router.push(paths?.dashboard?.appointment?.root);
+          // reset();
 
 
         })
@@ -289,14 +292,14 @@ export default function AppointmentNewForm({ currentItem, hmoData, refetch }: Pr
         });
         setSnackKey(snackbarKey);
         setMyData(data);
-        router.push(paths?.dashboard?.appointment?.root);
+       
+
         // console.info('DATA', data);
         // await handleSubmitValue({
         //   ...data,
         // });
         // refetch();
 
-        reset();
       } catch (error) {
         console.error(error);
       }

@@ -32,6 +32,8 @@ type Props = {
 };
 
 export default function EmrVitalNewEditForm({addedCategory, onClose, items, refetch, repID }: Props) {
+  const addedCategoryTitle = addedCategory?.map((item) => item.title)
+ 
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const params = useParams();
@@ -57,8 +59,17 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
     return () => drClinicFetch();
   }, []);
 
+  const defFields = (() => {
+    const validationSchema = addedCategory?.reduce((acc, item) => {
+      const { title } = item;
+      acc[title] = 0;
+      return acc;
+    }, {});
+    return validationSchema;
+  })();
+
   const NewVitalSchema = Yup.object().shape({
-    hospitalId: Yup.number().nullable().required('Hospital ID is required'),
+  
     weight: !condition
       ? Yup.number().default(0)
       : Yup.number().moreThan(0, 'Weight must be greater than 0').required('Weight is required'),
@@ -107,7 +118,6 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
 
   const defaultValues = useMemo(
     () => ({
-      hospitalId: null,
       weight: 0,
       height: 0,
       bodyMass: 0,
@@ -118,6 +128,7 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
       respiratory: 0,
       heart: 0,
       temperature: 0,
+      ...defFields
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     []
@@ -162,6 +173,7 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
     values.respiratory,
     values.temperature,
     values.weight,
+    defFields
   ]);
   const [createVitals] = useMutation(POST_VITALS_EMR);
 
@@ -178,7 +190,6 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['notesVitalInputType'] = {
-        clinicID: model.hospitalId,
         recordID: Number(repID),
         emrID: Number(id),
         // patientID: Number(items?.patientInfo?.S_ID),
@@ -193,6 +204,8 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
         bodyTemp: String(model.temperature),
         bsm: String(model?.sugarMonitoring),
         respRate: String(model.respiratory),
+        categoryValues: [...model.categoryData]
+
       };
       createVitals({
         variables: {
@@ -205,16 +218,20 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
           enqueueSnackbar('Create success!');
           refetch();
           reset();
+          onClose()
         })
         .catch((error) => {
           // console.log(error, 'ano error?');
-          enqueueSnackbar('Something went wrong', { variant: 'error' });
+          onClose()
+
+          enqueueSnackbar(error.message, { variant: 'error' });
         });
     },
     [createVitals, enqueueSnackbar, items?.R_ID, items?.patientInfo?.S_ID, refetch, reset, snackKey]
   );
 
   const [myData, setMyData]: any = useState(null);
+
   useEffect(() => {
     if (snackKey) {
       (async () => {
@@ -224,24 +241,49 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
     }
   }, [snackKey, myData]);
 
+
+
   const onSubmit = useCallback(
     async (data: NexusGenInputs['notesVitalInputType']) => {
       try {
-        onClose();
+        const categoryData: any = [];
 
-        const snackbarKey: any = enqueueSnackbar('Saving Data...', {
+        Object.entries(data).forEach((item) => {
+          const [key, val] = item;
+
+          if (addedCategoryTitle.includes(key)) {
+            categoryData.push({
+              title: key,
+              value: val
+            })
+          }
+        })
+
+
+        setMyData({
+          ...data,
+          categoryData: [...categoryData]
+        })
+
+        const snackbarKey = enqueueSnackbar('Saving Data...', {
           variant: 'info',
-          key: 'savingVitalsEMR',
+          key: 'savingEducation',
           persist: true, // Do not auto-hide
         });
-        setSnackKey(snackbarKey);
-        setMyData(data);
-        // await handleSubmitValue({
-        //   ...data,
+
+        setSnackKey(snackbarKey)
+
+
+        // onClose();
+
+        // const snackbarKey: any = enqueueSnackbar('Saving Data...', {
+        //   variant: 'info',
+        //   key: 'savingVitalsEMR',
+        //   persist: true, // Do not auto-hide
         // });
-        // reset();
-        // refetch();
-        // enqueueSnackbar('Saving!');
+        // setSnackKey(snackbarKey);
+        // setMyData(data);
+     
 
         console.info('DATA', data);
       } catch (error) {
@@ -256,7 +298,7 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
     <>
       <DialogContent>
         <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-          <RHFAutocomplete
+          {/* <RHFAutocomplete
             name="hospitalId"
             label="Hospital/Clinic"
             options={clinicData.map((hospital: any) => hospital.id)}
@@ -280,7 +322,7 @@ export default function EmrVitalNewEditForm({addedCategory, onClose, items, refe
               );
             }}
             sx={{ pt: 1 }}
-          />
+          /> */}
 
           <Box
             rowGap={3}

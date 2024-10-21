@@ -213,7 +213,7 @@ export default function EmrCover({ data, loading }: Props) {
                 // color: alpha(theme.palette.primary.darker, 0.8),
                 // imgUrl: user?.coverURL,
               }),
-              background: 'url(/assets/background/banner-bg.png)',
+              background: 'url(/assets/background/bg-blueee.jpg)',
               backgroundSize: 'cover',
               height: 1,
               color: 'common.white',

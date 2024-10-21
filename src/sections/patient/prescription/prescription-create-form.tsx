@@ -8,7 +8,7 @@ import Iconify from '@/components/iconify';
 import { useAuthContext } from '@/auth/hooks';
 import { MutationPrescription } from '@/libs/gqls/prescription';
 import { useMutation } from '@apollo/client';
-import { useParams } from 'next/navigation';
+import { useParams, usePathname } from 'next/navigation';
 import { Icon } from '@iconify/react'
 import CustomPopover, { usePopover } from '@/components/custom-popover';
 import { useBoolean } from '@/hooks/use-boolean';
@@ -47,8 +47,8 @@ const PrescriptionCreateForm = ({
     const { user } = useAuthContext();
     const { id: uuid } = useParams();
     const { enqueueSnackbar, closeSnackbar } = useSnackbar();
-
-
+    const pathname = usePathname()
+    const isEmr = pathname.includes('my-emr');
 
     const [createEmr] = useMutation(MutationPrescription, {
         context: {
@@ -172,10 +172,10 @@ const PrescriptionCreateForm = ({
             DOCTOR: model.DOCTOR,
             doctorID: Number(model.doctorID),
             uuid: uuid,
-            emrId: Number(model?.emrId),
+            emrId: Number(uuid),
             PATIENT: model?.PATIENT,
             patientID: Number(model?.patientID),
-            isEmr: Number(model.isEmr),
+            isEmr: isEmr?1:0,
             tempId: model.tempId,
             templateName: model?.templateName,
             isTemplate: model?.isTheme,
@@ -217,7 +217,7 @@ const PrescriptionCreateForm = ({
 
             });
 
-    }, [snackKey]);
+    }, [snackKey, uuid, isEmr]);
 
     useEffect(() => {
         if (snackKey) {

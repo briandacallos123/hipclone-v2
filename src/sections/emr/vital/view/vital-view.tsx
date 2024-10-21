@@ -18,7 +18,7 @@ import { VitalView } from 'src/sections/vital/view';
 import EmrVitalCreateView from './vital-create-view';
 import VitalCreateNewSingle from '@/sections/profile/vital/view/vital-create-new-single';
 import { useAuthContext } from '@/auth/hooks';
-import { GetAllVitalCategories } from '@/libs/gqls/vitals';
+import { GetAllVitalCategories, QueryAllVitalData } from '@/libs/gqls/vitals';
 import VitalCreateNew from '@/sections/profile/vital/view/vital-create-new';
 
 // ----------------------------------------------------------------------
@@ -85,12 +85,15 @@ export default function EmrVitalView({ items, uuid }: Props) {
 
   const [chartData, setChartData] = useState<any>([]);
   
-  const [getData, { data, loading, error, refetch }] = useLazyQuery(get_note_vitals_patient_emr, {
+  const [getData, getDataResult] = useLazyQuery(get_note_vitals_patient_emr, {
     context: {
       requestTrackerId: 'getVitals[gREC]',
     },
     notifyOnNetworkStatusChange: true,
   });
+  const loading = getDataResult.loading;
+
+
 
   useEffect(() => {
     getData({
@@ -108,25 +111,61 @@ export default function EmrVitalView({ items, uuid }: Props) {
         setChartData(QueryNotesVitalsEMRPatient?.vitals_data);
       }
     });
-  }, [getData, items?.patientInfo?.S_ID, uuid]);
+  }, [getData, items?.patientInfo?.S_ID, uuid, getDataResult.data]);
 
-  const handleRefetch = async () => {
-    await refetch({
+  const [
+    getVitalDataDynamic,
+    vitalDataResults,
+  ] = useLazyQuery(QueryAllVitalData, {
+    context: {
+      requestTrackerId: 'getVitalsDynamicData[getDynamicVitals]',
+    },
+    notifyOnNetworkStatusChange: true,
+  });
+
+  const [chart2Data, setChart2Data] = useState([]);
+
+  useEffect(() => {
+    getVitalDataDynamic({
       variables: {
         data: {
-          patientID: items?.patientInfo?.S_ID,
-          emrID: Number(uuid),
-          isPatient,
+          uuid,
+          isEmr
         },
       },
     }).then(async (result: any) => {
       const { data } = result;
+
       if (data) {
-        const { QueryNotesVitalsEMRPatient } = data;
-        setChartData(QueryNotesVitalsEMRPatient?.vitals_data);
+        const { QueryAllVitalData } = data;
+        setChart2Data(QueryAllVitalData?.listData);
       }
     });
-  };
+  }, [vitalDataResults.data, user?.role, user?.uuid]);
+
+  const refetch = () => {
+    getDataResult.refetch();
+    vitalDataResults.refetch()
+
+  }
+
+  // const handleRefetch = async () => {
+  //   await refetch({
+  //     variables: {
+  //       data: {
+  //         patientID: items?.patientInfo?.S_ID,
+  //         emrID: Number(uuid),
+  //         isPatient,
+  //       },
+  //     },
+  //   }).then(async (result: any) => {
+  //     const { data } = result;
+  //     if (data) {
+  //       const { QueryNotesVitalsEMRPatient } = data;
+  //       setChartData(QueryNotesVitalsEMRPatient?.vitals_data);
+  //     }
+  //   });
+  // };
 
   const openCreateVital = useBoolean();
 
@@ -158,13 +197,14 @@ export default function EmrVitalView({ items, uuid }: Props) {
           </Button>
         </Stack>
 
-        {chartData && <VitalView  refetch={refetch} openSingle={openVitalSingle} items={chartData} loading={loading} />}
+        {chartData && <VitalView items2={chart2Data}  refetch={refetch} openSingle={openVitalSingle} items={chartData} loading={loading} />}
       </Box>
 
       <VitalCreateNew
         open={openCreateVital.value}
         onClose={openCreateVital.onFalse}
         refetch={() => {
+          refetch()
           vitalsResult.refetch()
         }}
         uuid={id}
@@ -179,6 +219,9 @@ export default function EmrVitalView({ items, uuid }: Props) {
         refetch={() => {
           // vitalDataResults.refetch()
           // dataResults.refetch()
+          vitalsResult.refetch()
+          getDataResult.refetch()
+          vitalDataResults.refetch()
         }}
         items={chartData}
         addedCategory={addCategory}
@@ -194,7 +237,13 @@ export default function EmrVitalView({ items, uuid }: Props) {
         repID={report_ID}
         addedCategory={addCategory}
         
-        refetch={handleRefetch}
+        refetch={() => {
+          // vitalDataResults.refetch()
+          // dataResults.refetch()
+          // vitalsResult.refetch()
+          vitalDataResults.refetch()
+          getDataResult.refetch()
+        }}
         openCategory={openVitalCategory}
 
       />

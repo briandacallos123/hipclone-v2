@@ -92,6 +92,7 @@ export const get_note_vitals_patient_emr = gql`
         hr
         ht
         id
+        bsm
         isDeleted
         isEMR
         patient

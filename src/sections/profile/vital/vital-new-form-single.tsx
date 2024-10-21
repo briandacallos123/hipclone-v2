@@ -41,6 +41,7 @@ export default function ProfileVitalNewEditFormSingle({ data, addedCategory, onC
   // user na to
   const addedCategoryTitle = addedCategory?.map((item) => item.title)
   const { id } = useParams();
+  console.log(addedCategory,'categoryaded')
   
   const pathname = usePathname();
 

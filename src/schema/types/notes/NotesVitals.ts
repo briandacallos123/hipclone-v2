@@ -413,14 +413,27 @@ export const QueryNotesVitalsPatient = extendType({
             include: {
               patientRelation: true,
             },
-          
+
           });
+
+          const emrPatientRec = await client.emr_patient.findFirst({
+            where:{
+              patientID:patientData?.patientInfo?.S_ID
+            },
+            orderBy:{
+              date_added:'desc'
+            }
+          })
+
+          console.log(emrPatientRec,'emrPatientRec')
 
           const { data }: any = await customFuncVitalPatient(
             args,
             session,
             patientData,
-            vitalsData
+            vitalsData,
+            emrPatientRec,
+           
           );
 
           // console.log(data,'PAGTINGINNNNNNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!')
@@ -473,7 +486,7 @@ export const DeleteNotesVitalPatient = extendType({
           try {
 
             if (!isNumber(category_data)) {
-           
+
               await client.notes_vitals.update({
                 data: {
                   [category_data]: '0'
@@ -485,10 +498,10 @@ export const DeleteNotesVitalPatient = extendType({
 
             } else {
 
-              console.log(Number(category_data),'awit')
+              console.log(Number(category_data), 'awit')
               await client.vital_data.update({
                 data: {
-                  isDeleted:1
+                  isDeleted: 1
                 },
                 where: {
                   id: Number(args?.data?.vital_id)
@@ -499,7 +512,7 @@ export const DeleteNotesVitalPatient = extendType({
               message: "Successfully deleted"
             };
           } catch (error) {
-            console.log(error,'error')
+            console.log(error, 'error')
             return new GraphQLError(error);
           }
         } else {
@@ -518,13 +531,14 @@ const customFuncVitalPatient = async (
   args: any,
   session: any,
   patientData: any,
-  vitalsData: any
+  vitalsData: any,
+  emrPatientRec:any
 ) => {
   let vitals_data: any;
 
   let doctorDetails = await client.employees.findFirst({
-    where:{
-      EMP_EMAIL:session?.user?.email
+    where: {
+      EMP_EMAIL: session?.user?.email
     }
   })
 
@@ -536,7 +550,7 @@ const customFuncVitalPatient = async (
       };
     }
     return {
-      doctorID: doctorDetails?.EMP_ID
+      doctorID: session?.user?.doctor_id
     };
   })();
 
@@ -544,8 +558,10 @@ const customFuncVitalPatient = async (
   // console.log(Number(patientData?.patientInfo),'CHECK USERRRRRRRRRR!!!!!')
 
   if (patientData) {
-    const isLinked = vitalsData.emrPatientID !== null;
-    if (isLinked) {
+  
+    console.log(emrPatientRec,'emrPatientRec')
+
+    if (emrPatientRec) {
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
           take: args?.data?.take,
@@ -566,7 +582,7 @@ const customFuncVitalPatient = async (
                 patientID: Number(patientData?.patientInfo?.S_ID),
               },
               {
-                emrPatientID: Number(vitalsData.emrPatientID),
+                emrPatientID: Number(emrPatientRec?.id),
               },
             ],
           },
@@ -729,7 +745,7 @@ const customFuncVitalEMRPatient = async (
       console.log('non link');
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
-          take: 10,
+          take: args?.data?.take,
           orderBy: {
             id: 'asc',
           },
@@ -770,48 +786,92 @@ export const PostVitals = extendType({
         const createData: any = args?.data;
         const { session } = ctx;
         try {
+          let patientData: any;
+          let emrPatient:any;
+          let emrPatientData:any;
 
-          console.log(createData, 'CREATE DATAAAAAAAAAA___________')
+          
 
-          const patientData = await client.user.findFirst({
-            where: {
-              uuid: createData?.uuid
-            },
-            include: {
-              patientInfo: true
+          if (!createData?.isEmr) {
+            patientData = await client.user.findFirst({
+              where: {
+                uuid: createData?.uuid
+              },
+              include: {
+                patientInfo: true
+              }
+            })
+
+           
+
+            
+
+          } else {
+            emrPatient = await client.emr_patient.findFirst({
+              where: {
+                id:Number(createData?.uuid)
+              }
+            })
+          }
+
+
+          emrPatientData = await client.emr_patient.findFirst({
+            where:{
+             OR:[
+              {
+                patientID: patientData?.patientInfo?.S_ID
+              },
+              {
+                id: emrPatient?.id
+              },
+             ]
             }
           })
-          let doctorData:any;
+         
 
-          if(session?.user?.role === 'doctor'){
+          let doctorData: any;
+
+          if (session?.user?.role === 'doctor') {
             doctorData = await client.employees.findFirst({
-              where:{
-                EMP_EMAIL:session?.user?.email
+              where: {
+                EMP_EMAIL: session?.user?.email
               }
             })
           }
 
 
           if (createData?.categoryValues && createData?.categoryValues?.length !== 0) {
+            console.log("meron naman")
             const result = createData?.categoryValues.map(async (item) => {
-              if(Number(item?.value) !== 0){
+
+              if (Number(item?.value) !== 0) {
+                
                 const categoryId = await client.vital_category.findFirst({
                   where: {
                     title: item?.title,
-                    patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
+                    OR:[
+                      {
+                        patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
+                      },
+                      {
+                        emrPatientId:emrPatientData?.id
+                      }
+                    ],
                     isDeleted: 0
                   }
                 })
-  
+
                 const vitalData = await client.vital_data.create({
                   data: {
                     patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
                     doctorId: Number(doctorData?.EMP_ID),
                     categoryId: Number(categoryId?.id),
                     value: item?.value,
+                    isEMR:createData?.isEmr ? 1:null,
+                    emrPatientId:emrPatient ? emrPatient?.id : null,
                   }
                 })
-  
+
                 return vitalData
               }
             })
@@ -826,6 +886,9 @@ export const PostVitals = extendType({
               report_id: createData?.recordID,
               patientID: patientData?.patientInfo?.S_ID || createData?.patientID,
               doctorID: Number(doctorData?.EMP_ID),
+              isEMR:createData?.isEmr ? 1:null,
+              emrPatientID:emrPatient ? emrPatient?.id : null,
+
 
               wt: createData?.weight !== "0" ? createData?.weight : null,
               ht: createData?.height !== "0" ? createData?.height : null,
@@ -861,24 +924,54 @@ export const PostVitalsEMR = extendType({
         const createData: any = args?.data;
         const { session } = ctx;
         try {
+
+          if (createData?.categoryValues && createData?.categoryValues?.length !== 0) {
+            const result = createData?.categoryValues.map(async (item) => {
+              if (Number(item?.value) !== 0) {
+                const categoryId = await client.vital_category.findFirst({
+                  where: {
+                    title: item?.title,
+                    emrPatientId:createData?.emrID,
+                    isDeleted: 0
+                  }
+                })
+
+                const vitalData = await client.vital_data.create({
+                  data: {
+                   
+                    doctorId: Number(session?.user?.doctor_id),
+                    categoryId: Number(categoryId?.id),
+                    value: item?.value,
+                    isEMR:1,
+                    emrPatientId:createData?.emrID
+                  }
+                })
+
+                return vitalData
+              }
+            })
+
+            await Promise.all(result)
+          }
+
           const vitals = await client.notes_vitals.create({
             data: {
               clinic: createData?.clinicID,
               report_id: createData?.recordID,
               emrPatientID: createData?.emrID,
               doctorID: session?.user?.doctor_id,
-              isEMR:1,
+              isEMR: 1,
 
-              wt: createData?.weight,
-              ht: createData?.height,
-              bmi: createData?.bmi,
-              bp1: createData?.bloodPresMM,
-              bp2: createData?.bloodPresHG,
-              spo2: createData?.oxygen,
-              hr: createData?.heartRate,
-              bsm:createData?.bsm,
-              bt: createData?.bodyTemp,
-              rr: createData?.respRate,
+              wt: createData?.weight !== "0" ? createData?.weight : null,
+              ht: createData?.height !== "0" ? createData?.height : null,
+              bmi: createData?.bmi !== "0.00" ? createData?.bmi : null,
+              bp1: createData?.bloodPresMM !== "0" ? createData?.bloodPresMM : null,
+              bp2: createData?.bloodPresHG !== "0" ? createData?.bloodPresHG : null,
+              spo2: createData?.oxygen !== "0" ? createData?.oxygen : null,
+              hr: createData?.heartRate !== "0" ? createData?.heartRate : null,
+              bt: createData?.bodyTemp !== "0" ? createData?.bodyTemp : null,
+              rr: createData?.respRate !== "0" ? createData?.respRate : null,
+              bsm: createData?.bsm !== "0" ? createData?.bsm : null,
             },
           });
           const res: any = vitals;
@@ -887,6 +980,7 @@ export const PostVitalsEMR = extendType({
           };
         } catch (e) {
           console.log(e);
+          throw new GraphQLError(e);
         }
       },
     });

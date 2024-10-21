@@ -58,6 +58,7 @@ const QueryAllVitalDataInp = inputObjectType({
         t.nullable.string('uuid')
         t.nullable.int('take');
         t.nullable.int('skip');
+        t.nullable.boolean('isEmr');
 
     },
 })
@@ -69,7 +70,7 @@ export const QueryAllVitalData = extendType({
             type: QueryAllVitalDataResponse,
             args: { data: QueryAllVitalDataInp },
             async resolve(_root, args, ctx) {
-                const createData = args?.data;
+                const createData: any = args?.data;
 
                 try {
                     const { session } = ctx;
@@ -85,17 +86,21 @@ export const QueryAllVitalData = extendType({
                             let patientId: any;
                             (async () => {
                                 try {
-                                    let id = await client.user.findFirst({
-                                        where: {
-                                            uuid: args?.data?.uuid
-                                        }
-                                    });
-                                    let patient = await client.patient.findUnique({
-                                        where: {
-                                            EMAIL: id?.email
-                                        }
-                                    })
-                                    patientId = patient?.S_ID;
+                                    if (createData?.isEmr) {
+                                        patientId = createData?.uuid;
+                                    } else {
+                                        let id = await client.user.findFirst({
+                                            where: {
+                                                uuid: args?.data?.uuid
+                                            }
+                                        });
+                                        let patient = await client.patient.findUnique({
+                                            where: {
+                                                EMAIL: id?.email
+                                            }
+                                        })
+                                        patientId = patient?.S_ID;
+                                    }
 
                                     resolve(patientId)
 
@@ -106,13 +111,98 @@ export const QueryAllVitalData = extendType({
 
                         }
                     }).then(async (res) => {
+                        let emrPatientRec:any = {
+                            OR:[]
+                        }
+
+                      
+
+                        if (!args?.data?.isEmr) {
+                            // console.log("dito pre!")
+                            // para sa page ng patient
+
+                            let emrResult:any = await client.emr_patient.findFirst({
+                                where: {
+                                    patientID: Number(res)
+                                },
+                                orderBy: {
+                                    date_added: 'desc'
+                                }
+                            })
+
+                            let arrCon = [];
+                            arrCon.push({
+                                patientId: Number(res)
+                            })
+                            if(emrResult?.patientID){
+                                arrCon.push({
+                                    emrPatientId: Number(emrResult?.id)
+                                })
+                            }
+                            emrPatientRec.OR = [...arrCon]
+
+                            // emrPatientRec = {
+                            //     OR:[
+                            //         {
+                            //             emrPatientId: Number(emrResult.id),
+                            //         },
+                            //         {
+                            //              patientId:emrResult?.patientID
+                            //         }
+                            //     ]
+                            // }
+
+                        }else{
+
+                       
+                            const emrTarget:any = await client.emr_patient.findFirst({
+                                where:{
+                                    id: Number(res)
+                                }
+                            });
+
+                            let arrCon = [];
+                            arrCon.push({
+                                emrPatientId: Number(emrTarget.id)
+                            })
+                            if(emrTarget?.patientID){
+                                arrCon.push({
+                                    patientID: Number(emrTarget?.patientID)
+                                })
+                            }
+                            emrPatientRec.OR = [...arrCon]
+                            
+                           
+                        }
+
+                        const patientType: any = (() => {
+                            if(emrPatientRec){
+                                return;
+                            }
+
+                            if (createData.isEmr) {
+                                return {
+                                    emrPatientId: Number(res),
+                                    isEMR: 1
+                                }
+                            } else {
+                                return {
+                                    patientId: Number(res)
+                                }
+                            }
+                        })()
+
+
+                        console.log(patientType,'patientType')
+                        // console.log(emrPatientRec,'emrPatientRec')
+                        console.log(emrPatientRec,'emrPatientRec')
 
                         result = await client.vital_data.findMany({
-                            skip: createData?.skip,
-                            take: createData?.take,
+
                             where: {
-                                patientId: Number(res),
+                                ...patientType,
                                 isDeleted: 0,
+                                ...emrPatientRec
 
                             },
                             include: {
@@ -124,13 +214,14 @@ export const QueryAllVitalData = extendType({
                         })
                     })
 
-
+                    console.log(result,'result');
 
                     return {
                         listData: result
                     }
 
                 } catch (error) {
+                    console.log(error, 'errorrrrrr!!!!!!!!!')
                     throw new GraphQLError(error)
                 }
 
@@ -157,6 +248,7 @@ export const QueryAllCategory = extendType({
             args: { data: QueryAllCategoryInput },
             async resolve(_root, args, ctx) {
 
+              try {
                 const { session } = ctx;
                 let patientId: any;
                 let response: any;
@@ -189,9 +281,36 @@ export const QueryAllCategory = extendType({
                         })()
                     }
                 }).then(async (res) => {
-                    console.log(res, 'ressssssssssssssssssssssssssss')
+                    let emrPatientRec: any;
+
+                  
+
+                    // check if si patient ba ay may emr na data pero nasa page tayo ng patient
+                    if (!args?.data?.isEmr) {
+                        let emrResult:any = await client.emr_patient.findFirst({
+                            where: {
+                                patientID: Number(res)
+                            },
+                            orderBy: {
+                                date_added: 'desc'
+                            }
+                        })
+                        emrPatientRec = {
+                            OR:[
+                                {
+                                    emrPatientId: Number(emrResult.id),
+                                },
+                                {
+                                     patientId:emrResult?.patientID
+                                }
+                            ]
+                        }
+                    }
 
                     const target = (() => {
+                        if(emrPatientRec){
+                            return;
+                        }
                         if (!args?.data?.isEmr) {
                             return {
                                 patientId: Number(res)
@@ -201,11 +320,13 @@ export const QueryAllCategory = extendType({
                             emrPatientId: Number(res)
                         }
                     })()
-
+                  
                     response = await client.vital_category.findMany({
                         where: {
+                            isDeleted: 0,
                             ...target,
-                            isDeleted: 0
+                            ...emrPatientRec
+
                         }
                     })
                 })
@@ -215,6 +336,10 @@ export const QueryAllCategory = extendType({
                 return {
                     dataList: response,
                 }
+              } catch (error) {
+                console.log(error,'erro')
+                throw new GraphQLError(error);
+              }
             }
         })
     }
@@ -299,10 +424,10 @@ export const CreateNewCategoryVitals = extendType({
                         }
                     })()
 
-                    const patientValEmr = (()=>{
-                        if(isEmr){
+                    const patientValEmr = (() => {
+                        if (isEmr) {
                             return {
-                                emrPatientId:Number(args?.data?.uuid)
+                                emrPatientId: Number(args?.data?.uuid)
                             }
                         }
                         return {
@@ -310,7 +435,7 @@ export const CreateNewCategoryVitals = extendType({
                         }
                     })()
 
-                    console.log(patientValEmr,'awitt')
+                    console.log(patientValEmr, 'awitt')
 
                     await client.vital_category.create({
                         data: {

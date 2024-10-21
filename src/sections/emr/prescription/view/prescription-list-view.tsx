@@ -56,6 +56,7 @@ import { useParams } from 'src/routes/hook';
 
 import { reset } from 'numeral';
 import { C } from '@fullcalendar/core/internal-common';
+import PrescriptionCreateFull from '@/sections/patient/prescription/prescription-create-full';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [
@@ -227,12 +228,23 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   const [tempData, setTempData]: any = useState(null);
   const [tempId, setTempId] = useState(uuidv4());
   // const [uuid, setUuid] = useState(uuidv4());
+  const openCreateFull = useBoolean();
 
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
   const [isFail, setIsFail] = useState(false);
   // remove client side data if server got an error
+  const [windowObject, setWindowObject] = useState(null);
 
+  useEffect(() => {
+    // Set the window object when the component mounts
+    setWindowObject(window);
+
+    // Optionally, clean up or handle resizing, etc.
+    return () => {
+      setWindowObject(null); // Cleanup if needed
+    };
+  }, []); // 
   // console.log(tableData, 'yamateee@@@#@#@');
   const [removeSlice, setRemoveSlice] = useState(null);
 
@@ -381,7 +393,9 @@ export default function PatientPrescriptionListView({ slug }: Props) {
   const denseHeight = table.dense ? 56 : 76;
 
   const canReset =
-    !!filters.name || !!filters.hospital.length || (!!filters.startDate && !!filters.endDate);
+    !!filters.name || !!filters.hospital.length || (!!filters.startDate && !!filters.endDate) || !!filters.startDate ||
+    !!filters.endDate;
+
 
   const notFound = !tableData?.length && !tableLoading;
 
@@ -438,7 +452,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
             action={
               upMd ? (
                 <Button
-                  onClick={openCreate.onTrue}
+                  onClick={openCreateFull.onTrue}
                   variant="contained"
                   disabled={loading}
                   startIcon={<Iconify icon="mingcute:add-line" />}
@@ -538,8 +552,18 @@ export default function PatientPrescriptionListView({ slug }: Props) {
         </Card>
       </Box>
       {/* create */}
+
+      <PrescriptionCreateFull
+        clinicData={clinicData?.doctorClinics}
+        open={openCreateFull.value}
+        onClose={openCreateFull.onFalse}
+        window={windowObject}
+        refetch={refetch}
+
+      />
+
       <PrescriptionCreateView
-        clinicData={clinicData}
+        clinicData={clinicData?.doctorClinics}
         open={openCreate.value}
         refetch={refetch}
         onClose={() => {
@@ -573,7 +597,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
         }}
         SubmitClient={SubmitClient}
         id={editId}
-        clinicData={clinicData}
+        clinicData={clinicData?.doctorClinics}
         onCloseView={() => {
           console.log('runnng');
         }}

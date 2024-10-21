@@ -1454,7 +1454,7 @@ export const MutationPrescription = extendType({
             data: {
               ...prescriptionInput,
               doctorID:doctorProfile?.EMP_ID,
-              emrPatientID: isEmr === 2 ? emrId : null,
+              emrPatientID: isEmr === 1 ? emrId : null,
               patientID: patientId ? patientId?.patientInfo?.S_ID : patientEmrId?.patientID,
               PATIENT: String(patientId?.patientInfo?.IDNO),
               presCode: VoucherCode,
@@ -1510,6 +1510,7 @@ export const MutationPrescription = extendType({
             },
           });
 
+         if(!isEmr){
           let notifContent = await client.notification_content.create({
             data: {
               content: 'created new prescription'
@@ -1527,6 +1528,7 @@ export const MutationPrescription = extendType({
               notifiable_user_role: 5
             }
           })
+         }
 
           // console.log(doctorEmployee, 'yeyey');
 
