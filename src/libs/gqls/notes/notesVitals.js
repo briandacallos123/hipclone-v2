@@ -168,6 +168,7 @@ export const get_note_vitals_user = gql`
         doctorID
         emrPatientID
         hr
+        bsm
         ht
         id
         isDeleted

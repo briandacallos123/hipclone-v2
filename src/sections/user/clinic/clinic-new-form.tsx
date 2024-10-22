@@ -19,6 +19,8 @@ import { fData } from 'src/utils/format-number';
 // types
 import { IUserClinicNewFormValues } from 'src/types/user';
 // prisma
+import Select, { SelectChangeEvent } from '@mui/material/Select';
+
 import { CLINIC_POST } from '@/libs/gqls/clinicSched';
 import { useMutation } from '@apollo/client';
 // nexus
@@ -31,12 +33,15 @@ import FormProvider, {
   RHFTextField,
   RHFMultiCheckbox,
   RHFUploadAvatar,
+  RHFAutocomplete,
 } from 'src/components/hook-form';
 import './clinic.css'
 import { useTheme, alpha } from '@mui/material/styles';
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
 import { validatePhone } from '../subaccount/action/sub-account-act';
+import { provinces } from '@/utils/constants';
+import { OutlinedInput } from '@mui/material';
 // ----------------------------------------------------------------------
 
 const PROVINCE_OPTIONS = ['Abra', 'Bataan', 'Cagayan'];
@@ -70,12 +75,10 @@ type Props = {
   appendData: any;
   appendDataClient: any;
   uuid: any;
-  provinces: any;
   refetch: any;
 };
 
 export default function ClinicNewForm({
-  provinces,
   uuid,
   appendDataClient,
   appendData,
@@ -83,6 +86,7 @@ export default function ClinicNewForm({
   refetch,
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
 
 
   const [limitReq, setLimitReq] = useState(false);
@@ -142,6 +146,7 @@ export default function ClinicNewForm({
     setValue,
     watch,
     handleSubmit,
+    getValues,
     formState: { isSubmitting, isDirty, errors },
   } = methods;
   const values = watch();
@@ -165,13 +170,13 @@ export default function ClinicNewForm({
 
   const [currentStep, setCurrentStep] = useState(null)
 
-  useEffect(()=>{
+  useEffect(() => {
     const currentStepLocal = localStorage?.getItem('currentStep')
 
-    if(currentStepLocal){
+    if (currentStepLocal) {
       setCurrentStep(currentStepLocal)
     }
-  },[])
+  }, [])
 
   const [step, setStep] = useState(3);
 
@@ -404,13 +409,13 @@ export default function ClinicNewForm({
               return true
             }
           }
-          else if(step === 3){
+          else if (step === 3) {
             if (!values.avatarUrl) {
               return true;
-            }else{
+            } else {
               return false
             }
-            
+
           }
           else {
             return !isDirty
@@ -498,14 +503,17 @@ export default function ClinicNewForm({
 
 
               <div className={step === 7 ? 'showFields-clinic' : ''}>
-                <RHFSelect name="Province" label="Province">
+
+
+                {/* <RHFSelect name="Province" label="Province">
+                  dogs?
                   {provinces &&
-                    provinces.map((option: any, index: Number) => (
-                      <MenuItem key={index} value={option?.Province}>
-                        {option?.Province}
+                    provinces?.map((option: any, index: Number) => (
+                      <MenuItem key={index} value={option.name}>
+                        {option.name}
                       </MenuItem>
                     ))}
-                </RHFSelect>
+                </RHFSelect> */}
                 {step === 7 && <RenderChoices isRequired={false} />}
               </div>
 
@@ -651,7 +659,7 @@ export default function ClinicNewForm({
         left: 0,
         right: 0,
         bottom: 0,
-      
+
 
       }}>
 
@@ -720,14 +728,31 @@ export default function ClinicNewForm({
                       helperText="This number will be visible to the public. Please indicate the clinic official contact number."
                     />
 
-                    <RHFSelect name="Province" label="Province">
+                    {/* <RHFSelect name="Province" label="Province">
                       {provinces &&
                         provinces.map((option: any, index: Number) => (
-                          <MenuItem key={index} value={option?.Province}>
-                            {option?.Province}
+                          <MenuItem key={index} value={option?.name}>
+                            {option?.name}
                           </MenuItem>
                         ))}
-                    </RHFSelect>
+                    </RHFSelect> */}
+                    <RHFAutocomplete
+                      name="province"
+                      label="Province"
+                      options={provinces} // Use the whole province objects
+                      getOptionLabel={(option) => option.name} // Directly use the name from the option
+                      isOptionEqualToValue={(option, value) => option.id === value.id} // Compare IDs for equality
+                      renderOption={(props, option) => {
+                        const { id, name } = option; // Destructure from option directly
+
+                        return (
+                          <li {...props} key={id}>
+                            {name}
+                          </li>
+                        );
+                      }}
+                      sx={{ pt: 1 }}
+                    />
                   </Box>
                 </Stack>
               </Grid>

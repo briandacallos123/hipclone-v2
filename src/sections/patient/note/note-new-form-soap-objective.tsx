@@ -49,6 +49,8 @@ export default function NoteNewFormSoapObjective() {
 
   const values = watch();
 
+
+
   useEffect(() => {
     setValue(`bodyMass`, Number(values.weight / (values.height * 0.01) ** 2));
   }, [setValue, values.weight, values.height]);
@@ -191,7 +193,7 @@ export default function NoteNewFormSoapObjective() {
         display="grid"
         gridTemplateColumns={{
           xs: 'repeat(1, 1fr)',
-          sm: '3fr 1fr 1fr',
+          sm: '2fr 1fr 1fr',
         }}
         sx={{ pt: 2 }}
       >
@@ -202,9 +204,9 @@ export default function NoteNewFormSoapObjective() {
             label="Left"
             placeholder="0"
             InputLabelProps={{ shrink: true }}
-            // InputProps={{
-            //   startAdornment: <InputAdornment position="start">20 /</InputAdornment>,
-            // }}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"></InputAdornment>,
+            }}
           />
 
           <RHFTextField
@@ -213,9 +215,9 @@ export default function NoteNewFormSoapObjective() {
             label="Right"
             placeholder="0"
             InputLabelProps={{ shrink: true }}
-            // InputProps={{
-            //   startAdornment: <InputAdornment position="start">20 /</InputAdornment>,
-            // }}
+            InputProps={{
+              startAdornment: <InputAdornment position="start"></InputAdornment>,
+            }}
           />
         </Box>
 
@@ -288,6 +290,7 @@ export default function NoteNewFormSoapObjective() {
                 row
                 name={`${field.value}.option`}
                 label={field.label}
+               
                 options={[
                   { label: 'Normal', value: 'normal' },
                   { label: 'Abnormal', value: 'abnormal' },

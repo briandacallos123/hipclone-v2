@@ -417,15 +417,15 @@ export const QueryNotesVitalsPatient = extendType({
           });
 
           const emrPatientRec = await client.emr_patient.findFirst({
-            where:{
-              patientID:patientData?.patientInfo?.S_ID
+            where: {
+              patientID: patientData?.patientInfo?.S_ID
             },
-            orderBy:{
-              date_added:'desc'
+            orderBy: {
+              date_added: 'desc'
             }
           })
 
-          console.log(emrPatientRec,'emrPatientRec')
+     
 
           const { data }: any = await customFuncVitalPatient(
             args,
@@ -433,7 +433,7 @@ export const QueryNotesVitalsPatient = extendType({
             patientData,
             vitalsData,
             emrPatientRec,
-           
+
           );
 
           // console.log(data,'PAGTINGINNNNNNNNNNN!!!!!!!!!!!!!!!!!!!!!!!!')
@@ -532,7 +532,7 @@ const customFuncVitalPatient = async (
   session: any,
   patientData: any,
   vitalsData: any,
-  emrPatientRec:any
+  emrPatientRec: any
 ) => {
   let vitals_data: any;
 
@@ -542,9 +542,12 @@ const customFuncVitalPatient = async (
     }
   })
 
+
+  let valuesData: any = {
+    OR: []
+  }
   const checkUser = (() => {
     if (session?.user?.role === 'secretary') {
-      // console.log("secretary______________")
       return {
         doctorID: session?.user?.permissions?.doctorID,
       };
@@ -554,14 +557,33 @@ const customFuncVitalPatient = async (
     };
   })();
 
-  // console.log(Number(patientData?.patientInfo?.S_ID),'CHECK USERRRRRRRRRR')
-  // console.log(Number(patientData?.patientInfo),'CHECK USERRRRRRRRRR!!!!!')
+  if (emrPatientRec) {
+    valuesData.OR.push({
+      emrPatientID: emrPatientRec.id
+    })
+  }
+  // patient
+  if (emrPatientRec) {
+    valuesData.OR.push({
+      patientID: Number(patientData?.patientInfo?.S_ID)
+    })
+  }
+
+
+  const getEmrpatientByDoctor = await client.emr_patient.findMany({
+    where: {
+      ...checkUser
+    }
+  })
+  const emrPatientList: any = getEmrpatientByDoctor?.map((item) => item.patientID);
+
 
   if (patientData) {
-  
-    console.log(emrPatientRec,'emrPatientRec')
 
+    // pag emr siya
     if (emrPatientRec) {
+      // console.log('dito preee')
+
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
           take: args?.data?.take,
@@ -570,21 +592,44 @@ const customFuncVitalPatient = async (
             id: 'asc',
           },
           where: {
-            // date: {
-            //   gte: yearStartDate, // Greater than or equal to the start of the year
-            //   lte: yearEndDate, // Less than or equal to the end of the year
-            // },
-            // doctorID: session?.user?.id,
-            ...checkUser,
-
-            OR: [
+           
+            AND: [
               {
-                patientID: Number(patientData?.patientInfo?.S_ID),
+                OR:[
+                  {
+                    ...checkUser
+                  },
+                  {
+                    doctorID: null
+                  },
+                
+                ]
               },
               {
-                emrPatientID: Number(emrPatientRec?.id),
-              },
+                OR:[
+                  {
+                    patientID: {
+                      in: emrPatientList
+                    }
+                  },
+                  {
+                    patientID:null
+                  }
+                ]
+              }
             ],
+            ...valuesData,
+            isDeleted: '0',
+          
+
+            // OR: [
+            //   {
+            //     patientID: Number(patientData?.patientInfo?.S_ID),
+            //   },
+            //   {
+            //     emrPatientID: Number(emrPatientRec?.id),
+            //   },
+            // ],
           },
           include: {
             emr_patient: true,
@@ -597,6 +642,8 @@ const customFuncVitalPatient = async (
       // console.log(vitalData, 'LINKED VITAL DATA');
       vitals_data = vitalData;
     } else {
+
+      // valuesData = valuesData?.OR?.filter((item)=>Object.keys(item)[0] !== 'emrPatientID');
 
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
@@ -611,10 +658,9 @@ const customFuncVitalPatient = async (
             //   lte: yearEndDate, // Less than or equal to the end of the year
             // },
             isDeleted: '0',
-
-            // doctorID: session?.user?.id,
-            // ...checkUser,
-            patientID: Number(patientData?.patientInfo?.S_ID),
+            ...checkUser,
+            ...valuesData,
+            // patientID: Number(patientData?.patientInfo?.S_ID),
             // patientID: Number(patientData?.id),
           },
           include: {
@@ -708,8 +754,20 @@ const customFuncVitalEMRPatient = async (
     };
   })();
 
+  const getEmrpatientByDoctor = await client.emr_patient.findMany({
+    where: {
+      ...checkUser
+    }
+  })
+  const emrPatientList: any = getEmrpatientByDoctor?.map((item) => item.patientID);
+
+
+
+
   if (emrData) {
+
     const isLinked = emrData.link === 1;
+
     if (isLinked) {
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
@@ -718,13 +776,32 @@ const customFuncVitalEMRPatient = async (
             id: 'asc',
           },
           where: {
-            // date: {
-            //   gte: yearStartDate, // Greater than or equal to the start of the year
-            //   lte: yearEndDate, // Less than or equal to the end of the year
-            // },
-            // doctorID: session?.user?.id,
-            ...checkUser,
 
+            AND: [
+              {
+                OR:[
+                  {
+                    ...checkUser
+                  },
+                  {
+                    doctorID: null
+                  },
+                
+                ]
+              },
+              {
+                OR:[
+                  {
+                    patientID: {
+                      in: emrPatientList
+                    }
+                  },
+                  {
+                    patientID:null
+                  }
+                ]
+              }
+            ],
             OR: [
               {
                 patientID: Number(emrData?.patientID),
@@ -732,7 +809,15 @@ const customFuncVitalEMRPatient = async (
               {
                 emrPatientID: Number(emrData.id),
               },
-            ],
+
+              // {
+              //   AND:[
+              //     {
+              //       ...checkUser
+              //     }
+              //   ]
+              // }
+            ]
           },
           include: {
             emr_patient: true,
@@ -757,7 +842,23 @@ const customFuncVitalEMRPatient = async (
             isDeleted: '0',
 
             // doctorID: session?.user?.id,
-            ...checkUser,
+            AND: [
+              {
+                OR: [
+                  {
+                    doctorID: null,
+                  },
+                  {
+                    ...checkUser
+                  }
+                ]
+              },
+              {
+                patientID: {
+                  in: emrPatientList
+                }
+              }
+            ],
             emrPatientID: Number(emrData.id),
             // patientID: Number(patientData?.id),
           },
@@ -787,10 +888,10 @@ export const PostVitals = extendType({
         const { session } = ctx;
         try {
           let patientData: any;
-          let emrPatient:any;
-          let emrPatientData:any;
+          let emrPatient: any;
+          let emrPatientData: any;
 
-          
+
 
           if (!createData?.isEmr) {
             patientData = await client.user.findFirst({
@@ -802,32 +903,32 @@ export const PostVitals = extendType({
               }
             })
 
-           
 
-            
+
+
 
           } else {
             emrPatient = await client.emr_patient.findFirst({
               where: {
-                id:Number(createData?.uuid)
+                id: Number(createData?.uuid)
               }
             })
           }
 
 
           emrPatientData = await client.emr_patient.findFirst({
-            where:{
-             OR:[
-              {
-                patientID: patientData?.patientInfo?.S_ID
-              },
-              {
-                id: emrPatient?.id
-              },
-             ]
+            where: {
+              OR: [
+                {
+                  patientID: patientData?.patientInfo?.S_ID
+                },
+                {
+                  id: emrPatient?.id
+                },
+              ]
             }
           })
-         
+
 
           let doctorData: any;
 
@@ -845,16 +946,16 @@ export const PostVitals = extendType({
             const result = createData?.categoryValues.map(async (item) => {
 
               if (Number(item?.value) !== 0) {
-                
+
                 const categoryId = await client.vital_category.findFirst({
                   where: {
                     title: item?.title,
-                    OR:[
+                    OR: [
                       {
                         patientId: Number(createData?.patientID) || Number(patientData?.patientInfo?.S_ID),
                       },
                       {
-                        emrPatientId:emrPatientData?.id
+                        emrPatientId: emrPatientData?.id
                       }
                     ],
                     isDeleted: 0
@@ -867,8 +968,8 @@ export const PostVitals = extendType({
                     doctorId: Number(doctorData?.EMP_ID),
                     categoryId: Number(categoryId?.id),
                     value: item?.value,
-                    isEMR:createData?.isEmr ? 1:null,
-                    emrPatientId:emrPatient ? emrPatient?.id : null,
+                    isEMR: createData?.isEmr ? 1 : null,
+                    emrPatientId: emrPatient ? emrPatient?.id : null,
                   }
                 })
 
@@ -886,8 +987,8 @@ export const PostVitals = extendType({
               report_id: createData?.recordID,
               patientID: patientData?.patientInfo?.S_ID || createData?.patientID,
               doctorID: Number(doctorData?.EMP_ID),
-              isEMR:createData?.isEmr ? 1:null,
-              emrPatientID:emrPatient ? emrPatient?.id : null,
+              isEMR: createData?.isEmr ? 1 : null,
+              emrPatientID: emrPatient ? emrPatient?.id : null,
 
 
               wt: createData?.weight !== "0" ? createData?.weight : null,
@@ -931,19 +1032,19 @@ export const PostVitalsEMR = extendType({
                 const categoryId = await client.vital_category.findFirst({
                   where: {
                     title: item?.title,
-                    emrPatientId:createData?.emrID,
+                    emrPatientId: createData?.emrID,
                     isDeleted: 0
                   }
                 })
 
                 const vitalData = await client.vital_data.create({
                   data: {
-                   
+
                     doctorId: Number(session?.user?.doctor_id),
                     categoryId: Number(categoryId?.id),
                     value: item?.value,
-                    isEMR:1,
-                    emrPatientId:createData?.emrID
+                    isEMR: 1,
+                    emrPatientId: createData?.emrID
                   }
                 })
 
@@ -992,6 +1093,7 @@ export const notesUserVitalInputType = inputObjectType({
   name: 'notesUserVitalInputType',
   definition(t) {
     t.nullable.string('uuid');
+    t.nullable.int('take')
   },
 });
 
@@ -1012,14 +1114,34 @@ export const QueryNotesVitalsUser = extendType({
           '`QueryNotesVitals`'
         );
         try {
+
+          const patientDetails: any = {
+            OR: []
+          }
+
+          const emrPatient = await client.emr_patient.findFirst({
+            where: {
+              patientID: session?.user?.s_id
+            }
+          })
+
+          if (emrPatient) {
+            patientDetails.OR.push({
+              emrPatientID: emrPatient.id
+            })
+          }
+          patientDetails.OR.push({
+            patientID: Number(session?.user?.s_id)
+          })
+
           const [vitalData]: any = await client.$transaction([
             client.notes_vitals.findMany({
-              take: 10,
+              take: args?.data?.take,
               orderBy: {
-                id: 'desc',
+                id: 'asc',
               },
               where: {
-                patientID: Number(session?.user?.s_id),
+                ...patientDetails,
                 isDeleted: '0',
               },
             }),
@@ -1052,14 +1174,25 @@ export const PostVitalsUser = extendType({
         const { session } = ctx;
         await cancelServerQueryRequest(client, session?.user?.id, '`record`', 'PostVitalsUser');
         try {
-
-          // pwede mag create ng vitals si patient, so hindi laging may value yung doctorId 
-          const patientIdCon = (() => {
-            if (session?.user?.role === 'patient') {
-              return session?.user?.s_id
+          let patientDetails: any = {
+            OR: []
+          }
+          const emrPatient = await client.emr_patient.findFirst({
+            where: {
+              patientID: session?.user?.s_id
             }
-          })()
-
+          })
+          // pwede mag create ng vitals si patient, so hindi laging may value yung doctorId 
+          if (session?.user?.role === 'patient') {
+            patientDetails.OR.push({
+              patientId: session?.user?.s_id
+            })
+          }
+          if (emrPatient) {
+            patientDetails.OR.push({
+              emrPatientId: emrPatient.id
+            })
+          }
           const doctorIdCon = (() => {
             if (session?.user?.role !== 'patient') {
               return session?.user?.id
@@ -1073,7 +1206,7 @@ export const PostVitalsUser = extendType({
               const categoryId = await client.vital_category.findFirst({
                 where: {
                   title: item?.title,
-                  patientId: patientIdCon,
+                  ...patientDetails,
                   isDeleted: 0
                 },
                 select: {
@@ -1083,7 +1216,7 @@ export const PostVitalsUser = extendType({
 
               const vitalData = await client.vital_data.create({
                 data: {
-                  patientId: patientIdCon,
+                  patientId: session?.user?.s_id,
                   doctorId: doctorIdCon,
                   categoryId: categoryId?.id,
                   value: item?.value,

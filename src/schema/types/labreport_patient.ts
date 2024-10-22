@@ -84,7 +84,7 @@ const patient_emr_patientInfoObjectType = objectType({
 const patient_emr_patient_object = objectType({
   name: 'patient_emr_patient_object',
   definition(t) {
-    t.id('IDNO');
+    t.nullable.id('IDNO');
     t.nullable.string('FNAME');
     t.nullable.string('LNAME');
     t.nullable.string('MNAME');
@@ -128,7 +128,7 @@ export const labreport_attachments = objectType({
   name: 'labreport_attachments',
   definition(t) {
     t.nullable.int('id');
-    t.nullable.bigInt('patient');
+    t.nullable.string('patient');
     t.nullable.int('doctor');
     t.nullable.int('clinic');
     t.nullable.int('labreport_id');
@@ -942,7 +942,6 @@ export const mutation_lab_report = extendType({
           'lab_report_request'
         );
 
-        console.log(session, 'session');
         let res: any;
 
         if (session?.user?.role === 'secretary') {
@@ -1184,13 +1183,17 @@ export const mutation_lab_report = extendType({
                   'lab report'
                 );
                 // const uploadResult = await useUpload(sFile, 'public/documents/');
-                uploadResult.map(async (v: any) => {
-                  await client.labreport_attachments.create({
+
+             
+
+
+                let res = uploadResult.map(async (v: any) => {
+                  return await client.labreport_attachments.create({
                     data: {
                       patientID,
                       doctorID,
                       isEMR,
-                      patient,
+                      patient:patient ? patient:null ,
                       doctor:String(doctorID),
                       clinic,
                       labreport_id: labReportID,
@@ -1201,6 +1204,9 @@ export const mutation_lab_report = extendType({
                     },
                   });
                 });
+
+                const fRes = await Promise.all(res);
+                console.log(fRes,'fRes')
               }
 
               res = {

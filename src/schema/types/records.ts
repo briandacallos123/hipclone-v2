@@ -3037,6 +3037,11 @@ const customFuncEMR = async (
   if (emrData) {
     const isLinked = emrData.link !== 0;
     if (isLinked) {
+
+      console.log(emrData?.patientID,'first')
+      console.log(emrData.id,'first')
+
+
       const [medNoteData, _count]: any = await client.$transaction([
         client.records.findMany({
           skip,
@@ -3053,7 +3058,7 @@ const customFuncEMR = async (
               },
             ],
 
-            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }],
+            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }, { R_TYPE: '0' }],
             isDeleted: 0,
 
             ...whereconditions,
@@ -3089,7 +3094,7 @@ const customFuncEMR = async (
                 emrPatientID: Number(emrData.id),
               },
             ],
-            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }],
+            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }, { R_TYPE: '0' }],
             isDeleted: 0,
             // isEMR: 0,
             ...whereconditions,
@@ -3127,7 +3132,7 @@ const customFuncEMR = async (
             ...checkUser,
             emrPatientID: Number(emrData.id),
 
-            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }],
+            NOT: [{ clinicInfo: null }, { R_TYPE: '3' },  { R_TYPE: '0' }],
             isDeleted: 0,
             ...setCurrentDay,
             ...whereconditions,
@@ -3156,7 +3161,7 @@ const customFuncEMR = async (
 
             emrPatientID: Number(emrData.id),
 
-            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }],
+            NOT: [{ clinicInfo: null }, { R_TYPE: '3' }, { R_TYPE: '0' }],
             isDeleted: 0,
 
             ...setCurrentDay,
@@ -3280,9 +3285,6 @@ export const QueryRecordBypatientUser = extendType({
         })()
         const { session } = ctx;
 
-        console.log(searchKeyWord,'searchKeyWordsearchKeyWord')
-        console.log(session?.user?.s_id,'S_ID')
-
         const whereconditions = filtersPatient(args);
 
         await cancelServerQueryRequest(
@@ -3291,6 +3293,40 @@ export const QueryRecordBypatientUser = extendType({
           '`records`',
           '`allRecordsbyPatientUser`'
         );
+
+        const userData:any = await client.user.findFirst({
+          where:{
+            id:session?.user?.id
+          },
+          include:{
+            patientInfo:true
+          }
+        })
+
+        const emrPatientRecord = await client.emr_patient.findFirst({
+          where:{
+            patientID: Number(session?.user?.s_id)
+          }
+        })
+
+        const OrValues = (()=>{
+          let myData = [];
+
+          myData.push({
+            patientID: Number(session?.user?.s_id)
+          })
+
+          if(emrPatientRecord){
+            myData.push({
+              emrPatientID:Number(emrPatientRecord.id)
+            })
+          }
+          return {
+            OR:[...myData]
+          }
+        })()
+
+        console.log(OrValues,'OrValues')
 
 
         try {
@@ -3303,8 +3339,9 @@ export const QueryRecordBypatientUser = extendType({
               },
               where: {
                 ...rType,
-                patientID: Number(session?.user?.s_id),
-                NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '0' }, { R_TYPE: '3' }],
+                // patientID: Number(session?.user?.s_id),
+                ...OrValues,
+                NOT: [{ clinicInfo: null }, { R_TYPE: '0' }, { R_TYPE: '3' }],
                 isDeleted: 0,
                 ...whereconditions,
               },
@@ -3332,8 +3369,9 @@ export const QueryRecordBypatientUser = extendType({
               },
               where: {
                 // where: {
-                patientID: Number(session?.user?.s_id),
-                NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                // patientID: Number(session?.user?.s_id),
+                ...OrValues,
+                NOT: [{ clinicInfo: null },  { R_TYPE: '3' }, { R_TYPE: '0' }],
                 isDeleted: 0,
                 ...whereconditions,
                 // },
@@ -3369,8 +3407,9 @@ export const QueryRecordBypatientUser = extendType({
 
             client.records.findMany({
               where: {
-                patientID: Number(session?.user?.s_id),
-                NOT: [{ clinicInfo: null }, { patientInfo: null }, { R_TYPE: '3' }],
+                ...OrValues,
+                // patientID: Number(session?.user?.s_id),
+                NOT: [{ clinicInfo: null }, { R_TYPE: '3' }, { R_TYPE: '0' }],
                 isDeleted: 0,
               },
               include: {

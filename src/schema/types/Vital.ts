@@ -167,7 +167,7 @@ export const QueryAllVitalData = extendType({
                             })
                             if(emrTarget?.patientID){
                                 arrCon.push({
-                                    patientID: Number(emrTarget?.patientID)
+                                    patientId: Number(emrTarget?.patientID)
                                 })
                             }
                             emrPatientRec.OR = [...arrCon]
@@ -281,51 +281,67 @@ export const QueryAllCategory = extendType({
                         })()
                     }
                 }).then(async (res) => {
-                    let emrPatientRec: any;
+                   
+                    let emrPatient:any;
+                    let patientId:any;
 
-                  
-
-                    // check if si patient ba ay may emr na data pero nasa page tayo ng patient
-                    if (!args?.data?.isEmr) {
-                        let emrResult:any = await client.emr_patient.findFirst({
-                            where: {
-                                patientID: Number(res)
-                            },
-                            orderBy: {
-                                date_added: 'desc'
-                            }
-                        })
-                        emrPatientRec = {
-                            OR:[
-                                {
-                                    emrPatientId: Number(emrResult.id),
-                                },
-                                {
-                                     patientId:emrResult?.patientID
-                                }
-                            ]
-                        }
+                    // patient side
+                    if(session?.user?.role === 'patient'){
+                        patientId = res;
+                       
+                    }
+                    // patient > view > medical records 
+                    if(session?.user?.role !== 'patient' && !args?.data?.isEmr){
+                        patientId = res;
+                    }
+                    // emr
+                    if(args?.data?.isEmr){
+                        emrPatient = Number(res);
                     }
 
-                    const target = (() => {
-                        if(emrPatientRec){
-                            return;
-                        }
-                        if (!args?.data?.isEmr) {
+                    const ewan = (()=>{
+                        if(emrPatient){
                             return {
-                                patientId: Number(res)
+                                id:emrPatient
+                            }
+                        }else if(patientId){
+                            return {
+                                patientID:patientId
                             }
                         }
-                        return {
-                            emrPatientId: Number(res)
-                        }
                     })()
+                    
+                    // check kung merong linked sa emr yung patient.
+                    let emrData = await client.emr_patient.findFirst({
+                        where:{
+                            ...ewan,
+                            isdeleted:0
+                        }
+                    })
+
+                    
+                  
+                    let values:any = {
+                        OR:[]
+                    }
+
+                    if(emrData){
+                        values.OR.push({
+                            emrPatientId:emrData?.id
+                        })
+                    }
+                    if(patientId){
+                        values.OR.push({
+                            patientId
+                        })
+                    
+                    }
                   
                     response = await client.vital_category.findMany({
                         where: {
                             isDeleted: 0,
-                            ...target,
-                            ...emrPatientRec
+                            // ...target,
+                            ...values
 
                         }
                     })

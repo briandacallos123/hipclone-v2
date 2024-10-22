@@ -39,6 +39,9 @@ export default function   ProfileVitalView({ data }: Props) {
   const [chartData, setChartData] = useState<any>([]);
   const [chart2Data, setChart2Data] = useState([]);
   const [addCategory, setAddCategory] = useState([])
+
+  const [take, setTake] = useState(100)
+
   // console.log('@@@@', user);
   const [
     getDataUser,
@@ -107,6 +110,7 @@ export default function   ProfileVitalView({ data }: Props) {
         variables: {
           data: {
             uuid: String(user.uuid),
+            take
           },
         },
       }).then(async (result: any) => {

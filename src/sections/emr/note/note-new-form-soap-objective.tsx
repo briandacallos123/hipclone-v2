@@ -186,7 +186,7 @@ export default function NoteNewFormSoapObjective() {
         display="grid"
         gridTemplateColumns={{
           xs: 'repeat(1, 1fr)',
-          sm: '3fr 1fr 1fr',
+          sm: '2fr 1fr 1fr',
         }}
         sx={{ pt: 2 }}
       >
@@ -206,7 +206,7 @@ export default function NoteNewFormSoapObjective() {
             placeholder="0"
             InputLabelProps={{ shrink: true }}
             InputProps={{
-              startAdornment: <InputAdornment position="start">20 /</InputAdornment>,
+              startAdornment: <InputAdornment position="start"></InputAdornment>,
             }}
           />
 
@@ -217,7 +217,7 @@ export default function NoteNewFormSoapObjective() {
             placeholder="0"
             InputLabelProps={{ shrink: true }}
             InputProps={{
-              startAdornment: <InputAdornment position="start">20 /</InputAdornment>,
+              startAdornment: <InputAdornment position="start"></InputAdornment>,
             }}
           />
         </Box>
