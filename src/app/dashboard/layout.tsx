@@ -17,6 +17,10 @@ import Image from '@/components/image';
 import prisma from '../../../prisma/prismaClient'
 import ChangesWatcher from '@/context/changes-watcher';
 import Tutorialstep from '@/context/tut-step';
+import { getCurrentStep } from './tutorial-action';
+import { useAuthContext } from '@/auth/hooks';
+import { paths } from '@/routes/paths';
+import { useRouter } from 'next/navigation';
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -29,32 +33,44 @@ export default function Layout({ children }: Props) {
   beamsClient()
   activeUser()
   const pathname = usePathname();
+
+  const router = useRouter()
+
+  const {user} = useAuthContext();
+
   const { id } = useParams();
   const upMd = useResponsive('up', 'md');
-  // const { patientView, setPatientView }: any = useSearch();
 
   const isChat = pathname === '/dashboard/chat/';
 
   if (isChat && !upMd) {
     return <AuthGuard>{children}</AuthGuard>;
   }
+  // console.log(user,"meron naman? sa labas")
 
-  // useEffect(() => {
-  //   var myData: any | null = JSON.parse(sessionStorage.getItem('patientView'));
+  useEffect(()=>{
+  // console.log("meron naman? sa loob")
 
-  //   // false
-  //   if (pathname !== '/dashboard/patient/' && id === undefined) {
-  //     if (myData?.data?.length) {
-  //       sessionStorage.removeItem('patientView');
-  //     }
-  //   }
-  //   if (pathname === '/dashboard/patient/' && !id) {
-  //     if (myData?.data?.length) {
-  //       sessionStorage.removeItem('patientView');
-  //     }
-  //   }
-  // }, [pathname]);
+    if(user?.new_doctor){
+      getCurrentStep(user?.id).then((res)=>{
+        switch(res.setup_step){
+          case 1:
+            router.push(paths.dashboard.root);
+            break;
+          case 2:
+            router.push(paths.dashboard.root);
+            break;
+          case 3:
+            router.push(paths.dashboard.user.manage.profile);
+            break;
+          case 4:
+            router.push(paths.dashboard.user.manage.profile);
+            break;
 
+        }
+      })
+    }
+  },[pathname, user])
 
 
   const StyledComponent = styled('div')({

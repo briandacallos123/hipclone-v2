@@ -622,14 +622,15 @@ export const emr_view_patient_smoking_data = extendType({
                 skip,
                 where: {
                   isDeleted: 0,
+                      ...whereconditions,
                   OR: [
                     {
                       emrPatientID: Number(record?.id),
-                      ...whereconditions,
+                      // ...whereconditions,
                     },
                     {
                       patientID: Number(record?.patientID),
-                      ...whereconditions,
+                      // ...whereconditions,
                     },
                   ],
                 },
@@ -679,6 +680,8 @@ export const emr_view_patient_smoking_data = extendType({
             const _result: any = emr_smoking_record;
             const _result_data: any = emr_smoking_record_data;
             const _total: any = _count;
+
+            console.log(emr_smoking_record,'resulttt')
 
             const response: any = {
               emr_view_smoking_data: _result,

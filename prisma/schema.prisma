@@ -1570,6 +1570,7 @@ model user {
   firstName                                     String?             @db.VarChar(255)
   lastName                                      String?             @db.VarChar(255)
   is_new                                        Int?                @default(1)
+  setup_step                                    Int?                @default(1)
   accounts                                      Account[]
   message                                       Message[]
   participant                                   Participant[]

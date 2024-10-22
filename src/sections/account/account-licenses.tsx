@@ -29,6 +29,7 @@ import { Button } from '@mui/material';
 import './styles/licences.css'
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
+import { getCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -44,7 +45,14 @@ export default function AccountLicenses() {
   const { user, reInitialize } = useAuthContext();
 
   const [updateLicenses] = useMutation(LicensesUpdate);
-  const currentStep = localStorage?.getItem('currentStep')
+  // const currentStep = localStorage?.getItem('currentStep')
+  const [currentStep, setCurrentStep] = useState(null);
+
+  useEffect(() => {
+    getCurrentStep(user?.id).then((res) => {
+      setCurrentStep(res.setup_step)
+    })
+  }, [user?.esig?.filename])
 
   const UpdateUserSchema = Yup.object().shape({
     prcNumber: Yup.string().required('PRC Number is required'),
@@ -78,11 +86,14 @@ export default function AccountLicenses() {
           const { data } = res;
           closeSnackbar(snackKey);
           enqueueSnackbar('Updated successfully!');
-          reInitialize();
 
-          if (currentStep && Number(currentStep) !== 100) {
-            localStorage.setItem('currentStep', '5')
+          if (currentStep) {
+            await setCurrentStep({
+              id:user.id,
+              step:5
+            })
           }
+          reInitialize();
 
         })
         .catch((error) => {

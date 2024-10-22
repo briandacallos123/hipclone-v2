@@ -27,6 +27,7 @@ import { paths } from '@/routes/paths';
 import { useAuthContext } from '@/auth/hooks';
 import Iconify from '@/components/iconify';
 import { position } from 'html2canvas/dist/types/css/property-descriptors/position';
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -37,7 +38,7 @@ type Props = {
 export default function DashboardLayout({ children }: Props) {
   const settings = useSettingsContext();
 
-  const { user } = useAuthContext();
+  const { user }:any = useAuthContext();
 
   const router = useRouter();
 
@@ -322,7 +323,13 @@ export default function DashboardLayout({ children }: Props) {
 
   const incrementStep = () => setSteps((prev) => prev + 1)
 
-  let currentStep = Number(localStorage.getItem('currentStep'));
+  const [currentStep, setCurrentStep] = useState(null);
+
+  useEffect(()=>{
+    getCurrentStep(user?.id).then((res)=>{
+      setCurrentStep(res.setup_step)
+    })
+  },[user])
 
 
 
@@ -463,8 +470,14 @@ export default function DashboardLayout({ children }: Props) {
 
   useEffect(() => {
     if (step === 6) {
-      localStorage.setItem('currentStep', '3')
-      router.push(paths.dashboard.user.manage.profile)
+      setCurrentStep(
+        {
+          id:user.id,
+          step:3
+        }
+      ).then((res)=>{
+        router.push(paths.dashboard.user.manage.profile)
+      })
     }
 
 
@@ -557,7 +570,7 @@ export default function DashboardLayout({ children }: Props) {
       <Header onOpenNav={nav.onTrue} />
       {/* {isFinal && renderFinalTutorial} */}
 
-      {(user?.new_doctor && (Number(currentStep) < 3 || !currentStep)) && renderFirstTutorial}
+      {(user?.new_doctor && currentStep && Number(currentStep) < 3) && renderFirstTutorial}
 
       <Box
         sx={{

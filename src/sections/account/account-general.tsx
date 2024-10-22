@@ -49,6 +49,7 @@ import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
 
 import './generalStyle.css'
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
 // ----------------------------------------------------------------------
 
 interface FormValuesProps extends Omit<IUserProfile, 'avatarUrl'> {
@@ -153,7 +154,23 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
   const [snackKey, setSnackKey]: any = useState(null);
   const [snackKey2, setSnackKey2]: any = useState(null);
 
-  const currentStep = localStorage?.getItem('currentStep')
+  const [currentStep, setCurrentStepState] = useState(null);
+  const [step, setSteps] = useState(1);
+
+  const hasEsig = user?.esig?.filename;
+
+  useEffect(() => {
+    getCurrentStep(user?.id).then((res) => {
+      setCurrentStepState(res.setup_step)
+
+    })
+
+    if (user?.esig?.filename) {
+      setSteps(3)
+
+    }
+  }, [user?.esig?.filename])
+
   const esigCalled = localStorage?.getItem('esigCalled')
 
 
@@ -181,10 +198,14 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
           const { data } = res;
           closeSnackbar(snackKey);
           enqueueSnackbar('Updated successfully!');
-          reInitialize();
-          if (currentStep && Number(currentStep) !== 100) {
-            localStorage.setItem('currentStep', '4');
+     
+          if (currentStep) {
+            await setCurrentStep({
+              id:user.id,
+              step:4
+            })
           }
+          reInitialize();
         })
         .catch((error) => {
           closeSnackbar(snackKey);
@@ -230,23 +251,6 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
 
   const values = watch();
 
-
-  useEffect(() => {
-  }, [values, defaultValues])
-
-
-
-  useEffect(() => {
-    console.log(values.signaturePad, 'signaturePadsignaturePadsignaturePadsignaturePad   ');
-  }, [values]);
-  // const [uploadtest] = useMutation(gql`
-  //   mutation simpleUpload($file: Upload) {
-  //     simpleUpload(file: $file)
-  //   }
-  // `);
-
-  // doctor = employee table, sexytary = subaccounts_employee, user = user;
-
   useEffect(() => {
     if (snackKey) {
       (async () => {
@@ -276,33 +280,25 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
     console.log(b, o);
   };
 
-  const [step, setSteps] = useState(null);
+  console.log(step,'stepsss')
 
-  useEffect(()=>{
-    if(currentStep){
-      setSteps(1)
-    }
-  },[])
+
 
 
   const handleDrop = useCallback(
     (acceptedFiles: File[]) => {
       const file = acceptedFiles[0];
 
-      console.log('Changes@@@@@@@@@@');
       const newFile = Object.assign(file, {
         preview: URL.createObjectURL(file),
       });
 
-      console.log(newFile, 'newfiledaw');
-
       if (file) {
         setValue('avatarUrl', newFile, { shouldValidate: true });
       }
-      if(step || esigCalled){
-        console.log("hellow")
+      if (step) {
         targetRef.current.scrollIntoView({ behavior: 'smooth' });
-        setSteps(2)
+        setSteps(5)
       }
     },
     [setValue]
@@ -310,7 +306,7 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
 
   const openPay = useBoolean();
 
-  
+
 
   useEffect(() => {
     if (snackKey2) {
@@ -371,11 +367,21 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
 
   const PRIMARY_MAIN = theme.palette.primary.main;
 
-  const incrementStep = () => setSteps((prev) => prev + 1)
+  const incrementStep = useCallback(() => {
+    // if (user?.esig?.filename && step == 2) {
+    //   setSteps(5)
+    // } else {
+    //   setSteps((prev) => prev + 1)
+
+    // }
+
+    setSteps((prev) => prev + 1)
+
+  }, [user, step])
 
   const openSig = () => {
     openPay.onTrue();
-    if(currentStep){
+    if (currentStep) {
       incrementStep()
     }
   };
@@ -401,7 +407,7 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
           },
         }}
       >
-        {languagePrefer === 'english' ?"Before you start using the system, we need to set up your medical profile, including images and other important information.":"Bago mo simulan ang paggamit ng sistema, kailangan nating i-set up ang iyong medical profile, kasama na ang mga larawan at iba pang mahalagang impormasyon."}
+        {languagePrefer === 'english' ? "Before you start using the system, we need to set up your medical profile, including images and other important information." : "Bago mo simulan ang paggamit ng sistema, kailangan nating i-set up ang iyong medical profile, kasama na ang mga larawan at iba pang mahalagang impormasyon."}
       </Typography>
     </m.div>
   )
@@ -420,9 +426,9 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
           },
         }}
       >
-        
 
-        {languagePrefer === 'english'?'After updating all your needs, don’t forget to save the changes! 💾✍️':'Matapos i-update ang lahat ng iyong pangangailangan, huwag kalimutang i-save ang mga pagbabago! 💾✍️'}
+
+        {languagePrefer === 'english' ? 'After updating all your needs, don’t forget to save the changes! 💾✍️' : 'Matapos i-update ang lahat ng iyong pangangailangan, huwag kalimutang i-save ang mga pagbabago! 💾✍️'}
       </Typography>
     </m.div>
   )
@@ -456,7 +462,7 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
-          right:upMd ? 100:null
+          right: upMd ? 100 : null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -465,7 +471,7 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
               height: 'auto',
               width: 'auto',
               maxWidth: 250,
-              left: upMd ? 0:10,
+              left: upMd ? 0 : 10,
               borderRadius: 2,
               zIndex: 99999,
               position: 'absolute',
@@ -507,10 +513,13 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
   return (
     <Box>
       {Number(currentStep) === 3 && step < 4 && renderSecondTutorial}
+
       <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
         <Grid container spacing={3}>
           <Grid xs={12} md={4} spacing={3}>
-            {!(step && step === 1 && esigCalled) ? <Card sx={{ py: { md: 10, xs: 1 }, px: { md: 3, xs: 1 }, mb: 3, textAlign: 'center' }}>
+            {!(step && step === 3 && hasEsig) ? <Card sx={{ py: { md: 10, xs: 1 }, px: { md: 3, xs: 1 }, mb: 3, textAlign: 'center' }}>
+
+              {/* {!(step && step === 1 && !(user?.esig?.filename && Number(step) === 3)) ? <Card sx={{ py: { md: 10, xs: 1 }, px: { md: 3, xs: 1 }, mb: 3, textAlign: 'center' }}> */}
               <RHFUploadAvatar
                 name="avatarUrl"
                 maxSize={3145728}
@@ -531,39 +540,39 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
                   </Typography>
                 }
               />
-            </Card>:
+            </Card> :
               <div className="showFields-profile">
                 <Box sx={{ py: { md: 10, xs: 1 }, px: { md: 3, xs: 1 }, mb: 3, textAlign: 'center' }}>
-               <RHFUploadAvatar
-                name="avatarUrl"
-                maxSize={3145728}
-                onDrop={handleDrop}
-                helperText={
-                  <Typography
-                    variant="caption"
-                    sx={{
-                      mt: 3,
-                      mx: 'auto',
-                      display: 'block',
-                      textAlign: 'center',
-                      color: 'text.disabled',
-                    }}
-                  >
-                    Allowed *.jpeg, *.jpg, *.png, *.gif
-                    <br /> max size of {fData(3145728)}
-                  </Typography>
-                }
-              />
-            </Box>
+                  <RHFUploadAvatar
+                    name="avatarUrl"
+                    maxSize={3145728}
+                    onDrop={handleDrop}
+                    helperText={
+                      <Typography
+                        variant="caption"
+                        sx={{
+                          mt: 3,
+                          mx: 'auto',
+                          display: 'block',
+                          textAlign: 'center',
+                          color: 'text.disabled',
+                        }}
+                      >
+                        Allowed *.jpeg, *.jpg, *.png, *.gif
+                        <br /> max size of {fData(3145728)}
+                      </Typography>
+                    }
+                  />
+                </Box>
               </div>
             }
 
             {user?.role === 'doctor' && (
-              <div className={step === 3 ? 'showFields-profile' : ''}>
+              <div className={(step === 3 && !hasEsig) ? 'showFields-profile' : ''}>
                 <Box sx={{ py: { md: 2, xs: 1 }, px: { md: 3, xs: 1 }, textAlign: 'center' }}>
                   <Stack spacing={1.5} sx={{ mt: 3 }}>
-                    <Stack  justifyContent='flex-end' alignItems='flex-end'>
-                      <div className={step === 3 ? 'showFields-submit-edit-profile' : ''}>
+                    <Stack justifyContent='flex-end' alignItems='flex-end'>
+                      <div className={(step === 3 && !hasEsig) ? 'showFields-submit-edit-profile' : ''}>
                         <Button
                           onClick={openSig}
                           variant="contained"
@@ -722,16 +731,16 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
                 <RHFTextField name="contact" label="Phone Number" />
               </Box>
 
-            
+
             </Card>
             <Stack spacing={3} alignItems="flex-end" sx={{ mt: 3 }}>
-                <div className={(step === 2 && esigCalled) ? 'showFields-submit-profile':''}>
-                  <LoadingButton ref={targetRef} type="submit" variant="contained" loading={isSubmitting}>
-                    Save Changes
-                  </LoadingButton>
-                </div>
-              </Stack>
-          
+              <div className={step === 5 ? 'showFields-submit-profile' : ''}>
+                <LoadingButton ref={targetRef} type="submit" variant="contained" loading={isSubmitting}>
+                  Save Changes
+                </LoadingButton>
+              </div>
+            </Stack>
+
           </Grid>
         </Grid>
       </FormProvider>
@@ -740,12 +749,12 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
         reset={() => setRefetch(true)}
         isOpen={openPay.value}
         onClose={() => openPay.onFalse()}
-        step={step > 3 ? step:null}
+        step={step > 3 ? step : null}
         onIncrementStep={incrementStep}
-        decrementStep={()=>{
-          setSteps((prev)=>prev-1)
+        decrementStep={() => {
+          setSteps((prev) => prev - 1)
         }}
-        setStep={(stepVal)=>{
+        setStep={(stepVal) => {
           setSteps(stepVal)
         }}
       // setImageResult={(res: any) => {
