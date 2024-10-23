@@ -114,7 +114,7 @@ export default function NotePDFSoap({ qrImage, item, esigData }: Props) {
   };
 
   const doctorInfo = item?.doctorInfo?.ClinicList?.filter((i: any) => {
-    if (i?.clinic_name !== item.clinicInfo?.clinic_name) {
+    if (i?.clinic_name !== item?.clinicInfo?.clinic_name) {
       return i;
     }
   }).slice(0, 4);
@@ -195,15 +195,15 @@ export default function NotePDFSoap({ qrImage, item, esigData }: Props) {
 
   const ESIG = () => {
     let text: any;
-    if (item.doctorInfo?.esig_dp?.[0]?.type === 0) {
+    if (item?.doctorInfo?.esig_dp?.[0]?.type === 0) {
       text = <></>;
-    } else if (item.doctorInfo?.esig_dp?.[0]?.type === 1) {
+    } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 1) {
       text = (
         <>
           <Image source={esigData} style={{ height: 72, width: 180 }} />
         </>
       );
-    } else if (item.doctorInfo?.esig_dp?.[0]?.type === 2) {
+    } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 2) {
       text = (
         <>
           <Image source={esigData} style={{ height: 72, width: 180 }} />

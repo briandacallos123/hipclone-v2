@@ -156,13 +156,17 @@ export default function ProfileVitalViewDashboard() {
             gridTemplateColumns={upMd ? 'repeat(5, 1fr)' : 'repeat(1, 2fr)'}
           >
             <Skeleton variant="rounded" height={120} />
-            <Skeleton variant="rounded" height={120} />
-            <Skeleton variant="rounded" height={120} />
-            <Skeleton variant="rounded" height={120} />
-            <Skeleton variant="rounded" height={120} />
-            <Skeleton variant="rounded" height={120} />
-            <Skeleton variant="rounded" height={120} />
-            <Skeleton variant="rounded" height={120} />
+            {upMd && (
+              <>
+                <Skeleton variant="rounded" height={120} />
+                <Skeleton variant="rounded" height={120} />
+                <Skeleton variant="rounded" height={120} />
+                <Skeleton variant="rounded" height={120} />
+                <Skeleton variant="rounded" height={120} />
+                <Skeleton variant="rounded" height={120} />
+                <Skeleton variant="rounded" height={120} />
+              </>
+            )}
           </Box>
         ) : (
           <VitalView

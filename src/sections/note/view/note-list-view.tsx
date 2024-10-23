@@ -44,7 +44,7 @@ import { useSessionStorage } from '@/hooks/use-sessionStorage';
 import { DoctorClinicsHistory } from '@/libs/gqls/drprofile';
 import { Box, Button, Dialog, DialogActions } from '@mui/material';
 import { LogoFull } from '@/components/logo';
-import { PDFViewer } from '@react-pdf/renderer';
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 
 import NotePDFSoap from '../note-pdf-soap';
 import NotePDFText from '../note-pdf-text';
@@ -338,9 +338,9 @@ export default function NoteListView({
 
   const view = useBoolean();
   const [noteData, setNoteData] = useState(null);
-  const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
+  const [imgSrc, setImgSrcList] = useState([]);
 
-  console.log(imgSrc, 'imgSrcimgSrc');
+  console.log(imgSrc.length, 'imgSrcimgSrc');
 
   const [openNotes, setOpenNotes] = useState(false);
 
@@ -363,7 +363,7 @@ export default function NoteListView({
     }
   };
 
-  console.log(link, 'MYLINKKK');
+  console.log(noteData, 'noteData check attachement');
 
   useEffect(() => {
     if (noteData) {
@@ -400,33 +400,65 @@ export default function NoteListView({
 
         if (row?.notes_text?.length !== 0) {
           try {
-            try {
-              const response = await fetch('/api/getImage', {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                  image: row?.notes_text[0]?.file_name,
-                }),
-              });
+            // const response = await fetch('/api/getImage', {
+            //   method: 'POST',
+            //   headers: {
+            //     'Content-Type': 'application/json',
+            //   },
+            //   body: JSON.stringify({
+            //     image: row?.notes_text[0]?.file_name,
+            //   }),
+            // });
 
-              if (!response.ok) {
-                throw new Error('Network response was not ok');
-              }
+            // if (!response.ok) {
+            //   throw new Error('Network response was not ok');
+            // }
 
-              const blob = await response.blob();
-              const objectUrl = URL.createObjectURL(blob);
-              setImgSrc(objectUrl);
-              setNoteData(row);
+            // const blob = await response.blob();
+            // const objectUrl = URL.createObjectURL(blob);
+            // setImgSrc(objectUrl);
+            // setNoteData(row);
 
-              // Clean up object URL on component unmount
-              return () => {
-                URL.revokeObjectURL(objectUrl);
-              };
-            } catch (error) {
-              console.error('Error fetching image:', error);
-            }
+            // // Clean up object URL on component unmount
+            // return () => {
+            //   URL.revokeObjectURL(objectUrl);
+            // };
+
+            const fetchedImages = await Promise.all(
+              row.notes_text.map(async (attachment) => {
+                try {
+                  const response = await fetch('/api/getImage', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      image: attachment.file_name,
+                    }),
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                  }
+
+                  const blob = await response.blob();
+                  const objectUrl = URL.createObjectURL(blob);
+                  return objectUrl;
+                } catch (error) {
+                  console.error('Error fetching image:', error);
+                  return null;
+                }
+              })
+            );
+
+            // Filter out any failed image fetches
+            const validImages = fetchedImages.filter((src) => src !== null);
+            setImgSrcList(validImages);
+
+            // Clean up object URLs on component unmount
+            return () => {
+              validImages.forEach((url) => URL.revokeObjectURL(url));
+            };
           } catch (error) {
             console.error('Error fetching image:', error);
           }
@@ -610,6 +642,213 @@ export default function NoteListView({
         }
       });
     }
+
+    try {
+      const response = await fetch('/api/getImage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: row?.attachment[0]?.file_name,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
+      }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      setImgSrcList(objectUrl);
+
+      // Clean up object URL on component unmount
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    } catch (error) {
+      console.error('Error fetching image:', error);
+    }
+  };
+
+  const [downloadData, setDownloadData] = useState<any>(null);
+  const handleDownloadRow = async (row: any) => {
+    //  else {
+    //   setNoteData(row)
+    //   setOpenNotes(true)
+    // }
+    setNoteData(row);
+
+    if (row?.R_TYPE === '1') {
+      getSoapFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNoteSoap } = data;
+
+          setTargetQuery(1);
+
+          // setSoapData(QueryNoteSoap);
+          setDownloadData(QueryNoteSoap);
+          // console.log('asdadasdadsadasdasdasd', soapData);
+        }
+      });
+      // setDownloadData(soapData);
+    }
+    if (row?.R_TYPE === '4') {
+      getTxtsFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNoteTxt } = data;
+
+          // setTxtData(QueryNoteTxt);
+          setTargetQuery(4);
+
+          setDownloadData(QueryNoteTxt);
+        }
+      });
+      // console.log(())
+    }
+    if (row?.R_TYPE === '5') {
+      getLabFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID), // need force to number
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesLab } = data;
+          setTargetQuery(5);
+
+          setDownloadData(QueryNotesLab);
+
+          // setLabData(QueryNotesLab);
+        }
+      });
+    }
+    if (row?.R_TYPE === '8') {
+      getMedClearFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesMedCler } = data;
+          setTargetQuery(8);
+
+          // setMedClearData(QueryNotesMedCler);
+          setDownloadData(QueryNotesMedCler);
+        }
+      });
+    }
+    if (row?.R_TYPE === '9') {
+      getMedCertFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesMedCert } = data;
+          setTargetQuery(9);
+
+          setDownloadData(QueryNotesMedCert);
+
+          // setMedCertData(QueryNotesMedCert);
+        }
+      });
+    }
+    if (row?.R_TYPE === '10') {
+      getAbstFunc({
+        variables: {
+          data: {
+            recordID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesAbstract } = data;
+          setTargetQuery(10);
+
+          setDownloadData(QueryNotesAbstract);
+
+          // setAbstData(QueryNotesAbstract);
+        }
+      });
+    }
+    if (row?.R_TYPE === '11') {
+      getVaccFunc({
+        variables: {
+          data: {
+            reportID: Number(row?.R_ID),
+          },
+        },
+      }).then(async (result: any) => {
+        const { data } = result;
+        if (data) {
+          const { QueryNotesPedCertObj } = data;
+          setTargetQuery(11);
+
+          setDownloadData(QueryNotesPedCertObj);
+
+          // setVaccData(QueryNotesPedCertObj);
+        }
+      });
+    }
+    const fetchedImages = await Promise.all(
+      row.notes_text.map(async (attachment) => {
+        try {
+          const response = await fetch('/api/getImage', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              image: attachment.file_name,
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+
+          const blob = await response.blob();
+          const objectUrl = URL.createObjectURL(blob);
+          return objectUrl;
+        } catch (error) {
+          console.error('Error fetching image:', error);
+          return null;
+        }
+      })
+    );
+
+    // Filter out any failed image fetches
+    const validImages = fetchedImages.filter((src) => src !== null);
+    setImgSrcList(validImages);
+
+    // Clean up object URLs on component unmount
+    return () => {
+      validImages.forEach((url) => URL.revokeObjectURL(url));
+    };
   };
 
   const [esigData, setEsigData] = useState(null);
@@ -654,6 +893,47 @@ export default function NoteListView({
     handleGetImage();
   }, [rowData]);
 
+  // for download
+  useEffect(() => {
+    const handleGetImage = async () => {
+      if (!downloadData?.doctorInfo?.esig_dp?.[0]?.filename) {
+        console.error('Image filename is missing');
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/getImageBase64', {
+          // Ensure this matches your endpoint
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: downloadData.doctorInfo.esig_dp[0].filename,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorResponse = await response.json();
+          throw new Error(`Network response was not ok: ${errorResponse.error}`);
+        }
+
+        const data = await response.json();
+        console.log('Received Base64 data:', data);
+
+        if (data.image) {
+          setEsigData(data.image); // Set the Base64 string to state
+        } else {
+          console.error('No image data found in response');
+        }
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+    };
+
+    handleGetImage();
+  }, [downloadData]);
+
   console.log('esigData:', esigData);
 
   console.log('{{}{}{}{}{]esigData', esigData);
@@ -680,7 +960,7 @@ export default function NoteListView({
         </DialogActions>
 
         <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
-          {Render(noteData?.R_TYPE, rowData, imgSrc, qrImage, esigData)}
+          {Render(noteData?.R_TYPE, rowData, imgSrc, qrImage, esigData, upMd)}
         </Box>
       </Box>
     </Dialog>
@@ -1269,11 +1549,18 @@ export default function NoteListView({
                     onDeleteRow={() => {
                       handleDelete(row);
                     }}
+                    onDownloadRow={() => {
+                      handleDownloadRow(row);
+                    }}
                     // onEditRow={(data:any)=>{
                     //   onEditFunc
                     //   // handleViewUpdate(data, row)
                     // }}
                     // onViewRow={() => handleViewRow(String(row.id))}
+                    qrImage={qrImage}
+                    esigData={esigData}
+                    rowData={downloadData}
+                    imgSrc={imgSrc}
                   />
                 ))}
               <TableEmptyRows
@@ -1323,11 +1610,11 @@ function applyFilter({
   return inputData;
 }
 
-function Render(data: string, row: any, img: any, qrImage: any, esigData: any) {
+function Render(data: string, row: any, img: any, qrImage: any, esigData: any, upMd: any) {
   data = String(data);
-  console.log(img, 'IMAGE');
-  console.log(qrImage, 'qrImageqrImage');
-  console.log('row________________RENDEResigData', esigData);
+  console.log('row________________RENDERROW', row);
+  // console.log(qrImage, 'qrImageqrImage');
+  // console.log('row________________RENDEResigData', esigData);
 
   return (
     <>
@@ -1355,9 +1642,28 @@ function Render(data: string, row: any, img: any, qrImage: any, esigData: any) {
         </PDFViewer>
       )}
       {data === '9' && (
-        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <NotePDFCertificate qrImage={qrImage} item={row} esigData={esigData} />
-        </PDFViewer>
+        <>
+          {upMd ? (
+            <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+              <NotePDFCertificate qrImage={qrImage} item={row} esigData={esigData} />
+            </PDFViewer>
+          ) : (
+            <PDFDownloadLink
+              document={<NotePDFCertificate qrImage={qrImage} item={row} esigData={esigData} />}
+              fileName="Mednote(Certificate).pdf"
+              style={{
+                textDecoration: 'none',
+                padding: '10px',
+                color: '#fff',
+                backgroundColor: '#007bff',
+                border: 'none',
+                borderRadius: '5px',
+              }}
+            >
+              {({ loading }) => (loading ? 'Generating PDF...' : 'Download PDF')}
+            </PDFDownloadLink>
+          )}
+        </>
       )}
 
       {data === '10' && (

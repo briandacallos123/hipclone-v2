@@ -41,7 +41,10 @@ import { GET_CLINIC_USER } from 'src/libs/gqls/allClinics';
 import { useLazyQuery, useQuery } from '@apollo/client';
 import { labreport_patient_data } from '@/libs/gqls/labreport_patient';
 // import { labreport_emr_patient_data } from '@/libs/gqls/labreport_emr_patient';
-import { emr_labreport_patient_data, labreport_clinic_data } from '@/libs/gqls/labreport_emr_patient';
+import {
+  emr_labreport_patient_data,
+  labreport_clinic_data,
+} from '@/libs/gqls/labreport_emr_patient';
 import { DoctorClinicsHistory, DR_CLINICS } from '@/libs/gqls/drprofile';
 import { get_note_vitals } from '@/libs/gqls/notes/notesVitals';
 //
@@ -71,8 +74,7 @@ const defaultFilters = {
   clinic: [],
   startDate: null,
   endDate: null,
-  reset:false
-
+  reset: false,
 };
 
 // ----------------------------------------------------------------------
@@ -82,12 +84,20 @@ type Props = {
   isRefetch: any;
   setRefetch: any;
   action?: React.ReactNode;
-  editData?:any;
-  setEditData?:any;
-  clinicData?:any;
+  editData?: any;
+  setEditData?: any;
+  clinicData?: any;
 };
 
-export default function ImagingListView({editData,clinicData, setEditData, data_slug, action, isRefetch, setRefetch }: Props) {
+export default function ImagingListView({
+  editData,
+  clinicData,
+  setEditData,
+  data_slug,
+  action,
+  isRefetch,
+  setRefetch,
+}: Props) {
   const params = useParams();
   const { id }: any = params;
   const [isPatient, setIspatient] = useState<boolean>(true);
@@ -106,12 +116,7 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
     }
   );
 
-    const [clinicDataPatient, setClinicDataPatient] = useState([]);
-
-
-
-
-
+  const [clinicDataPatient, setClinicDataPatient] = useState([]);
 
   useEffect(() => {
     dadad({
@@ -183,7 +188,7 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
     !!filters.startDate ||
     !!filters.endDate;
 
-  const notFound = !tableData1.length && !isLoading
+  const notFound = !tableData1.length && !isLoading;
 
   const handleFilters = useCallback(
     (name: string, value: IImagingTableFilterValue) => {
@@ -196,25 +201,19 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
     [table]
   );
 
-
-
-
-
   const handleResetFilters = useCallback(() => {
     setFilters({
       name: '',
       clinic: [],
       startDate: null,
       endDate: null,
-      reset:false
-    
+      reset: false,
     });
   }, []);
 
   // const pathname = usePathname();
   const isEMR = pathname.includes('my-emr');
-  
-  
+
   ////////////////////////////////////////////////////////////////////////////
   const {
     data,
@@ -245,9 +244,6 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
     },
   });
 
- 
-
-
   useEffect(() => {
     if (data) {
       if (!isEMR) {
@@ -255,7 +251,7 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
         setTableData1(labreport_patient_data?.labreport_patient);
         setTotal(labreport_patient_data?.total_records);
         setIsClinic(isClinic + 1);
-        setClinicDataPatient(labreport_patient_data?.clinic?.filter((item)=>item))
+        setClinicDataPatient(labreport_patient_data?.clinic?.filter((item) => item));
 
         // setclinicData(labreport_patient_data?.clinic)
       } else {
@@ -264,23 +260,20 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
         setTotal(emr_labreport_patient_data?.total_records);
         setIsClinic(isClinic + 1);
       }
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }, [data, filters.clinic, orderBy, order, filters.reset]);
-
-  
 
   ////////////////////////////////////////////////////////////////////////////
 
   //////////////////////////////////////////////////////////////////////////
- 
+
   useEffect(() => {
     if (isRefetch) {
       labRefetch().then(() => {
         setRefetch(false);
       });
       // drClinicFetch()
-
     }
   }, [isRefetch]);
 
@@ -291,10 +284,7 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
     refetch: drClinicFetch,
   }: any = useQuery(DoctorClinicsHistory);
 
-  
   const [doctorClinics, setDoctorClinics] = useState([]);
-
-
 
   useEffect(() => {
     if ((drClinicData && user?.role === 'doctor') || user?.role === 'secretary') {
@@ -316,8 +306,6 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
       },
     },
   });
-
-
 
   // useEffect(() => {
   //   if (user?.role === 'patient' && userClinicData) {
@@ -360,72 +348,68 @@ export default function ImagingListView({editData,clinicData, setEditData, data_
   // }, []);
 
   const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
-  const [noteData, setNoteData] = useState(null)
+  const [noteData, setNoteData] = useState(null);
 
-
-  const handleViewRow = async(row:any) => {
-    console.log(row,'ROWWWWWWWWWWWWWW')
+  const handleViewRow = async (row: any) => {
+    console.log(row, 'ROWWWWWWWWWWWWWW');
 
     // (async () => {
-      try {
-        const response = await fetch('/api/getImage', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            image: row?.labreport_attachments[0]?.file_url
-          }),
-        });
+    try {
+      const response = await fetch('/api/getImage', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          image: row?.labreport_attachments[0]?.file_url,
+        }),
+      });
 
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-
-        const blob = await response.blob();
-        const objectUrl = URL.createObjectURL(blob);
-        setImgSrc(objectUrl);
-        setNoteData(row)
-        view.onTrue()
-        
-        // Clean up object URL on component unmount
-        return () => {
-          URL.revokeObjectURL(objectUrl);
-        };
-      } catch (error) {
-        console.error('Error fetching image:', error);
+      if (!response.ok) {
+        throw new Error('Network response was not ok');
       }
+
+      const blob = await response.blob();
+      const objectUrl = URL.createObjectURL(blob);
+      setImgSrc(objectUrl);
+      setNoteData(row);
+      view.onTrue();
+
+      // Clean up object URL on component unmount
+      return () => {
+        URL.revokeObjectURL(objectUrl);
+      };
+    } catch (error) {
+      console.error('Error fetching image:', error);
+    }
     // })();
+  };
 
-    
-  }
+  const renderView = (
+    <Dialog fullScreen open={view.value}>
+      <Box sx={{ height: 1, display: 'flex', flexDirection: 'column' }}>
+        <DialogActions sx={{ p: 1.5 }}>
+          <Box sx={{ ml: 2, flex: 1 }}>
+            <LogoFull disabledLink />
+          </Box>
 
-  
-const renderView = (
-  <Dialog fullScreen open={view.value}>
-    <Box sx={{ height: 1, display: 'flex', flexDirection: 'column' }}>
-      <DialogActions sx={{ p: 1.5 }}>
-        <Box sx={{ ml: 2, flex: 1 }}>
-          <LogoFull disabledLink />
+          <Button variant="outlined" onClick={view.onFalse}>
+            Close
+          </Button>
+        </DialogActions>
+
+        <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
+          <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
+            <PatientImagingPDF img={imgSrc} patientData={noteData} item={noteData} />
+          </PDFViewer>
         </Box>
-
-        <Button variant="outlined" onClick={view.onFalse}>
-          Close
-        </Button>
-      </DialogActions>
-
-      <Box sx={{ flexGrow: 1, height: 1, overflow: 'hidden' }}>
-        <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
-          <PatientImagingPDF img={imgSrc} patientData={noteData} item={noteData} />
-        </PDFViewer>
       </Box>
-    </Box>
-  </Dialog>
-);
+    </Dialog>
+  );
 
-  const handleUpdateRow = (row:any) => {
-    setEditData(row)
-  }
+  const handleUpdateRow = (row: any) => {
+    setEditData(row);
+  };
 
   return (
     <Card>
@@ -467,11 +451,17 @@ const renderView = (
               {isLoading
                 ? [...Array(rowsPerPage)]?.map((_, i) => <ProfileImagingTableRowSkeleton key={i} />)
                 : tableData1?.map((row: any) => (
-                    <ProfileImagingTableRow handleUpdate={()=>{
-                      handleUpdateRow(row)
-                    }} handleView={()=>{
-                      handleViewRow(row)
-                    }} patientData={patientInfo} key={row.id} row={row} />
+                    <ProfileImagingTableRow
+                      handleUpdate={() => {
+                        handleUpdateRow(row);
+                      }}
+                      handleView={() => {
+                        handleViewRow(row);
+                      }}
+                      patientData={patientInfo}
+                      key={row.id}
+                      row={row}
+                    />
                   ))}
 
               <TableEmptyRows
@@ -479,8 +469,7 @@ const renderView = (
                 emptyRows={emptyRows(table.page, table.rowsPerPage, total)}
               />
 
-
-              <TableNoData notFound={notFound } />
+              <TableNoData notFound={notFound} />
             </TableBody>
           </Table>
         </Scrollbar>

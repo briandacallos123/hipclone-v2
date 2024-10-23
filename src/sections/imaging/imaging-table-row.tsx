@@ -1,5 +1,6 @@
+import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { PDFViewer } from '@react-pdf/renderer';
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 // @mui
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -55,6 +56,38 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
   // const keyHospital = _hospitals.filter((_) => _.id === hospitalId)[0];
 
   const view = useBoolean();
+  const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
+  useEffect(() => {
+    // eslint-disable-next-line consistent-return
+    const handleGetIMG = async () => {
+      try {
+        const response = await fetch('/api/getImage', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            image: row?.labreport_attachments[0]?.file_url,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+
+        const blob = await response.blob();
+        const objectUrl = URL.createObjectURL(blob);
+        setImgSrc(objectUrl);
+        return () => {
+          URL.revokeObjectURL(objectUrl);
+        };
+      } catch (error) {
+        console.error('Error fetching image:', error);
+      }
+      // })();
+    };
+    handleGetIMG();
+  }, [row]);
 
   const isEmrData = () => {
     let text: any;
@@ -111,7 +144,12 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
           {row?.clinicInfo === null ? (
             <Avatar
               alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-              src={row?.patientInfo?.[0]?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1] || row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]}
+              src={
+                row?.patientInfo?.[0]?.userInfo?.[0]?.display_picture?.[0]?.filename.split(
+                  'public'
+                )[1] ||
+                row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]
+              }
               sx={{ mr: 2 }}
             >
               {isEMR
@@ -145,7 +183,6 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
     return text;
   };
 
-
   const isEmrDataMobile = () => {
     let text: any;
 
@@ -160,14 +197,12 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
               src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1]}
               // src={row?.clinicInfo?.clinicDPInfo[0]?.display_picture[0].filename.split('public')[1] || row?.patientInfo?.userInfo[0]?.display_picture[0].filename.split('public')[1]}
               sx={{ mr: 2 }}
-            >
-            </Avatar>
+            ></Avatar>
           ) : (
             <Avatar
               alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
               sx={{ mr: 2 }}
-            >
-            </Avatar>
+            ></Avatar>
           )}
           {/* <Avatar
             alt={!isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
@@ -193,7 +228,12 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
           {row?.clinicInfo === null ? (
             <Avatar
               alt={isEMR ? row.clinicInfo?.clinic_name : row.clinicInfo?.clinic_name}
-              src={row?.patientInfo?.[0]?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1] || row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]}
+              src={
+                row?.patientInfo?.[0]?.userInfo?.[0]?.display_picture?.[0]?.filename.split(
+                  'public'
+                )[1] ||
+                row?.patientInfo?.userInfo?.[0]?.display_picture?.[0]?.filename.split('public')[1]
+              }
               sx={{ mr: 2 }}
             >
               {/* {isEMR
@@ -272,7 +312,6 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
               </IconButton>
               <Stack direction="row" justifyContent="flex-end">
                 <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
-
                   {/* {isToday(row?.dateCreated) && <MenuItem
                     onClick={handleUpdate}
                     sx={{ color: 'success.main' }}
@@ -281,10 +320,7 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
                     Edit
                   </MenuItem>} */}
 
-                  <MenuItem
-                    onClick={handleView}
-                    sx={{ color: 'success.main' }}
-                  >
+                  <MenuItem onClick={handleView} sx={{ color: 'success.main' }}>
                     <Iconify icon="mdi:eye" />
                     View
                   </MenuItem>
@@ -348,56 +384,61 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
     return (
       <>
         <TableMobileRow
-          menu={[
-            {
-              label: 'View',
-              icon: 'solar:eye-bold',
-              func: view.onTrue,
-            },
-          ]}
+        // menu={[
+        //   {
+        //     label: 'View',
+        //     icon: 'solar:eye-bold',
+        //     func: view.onTrue,
+        //   },
+        // ]}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {/* <Avatar alt={row?.clinicInfo?.clinic_name || 'Patient Upload'} sx={{ mr: 2 }}>
+          <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <div style={{ display: 'flex', flex: 7, alignItems: 'center' }}>
+              {/* <Avatar alt={row?.clinicInfo?.clinic_name || 'Patient Upload'} sx={{ mr: 2 }}>
               {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase() ||
                 'Patient Upload'.charAt(0).toUpperCase()}
             </Avatar> */}
-            {isEmrDataMobile()}
-            <ListItemText
-              primary={
-                <>
-                  <Stack direction="row" alignItems="center" sx={{ py: 1 }}>
-                    <Iconify icon={(() => {
-                      let icon: any;
-                      TYPE_OPTIONS?.forEach((p: any) => {
-                        p?.classify?.find((c: any) => {
-                          if (row?.type === c?.name) {
-                            icon = c?.icon;
-                          }
-                        })
-                      })
-                      return icon || ''
-                    })()} width={20} />
+              {isEmrDataMobile()}
+              <ListItemText
+                primary={
+                  <>
+                    <Stack direction="row" alignItems="center" sx={{ py: 1 }}>
+                      <Iconify
+                        icon={(() => {
+                          let icon: any;
+                          TYPE_OPTIONS?.forEach((p: any) => {
+                            p?.classify?.find((c: any) => {
+                              if (row?.type === c?.name) {
+                                icon = c?.icon;
+                              }
+                            });
+                          });
+                          return icon || '';
+                        })()}
+                        width={20}
+                      />
 
-                    <Typography sx={{ ml: 2 }}>
-                      {type}
+                      <Typography sx={{ ml: 2 }}>{type}</Typography>
+                    </Stack>
+                  </>
+                }
+                secondary={
+                  <>
+                    <Typography variant="caption">
+                      {row.clinicInfo?.clinic_name || 'Patient Upload'}
                     </Typography>
-                  </Stack>
-                </>
-              }
-              secondary={
-                <>
-                  <Typography variant="caption">
-                    {row.clinicInfo?.clinic_name || 'Patient Upload'}
-                  </Typography>
-                </>
-              }
-              primaryTypographyProps={{
-                typography: 'subtitle2',
-                textTransform: 'capitalize',
-                color: 'primary.main',
-              }}
-              secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
-            />
+                  </>
+                }
+                primaryTypographyProps={{
+                  typography: 'subtitle2',
+                  textTransform: 'capitalize',
+                  color: 'primary.main',
+                }}
+                secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
+              />
+            </div>
+
+            <div style={{ flex: 1 }}>{RenderDownload(imgSrc, row)}</div>
           </div>
         </TableMobileRow>
 
@@ -497,25 +538,24 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
         <TableCell>{row.resultDate}</TableCell>
         <TableCell>{row.dateCreated}</TableCell>
 
-
         <TableCell sx={{ color: 'primary.main', textTransform: 'capitalize' }}>
-
           <Stack direction="row" alignItems="center" sx={{ py: 1 }}>
-            <Iconify icon={(() => {
-              let icon: any;
-              TYPE_OPTIONS?.forEach((p: any) => {
-                p?.classify?.find((c: any) => {
-                  if (row?.type === c?.name) {
-                    icon = c?.icon;
-                  }
-                })
-              })
-              return icon || ''
-            })()} width={20} />
+            <Iconify
+              icon={(() => {
+                let icon: any;
+                TYPE_OPTIONS?.forEach((p: any) => {
+                  p?.classify?.find((c: any) => {
+                    if (row?.type === c?.name) {
+                      icon = c?.icon;
+                    }
+                  });
+                });
+                return icon || '';
+              })()}
+              width={20}
+            />
 
-            <Typography sx={{ ml: 2 }}>
-              {row?.type}
-            </Typography>
+            <Typography sx={{ ml: 2 }}>{row?.type}</Typography>
           </Stack>
         </TableCell>
 
@@ -538,5 +578,31 @@ export default function ImagingTableRow({ patientData, row, handleUpdate, handle
 
       {renderView}
     </>
+  );
+}
+function RenderDownload(imgSrc: any, noteData: any) {
+  return (
+    <PDFDownloadLink
+      document={<PatientImagingPDF img={imgSrc} patientData={noteData} item={noteData} />}
+      fileName="Mednote(SOAP).pdf"
+      style={{
+        textDecoration: 'none',
+
+        color: '#fff',
+
+        border: 'none',
+        borderRadius: '5px',
+      }}
+    >
+      {({ loading }) =>
+        loading && imgSrc && noteData ? (
+          <Iconify icon="line-md:loading-loop" width={30} />
+        ) : (
+          <IconButton color="default">
+            <Iconify icon="eva:cloud-download-fill" width={30} />
+          </IconButton>
+        )
+      }
+    </PDFDownloadLink>
   );
 }

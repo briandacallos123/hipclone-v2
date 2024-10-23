@@ -86,7 +86,7 @@ type Props = {
 };
 
 export default function NotePDFText({ item, imgSrc, qrImage, esigData }: Props) {
-  console.log(item, 'ITEM SA NOTES DATAAAAAAAAA');
+  console.log(imgSrc, 'ITEM SA NOTES DATAAAAAAAAA');
 
   const styles = useStyles();
   const formatDate = (date: any) => {
@@ -105,7 +105,7 @@ export default function NotePDFText({ item, imgSrc, qrImage, esigData }: Props) 
   };
 
   const doctorInfo = item?.doctorInfo?.ClinicList?.filter((i: any) => {
-    if (i?.clinic_name !== item.clinicInfo?.clinic_name) {
+    if (i?.clinic_name !== item?.clinicInfo?.clinic_name) {
       return i;
     }
   }).slice(0, 4);
@@ -301,20 +301,15 @@ export default function NotePDFText({ item, imgSrc, qrImage, esigData }: Props) 
             })}
           </View> */}
           <View style={[styles.stackContainer]}>
-            {item?.notes_text &&
-              item?.notes_text?.map((urlObject: any) => {
+            {imgSrc &&
+              imgSrc?.map((urlObject: any) => {
                 const url = urlObject?.file_url || '';
-                const parts = url.split('public');
-                const publicPart = parts[1];
 
                 return (
                   <View key={url}>
-                    {/* <Text style={styles.h4}>breaderrrrrr!!!!!!!</Text> */}
-                    {/* <Text style={styles.h4}>{urlObject?.file_name}</Text> */}
                     <Image
-                      alt="yes"
-                      src={imgSrc && imgSrc}
-                      style={[styles.mb8, { height: 200, width: 200 }]}
+                      source={urlObject}
+                      style={[{ height: 200, width: 200 }]}
                     />
                   </View>
                 );
@@ -347,3 +342,28 @@ export default function NotePDFText({ item, imgSrc, qrImage, esigData }: Props) 
     </Document>
   );
 }
+
+const ConvertImage = async (src) => {
+  try {
+    const response = await fetch('/api/getImage', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        image: src,
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Network response was not ok');
+    }
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    return objectUrl;
+  } catch (error) {
+    console.error('Error fetching image:', error);
+    return null;
+  }
+};

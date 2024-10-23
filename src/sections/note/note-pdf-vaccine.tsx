@@ -128,7 +128,7 @@ export default function NotePDFVaccine({ qrImage, item, esigData }: Props) {
     return `${month} ${day}, ${year}`;
   };
   const doctorInfo = item?.doctorInfo?.ClinicList?.filter((i: any) => {
-    if (i?.clinic_name !== item.clinicInfo?.clinic_name) {
+    if (i?.clinic_name !== item?.clinicInfo?.clinic_name) {
       return i;
     }
   }).slice(0, 4);

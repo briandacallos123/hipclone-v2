@@ -372,7 +372,7 @@ export default function DashboardPatientView() {
           <Card sx={{ width: upMd ? '70%' : '100%', p: 3 }}>
             <CardHeader title="Medication" />
             <Stack
-              alignItems={!isEmptyMedication ? 'center' : 'flex-start'}
+              alignItems='center'
               justifyContent="center"
               sx={{ width: '100%' }}
             >

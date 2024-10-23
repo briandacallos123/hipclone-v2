@@ -81,7 +81,7 @@ const PatientUpcomingAppt = () => {
     });
   }, [skip, take]);
 
-  const noDataFound = !upcommingResult.loading && !data?.tableData?.length;
+  const noDataFound = data?.tableData?.length <= 0 && !upcommingResult.loading;
 
   const onIncrement = useCallback(() => {
     getUpcomming({
@@ -153,7 +153,9 @@ const PatientUpcomingAppt = () => {
   );
 
   console.log('dataAppt', data);
-  console.log(`${process.env.NEXT_PUBLIC_DOMAIN}/assets/illustrations/doctor.png`);
+  console.log(
+    `${process.env.NEXT_PUBLIC_DOMAIN}/assets/illustrations/tutorial-doctor/nurse-tutor.png`
+  );
 
   const NoDataDetails = (
     <>
@@ -187,7 +189,7 @@ const PatientUpcomingAppt = () => {
         >
           <Grid container spacing={1} sx={{ position: 'relative' }}>
             <Grid item xs={7}>
-              <Stack direction="column" sx={{ p: 2 }} spacing={2}>
+              <Stack direction="column" sx={{ p: 2, zIndex: 10 }} spacing={2}>
                 <Typography variant="h6">Book and schedule with the nearest Doctor</Typography>
                 <Button component="a" href={paths.dashboard.appointment.find} variant="contained">
                   Book Now!
@@ -195,11 +197,20 @@ const PatientUpcomingAppt = () => {
               </Stack>
             </Grid>
 
-            <Stack sx={{ position: 'absolute', right: -25, bottom: 0, top: 20 }}>
+            <Stack
+              sx={{
+                position: 'absolute',
+                right: -90,
+                bottom: 0,
+                top: 30,
+                zIndex: 1,
+                pointerEvents: 'none',
+              }}
+            >
               <img
-                src="/assets/illustrations/doctorMale.png"
+                src="/assets/tutorial-doctor/nurse-tutor.png"
                 alt=""
-                style={{ width: '260px', height: '300px' }}
+                style={{ width: '400px', height: '700px' }}
               />
             </Stack>
           </Grid>

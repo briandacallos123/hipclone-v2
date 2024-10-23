@@ -119,15 +119,15 @@ export default function NotePDFCertificate({ qrImage, item, esigData }: Props) {
 
   const ESIG = () => {
     let text: any;
-    if (item.doctorInfo?.esig_dp?.[0]?.type === 0) {
+    if (item?.doctorInfo?.esig_dp?.[0]?.type === 0) {
       text = <></>;
-    } else if (item.doctorInfo?.esig_dp?.[0]?.type === 1) {
+    } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 1) {
       text = (
         <>
           <Image src={esigData} style={{ height: 72, width: 180 }} />
         </>
       );
-    } else if (item.doctorInfo?.esig_dp?.[0]?.type === 2) {
+    } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 2) {
       text = (
         <>
           <Image src={esigData} style={{ height: 72, width: 180 }} />

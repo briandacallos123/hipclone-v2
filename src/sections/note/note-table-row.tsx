@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { format } from 'date-fns';
-import { PDFViewer } from '@react-pdf/renderer';
+import { PDFViewer, PDFDownloadLink } from '@react-pdf/renderer';
 // @mui
 import Box from '@mui/material/Box';
 import Button from '@mui/material/Button';
@@ -18,7 +18,7 @@ import { _doctorList, _hospitals } from 'src/_mock';
 // types
 import { INoteItem } from 'src/types/document';
 // components
-import QRCode from 'qrcode'
+import QRCode from 'qrcode';
 
 import Iconify from 'src/components/iconify';
 import { LogoFull } from 'src/components/logo';
@@ -57,16 +57,39 @@ type Props = {
   row: any;
   ids: any;
   onEditRow?: any;
-  onDeleteRow?:any;
+  onDeleteRow?: any;
+  rowData: any;
+  onDownloadRow: any;
+  esigData: any;
+  qrImage: any;
+  imgSrc: any;
 };
 
-export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditRow }: any) {
+export default function NoteTableRow({
+  row,
+  onDeleteRow,
+  ids,
+  onViewRow,
+  onEditRow,
+  rowData,
+  onDownloadRow,
+  esigData,
+  qrImage,
+  imgSrc,
+}: any) {
   const view = useBoolean();
 
+  console.log('----rowData------------------rowData', rowData);
   const upMd = useResponsive('up', 'md');
   // const { textData, medClearData, medCertData, AbstractData, VaccData } = useNotesHooks(row);
   const confirm = useBoolean();
-  const {user } = useAuthContext()
+  const { user } = useAuthContext();
+
+  // useEffect(() => {
+  //   if (!upMd) {
+  //     onDownloadRow();
+  //   }
+  // }, [upMd]);
 
   const renderConfirm = (
     <ConfirmDialog
@@ -144,7 +167,7 @@ export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditR
     notifyOnNetworkStatusChange: true,
   });
 
-  const [rowData, setRowData] = useState<any>([]);
+  // const [rowData, setRowData] = useState<any>([]);
   // const [labData, setLabData] = useState<any>([]);
 
   // console.log(rowData,'ROWDATAAAAAAAAAAAAAAAAA!!!!!!!!')
@@ -336,85 +359,80 @@ export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditR
     return `${month} ${day}, ${year}`;
   };
 
-
   const generateQR = async (text: any) => {
     try {
-      const res = await QRCode.toDataURL(text)
-      setQrImage(res)
+      const res = await QRCode.toDataURL(text);
+      setQrImage(res);
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
-  }
+  };
 
-  const [link, setLink] = useState<string | null>(null)
-  const [qrImage, setQrImage] = useState(null)
-  const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
+  const [link, setLink] = useState<string | null>(null);
+  const [qrImage2, setQrImage] = useState(null);
+  // const [imgSrc, setImgSrc] = useState<string | undefined>(undefined);
 
+  // useEffect(() => {
+  //   if (view.value) {
+  //     (async () => {
+  //       let domain = '';
+  //       switch (row?.R_TYPE) {
+  //         case '4':
+  //           domain = `records/medical-note/${row?.qrcode}`;
+  //           break;
+  //         case '9':
+  //           domain = `records/medical-certificate/${row?.qrcode}`;
+  //           break;
+  //         case '8':
+  //           domain = `records/medical-clearance/${row?.qrcode}`;
+  //           break;
+  //         case '1':
+  //           domain = `records/medical-soap/${row?.qrcode}`;
+  //           break;
+  //         case '10':
+  //           domain = `records/medical-abstract/${row?.qrcode}`;
+  //           break;
+  //         case '11':
+  //           domain = `records/medical-vaccine/${row?.qrcode}`;
+  //           break;
+  //       }
+  //       // const myLink = `https://hip.apgitsolutions.com/${domain}`;
+  //       const myLink = `http://localhost:9092/${domain}`;
 
+  //       setLink(myLink);
+  //       await generateQR(myLink);
 
+  //       if (row?.notes_text?.length !== 0) {
+  //         try {
+  //           const response = await fetch('/api/getImage', {
+  //             method: 'POST',
+  //             headers: {
+  //               'Content-Type': 'application/json',
+  //             },
+  //             body: JSON.stringify({
+  //               image: row?.notes_text[0]?.file_name,
+  //             }),
+  //           });
 
-  useEffect(() => {
-    if (view.value) {
-      (async () => {
-        let domain = "";
-        switch (row?.R_TYPE) {
-          case "4":
-            domain = `records/medical-note/${row?.qrcode}`;
-            break;
-          case "9":
-            domain = `records/medical-certificate/${row?.qrcode}`;
-            break;
-          case "8":
-            domain = `records/medical-clearance/${row?.qrcode}`;
-            break;
-          case "1":
-            domain = `records/medical-soap/${row?.qrcode}`;
-            break;
-          case "10":
-            domain = `records/medical-abstract/${row?.qrcode}`;
-            break;
-          case "11":
-            domain = `records/medical-vaccine/${row?.qrcode}`;
-            break;
+  //           if (!response.ok) {
+  //             throw new Error('Network response was not ok');
+  //           }
 
-        }
-        // const myLink = `https://hip.apgitsolutions.com/${domain}`;
-        const myLink = `http://localhost:9092/${domain}`;
+  //           const blob = await response.blob();
+  //           const objectUrl = URL.createObjectURL(blob);
+  //           setImgSrc(objectUrl);
 
-        setLink(myLink)
-        await generateQR(myLink)
-
-        if (row?.notes_text?.length !== 0) {
-          try {
-            const response = await fetch('/api/getImage', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({
-                image: row?.notes_text[0]?.file_name
-              }),
-            });
-
-            if (!response.ok) {
-              throw new Error('Network response was not ok');
-            }
-
-            const blob = await response.blob();
-            const objectUrl = URL.createObjectURL(blob);
-            setImgSrc(objectUrl);
-
-            // Clean up object URL on component unmount
-            return () => {
-              URL.revokeObjectURL(objectUrl);
-            };
-          } catch (error) {
-            console.error('Error fetching image:', error);
-          }
-        }
-      })()
-    }
-  }, [view.value])
+  //           // Clean up object URL on component unmount
+  //           return () => {
+  //             URL.revokeObjectURL(objectUrl);
+  //           };
+  //         } catch (error) {
+  //           console.error('Error fetching image:', error);
+  //         }
+  //       }
+  //     })();
+  //   }
+  // }, [view.value]);
 
   const renderView = (
     <Dialog fullScreen open={view.value}>
@@ -436,48 +454,51 @@ export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditR
     </Dialog>
   );
 
-
   if (!upMd) {
     return (
       <>
         <TableMobileRow
-          menu={[
-            {
-              label: 'View',
-              icon: 'solar:eye-bold',
-              func: view.onTrue,
-            },
-          ]}
+        // menu={[
+        //   {
+        //     label: 'View',
+        //     icon: 'solar:eye-bold',
+        //     func: view.onTrue,
+        //   },
+        // ]}
         >
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-
-            {row?.clinicInfo === null ? (
-              <Avatar
-                alt={row?.clinicInfo?.clinic_name}
-                sx={{ mr: 2 }}
-              >
-                {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-              </Avatar>
-            ) : (
-              <Avatar
-                alt={row?.clinicInfo?.clinic_name}
-                src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1] || ''}
-                sx={{ mr: 2 }}
-              >
-                {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
-              </Avatar>
-            )}
-            <ListItemText
-              primary={`#${row?.R_ID}`}
-              secondary={
-                <>
-                  <Typography variant="caption">{reader(row?.R_TYPE)}</Typography>
-                  <Typography variant="caption">{row?.clinicInfo?.clinic_name}</Typography>
-                </>
-              }
-              primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
-              secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
-            />
+          <div style={{ display: 'flex', flexDirection: 'row' }}>
+            <div style={{ display: 'flex', flex: 7, alignItems: 'center' }}>
+              {row?.clinicInfo === null ? (
+                <Avatar alt={row?.clinicInfo?.clinic_name} sx={{ mr: 2 }}>
+                  {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+                </Avatar>
+              ) : (
+                <Avatar
+                  alt={row?.clinicInfo?.clinic_name}
+                  src={row?.clinicInfo?.clinicDPInfo?.[0]?.filename.split('public')[1] || ''}
+                  sx={{ mr: 2 }}
+                >
+                  {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
+                </Avatar>
+              )}
+              <ListItemText
+                primary={`#${row?.R_ID}`}
+                secondary={
+                  <>
+                    <Typography variant="caption">{reader(row?.R_TYPE)}</Typography>
+                    <Typography variant="caption">{row?.clinicInfo?.clinic_name}</Typography>
+                  </>
+                }
+                primaryTypographyProps={{ typography: 'subtitle2', color: 'primary.main' }}
+                secondaryTypographyProps={{ display: 'flex', flexDirection: 'column' }}
+              />
+            </div>
+            <div style={{ flex: 1 }}>
+              {/* <IconButton onClick={onDownloadRow}>
+                <Iconify icon="solar:clipboard-text-bold" />
+              </IconButton> */}
+              {RenderDownload(row?.R_TYPE, rowData, imgSrc, qrImage, esigData, onDownloadRow)}
+            </div>
           </div>
         </TableMobileRow>
 
@@ -508,12 +529,8 @@ export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditR
 
         <TableCell>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-
             {row?.clinicInfo === null && row?.R_TYPE === '8' ? (
-              <Avatar
-                alt={row?.clinicInfo?.clinic_name}
-                sx={{ mr: 2 }}
-              >
+              <Avatar alt={row?.clinicInfo?.clinic_name} sx={{ mr: 2 }}>
                 {row?.clinicInfo?.clinic_name.charAt(0).toUpperCase()}
               </Avatar>
             ) : (
@@ -563,62 +580,60 @@ export default function NoteTableRow({ row, onDeleteRow, ids, onViewRow, onEditR
         </TableCell>
         {renderConfirm}
         <TableCell align="center" sx={{ px: 1 }}>
+          {user?.role !== 'patient' ? (
+            <>
+              <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
+                <Iconify icon="eva:more-vertical-fill" />
+              </IconButton>
 
-        
+              <Stack direction="row" justifyContent="flex-end">
+                <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+                  {isToday(row?.R_DATE) && (
+                    <MenuItem
+                      onClick={() => {
+                        onEditRow();
+                      }}
+                      sx={{ color: 'success.main' }}
+                    >
+                      <Iconify icon="mdi:pencil" />
+                      Edit
+                    </MenuItem>
+                  )}
 
-         {user?.role !== 'patient' ? 
-          <>
-          
-          <IconButton color={popover.open ? 'inherit' : 'default'} onClick={popover.onOpen}>
-           <Iconify icon="eva:more-vertical-fill" />
-         </IconButton>
-         
-         <Stack direction="row" justifyContent="flex-end">
-            <CustomPopover open={popover.open} onClose={popover.onClose} arrow="right-top">
+                  <MenuItem
+                    onClick={() => {
+                      // popover.onClose();
+                      onViewRow();
+                      // view.onTrue()
+                    }}
+                    sx={{ color: 'success.main' }}
+                  >
+                    <Iconify icon="mdi:eye" />
+                    View
+                  </MenuItem>
 
-              {isToday(row?.R_DATE) && <MenuItem
-                onClick={() => {
-                  onEditRow()
-                }}
-                sx={{ color: 'success.main' }}
-              >
-                <Iconify icon="mdi:pencil" />
-                Edit
-              </MenuItem>}
-
-              <MenuItem
-                onClick={() => {
-                  // popover.onClose();
-                  onViewRow()
-                  // view.onTrue()
-                }}
-                sx={{ color: 'success.main' }}
-              >
-                <Iconify icon="mdi:eye" />
-                View
-              </MenuItem>
-
-              {isToday(row?.R_DATE) && <MenuItem
-                onClick={() => {
-                  confirm.onTrue();
-                  popover.onClose();
-                }}
-                sx={{ color: 'error.main' }}
-              >
-                <Iconify icon="ic:baseline-delete" />
-                Delete
-              </MenuItem>}
-
-
-            </CustomPopover>
-          </Stack>
-          </>:<Tooltip title="View Details" placement="top" arrow>
-            <IconButton onClick={onViewRow}>
-              <Iconify icon="solar:clipboard-text-bold" />
-            </IconButton>
-          </Tooltip>}
-
-          
+                  {isToday(row?.R_DATE) && (
+                    <MenuItem
+                      onClick={() => {
+                        confirm.onTrue();
+                        popover.onClose();
+                      }}
+                      sx={{ color: 'error.main' }}
+                    >
+                      <Iconify icon="ic:baseline-delete" />
+                      Delete
+                    </MenuItem>
+                  )}
+                </CustomPopover>
+              </Stack>
+            </>
+          ) : (
+            <Tooltip title="View Details" placement="top" arrow>
+              <IconButton onClick={onViewRow}>
+                <Iconify icon="solar:clipboard-text-bold" />
+              </IconButton>
+            </Tooltip>
+          )}
         </TableCell>
       </TableRow>
 
@@ -644,12 +659,10 @@ function reader(data: string) {
   );
 }
 
-
 function Render(data: string, row: any, img: any, qrImage: any) {
-  console.log(data, 'DATAAAAAAAAA')
-  console.log(img, 'imgimg')
-  console.log(qrImage, 'qrImage')
-
+  console.log(data, 'DATAAAAAAAAA');
+  console.log(img, 'imgimg');
+  console.log(qrImage, 'qrImage');
 
   return (
     <>
@@ -692,6 +705,233 @@ function Render(data: string, row: any, img: any, qrImage: any) {
         <PDFViewer width="100%" height="100%" style={{ border: 'none' }}>
           <NotePDFVaccine qrImage={qrImage} item={row} />
         </PDFViewer>
+      )}
+    </>
+  );
+}
+
+function RenderDownload(
+  data: string,
+  row: any,
+  img: any,
+  qrImage: any,
+  esigData: any,
+  onDownloadRow: any
+) {
+  const [dataReady, setDataReady] = useState(false);
+  const [pdfData, setPdfData] = useState(null);
+
+  const handleDownload = async () => {
+    try {
+      // Fetch the data for the PDF
+      const fetchedData = await onDownloadRow();
+
+      // Assume onDownloadRow returns data needed for PDF rendering
+      setPdfData(fetchedData);
+
+      // Mark the data as ready for download
+      setDataReady(true);
+    } catch (error) {
+      console.error('Error fetching data for PDF:', error);
+    }
+  };
+
+  return (
+    <>
+      {data === '1' && (
+        <PDFDownloadLink
+          document={<NotePDFSoap qrImage={qrImage} item={row} esigData={esigData} />}
+          fileName="Mednote(SOAP).pdf"
+          style={{
+            textDecoration: 'none',
+
+            color: '#fff',
+
+            border: 'none',
+            borderRadius: '5px',
+          }}
+          onClick={() => onDownloadRow()}
+        >
+          <IconButton
+            color="default"
+            onClick={() => {
+              onDownloadRow();
+              setTimeout(() => {
+                if (row) {
+                  onDownloadRow();
+                }
+                onDownloadRow();
+              }, 500);
+            }}
+          >
+            <Iconify icon="eva:cloud-download-fill" width={30} />
+          </IconButton>
+        </PDFDownloadLink>
+      )}
+
+      {data === '4' && (
+        <PDFDownloadLink
+          document={<NotePDFText qrImage={qrImage} imgSrc={img} item={row} esigData={esigData} />}
+          fileName="Mednote(TEXT).pdf"
+          style={{
+            textDecoration: 'none',
+
+            color: '#fff',
+
+            border: 'none',
+            borderRadius: '5px',
+          }}
+          onClick={() => onDownloadRow()}
+        >
+          <IconButton
+            color="default"
+            onClick={() => {
+              onDownloadRow();
+              setTimeout(() => {
+                onDownloadRow();
+              }, 1000);
+            }}
+          >
+            <Iconify icon="eva:cloud-download-fill" width={30} />
+          </IconButton>
+        </PDFDownloadLink>
+      )}
+
+      {data === '5' && (
+        <PDFDownloadLink
+          document={<NotePDFLaboratory item={row} qrImage={qrImage} esigData={esigData} />}
+          fileName="Mednote(Laboratory).pdf"
+          style={{
+            textDecoration: 'none',
+
+            color: '#fff',
+
+            border: 'none',
+            borderRadius: '5px',
+          }}
+          onClick={() => onDownloadRow()}
+        >
+          <IconButton
+            color="default"
+            onClick={() => {
+              onDownloadRow();
+              setTimeout(() => {
+                onDownloadRow();
+              }, 1000);
+            }}
+          >
+            <Iconify icon="eva:cloud-download-fill" width={30} />
+          </IconButton>
+        </PDFDownloadLink>
+      )}
+
+      {data === '8' && (
+        <PDFDownloadLink
+          document={<NotePDFClearance qrImage={qrImage} item={row} esigData={esigData} />}
+          fileName="Mednote(Clearance).pdf"
+          style={{
+            textDecoration: 'none',
+
+            color: '#fff',
+
+            border: 'none',
+            borderRadius: '5px',
+          }}
+          onClick={() => onDownloadRow()}
+        >
+          <IconButton
+            color="default"
+            onClick={() => {
+              onDownloadRow();
+              setTimeout(() => {
+                onDownloadRow();
+              }, 1000);
+            }}
+          >
+            <Iconify icon="eva:cloud-download-fill" width={30} />
+          </IconButton>
+        </PDFDownloadLink>
+      )}
+      {data === '9' && (
+        <PDFDownloadLink
+          document={<NotePDFCertificate qrImage={qrImage} item={row} esigData={esigData} />}
+          fileName="Mednote(Certificate).pdf"
+          style={{
+            textDecoration: 'none',
+
+            color: '#fff',
+
+            border: 'none',
+            borderRadius: '5px',
+          }}
+          onClick={() => onDownloadRow()}
+        >
+          {({ loading }) =>
+            loading ? (
+              <Iconify icon="eos-icons:loading" width={30} />
+            ) : (
+              <IconButton color="default" onClick={() => onDownloadRow()}>
+                <Iconify icon="eva:cloud-download-fill" width={30} />
+              </IconButton>
+            )
+          }
+        </PDFDownloadLink>
+      )}
+
+      {data === '10' && (
+        <PDFDownloadLink
+          document={<NotePDFAbstract qrImage={qrImage} item={row} esigData={esigData} />}
+          fileName="Mednote(Abstract).pdf"
+          style={{
+            textDecoration: 'none',
+
+            color: '#fff',
+
+            border: 'none',
+            borderRadius: '5px',
+          }}
+          onClick={() => onDownloadRow()}
+        >
+          <IconButton
+            color="default"
+            onClick={() => {
+              onDownloadRow();
+              setTimeout(() => {
+                onDownloadRow();
+              }, 1000);
+            }}
+          >
+            <Iconify icon="eva:cloud-download-fill" width={30} />
+          </IconButton>
+        </PDFDownloadLink>
+      )}
+
+      {data === '11' && (
+        <PDFDownloadLink
+          document={<NotePDFVaccine qrImage={qrImage} item={row} esigData={esigData} />}
+          fileName="Mednote(VAccine).pdf"
+          style={{
+            textDecoration: 'none',
+
+            color: '#fff',
+
+            border: 'none',
+            borderRadius: '5px',
+          }}
+          onClick={() => onDownloadRow()}
+        >
+          <IconButton
+            color="default"
+            onClick={() => {
+              onDownloadRow();
+              setTimeout(() => {
+                onDownloadRow();
+              }, 1000);
+            }}
+          >
+            <Iconify icon="eva:cloud-download-fill" width={30} />
+          </IconButton>
+        </PDFDownloadLink>
       )}
     </>
   );

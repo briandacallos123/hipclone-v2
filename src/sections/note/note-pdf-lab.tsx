@@ -130,22 +130,22 @@ export default function NotePDFLaboratory({ qrImage, item, esigData }: Props) {
     return `${month} ${day}, ${year}`;
   };
   const doctorInfo = item?.doctorInfo?.ClinicList?.filter((i: any) => {
-    if (i?.clinic_name !== item.clinicInfo?.clinic_name) {
+    if (i?.clinic_name !== item?.clinicInfo?.clinic_name) {
       return i;
     }
   }).slice(0, 4);
 
   const ESIG = () => {
     let text: any;
-    if (item.doctorInfo?.esig_dp?.[0]?.type === 0) {
+    if (item?.doctorInfo?.esig_dp?.[0]?.type === 0) {
       text = <></>;
-    } else if (item.doctorInfo?.esig_dp?.[0]?.type === 1) {
+    } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 1) {
       text = (
         <>
           <Image source={esigData} style={{ height: 72, width: 180 }} />
         </>
       );
-    } else if (item.doctorInfo?.esig_dp?.[0]?.type === 2) {
+    } else if (item?.doctorInfo?.esig_dp?.[0]?.type === 2) {
       text = (
         <>
           <Image source={esigData} style={{ height: 72, width: 180 }} />
@@ -240,9 +240,6 @@ export default function NotePDFLaboratory({ qrImage, item, esigData }: Props) {
                     <Text style={styles.caption}>{clinic?.number}</Text>
                   </View>
                 )}
-
-                {/* <Text style={styles.caption}>{clinic.location}</Text>
-                <Text style={styles.caption}>{clinic?.Province || ''}</Text> */}
               </View>
             ))}
           </View>
@@ -287,40 +284,22 @@ export default function NotePDFLaboratory({ qrImage, item, esigData }: Props) {
         <View>
           <Text style={[styles.h3, styles.mb20, { textAlign: 'center' }]}>Laboratory Request</Text>
 
-          {/* <View style={[styles.mb20, styles.listContainer]}>
-            {item?.procedures?.map((selection: any, index: number) => (
-              <Text key={selection} style={[styles.col6, styles.body1]}>
-                {`${index + 1}. ${selection.name}`}
-              </Text>
-            ))}
-          </View> */}
-
           <View style={[styles.listContainer, styles.mb8]}>
             {Object.entries(item?.procedures || {}).map(
               ([categoryName, procedures], categoryIndex) => (
                 <View key={categoryIndex} style={{ paddingLeft: 15 }}>
                   <Text style={styles.fontWeight}>{categoryName}</Text>
-                  {procedures?.map((procedure: any, procedureIndex: any) => (
-                    <View key={procedureIndex}>
-                      <Text>{`${procedureIndex + 1}. ${procedure.name}`}</Text>
-                    </View>
-                  ))}
+                  {(Array.isArray(procedures) ? procedures : []).map(
+                    (procedure: any, procedureIndex: any) => (
+                      <View key={procedureIndex}>
+                        <Text>{`${procedureIndex + 1}. ${procedure.name}`}</Text>
+                      </View>
+                    )
+                  )}
                 </View>
               )
             )}
           </View>
-
-          {/* <View style={styles.listContainer}>
-            {Array.isArray(item?.procedures) &&
-              item?.procedures.map((procedure: any, index: number) => (
-                <View key={index}>
-                  <Text>{`${index + 1}.`}</Text>
-                  <View>
-                    <Text>{procedure.name}</Text>
-                  </View>
-                </View>
-              ))}
-          </View> */}
 
           <View>
             <Text style={[styles.mb8, styles.body1]}>

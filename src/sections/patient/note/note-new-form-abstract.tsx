@@ -18,7 +18,7 @@ import { _hospitals } from 'src/_mock';
 import { useSnackbar } from 'src/components/snackbar';
 import FormProvider, { RHFAutocomplete, RHFTextField } from 'src/components/hook-form';
 //
-import { useSessionStorage } from '@/hooks/use-sessionStorage'
+import { useSessionStorage } from '@/hooks/use-sessionStorage';
 
 // ----------------------------------------------------------------------
 
@@ -26,14 +26,20 @@ type Props = {
   onClose: VoidFunction;
   refIds: any;
   refetch: any;
-  editData:any;
-  clinicData?:any;
+  editData: any;
+  clinicData?: any;
 };
 
-export default function NoteNewFormAbstract({clinicData, editData, onClose, refIds, refetch: onRefetch }: Props) {
+export default function NoteNewFormAbstract({
+  clinicData,
+  editData,
+  onClose,
+  refIds,
+  refetch: onRefetch,
+}: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
   const [snackKey, setSnackKey]: any = useState(null);
-  const {getItem} = useSessionStorage()
+  const { getItem } = useSessionStorage();
   const NewNoteSchema = Yup.object().shape({
     hospitalId: Yup.number().nullable().required('Hospital ID is required, N/A if None'),
     complaint: Yup.string().required('Complaint is required, N/A if None '),
@@ -53,19 +59,19 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
   const defaultValues = useMemo(
     () => ({
       hospitalId: editData?.clinic || null,
-      complaint:editData?.complaint || '',
-      history:editData?.illness || '',
+      complaint: editData?.complaint || '',
+      history: editData?.illness || '',
       review: editData?.symptoms || '',
-      medicalHistory:editData?.pastmed || '',
-      personalHistory:editData?.persoc  || '',
-      examination:editData?.physical || '',
-      result: editData?.labdiag ||'',
-      finding:editData?.findings || '',
-      diagnosis:editData?.finaldiag || '',
-      complication:editData?.complications || '',
-      procedure:editData?.procedures || '',
-      treatment:editData?.treatplan || '',
-      dateCreated:editData?.dateCreated || null
+      medicalHistory: editData?.pastmed || '',
+      personalHistory: editData?.persoc || '',
+      examination: editData?.physical || '',
+      result: editData?.labdiag || '',
+      finding: editData?.findings || '',
+      diagnosis: editData?.finaldiag || '',
+      complication: editData?.complications || '',
+      procedure: editData?.procedures || '',
+      treatment: editData?.treatplan || '',
+      dateCreated: editData?.dateCreated || null,
     }),
     []
   );
@@ -88,11 +94,11 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
   //    setValue('hospitalId',Number(data?.clinic?.id))
   //  }
   //  },[])
-
+  console.log('editData', editData);
 
   const [createNoteAbs] = useMutation(POST_NOTES_ABS);
   const [updateNoteAbs] = useMutation(UpdateNotesAbs);
-  
+
   const handleSubmitValue = useCallback(
     async (model: any) => {
       const data: NexusGenInputs['NoteAbstInputType'] = {
@@ -112,18 +118,18 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
         complications: String(model.complication),
         procedures: String(model.procedure),
         treatplan: String(model.treatment),
-        recordId:Number(editData?.R_ID),
-        abs_id:Number(editData?.id)
-     
+        recordId: Number(editData?.R_ID),
+        abs_id: Number(editData?.id),
       };
       createNoteAbs({
         variables: {
           data,
-        }
-      }).then(async (res) => {
+        },
+      })
+        .then(async (res) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar(editData ? "Update Successfull":"Create success!");
+          enqueueSnackbar(editData ? 'Update Successfull' : 'Create success!');
           // refetch();
           reset();
           onRefetch();
@@ -138,14 +144,14 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
     [createNoteAbs, enqueueSnackbar, refIds?.S_ID, reset, snackKey]
   );
 
-  const handleSubmitUpdate= useCallback(
+  const handleSubmitUpdate = useCallback(
     async (model: any) => {
-      console.log(editData,'edit dataaaaa')
+      console.log(editData, 'edit dataaaaa');
 
       const data: NexusGenInputs['NoteAbstInputType'] = {
         clinic: Number(model.hospitalId),
         patientID: Number(refIds?.S_ID),
-        dateCreated:model?.dateCreated,
+        dateCreated: model?.dateCreated,
         R_TYPE: String(10),
         complaint: String(model.complaint),
         illness: String(model.history),
@@ -159,11 +165,10 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
         complications: String(model.complication),
         procedures: String(model.procedure),
         treatplan: String(model.treatment),
-        recordId:Number(editData?.R_ID),
-        abs_id:Number(editData?.id),
-     
+        recordId: Number(editData?.R_ID),
+        abs_id: Number(editData?.id),
       };
-       updateNoteAbs({
+      updateNoteAbs({
         variables: {
           data,
         },
@@ -171,7 +176,7 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
         .then(async (res) => {
           closeSnackbar(snackKey);
           setSnackKey(null);
-          enqueueSnackbar(editData ? "Update Successfull":"Create success!");
+          enqueueSnackbar(editData ? 'Update Successfull' : 'Create success!');
           // refetch();
           reset();
           onRefetch();
@@ -186,20 +191,20 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
     [createNoteAbs, enqueueSnackbar, refIds?.S_ID, reset, snackKey, editData]
   );
 
-
   const [myData, setMyData]: any = useState(null);
   useEffect(() => {
     if (snackKey) {
       (async () => {
-        if(!editData){
-          await handleSubmitUpdate({...myData})
-        }else{
+        if (editData !== null || editData?.id) {
+          await handleSubmitUpdate({ ...myData });
+        } else {
           await handleSubmitValue({ ...myData });
         }
         // setSnackKey(null);
       })();
     }
-  }, [snackKey, myData]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [snackKey, myData, editData]);
 
   const onSubmit = useCallback(
     async (data: FieldValues) => {
@@ -290,10 +295,13 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
       </DialogContent>
 
       <DialogActions sx={{ p: 1.5 }}>
-        <Button variant="outlined" onClick={()=>{
-          onClose();
-          reset()
-        }}>
+        <Button
+          variant="outlined"
+          onClick={() => {
+            onClose();
+            reset();
+          }}
+        >
           Cancel
         </Button>
 
@@ -303,7 +311,7 @@ export default function NoteNewFormAbstract({clinicData, editData, onClose, refI
           loading={isSubmitting}
           onClick={handleSubmit(onSubmit)}
         >
-          {editData ? "Update":"Create"}
+          {editData ? 'Update' : 'Create'}
         </LoadingButton>
       </DialogActions>
     </>
