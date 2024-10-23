@@ -43,6 +43,8 @@ export default function Layout({ children }: Props) {
 
   const isChat = pathname === '/dashboard/chat/';
 
+  const [loading, setLoading] = useState(true);
+
   if (isChat && !upMd) {
     return <AuthGuard>{children}</AuthGuard>;
   }
@@ -53,6 +55,7 @@ export default function Layout({ children }: Props) {
 
     if(user?.new_doctor){
       getCurrentStep(user?.id).then((res)=>{
+        console.log(res,'ressssssss')
         switch(res.setup_step){
           case 1:
             router.push(paths.dashboard.root);
@@ -66,8 +69,18 @@ export default function Layout({ children }: Props) {
           case 4:
             router.push(paths.dashboard.user.manage.profile);
             break;
+          case 5:
+            router.push(paths.dashboard.user.manage.profile);
+            break;
+          case 6:
+            router.push(paths.dashboard.user.manage.clinic);
+            break;
+          case 7:
+            router.push(paths.dashboard.user.manage.service);
+            break;
 
         }
+        setLoading(false)
       })
     }
   },[pathname, user])
@@ -83,6 +96,10 @@ export default function Layout({ children }: Props) {
     width: '100vw',
   });
 
+  if(user?.new_doctor && loading){
+    return <></>
+  }
+
 
   return (
     <AuthGuard>
@@ -90,8 +107,7 @@ export default function Layout({ children }: Props) {
         <DashboardLayout>
           <ChangesWatcher>
             <Tutorialstep>
-             {children}
-
+              {children}
             </Tutorialstep>
 
           </ChangesWatcher>

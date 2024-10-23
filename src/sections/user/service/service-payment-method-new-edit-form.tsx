@@ -26,6 +26,8 @@ import { useTheme } from '@mui/material/styles';
 import { Stack } from '@mui/material';
 import { useBoolean } from 'src/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
+import { useAuthContext } from '@/auth/hooks';
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -66,6 +68,7 @@ export default function ServicePaymentMethodNewEditForm({
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const router = useRouter();
+  const { user } = useAuthContext();
 
   // console.log('Current Item: ', currentItem);
   const [createEmr] = useMutation(CreatePayment, {
@@ -75,7 +78,19 @@ export default function ServicePaymentMethodNewEditForm({
     notifyOnNetworkStatusChange: true,
   });
 
-  let currentStep = localStorage?.getItem('currentStep');
+  // let currentStep = localStorage?.getItem('currentStep');
+
+
+  const [currentStep, setCurrentStepState] = useState(null);
+
+
+  useEffect(() => {
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+      })
+    }
+  }, [user])
 
   const NewUserSchema = Yup.object().shape({
     name: Yup.string().required('First name is required'),
@@ -143,10 +158,16 @@ export default function ServicePaymentMethodNewEditForm({
           refetch();
           onClose();
           enqueueSnackbar(currentItem ? 'Updated sucessfully' : 'Created Successfully');
-          if (currentStep && Number(currentStep) !== 100) {
-            localStorage.setItem('currentStep', '12');
-            router.push(paths.dashboard.user.manage.subaccount);
-            // incrementTutsTab()
+          if (currentStep) {
+            // localStorage.setItem('currentStep', '12');
+            setCurrentStep({
+              id: user?.id,
+              step: 12
+            }).then(() => {
+              router.push(paths.dashboard.user.manage.subaccount);
+
+            })
+
           }
         })
 
@@ -216,7 +237,7 @@ export default function ServicePaymentMethodNewEditForm({
 
         // });
         // reset();
-     
+
         // enqueueSnackbar(currentItem ? 'Update success!' : 'Create success!');
         console.info('DATA', data);
       } catch (error) {
@@ -302,8 +323,8 @@ export default function ServicePaymentMethodNewEditForm({
   const confirm = useBoolean();
 
   const clearUnsaved = () => {
-    if(step === 4){
-      setValue('attachment','')
+    if (step === 4) {
+      setValue('attachment', '')
     }
   }
 
@@ -346,19 +367,19 @@ export default function ServicePaymentMethodNewEditForm({
     return (
       <Stack sx={{
         p: 1,
-        position:'relative'
+        position: 'relative'
       }} direction="row" alignItems='center' gap={2} justifyContent='flex-end'>
         {!isRequired && <Button onClick={onSkip} variant="outlined">Skip</Button>}
         <Button disabled={(() => {
           if (step === 7) {
             return false
-          }else if(step === 4){
-            if(values.attachment){
+          } else if (step === 4) {
+            if (values.attachment) {
               return false
-            }else{
+            } else {
               return true
             }
-          } 
+          }
           else {
             return !isDirty
           }
@@ -372,7 +393,7 @@ export default function ServicePaymentMethodNewEditForm({
   const tutsField = (
     <Box sx={{
       pb: 10,
-      overflow:'hidden'
+      overflow: 'hidden'
     }}>
       <DialogTitle>
         <Typography variant="h6">Payment Method</Typography>
@@ -443,20 +464,21 @@ export default function ServicePaymentMethodNewEditForm({
       </Box> */}
 
       <div className={step === 4 ? 'showFields' : ''}>
-      <RHFUpload
-              disabled={isView}
-              thumbnail
-              name="attachment"
-              maxSize={3145728}
-              onDrop={handleDrop}
-              onRemove={handleRemoveFile}
-              onRemoveAll={handleRemoveAllFiles}
-            />
-             {step === 4 && <RenderChoices isRequired={false} />}
+        <RHFUpload
+          disabled={isView}
+          thumbnail
+          name="attachment"
+          maxSize={3145728}
+          onDrop={handleDrop}
+          onRemove={handleRemoveFile}
+          onRemoveAll={handleRemoveAllFiles}
+        />
+        {step === 4 && <RenderChoices isRequired={false} />}
       </div>
 
+      {renderConfirm}
       <Stack sx={{
-        p:2
+        p: 2
       }} direction="row" justifyContent='flex-end' gap={1}>
         <Button variant="outlined" onClick={onClose}>
           Cancel
@@ -464,7 +486,7 @@ export default function ServicePaymentMethodNewEditForm({
 
         {/* <div className={'showFields-submit-payment'}> */}
 
-        <div className={step === 5 ? 'showFields-submit-payment':''}>
+        <div className={step === 5 ? 'showFields-submit-payment' : ''}>
           <LoadingButton
             type="submit"
             variant="contained"

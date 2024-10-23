@@ -29,7 +29,7 @@ import { Button } from '@mui/material';
 import './styles/licences.css'
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
-import { getCurrentStep } from '@/app/dashboard/tutorial-action';
+import { getCurrentStep, getTutsLanguage, setCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -45,13 +45,24 @@ export default function AccountLicenses() {
   const { user, reInitialize } = useAuthContext();
 
   const [updateLicenses] = useMutation(LicensesUpdate);
-  // const currentStep = localStorage?.getItem('currentStep')
-  const [currentStep, setCurrentStep] = useState(null);
+
+  const [currentStep, setCurrentStepState] = useState(null);
+
+  const [languagePrefer, setLanguageOptions] = useState(null)
 
   useEffect(() => {
-    getCurrentStep(user?.id).then((res) => {
-      setCurrentStep(res.setup_step)
-    })
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+      })
+
+      getTutsLanguage({
+        id: user?.id
+      }).then((res) => {
+        setLanguageOptions(res?.language)
+      })
+
+    }
   }, [user?.esig?.filename])
 
   const UpdateUserSchema = Yup.object().shape({
@@ -88,12 +99,16 @@ export default function AccountLicenses() {
           enqueueSnackbar('Updated successfully!');
 
           if (currentStep) {
-            await setCurrentStep({
-              id:user.id,
-              step:5
+            setCurrentStep({
+              id: user.id,
+              step: 5
+            }).then(() => {
+              reInitialize();
             })
+          } else {
+            reInitialize();
+
           }
-          reInitialize();
 
         })
         .catch((error) => {
@@ -186,8 +201,8 @@ export default function AccountLicenses() {
   const PRIMARY_MAIN = theme.palette.primary.main;
   const [step, setSteps] = useState(1);
 
-  const language = localStorage?.getItem('languagePref');
-    const isEnglish = language && language === 'english';
+
+
 
   const incrementStep = () => setSteps((prev) => prev + 1)
 
@@ -218,7 +233,7 @@ export default function AccountLicenses() {
           },
         }}
       >
-        {language === 'english' ? ' Great! 🎉 Please ensure that all required license fields are filled out completely. ✅' : 'Magaling! 🎉 Pakisigurong kumpleto ang lahat ng kinakailangang field ng lisensya. ✅'}
+        {languagePrefer === 'english' ? ' Great! 🎉 Please ensure that all required license fields are filled out completely. ✅' : 'Magaling! 🎉 Pakisigurong kumpleto ang lahat ng kinakailangang field ng lisensya. ✅'}
       </Typography>
     </m.div>
   )
@@ -240,7 +255,7 @@ export default function AccountLicenses() {
           },
         }}
       >
-        {language === 'tagalog' ? "Mahalaga ito para sa pagpapanatili ng pagsunod at pagtiyak ng tamang dokumentasyon ng iyong mga kredensyal. 📜✨ Huwag kalimutang i-save ang iyong mga pagbabago! 💾" : 'It is important for maintaining compliance and ensuring proper documentation of your credentials. 📜✨ Do not forget to save your changes! 💾'}
+        {languagePrefer === 'tagalog' ? "Mahalaga ito para sa pagpapanatili ng pagsunod at pagtiyak ng tamang dokumentasyon ng iyong mga kredensyal. 📜✨ Huwag kalimutang i-save ang iyong mga pagbabago! 💾" : 'It is important for maintaining compliance and ensuring proper documentation of your credentials. 📜✨ Do not forget to save your changes! 💾'}
       </Typography>
     </m.div>
   )
@@ -281,7 +296,7 @@ export default function AccountLicenses() {
           zIndex: 2001,
           position: 'absolute',
           bottom: 0,
-          right:upMd ? 100:null
+          right: upMd ? 100 : null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -389,8 +404,8 @@ export default function AccountLicenses() {
     <ConfirmDialog
       open={confirm.value}
       onClose={confirm.onFalse}
-      title={isEnglish ? 'Unsaved Changes':"Mga Hindi Nai-save na Pagbabago"}
-      content={isEnglish ? "You have unsaved changes, are you sure you want to skip":'Mayroon kang mga hindi nai-save na pagbabago. Sigurado ka bang nais mong laktawan ito?'}
+      title={languagePrefer === 'english' ? 'Unsaved Changes' : "Mga Hindi Nai-save na Pagbabago"}
+      content={languagePrefer === 'english' ? "You have unsaved changes, are you sure you want to skip" : 'Mayroon kang mga hindi nai-save na pagbabago. Sigurado ka bang nais mong laktawan ito?'}
       sx={{
         zIndex: 99999
       }}
@@ -464,7 +479,7 @@ export default function AccountLicenses() {
 
         {/* <div onClick={hideC} className={(step === 4 && (!hideChoices || angGulo)) ? 'showFields-license' : ''}> */}
 
-        <div onClick={hideC} className={step === 4 ? 'showFields-license':''}>
+        <div onClick={hideC} className={step === 4 ? 'showFields-license' : ''}>
           <Controller
             name="prcExpiry"
             className="showFields-license"

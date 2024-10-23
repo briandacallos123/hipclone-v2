@@ -20,6 +20,8 @@ import { useTutorialProvider } from '@/context/tut-step';
 import { useResponsive } from '@/hooks/use-responsive';
 import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
+import { useAuthContext } from '@/auth/hooks';
+import { getCurrentStep, getTutsLanguage, setCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -27,18 +29,38 @@ export default function UserLoginView() {
   const settings = useSettingsContext();
   const [step, setSteps] = useState(1);
   const incrementStep = () => setSteps((prev) => prev + 1)
-  const { setCurrentStep: setStep }: any = useTutorialProvider();
+  const { setDoneTuts }: any = useTutorialProvider();
   const upMd = useResponsive('up', 'md');
 
-  const [currentStep, setCurrentStep] = useState(null);
+  // const [currentStep, setCurrentStep] = useState(null);
 
-  const language = localStorage?.getItem('languagePref');
-  const isEnglish = language && language === 'english';
+  // const language = localStorage?.getItem('languagePref');
+  // const isEnglish = language && language === 'english';
+  const { user } = useAuthContext();
+
+  const [isEnglish, setLanguage] = useState(null);
+  const [currentStep, setCurrentStepState] = useState(null);
+
+  console.log(currentStep,'current buddyyyyyyyy')
 
 
   useEffect(() => {
-    setCurrentStep(localStorage?.getItem('currentStep'))
-  }, [localStorage?.getItem('currentStep')])
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+
+      })
+      getTutsLanguage({
+        id:user?.id
+      }).then((res)=>{
+        const {language} = res;
+        setLanguage(language)
+      })
+    }
+  }, [user])
+
+
+
 
   const theme = useTheme();
 
@@ -112,10 +134,18 @@ export default function UserLoginView() {
         padding: 1
       }}>
         <Button onClick={() => {
-          if (currentStep && Number(currentStep) !== 100) {
-            localStorage.setItem('currentStep', '14');
-            setCurrentStep(14)
-            setManualDone(true)
+          if (currentStep) {
+            setCurrentStep({
+              id:user?.id,
+              step:14
+            }).then((res)=>{
+              setManualDone(true)
+
+              getCurrentStep(user?.id).then((res) => {
+                setCurrentStepState(res.setup_step)
+              })
+
+            })
             // router.push(paths.dashboard.user.manage.login)
           }
         }} variant="outlined">
@@ -263,11 +293,14 @@ export default function UserLoginView() {
   useEffect(() => {
 
     if (successProfile === 4) {
-      localStorage.setItem('currentStep', '15');
-      setStep('15')
-      setCurrentStep('15')
+      setCurrentStep({
+        id:user?.id,
+        step:15
+      }).then(()=>{
+        setDoneTuts()
+      })
     }
-  }, [successProfile])
+  }, [successProfile,])
 
   const onIncrementSucc = () => setSuccProfile(successProfile + 1)
   const router = useRouter();
@@ -359,7 +392,7 @@ export default function UserLoginView() {
 
   return (
     <Container maxWidth={settings.themeStretch ? false : 'lg'}>
-      {(Number(currentStep) === 14) && successProfile !== 5 && renderDoneProfile}
+      {(Number(currentStep) === 14) && successProfile !== 4 && renderDoneProfile}
 
       {Number(currentStep) === 13 && step !== 5 && renderTwelveTutorial}
 
@@ -369,7 +402,7 @@ export default function UserLoginView() {
           mb: { xs: 3, md: 5 },
         }}
       >
-        Manage Profile
+        Manage Login
       </Typography>
 
       <Stack spacing={3}>

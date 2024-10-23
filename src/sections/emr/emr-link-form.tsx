@@ -113,7 +113,7 @@ export default function EmrLinkForm({
     setValue,
     getValues,
     handleSubmit,
-    formState: { isSubmitting },
+    formState: { isSubmitting, isDirty },
   } = methods;
 
   const values = watch();
@@ -209,7 +209,7 @@ export default function EmrLinkForm({
 
             {values.account !== '' && (
               <Stack>
-                <Typography
+                {isDirty && <Typography
                   variant="body1"
                   color={(() => {
                     let rate = parseInt(percentageSimilarity);
@@ -225,8 +225,8 @@ export default function EmrLinkForm({
                 >
                   Patient match score is {percentageSimilarity}. Click <strong>Link</strong> if you
                   want to proceed
-                </Typography>
-                <Typography
+                </Typography>}
+                  {isDirty &&  <Typography
                   variant="subtitle1"
                   color={(() => {
                     let rate = parseInt(percentageSimilarity);
@@ -241,7 +241,7 @@ export default function EmrLinkForm({
                   })()}
                 >
                   Match Score: {parseInt(percentageSimilarity)}
-                </Typography>
+                </Typography>}
               </Stack>
             )}
           </Stack>
@@ -255,6 +255,7 @@ export default function EmrLinkForm({
 
         <Button
           variant="contained"
+          disabled={!isDirty}
           onClick={() => {
             confirm.onTrue();
           }}

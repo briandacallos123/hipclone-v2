@@ -759,10 +759,16 @@ const customFuncVitalEMRPatient = async (
       ...checkUser
     }
   })
-  const emrPatientList: any = getEmrpatientByDoctor?.map((item) => item.patientID);
+  const emrPatientList: any = getEmrpatientByDoctor?.filter((item) => item.patientID)?.map((item)=>item.patientID)
 
-
-
+  const emrList = (()=>{
+    if(emrPatientList.length === 0) return;
+    return {
+      patientID: {
+        in: emrPatientList
+      }
+    }
+  })()
 
   if (emrData) {
 
@@ -792,9 +798,7 @@ const customFuncVitalEMRPatient = async (
               {
                 OR:[
                   {
-                    patientID: {
-                      in: emrPatientList
-                    }
+                    ...emrList
                   },
                   {
                     patientID:null
@@ -827,7 +831,7 @@ const customFuncVitalEMRPatient = async (
       // console.log(vitalData, 'LINKED VITAL DATA');
       vitals_data = vitalData;
     } else {
-      console.log('non link');
+ 
       const [vitalData]: any = await client.$transaction([
         client.notes_vitals.findMany({
           take: args?.data?.take,
@@ -854,9 +858,14 @@ const customFuncVitalEMRPatient = async (
                 ]
               },
               {
-                patientID: {
-                  in: emrPatientList
-                }
+                OR:[
+                  {
+                    ...emrList
+                  },
+                  {
+                    patientID:null
+                  }
+                ]
               }
             ],
             emrPatientID: Number(emrData.id),

@@ -31,9 +31,10 @@ const RegisterSchema = Yup.object().shape({
         .required('Email is required')
         .email('Email must be a valid email address')
         .matches(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, 'Email must be a valid email format'),
-    phoneNumber: Yup.string().required('Phone number is required')
-        .matches(/^[0-9]{11}$/, 'Phone number must be exactly 11 digits')
-        .matches(/^\+?[0-9]\d{1,14}$/, 'Phone number must be valid'),
+  phoneNumber: Yup.string()
+    .required('Phone number is required')
+    .matches(/^[1-9][0-9]{9}$/, 'Phone number must be exactly 10 digits, excluding leading zero')
+    .matches(/^\+?[0-9]{1,14}$/, 'Phone number must be valid'),
     password: Yup.string()
         .required('Password is required')
         .min(8, 'Password must be at least 8 characters')
@@ -44,6 +45,8 @@ const RegisterSchema = Yup.object().shape({
     confirmPassword: Yup.string()
         .required('Confirm password is required')
         .oneOf([Yup.ref('password')], 'Passwords must match'),
+    specialization:Yup.string().required('Specialization is required'),
+        // specialization
 });
 
 const passwordRequirements = [
@@ -102,7 +105,6 @@ function validatePassword(password) {
 
 const RegisterForm = ({ spec }: any) => {
 
-    console.log(spec, 'specializationn')
 
     const confirmPassword = useBoolean();
     const noticeDialogValue = useBoolean();
@@ -150,12 +152,15 @@ const RegisterForm = ({ spec }: any) => {
     const values = watch();
 
     const [emailTaken, setEmailTaken] = useState(false)
+    const [phoneTaken, setPhoneTaken] = useState(false)
 
     const [snackKey, setSnackKey]: any = useState(null);
     const [loadingBtn, setLoadingBtn] = useState(false);
     const [myData, setMyData]: any = useState(null);
 
-    const handleSubmitValue = useCallback(async (fData) => {
+    const handleSubmitValue = useCallback(async (fData:any) => {
+        fData.specialization = Number(fData?.specialization);
+        fData.phoneNumber = `0${fData.phoneNumber}`;
 
         try {
 
@@ -177,6 +182,9 @@ const RegisterForm = ({ spec }: any) => {
                 enqueueSnackbar(error.message, { variant: 'error' })
                 if (error.message === 'Email already used') {
                     setEmailTaken(true)
+                }
+                if(error.message === 'Phone already used'){
+                    setPhoneTaken(true)
                 }
                 closeSnackbar(snackKey);
                 setLoadingBtn(false)
@@ -380,7 +388,10 @@ const RegisterForm = ({ spec }: any) => {
         if (emailTaken) {
             setEmailTaken(false)
         }
-    }, [values.email])
+        if(phoneTaken){
+            setPhoneTaken(false)
+        }
+    }, [values.email, values.phoneTaken])
 
 
     const [existsEmail, setExistsEmail] = useState(false)
@@ -456,6 +467,24 @@ const RegisterForm = ({ spec }: any) => {
                         </Typography>
 
                     }
+                      {phoneTaken &&
+                        <Typography
+                            sx={{
+                                lineHeight: 1.5,
+                                fontSize: '15px',
+                                color: 'red',
+                                '& > span': {
+                                    color: 'red', fontWeight: 'bold',
+                                    fontSize: mdUp ? '16px' : '15px',
+                                    mr: 1
+
+                                },
+                            }}
+                        >
+                            <span>{`Error:`}</span>Phone Already taken.
+                        </Typography>
+
+                    }
 
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                         <RHFTextField name="firstName" label="First name" />
@@ -492,12 +521,6 @@ const RegisterForm = ({ spec }: any) => {
                     </Stack>
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                         <RHFTextField
-                            helperText={(errors.email ? errors.email.message : '') || existsEmail && 'Email already used.'}
-                            error={!!errors.email || existsEmail}
-                            onChange={(e) => {
-                                setValue('email', e.target.value);
-                                methods.trigger('email'); // Validate on change
-                            }}
                             type="email" name="email" label="Email" />
 
 
@@ -519,13 +542,6 @@ const RegisterForm = ({ spec }: any) => {
                     <Stack direction={{ xs: 'column', sm: 'row' }} spacing={2}>
                         <RHFTextField 
                         type='number'
-                        error={!!errors.phoneNumber || existsPhone}
-                        helperText={(errors.phoneNumber ? errors.phoneNumber.message : '') || existsPhone && 'Phone already used'}
-                        onChange={(e) => {
-                          setValue('phoneNumber', e.target.value);
-                          
-                          methods.trigger('phoneNumber'); // Validate on change
-                        }}
                         name="phoneNumber" label="Mobile Phone" />
 
 

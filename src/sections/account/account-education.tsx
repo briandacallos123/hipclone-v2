@@ -31,6 +31,7 @@ import { paths } from '@/routes/paths';
 import './styles/education.css'
 import { useBoolean } from '@/hooks/use-boolean';
 import { ConfirmDialog } from '@/components/custom-dialog';
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -46,7 +47,20 @@ export default function AccountEducation() {
   const { data: queryData, error, loading, refetch }: any = useQuery(GetEducations);
   const [userData, setUserData] = useState({});
   // console.log('QUERY: ', queryData);
-  const currentStep = localStorage?.getItem('currentStep')
+
+  const [currentStep, setCurrentStepState] = useState(null);
+  const [step, setSteps] = useState(1);
+
+  const incrementStep = () => setSteps((prev) => prev + 1)
+  
+  useEffect(() => {
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+      })
+    }
+  }, [user?.esig?.filename])
+
   const language = localStorage?.getItem('languagePref');
   const isEnglish = language && language === 'english';
 
@@ -73,24 +87,28 @@ export default function AccountEducation() {
         .then(async (res) => {
           if (snackKey) {
             const { data } = res;
-            console.log(snackKey, 'key');
             closeSnackbar(snackKey);
             enqueueSnackbar('Updated Successfully');
             refetch();
 
-            if (currentStep && Number(currentStep) !== 100) {
-              localStorage.setItem('currentStep', '6')
-              router.push(paths.dashboard.user.manage.clinic)
+            if (currentStep) {
+              setCurrentStep({
+                id: user?.id,
+                step: 6
+              }).then(() => {
+                router.push(paths.dashboard.user.manage.clinic)
+              })
             }
+
           }
         })
         .catch((error) => {
           closeSnackbar(snackKey);
           enqueueSnackbar('Something went wrong', { variant: 'error' });
-          // runCatch();
+         
         });
     },
-    [snackKey]
+    [snackKey, user, step]
   );
 
   // const defaultValues = {
@@ -167,8 +185,7 @@ export default function AccountEducation() {
     [enqueueSnackbar]
   );
 
-  console.log(defaultValues?.medicalSchool?.name, 'yey');
-  console.log(defaultValues, 'LAHAT NG VALUES');
+
   // medicalSchool: user?.medicalSchool ?? { name: '', year: '' },
   //   recidency: user?.recidency ?? { name: '', year: '' },
   //   fellowship1: user?.fellowship1 ?? { name: '', year: '' },
@@ -192,9 +209,7 @@ export default function AccountEducation() {
   const theme = useTheme();
 
   const PRIMARY_MAIN = theme.palette.primary.main;
-  const [step, setSteps] = useState(1);
 
-  const incrementStep = () => setSteps((prev) => prev + 1)
 
 
   const firstStep = (
@@ -265,14 +280,12 @@ export default function AccountEducation() {
         padding: 1
       }}>
         <Button onClick={() => {
-          if (currentStep && Number(currentStep) !== 100) {
-            if (currentStep && Number(currentStep) !== 100) {
-              localStorage.setItem('currentStep', '6')
-              router.push(paths.dashboard.user.manage.clinic)
-            }
-          
-            // router.push(paths.dashboard.user.manage.login)
-          }
+          setCurrentStep({
+            id: user?.id,
+            step: 6
+          }).then(() => {
+            router.push(paths.dashboard.user.manage.clinic)
+          })
         }} variant="outlined">
           Skip this part...
         </Button>

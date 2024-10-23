@@ -32,6 +32,7 @@ import { ConfirmDialog } from '@/components/custom-dialog';
 
 // server action
 import { validateEmail, validatePhone } from './action/sub-account-act';
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
 // ----------------------------------------------------------------------
 
 type Props = {
@@ -53,6 +54,7 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
 
   const showConfirmPass = useBoolean();
 
+  const {user} = useAuthContext();
 
 
 
@@ -72,7 +74,17 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
   );
 
 
-  const currentStep = localStorage?.getItem('currentStep')
+  const [currentStep, setCurrentStepState] = useState(null);
+
+  useEffect(() => {
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+       
+      })
+    }
+  }, [user])
+
 
   const [step, setStep] = useState(1);
 
@@ -254,9 +266,16 @@ export default function SubaccountNewForm({ isLoading, setLoading, onClose, setI
         refetch();
         setLoading(false)
 
-        if (currentStep && Number(currentStep) !== 100) {
-          localStorage.setItem('currentStep', '13');
-          router.push(paths.dashboard.user.manage.login)
+        if (currentStep) {
+          // localStorage.setItem('currentStep', '13');
+          // router.push(paths.dashboard.user.manage.login)
+
+          setCurrentStep({
+            id:user?.id,
+            step:13
+          }).then(()=>{
+            router.push(paths.dashboard.user.manage.login)
+          })
         }
       })
       .catch((error) => {

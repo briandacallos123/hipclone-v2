@@ -29,6 +29,8 @@ import FormProvider from 'src/components/hook-form';
 import { useMutation, useQuery } from '@apollo/client';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import { CREATE_HMO } from '@/libs/gqls/hmo';
+import { useAuthContext } from '@/auth/hooks';
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = IUserService;
@@ -69,6 +71,7 @@ export default function ServiceHmoEditForm({
   const [myHmo, setMyHmo] = useState([]);
 
   // console.log(myHmo, 'myHmo@@@');
+  const { user } = useAuthContext();
 
   const UpdateUserSchema = Yup.object().shape({});
 
@@ -79,9 +82,6 @@ export default function ServiceHmoEditForm({
     }),
     [currentItem]
   );
-
-
-  console.log(currentItem,'currentItemcurrentItem')
 
   const [snackKey, setSnackKey] = useState(null);
 
@@ -99,7 +99,16 @@ export default function ServiceHmoEditForm({
     formState: { isSubmitting, isDirty },
   } = methods;
 
-const currentStep = localStorage.getItem('currentStep');
+  const [currentStep, setCurrentStepState] = useState(null);
+
+  useEffect(() => {
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        const {setup_step} = res;
+        setCurrentStepState(res.setup_step)
+      })
+    }
+  }, [user])
 
   const handleSubmitValue = useCallback(
     async (model: NexusGenInputs['HmoMutationInput']) => {
@@ -121,9 +130,14 @@ const currentStep = localStorage.getItem('currentStep');
             enqueueSnackbar('Updated Successfully');
             setToggleUpdate(false);
            
-            if(currentStep && Number(currentStep) !== 100){
-              localStorage.setItem('currentStep','11');
-              incrementTutsTab()
+            if(currentStep){
+              setCurrentStep({
+                id:user?.id,
+                step:11
+              }).then((res)=>{
+                incrementTutsTab()
+              })
+              
             }
           }
           refetch();
@@ -135,7 +149,7 @@ const currentStep = localStorage.getItem('currentStep');
           // runCatch();
         });
     },
-    [snackKey]
+    [snackKey, user]
   );
 
   const values = watch();

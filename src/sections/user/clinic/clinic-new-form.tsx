@@ -42,6 +42,8 @@ import { ConfirmDialog } from '@/components/custom-dialog';
 import { validatePhone } from '../subaccount/action/sub-account-act';
 import { provinces } from '@/utils/constants';
 import { OutlinedInput } from '@mui/material';
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
+import { useAuthContext } from '@/auth/hooks';
 // ----------------------------------------------------------------------
 
 const PROVINCE_OPTIONS = ['Abra', 'Bataan', 'Cagayan'];
@@ -75,6 +77,7 @@ type Props = {
   appendData: any;
   appendDataClient: any;
   uuid: any;
+  handleRefetchStep:any;
   refetch: any;
 };
 
@@ -84,6 +87,7 @@ export default function ClinicNewForm({
   appendData,
   onClose,
   refetch,
+  handleRefetchStep
 }: Props) {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
@@ -157,7 +161,7 @@ export default function ClinicNewForm({
     }
   }, [values.time_interval])
 
-  console.log(limitReq, 'limit')
+  const {user} = useAuthContext();
 
   useEffect(() => {
     if (!values.limitValue && values.time_interval === '10') {
@@ -168,15 +172,15 @@ export default function ClinicNewForm({
   console.log(values.limitValue, 'ano valuee')
 
 
-  const [currentStep, setCurrentStep] = useState(null)
+  const [currentStep, setCurrentStepState] = useState(null);
 
   useEffect(() => {
-    const currentStepLocal = localStorage?.getItem('currentStep')
-
-    if (currentStepLocal) {
-      setCurrentStep(currentStepLocal)
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+      })
     }
-  }, [])
+  }, [user])
 
   const [step, setStep] = useState(3);
 
@@ -228,11 +232,23 @@ export default function ClinicNewForm({
           closeSnackbar(snackKey);
           setSnackKey(null);
           enqueueSnackbar('Create success!');
-          refetch();
-          reset();
-          onClose()
-          if (currentStep && Number(currentStep) !== 100) {
-            localStorage.setItem('currentStep', '7')
+         
+         
+          if (currentStep) {
+            // localStorage.setItem('currentStep', '7')
+            setCurrentStep({
+              id:user?.id,
+              step:7
+            }).then(()=>{
+              onClose()
+              refetch();
+              reset();
+              handleRefetchStep()
+            })
+          }else{
+            onClose()
+            refetch();
+            reset();
           }
 
 
@@ -505,15 +521,23 @@ export default function ClinicNewForm({
               <div className={step === 7 ? 'showFields-clinic' : ''}>
 
 
-                {/* <RHFSelect name="Province" label="Province">
-                  dogs?
-                  {provinces &&
-                    provinces?.map((option: any, index: Number) => (
-                      <MenuItem key={index} value={option.name}>
-                        {option.name}
-                      </MenuItem>
-                    ))}
-                </RHFSelect> */}
+              <RHFAutocomplete
+                      name="province"
+                      label="Province"
+                      options={provinces} // Use the whole province objects
+                      getOptionLabel={(option) => option.name} // Directly use the name from the option
+                      isOptionEqualToValue={(option, value) => option.id === value.id} // Compare IDs for equality
+                      renderOption={(props, option) => {
+                        const { id, name } = option; // Destructure from option directly
+
+                        return (
+                          <li {...props} key={id}>
+                            {name}
+                          </li>
+                        );
+                      }}
+                      sx={{ pt: 1 }}
+                    />
                 {step === 7 && <RenderChoices isRequired={false} />}
               </div>
 

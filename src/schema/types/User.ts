@@ -1122,14 +1122,25 @@ export const registerEmployee = extendType({
 
         try {
 
-          const isExists = await client.user.findUnique({
-            where:{
-              email
-            }
-          })
-          if(isExists){
+          const [emailExists, phoneExists] = await Promise.all([
+            await client.user.findUnique({
+                where:{
+                  email
+                }
+              }),
+              await client.user.findFirst({
+                  where:{
+                    mobile_number:phoneNumber
+                  }
+                })
+          ])
+        
+
+          if(emailExists){
             throw new GraphQLError('Email already used');
-            
+          }
+          if(phoneExists){
+            throw new GraphQLError('Phone already used');
           }
 
           // creating user

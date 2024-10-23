@@ -58,6 +58,8 @@ import './circular-highlight.css'; // Import your CSS file
 import { m } from 'framer-motion';
 import { MotionContainer, varFade } from 'src/components/animate';
 import Image from '@/components/image';
+import { useAuthContext } from '@/auth/hooks';
+import { getCurrentStep, getTutsLanguage } from '@/app/dashboard/tutorial-action';
 // ----------------------------------------------------------------------
 
 const TABLE_HEAD = [{ id: 'name', label: 'Clinic & Schedules' }];
@@ -78,7 +80,7 @@ export default function UserClinicListView() {
   const settings = useSettingsContext();
 
   const router = useRouter();
-  
+
   const table = useTable({
     defaultOrder: 'desc',
   });
@@ -94,6 +96,9 @@ export default function UserClinicListView() {
   const [editId, setEditId] = useState<any>('');
   const [editSchedId, setEditSchedId] = useState<number>(0);
 
+
+  const { user } = useAuthContext();
+
   const openAddSchedule = useBoolean();
 
   const [tableData, setTableData] = useState([]);
@@ -104,7 +109,16 @@ export default function UserClinicListView() {
   const [filters, setFilters] = useState(defaultFilters);
   const [provinces, setProvinces] = useState([]);
 
-  const currentStep = localStorage?.getItem('currentStep')
+
+  const [currentStep, setCurrentStepState] = useState(null);
+
+  console.log(currentStep, 'currentstep ko to beh')
+
+  const [isEnglish, setLanguage] = useState(null);
+
+
+
+  // const currentStep = localStorage?.getItem('currentStep')
 
   // console.log(schedData, 'SCHED DATA');
   // const [getData, { data, loading, error, refetch }] = useQuery(CLINIC_SCHEDLIST, {
@@ -136,6 +150,24 @@ export default function UserClinicListView() {
     },
     fetchPolicy: 'cache-first',
   });
+
+  const [refetchStep, setRefetchStep] = useState(false);
+
+  const handleRefetchStep = () => setRefetchStep(!refetchStep)
+
+  useEffect(() => {
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+      })
+      getTutsLanguage({
+        id:user?.id
+      }).then((res)=>{
+        setLanguage(res?.language)
+      })
+    }
+  }, [user, refetchStep])
+
 
   const [snackKey, setSnackKey]: any = useState(null);
   const [snackKeySched, setSnackKeySched]: any = useState(null);
@@ -217,8 +249,8 @@ export default function UserClinicListView() {
     },
     [snackKey]
   );
-  const language = localStorage?.getItem('languagePref');
-    const isEnglish = language && language === 'english';
+
+
 
   useEffect(() => {
     if (clinicData) {
@@ -518,8 +550,8 @@ export default function UserClinicListView() {
           },
         }}
       >
-       
-       {isEnglish ? 'Please ensure you fill in all required clinic management fields. 🏥✅':'Pakisigurong punan ang lahat ng kinakailangang field para sa pamamahala ng klinika. 🏥✅'}
+
+        {isEnglish ? 'Please ensure you fill in all required clinic management fields. 🏥✅' : 'Pakisigurong punan ang lahat ng kinakailangang field para sa pamamahala ng klinika. 🏥✅'}
       </Typography>
     </m.div>
   )
@@ -540,8 +572,8 @@ export default function UserClinicListView() {
           },
         }}
       >
-        
-        {isEnglish?'Accurate clinic information is crucial! 🏥 Patients won\'t be able to find you if your clinic isn\'t listed. 📍':'Mahalaga ang tumpak na impormasyon ng klinika! 🏥 Hindi makikita ng mga pasyente kung hindi nakalista ang iyong klinika. 📍'}
+
+        {isEnglish ? 'Accurate clinic information is crucial! 🏥 Patients won\'t be able to find you if your clinic isn\'t listed. 📍' : 'Mahalaga ang tumpak na impormasyon ng klinika! 🏥 Hindi makikita ng mga pasyente kung hindi nakalista ang iyong klinika. 📍'}
       </Typography>
     </m.div>
   )
@@ -560,9 +592,9 @@ export default function UserClinicListView() {
           },
         }}
       >
-        <span>{isEnglish?'Congratulations':'Maligayang bati!'} 🎉</span>  <br/>
-        <br/>
-        {isEnglish?'Your new clinic has been successfully created!':'Matagumpay na naitayo ang iyong bagong klinika'}
+        <span>{isEnglish ? 'Congratulations' : 'Maligayang bati!'} 🎉</span>  <br />
+        <br />
+        {isEnglish ? 'Your new clinic has been successfully created!' : 'Matagumpay na naitayo ang iyong bagong klinika'}
       </Typography>
     </m.div>
   )
@@ -581,7 +613,7 @@ export default function UserClinicListView() {
           },
         }}
       >
-       {isEnglish?' Patients will now be able to find and visit your clinic for their healthcare needs! 🌟🏥':'Ngayon ay makikita na ng mga pasyente ang iyong klinika at maaari na silang bumisita para sa kanilang mga pangangailangang pangkalusugan! 🌟🏥'}
+        {isEnglish ? ' Patients will now be able to find and visit your clinic for their healthcare needs! 🌟🏥' : 'Ngayon ay makikita na ng mga pasyente ang iyong klinika at maaari na silang bumisita para sa kanilang mga pangangailangang pangkalusugan! 🌟🏥'}
       </Typography>
     </m.div>
   )
@@ -615,7 +647,7 @@ export default function UserClinicListView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
-          right:upMd ? 100:null
+          right: upMd ? 100 : null
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -623,7 +655,7 @@ export default function UserClinicListView() {
               background: theme.palette.background.default,
               height: 'auto',
               width: 'auto',
-              maxWidth:250,
+              maxWidth: 250,
               left: 10,
               borderRadius: 2,
               zIndex: 99999,
@@ -638,7 +670,7 @@ export default function UserClinicListView() {
               {step === 2 && secondStep}
 
 
-              <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+              <Box sx={{ width: '90%', pt: 2, display: 'flex', justifyContent: 'flex-end' }}>
                 <Button onClick={incrementStep} variant="contained" size={'small'}>Continue</Button>
               </Box>
             </Box>
@@ -688,13 +720,13 @@ export default function UserClinicListView() {
 
   const [successStep, setScsStep] = useState(1);
 
-  const incrementScsStep = () => setScsStep(successStep +1);
+  const incrementScsStep = () => setScsStep(successStep + 1);
 
-  useEffect(()=>{
-    if(Number(successStep) === 3){
+  useEffect(() => {
+    if (Number(successStep) === 3) {
       router.push(paths.dashboard.user.manage.service)
     }
-  },[successStep])
+  }, [successStep])
 
   const successClinic = (
     <Box sx={{
@@ -722,8 +754,8 @@ export default function UserClinicListView() {
       <Box sx={{
         zIndex: 99999,
         position: 'absolute',
-        right: upMd ? 100:null,
-        bottom:0
+        right: upMd ? 100 : null,
+        bottom: 0
       }}>
         {/* message */}
         <m.div variants={varFade().inUp}>
@@ -731,7 +763,7 @@ export default function UserClinicListView() {
             background: theme.palette.background.default,
             height: 'auto',
             width: 'auto',
-            maxWidth:250,
+            maxWidth: 250,
             left: 10,
             borderRadius: 2,
             zIndex: 99999,
@@ -740,14 +772,14 @@ export default function UserClinicListView() {
             flexDirection: 'column',
             justifyContent: 'flex-start',
             alignItems: 'flex-start',
-            p:3
+            p: 3
           }}>
             {successStep === 1 && successStep1}
             {successStep === 2 && successStep2}
-            
 
 
-            <Box sx={{ width: '90%',pt:2, display: 'flex', justifyContent: 'flex-end' }}>
+
+            <Box sx={{ width: '90%', pt: 2, display: 'flex', justifyContent: 'flex-end' }}>
               <Button onClick={incrementScsStep} variant="contained" size={'small'}>Continue</Button>
             </Box>
           </Box>
@@ -869,35 +901,35 @@ export default function UserClinicListView() {
                 )}
 
 
-                  <TableBody>
-                    {loading &&
-                      [...Array(rowsPerPage)].map((_, i) => <ClinicTableRowSkeleton key={i} />)}
-                    {!loading &&
-                      schedData?.map((row: any, index: number) => (
-                       
-                          <ClinicTableRow
-                          key={row.id}
-                          isHideSched={isHideSched}
-                          row={row}
-                          setHideSched={setHideSched}
-                          selected={table.selected.includes(row.id)}
-                          onSelectRow={() => table.onSelectRow(row.id)}
-                          onEditRow={(CreatePayment) => handleEditRow(row)}
-                          onDeleteRow={() => handleDeleteRow(row.id)}
-                          onAddSchedule={() => handleAddSched(row)}
-                          refetch={() => refetch()}
-                          onDeleteSched={handleDeleteSched}
-                        />
-                      ))}
+                <TableBody>
+                  {loading &&
+                    [...Array(rowsPerPage)].map((_, i) => <ClinicTableRowSkeleton key={i} />)}
+                  {!loading &&
+                    schedData?.map((row: any, index: number) => (
 
-                    <TableEmptyRows
-                      height={denseHeight}
-                      emptyRows={emptyRows(table.page, table.rowsPerPage, totalData)}
-                    />
+                      <ClinicTableRow
+                        key={row.id}
+                        isHideSched={isHideSched}
+                        row={row}
+                        setHideSched={setHideSched}
+                        selected={table.selected.includes(row.id)}
+                        onSelectRow={() => table.onSelectRow(row.id)}
+                        onEditRow={(CreatePayment) => handleEditRow(row)}
+                        onDeleteRow={() => handleDeleteRow(row.id)}
+                        onAddSchedule={() => handleAddSched(row)}
+                        refetch={() => refetch()}
+                        onDeleteSched={handleDeleteSched}
+                      />
+                    ))}
 
-                    <TableNoData notFound={notFound && !loading} />
-                  </TableBody>
-             
+                  <TableEmptyRows
+                    height={denseHeight}
+                    emptyRows={emptyRows(table.page, table.rowsPerPage, totalData)}
+                  />
+
+                  <TableNoData notFound={notFound && !loading} />
+                </TableBody>
+
               </Table>
             </Scrollbar>
           </TableContainer>
@@ -926,6 +958,7 @@ export default function UserClinicListView() {
         provinces={provinces}
         uuid={uuid && uuid}
         refetch={refetch}
+        handleRefetchStep={handleRefetchStep}
         open={openCreate.value}
         onClose={openCreate.onFalse}
       />
@@ -966,6 +999,7 @@ export default function UserClinicListView() {
         modifySched={modifySched}
         appendClinic={appendClinic}
         refetch={refetch}
+        handleRefetchStep={handleRefetchStep}
         setHideSched={() => {
           setHideSched(true);
         }}

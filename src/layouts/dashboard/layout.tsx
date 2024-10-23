@@ -27,7 +27,7 @@ import { paths } from '@/routes/paths';
 import { useAuthContext } from '@/auth/hooks';
 import Iconify from '@/components/iconify';
 import { position } from 'html2canvas/dist/types/css/property-descriptors/position';
-import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
+import { getCurrentStep, getTutsLanguage, setCurrentStep, setTutsLanguage} from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -114,17 +114,19 @@ export default function DashboardLayout({ children }: Props) {
     }
   }, [languageOptions, changed])
 
-  useEffect(() => {
-    let language = localStorage?.getItem('languagePref');
-    if (language) {
-      setLanguageOptions(language)
-    }
-  }, [languageOptions])
+ 
 
-  const handleChangeLanguage = (e) => {
-    console.log(e.target.value, 'e.target.value')
-    setLanguageOptions(e.target.value)
-    setChanged(true)
+  const handleChangeLanguage = async(e) => {
+    await setTutsLanguage({
+      id:user?.id,
+      value:e.target.value
+    })
+    
+    getTutsLanguage({
+      id:user?.id
+    }).then((res)=>{
+      setLanguageOptions(res?.language)
+    })
   }
 
   const fourthStep = (
@@ -323,12 +325,14 @@ export default function DashboardLayout({ children }: Props) {
 
   const incrementStep = () => setSteps((prev) => prev + 1)
 
-  const [currentStep, setCurrentStep] = useState(null);
+  const [currentStep, setCurrentStepState] = useState(null);
 
   useEffect(()=>{
-    getCurrentStep(user?.id).then((res)=>{
-      setCurrentStep(res.setup_step)
-    })
+    if(user?.new_doctor){
+      getCurrentStep(user?.id).then((res)=>{
+        setCurrentStepState(res.setup_step)
+      })
+    }
   },[user])
 
 

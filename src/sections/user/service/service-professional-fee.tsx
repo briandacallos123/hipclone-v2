@@ -25,6 +25,8 @@ import { useMutation, useQuery } from '@apollo/client';
 import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import './styles/service.css';
+import { getCurrentStep, setCurrentStep} from '@/app/dashboard/tutorial-action';
+import { useAuthContext } from '@/auth/hooks';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = { price: number; isViewable: boolean };
@@ -43,8 +45,18 @@ export default function ServiceProfessionalFee({step, tutorialTab, incrementTuts
     notifyOnNetworkStatusChange: true,
   });
 
-  // const { abstract, certificate, clearance } = data?.GetFees;
-  let currentStep = localStorage?.getItem('currentStep')
+  const { user:myUser }:any = useAuthContext();
+
+  const [currentStep, setCurrentStepState] = useState(null);
+
+  useEffect(() => {
+    if (myUser?.new_doctor) {
+      getCurrentStep(myUser?.id).then((res) => {
+        const {setup_step} = res;
+        setCurrentStepState(res.setup_step)
+      })
+    }
+  }, [myUser])
 
   const handleSubmitValue = useCallback(
     async (model: NexusGenInputs['UpdateFeeInputsProf']) => {
@@ -62,9 +74,14 @@ export default function ServiceProfessionalFee({step, tutorialTab, incrementTuts
           closeSnackbar(snackKey);
           refetch();
           enqueueSnackbar('Updated sucessfully');
-          if(currentStep && Number(currentStep) !== 100){
-            localStorage.setItem('currentStep','8')
-            incrementTutsTab();
+          if(currentStep){
+            setCurrentStep({
+              id:myUser?.id,
+              step:8
+            }).then((res)=>{
+              incrementTutsTab();
+            })
+            
           }
         })
         .catch((error) => {
@@ -74,7 +91,7 @@ export default function ServiceProfessionalFee({step, tutorialTab, incrementTuts
           // runCatch();
         });
     },
-    [snackKey]
+    [snackKey, myUser]
   );
 
   const [user] = useState<IUserService>(_userService);

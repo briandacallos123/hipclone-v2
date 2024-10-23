@@ -54,6 +54,7 @@ type Props = {
   appendClinic?: any;
   refetch?: any;
   setHideSched?: any;
+  handleRefetchStep:any;
 };
 
 export default function ClinicScheduleNewEditForm({
@@ -63,6 +64,7 @@ export default function ClinicScheduleNewEditForm({
   onClose,
   refetch,
   setHideSched,
+  handleRefetchStep,
   id,
   isEdit,
 }: Props) {

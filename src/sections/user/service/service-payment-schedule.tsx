@@ -20,6 +20,8 @@ import { useQuery, useMutation } from '@apollo/client';
 import { GetPaymentSched, UpdatePaymentSched } from '../../../libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import './styles/service.css';
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
+import { useAuthContext } from '@/auth/hooks';
 // ----------------------------------------------------------------------
 
 type FormValuesProps = IUserService;
@@ -28,8 +30,22 @@ const ServicePaymentSchedule = forwardRef(({ tutorialTab, incrementTutsTab}, ref
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
 
   const [user] = useState<IUserService>(_userService);
-  let currentStep = localStorage?.getItem('currentStep')
 
+  const [currentStep, setCurrentStepState] = useState(null);
+
+  const { user:myUser }:any = useAuthContext();
+
+  useEffect(() => {
+    if (myUser?.new_doctor) {
+      getCurrentStep(myUser?.id).then((res) => {
+        const {setup_step} = res;
+        setCurrentStepState(setup_step)
+      })
+    }
+  }, [])
+
+
+  
   const { data, loading, refetch } = useQuery(GetPaymentSched);
   const [updateSched] = useMutation(UpdatePaymentSched, {
     context: {
@@ -54,9 +70,13 @@ const ServicePaymentSchedule = forwardRef(({ tutorialTab, incrementTutsTab}, ref
           closeSnackbar(snackKey);
           refetch();
           enqueueSnackbar('Updated sucessfully');
-          if(currentStep && Number(currentStep) !== 100){
-            localStorage.setItem('currentStep','10')
-            incrementTutsTab();
+          if(currentStep){
+            setCurrentStep({
+              id:myUser?.id,
+              step:10
+            }).then((res)=>{
+              incrementTutsTab();
+            })
           }
         })
         .catch((error) => {
@@ -66,7 +86,7 @@ const ServicePaymentSchedule = forwardRef(({ tutorialTab, incrementTutsTab}, ref
           // runCatch();
         });
     },
-    [snackKey]
+    [snackKey, myUser]
   );
 
   const UpdateUserSchema = Yup.object().shape({});

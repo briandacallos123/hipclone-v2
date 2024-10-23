@@ -55,6 +55,8 @@ import Image from '@/components/image';
 import './sub-account.css'
 import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
+import { useAuthContext } from '@/auth/hooks';
+import { getCurrentStep, setCurrentStep, getTutsLanguage } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -133,8 +135,18 @@ export default function UserSubaccountListView() {
   const notFound = !tableLoading && !tableData?.length;
   // const getStatusLength = (status: boolean) =>
   //   tableData.filter((item) => item.status.toString() === status.toString()).length;
-  const language = localStorage?.getItem('languagePref');
-    const isEnglish = language && language === 'english';
+  const [isEnglish, setEnglish] = useState(null);
+
+  const {user} = useAuthContext();
+
+  useEffect(()=>{
+    getTutsLanguage({
+      id:user?.id
+    }).then((res)=>{
+      const {language} = res;
+      setEnglish(language)
+    })
+  },[user])
 
   const {
     data: subData,
@@ -279,7 +291,6 @@ export default function UserSubaccountListView() {
 
   // console.log(setSelectedId,"handleViewRowhandleViewRowhandleViewRow")
 
-
   const handleFilterStatus = useCallback(
     (event: React.SyntheticEvent, newValue: string) => {
       handleFilters('status', newValue);
@@ -289,16 +300,23 @@ export default function UserSubaccountListView() {
 
   const PRIMARY_MAIN = theme.palette.primary.main;
   const [step, setSteps] = useState(null);
+  
+  const [currentStep, setCurrentStepState] = useState(null);
 
-  useEffect(()=>{
-    const isTuts = localStorage.getItem('currentStep');
-    if(isTuts && Number(isTuts < 20)){
-      setSteps(1)
+  useEffect(() => {
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+        setSteps(1)
+      })
     }
-  },[])
+  }, [user])
+
 
   const incrementStep = () => setSteps((prev) => prev + 1)
-  const currentStep = localStorage?.getItem('currentStep')
+
+
+
 
   const firstStep = (
     <m.div>
@@ -316,9 +334,9 @@ export default function UserSubaccountListView() {
           },
         }}
       >
-        <span>{isEnglish?"Manage Your Team! 🌟":"Pamahalaan ang Iyong Koponan! 🌟"}</span><br /><br />
-        
-        {isEnglish ? 'As a doctor, you can now create sub-accounts for your assistants.':'Bilang isang doktor, maaari ka nang lumikha ng mga sub-account para sa iyong mga katulong.'}
+        <span>{isEnglish ? "Manage Your Team! 🌟" : "Pamahalaan ang Iyong Koponan! 🌟"}</span><br /><br />
+
+        {isEnglish ? 'As a doctor, you can now create sub-accounts for your assistants.' : 'Bilang isang doktor, maaari ka nang lumikha ng mga sub-account para sa iyong mga katulong.'}
       </Typography>
     </m.div>
   )
@@ -339,8 +357,8 @@ export default function UserSubaccountListView() {
           },
         }}
       >
-          <span>{isEnglish?"Manage Your Team! 🌟":"Pamahalaan ang Iyong Koponan! 🌟"}</span><br /><br />
-       {isEnglish?" This feature allows you to delegate tasks and enhance your practice's efficiency.":"Ang tampong ito ay nagbibigay-daan sa iyo upang i-delegate ang mga gawain at pagbutihin ang kahusayan ng iyong praktis."}
+        <span>{isEnglish ? "Manage Your Team! 🌟" : "Pamahalaan ang Iyong Koponan! 🌟"}</span><br /><br />
+        {isEnglish ? " This feature allows you to delegate tasks and enhance your practice's efficiency." : "Ang tampong ito ay nagbibigay-daan sa iyo upang i-delegate ang mga gawain at pagbutihin ang kahusayan ng iyong praktis."}
       </Typography>
     </m.div>
   )
@@ -357,25 +375,31 @@ export default function UserSubaccountListView() {
       zIndex: 9999,
     }}>
 
-      {step === 3 && 
-      
-      <Box sx={{
-        background:'white',
-        position:'absolute',
-        top:20,
-        left:20,
-        zIndex:9999,
-        padding:1
-      }}>
-        <Button onClick={()=>{
-           if (currentStep && Number(currentStep) !== 100) {
-            localStorage.setItem('currentStep', '13');
-            router.push(paths.dashboard.user.manage.login)
-          }
-        }} variant="outlined">
-          Skip this part...
-        </Button>
-      </Box>}
+      {step === 3 &&
+
+        <Box sx={{
+          background: 'white',
+          position: 'absolute',
+          top: 20,
+          left: 20,
+          zIndex: 9999,
+          padding: 1
+        }}>
+          <Button onClick={() => {
+            if (currentStep && Number(currentStep) !== 100) {
+              setCurrentStep({
+                id:user?.id,
+                step:13
+              }).then(()=>{
+                router.push(paths.dashboard.user.manage.login)
+              })
+              // localStorage.setItem('currentStep', '13');
+              // 
+            }
+          }} variant="outlined">
+            Skip this part...
+          </Button>
+        </Box>}
 
       <>
         <Box sx={{
@@ -395,7 +419,7 @@ export default function UserSubaccountListView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
-          right:upMd ? 100:0
+          right: upMd ? 100 : 0
         }}>
           <m.div variants={varFade().inUp}>
             <Box sx={{
@@ -441,7 +465,7 @@ export default function UserSubaccountListView() {
     </Box>
   )
 
-  console.log(step,'stepstep')
+  console.log(step, 'stepstep')
 
   return (
     <>
@@ -459,9 +483,9 @@ export default function UserSubaccountListView() {
         >
           <Typography variant="h5">Manage Sub-account</Typography>
 
-          <div className={step === 3 ? `showFields-submit-sub`:''}> 
+          <div className={step === 3 ? `showFields-submit-sub` : ''}>
             <LoadingButton
-              onClick={()=>{
+              onClick={() => {
                 openCreate.onTrue();
                 incrementStep()
               }}

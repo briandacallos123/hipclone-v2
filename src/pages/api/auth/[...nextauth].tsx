@@ -31,35 +31,40 @@ export const authOptions: AuthOptions = {
         path: {},
       },
       authorize: async (credentials, _req) => {
+
+
         const type = credentials?.type;
         const path = credentials?.path;
 
         const { username, password }: any = credentials;
         let user: any;
 
-        console.log(credentials, 'credentialscredentials');
+        console.log(credentials,'credentialscredentials')
 
+     
         switch (type) {
-          case 'admin':
+          case "admin":
             user = await client.admin.findFirst({
+
               where: {
-                email: username,
-              },
-            });
-            user = { ...user, isAdmin: true };
+                email: username
+              }
+            })
+            user = { ...user, isAdmin: true }
             break;
-          case 'merchant':
+          case "merchant":
             user = await client.merchant_user.findFirst({
               where: {
-                email: username,
-              },
-            });
+                email: username
+              }
+            })
 
-            user = { ...user, isMerchant: true };
+            user = { ...user, isMerchant: true }
 
             break;
-
+         
           default:
+
             user = await client.user.findFirst({
               select: {
                 uname: true,
@@ -72,16 +77,19 @@ export const authOptions: AuthOptions = {
                 OR: [{ email: username }, { uname: username }],
               },
             });
+
+
         }
 
+
         if (!user) {
-          throw new Error('user not exists');
+          throw new Error("user not exists")
         }
         // commnet muna
         // if(user?.userType === 2 && path === '/'){
         //   throw new Error("user not exists")
         // }
-
+        
         // if(user?.userType === 0 && (path === '/find-doctor/login/' || path === '/find-doctor/register/')){
         //   throw new Error("user not exists");
         // }
@@ -91,11 +99,15 @@ export const authOptions: AuthOptions = {
           : user.password;
         const valid = bcrypt.compareSync(password, hashPass);
 
+
+
+
         if (!valid) {
-          throw new Error('Invalid Credentials');
+          throw new Error("Invalid Credentials")
         }
         return user;
       },
+
     }),
   ],
   debug: false,
@@ -155,18 +167,19 @@ export const authOptions: AuthOptions = {
       return true;
     },
     async session({ session, user, token, account }: any) {
+
+
       if (token?.isAdmin) {
         const { email, id, first_name, last_name, middle_name, contact, attachment_id } = token;
 
-        session.user.displayName = middle_name
-          ? `${first_name} ${middle_name} ${last_name}`
-          : `${first_name} ${last_name}`;
+
+        session.user.displayName = middle_name ? `${first_name} ${middle_name} ${last_name}` : `${first_name} ${last_name}`;
         session.user.lastName = last_name;
         session.user.firstName = first_name;
         session.user.middleName = middle_name;
         session.user.contact = contact;
         session.user.username = email;
-        session.user.role = 'admin';
+        session.user.role = "admin"
         session.user.id = id;
         return session;
       } else if (token?.isMerchant) {
@@ -174,27 +187,26 @@ export const authOptions: AuthOptions = {
 
         const merchant = await client.merchant_user.findUnique({
           where: {
-            id: Number(id),
-          },
-        });
+            id: Number(id)
+          }
+        })
 
-        session.user.displayName = merchant?.middle_name
-          ? `${merchant?.first_name} ${merchant?.middle_name} ${merchant?.last_name}`
-          : `${merchant?.first_name} ${merchant?.last_name}`;
+        session.user.displayName = merchant?.middle_name ? `${merchant?.first_name} ${merchant?.middle_name} ${merchant?.last_name}` : `${merchant?.first_name} ${merchant?.last_name}`;
         session.user.lastName = merchant?.last_name;
         session.user.firstName = merchant?.first_name;
         session.user.middleName = merchant?.middle_name;
         session.user.contact = merchant?.contact;
         session.user.username = merchant?.email;
-        session.user.role = 'merchant';
+        session.user.role = "merchant"
         session.user.id = id;
+
 
         const d: any = await client.merchant_attachment.findFirst({
           where: {
-            id: Number(merchant?.attachment_id),
+            id: Number(merchant?.attachment_id)
           },
           orderBy: {
-            created_at: 'desc',
+            created_at: 'desc'
           },
         });
         const photoURL = d
@@ -269,6 +281,8 @@ export const authOptions: AuthOptions = {
               session.user.uuid = userInfo?.userInfo?.uuid;
             }
 
+         
+
             // console.log("NANDITO YUNG KUPALLL")
             break;
           case 1:
@@ -279,7 +293,6 @@ export const authOptions: AuthOptions = {
                   email: token?.email,
                 },
                 include: {
-                  userInfo: true,
                   subAccountDoctorInfo: true,
                 },
               });
@@ -288,30 +301,7 @@ export const authOptions: AuthOptions = {
                   email: token?.email,
                 },
               });
-              // emp doctor card
-
-              const findDoctorInfo = await client.employees.findFirst({
-                where: {
-                  EMP_ID: userInfo?.subAccountDoctorInfo[0].doctorID,
-                },
-                include: {
-                  SpecializationInfo: true,
-                },
-              });
-              const emp_card = await client.employee_card.findFirst({
-                where: {
-                  id: Number(findDoctorInfo?.emp_card),
-                },
-              });
-
-              const businessCard = await client.employees_business_attachment.findFirst({
-                where: {
-                  id: Number(findDoctorInfo?.EMP_B_ATTACHMENT),
-                },
-              });
-
-              //
-
+              
               session.user.permissions = userInfo?.subAccountDoctorInfo[0];
               session.user.subAccId = userInfo?.id;
               session.user.occupation = userInfo?.occupation;
@@ -325,18 +315,6 @@ export const authOptions: AuthOptions = {
               session.user.username = login_username?.uname;
               session.user.uname = login_username?.uname;
               session.user.suffix = userInfo?.suffix;
-
-              // emp card
-              session.user.employee_card = {
-                name: emp_card?.name,
-                occupation: emp_card?.occupation,
-                contact: emp_card?.contact,
-                email: emp_card?.email,
-                address: emp_card?.address,
-                social: emp_card?.socials,
-                template_id: emp_card?.template_id,
-              };
-              session.user.qrProfile = businessCard?.filename;
             }
             break;
           case 2:
@@ -350,6 +328,7 @@ export const authOptions: AuthOptions = {
                 },
                 include: {
                   SpecializationInfo: true,
+
                 },
               });
               login_username = await client.user.findFirst({
@@ -360,12 +339,13 @@ export const authOptions: AuthOptions = {
 
               const emp_card = await client.employee_card.findFirst({
                 where: {
-                  id: Number(userInfo?.emp_card),
-                },
-              });
+                  id: Number(userInfo?.emp_card)
+                }
+              })
               // emp_card.socials = JSON.parse(emp_card.socials);
 
               // console.log(emp_card,'businessCardbusinessCardbusinessCardbusinessCardbusinessCard')
+
 
               const esigDigital = await client.esig_dp.findMany({
                 where: {
@@ -403,14 +383,16 @@ export const authOptions: AuthOptions = {
                 ],
               });
 
+
               const businessCard = await client.employees_business_attachment.findFirst({
                 where: {
-                  id: Number(userInfo?.EMP_B_ATTACHMENT),
-                },
-              });
+                  id: Number(userInfo?.EMP_B_ATTACHMENT)
+                }
+              })
               // businessCard.social = JSON.parse(businessCard.social);
               // console.log(businessCard,'BUSINESSCARDDDDDDDDDDDDDDDDD')
 
+              
               session.user.occupation = userInfo?.SpecializationInfo?.name;
               session.user.displayName = `${userInfo?.EMP_FNAME} ${userInfo?.EMP_LNAME}`;
               session.user.lastName = userInfo?.EMP_LNAME;
@@ -425,6 +407,7 @@ export const authOptions: AuthOptions = {
               session.user.esigFile = esigFile[0];
               session.user.esigDigital = esigDigital[0];
               session.user.esig = esigMain[0] || null;
+
               session.user.employee_card = {
                 name: emp_card?.name,
                 occupation: emp_card?.occupation,
@@ -432,9 +415,10 @@ export const authOptions: AuthOptions = {
                 email: emp_card?.email,
                 address: emp_card?.address,
                 social: emp_card?.socials,
-                template_id: emp_card?.template_id,
-              };
-              session.user.new_doctor = login_username.is_new ? true : false;
+                template_id: emp_card?.template_id
+              }
+
+              session.user.new_doctor = login_username.is_new ? true:false;
               session.user.doctor_id = userInfo.EMP_ID;
 
               session.user.PRC = userInfo?.LIC_NUMBER;
@@ -444,6 +428,7 @@ export const authOptions: AuthOptions = {
               session.user.validity = userInfo?.VALIDITY;
               session.user.doctorId = userInfo?.EMPID;
               session.user.username = login_username?.uname;
+
 
               session.user.uname = login_username?.uname;
               session.user.title = userInfo?.EMP_TITLE;
@@ -470,11 +455,13 @@ export const authOptions: AuthOptions = {
             session.user.contact = userInfo?.CONTACT_NO;
             session.user.username = login_username?.uname;
             session.user.uuid = userInfo?.userInfo?.uuid;
+           
           }
         }
         session.user.email = token?.email;
         session.user.id = _user?.id;
         session.user.role = userTypeString;
+
 
         const d: any = await client.display_picture.findFirst({
           where: {
@@ -484,13 +471,14 @@ export const authOptions: AuthOptions = {
             uploaded: 'desc',
           },
         });
-
+        
         // const photoURL = d
-        // ? d?.filename.split('public')[1]
+        // ? d?.filename.split('public')[1] 
 
         const photoURL = d
           ? d?.filename
           : `https://ui-avatars.com/api/?name=${session.user.displayName}&size=100&rounded=true&color=fff&background=E12328`;
+
 
         session.user.photoURL = photoURL;
 

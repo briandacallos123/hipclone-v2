@@ -16,6 +16,7 @@ type Props = {
   modifySched: any;
   appendClinic: any;
   setHideSched: any;
+  handleRefetchStep:any;
 };
 
 // ----------------------------------------------------------------------
@@ -28,6 +29,7 @@ export default function UserClinicScheduleCreateView({
   onClose,
   setHideSched,
   id,
+  handleRefetchStep
 }: Props) {
 
   console.log(id,'nagalittt')
@@ -55,6 +57,7 @@ export default function UserClinicScheduleCreateView({
         currentItem={id}
         setHideSched={setHideSched}
         appendClinic={appendClinic}
+        handleRefetchStep={handleRefetchStep}
         refetch={refetch}
       />
     </Dialog>

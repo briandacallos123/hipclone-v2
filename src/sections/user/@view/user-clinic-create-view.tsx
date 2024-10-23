@@ -17,6 +17,7 @@ type Props = {
   uuid: any;
   provinces: any;
   refetch: any;
+  handleRefetchStep:any;
 };
 
 // ----------------------------------------------------------------------
@@ -29,6 +30,7 @@ export default function UserClinicCreateView({
   open,
   onClose,
   refetch,
+  handleRefetchStep
 }: Props) {
   const upMd = useResponsive('up', 'md');
   return (
@@ -52,6 +54,7 @@ export default function UserClinicCreateView({
         onClose={onClose}
         appendData={appendData}
         refetch={refetch}
+        handleRefetchStep={handleRefetchStep}
       />
     </Dialog>
   );

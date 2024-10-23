@@ -28,6 +28,7 @@ import QueuePopover from '../_common/queue-popover';
 import Link from 'next/link';
 import { paths } from '@/routes/paths';
 import { Box } from '@mui/material';
+import { getCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -130,7 +131,17 @@ export default function Header({ onOpenNav }: Props) {
     </>
   );
 
-  const isTutorial = localStorage?.getItem('currentStep') && Number(localStorage?.getItem('currentStep')) < 25
+  const [currentStep, setCurrentStepState] = useState(null);
+  
+  useEffect(() => {
+    if(user){
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+      })
+    }
+  }, [user?.esig?.filename])
+
+ 
 
   const PRIMARY_MAIN = theme.palette.primary.main;
 
@@ -166,7 +177,7 @@ export default function Header({ onOpenNav }: Props) {
     </Box>
   )
 
-  let bg = !isTutorial && bgBlur({
+  let bg = !currentStep && bgBlur({
     color: theme.palette.background.default,
   })
 
@@ -174,7 +185,7 @@ export default function Header({ onOpenNav }: Props) {
     <AppBar
       sx={{
         height: HEADER.H_MOBILE,
-        zIndex: theme.zIndex.appBar + 1,
+        zIndex: currentStep ? 0 : theme.zIndex.appBar + 1,
         ...bg,
         transition: theme.transitions.create(['height'], {
           duration: theme.transitions.duration.shorter,

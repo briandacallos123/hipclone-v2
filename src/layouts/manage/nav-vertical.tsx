@@ -30,6 +30,7 @@ import { MotionContainer, varFade } from 'src/components/animate';
 import { useRouter } from 'next/navigation';
 import Image from '@/components/image';
 import { userDoneSetup } from './server-action';
+import { getCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -40,16 +41,25 @@ type Props = {
 
 export default function NavVertical({ openNav, onCloseNav }: Props) {
   const { user } = useAuthContext();
-  const { currentStep: cStep, setCurrentStep }: any = useTutorialProvider();
+  const { doneTuts }: any = useTutorialProvider();
 
   const router = useRouter();
 
   const language = localStorage?.getItem('languagePref');
 
+  const [cStep, setCurrentStep] = useState()
+
+  // useEffect(() => {
+  //   setCurrentStep(localStorage.getItem('currentStep'))
+  // }, [localStorage.getItem('currentStep')])
 
   useEffect(() => {
-    setCurrentStep(localStorage.getItem('currentStep'))
-  }, [localStorage.getItem('currentStep')])
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStep(res.setup_step)
+      })
+    }
+  }, [user, doneTuts])
 
 
   const pathname = usePathname();
@@ -362,6 +372,7 @@ export default function NavVertical({ openNav, onCloseNav }: Props) {
 
       }}
     >
+      
       {Number(cStep) === 15 && successProfile <= 2 && renderDoneProfile}
 
       {Number(cStep) === 15 && openNavIn && successProfile !== 3 && renderBot}

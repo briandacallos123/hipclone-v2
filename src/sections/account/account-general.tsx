@@ -49,7 +49,7 @@ import { useRouter } from 'next/navigation';
 import { paths } from '@/routes/paths';
 
 import './generalStyle.css'
-import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
+import { getCurrentStep, getTutsLanguage, setCurrentStep } from '@/app/dashboard/tutorial-action';
 // ----------------------------------------------------------------------
 
 interface FormValuesProps extends Omit<IUserProfile, 'avatarUrl'> {
@@ -63,9 +63,9 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
   const mySig = useRef();
   // const [user] = useState<IUserProfile>(_userProfile);
   const router = useRouter();
-  const useNotSec = user?.role !== 'secretary' && {
-    address: Yup.string().required('Address is required'),
-  };
+  // const useNotSec = user?.role !== 'secretary' && {
+  //   address: Yup.string().required('Address is required'),
+  // };
 
   const targetRef = useRef();
 
@@ -79,9 +79,9 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
     lname: Yup.string().required('Last Name is required'),
     suffix: Yup.string(),
     gender: Yup.string().oneOf(['1', '2'], 'Invalid Gender').required('Gender is required'),
-    birthDate: Yup.date().required('Date of Birth is required'),
+    birthDate: Yup.date(),
     nationality: Yup.string(),
-    ...useNotSec,
+    // ...useNotSec,
     contact: Yup.string().required('Contact is required'),
     avatarUrl: Yup.mixed().notRequired(),
   });
@@ -155,21 +155,35 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
   const [snackKey2, setSnackKey2]: any = useState(null);
 
   const [currentStep, setCurrentStepState] = useState(null);
-  const [step, setSteps] = useState(1);
+
+  const [languagePrefer, setLanguageOptions] = useState(null)
+
+  const [step, setSteps] = useState(null);
+
+  const newDoctor = user?.new_doctor;
 
   const hasEsig = user?.esig?.filename;
 
   useEffect(() => {
-    getCurrentStep(user?.id).then((res) => {
-      setCurrentStepState(res.setup_step)
-
-    })
-
-    if (user?.esig?.filename) {
-      setSteps(3)
-
+    if(user?.new_doctor){
+      getCurrentStep(user?.id).then((res) => {
+        setCurrentStepState(res.setup_step)
+        setSteps(1)
+      })
+  
+      getTutsLanguage({
+          id:user?.id
+      }).then((res)=>{
+        setLanguageOptions(res?.language)
+      })
+  
+  
+      if (user?.esig?.filename) {
+        setSteps(3)
+  
+      }
     }
-  }, [user?.esig?.filename])
+  }, [user?.esig?.filename, user?.id])
 
   const esigCalled = localStorage?.getItem('esigCalled')
 
@@ -280,7 +294,6 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
     console.log(b, o);
   };
 
-  console.log(step,'stepsss')
 
 
 
@@ -296,7 +309,7 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
       if (file) {
         setValue('avatarUrl', newFile, { shouldValidate: true });
       }
-      if (step) {
+      if (step && newDoctor) {
         targetRef.current.scrollIntoView({ behavior: 'smooth' });
         setSteps(5)
       }
@@ -386,7 +399,7 @@ export default function AccountGeneral({ handleChangeTabTuts }: any) {
     }
   };
 
-  const languagePrefer = localStorage?.getItem('languagePref');
+  
 
   const firstStep = (
     <m.div>

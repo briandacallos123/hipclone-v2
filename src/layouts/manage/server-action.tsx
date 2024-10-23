@@ -3,12 +3,15 @@ import prisma from '../../../prisma/prismaClient'
 
 export const userDoneSetup = async(data) => {
 
-    console.log(data,'idddd')
+
+
 
   try {
     await prisma.user.update({
         data:{
-            is_new:0
+            is_new: 0,
+            setup_step: null,
+            setup_language: null
         },
         where:{
             id:data

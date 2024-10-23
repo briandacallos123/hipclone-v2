@@ -25,6 +25,8 @@ import { useMutation, useQuery } from '@apollo/client';
 import { CreatePayment } from '@/libs/gqls/services';
 import { NexusGenInputs } from 'generated/nexus-typegen';
 import './styles/service.css'
+import { getCurrentStep, setCurrentStep } from '@/app/dashboard/tutorial-action';
+import { useAuthContext } from '@/auth/hooks';
 
 // ----------------------------------------------------------------------
 
@@ -35,9 +37,13 @@ type FormValuesProps = {
   isViewable: boolean;
 };
 
-const ServiceAdditionalFee = forwardRef(({ tutorialTab, incrementTutsTab},ref) => {
+const ServiceAdditionalFee = forwardRef(({ tutorialTab, incrementTutsTab }, ref) => {
   const { enqueueSnackbar, closeSnackbar } = useSnackbar();
+
+  const { user:myUser } = useAuthContext();
+
   const [user] = useState<IUserService>(_userService);
+
   const [snackKey, setSnackKey] = useState(null);
 
   const [createEmr] = useMutation(UpdateFees, {
@@ -48,8 +54,18 @@ const ServiceAdditionalFee = forwardRef(({ tutorialTab, incrementTutsTab},ref) =
   });
 
   const { data, loading, refetch } = useQuery(GetFees);
-  // const { abstract, certificate, clearance } = data?.GetFees;
-  let currentStep = localStorage?.getItem('currentStep')
+
+
+  const [currentStep, setCurrentStepState] = useState(null);
+
+  useEffect(() => {
+    if (myUser?.new_doctor) {
+      getCurrentStep(myUser?.id).then((res) => {
+        const { setup_step } = res;
+        setCurrentStepState(setup_step)
+      })
+    }
+  }, [user])
 
   const handleSubmitValue = useCallback(
     async (model: NexusGenInputs['UpdateFeeInputs']) => {
@@ -69,9 +85,15 @@ const ServiceAdditionalFee = forwardRef(({ tutorialTab, incrementTutsTab},ref) =
           closeSnackbar(snackKey);
           refetch();
           enqueueSnackbar('Updated sucessfully');
-          if(currentStep && Number(currentStep) !== 100){
-            localStorage.setItem('currentStep','9')
-            incrementTutsTab();
+          if (currentStep) {
+         
+            
+            setCurrentStep({
+              id:myUser?.id,
+              step:9
+            }).then((res)=>{
+              incrementTutsTab();
+            })
           }
         })
         .catch((error) => {
@@ -81,7 +103,7 @@ const ServiceAdditionalFee = forwardRef(({ tutorialTab, incrementTutsTab},ref) =
           // runCatch();
         });
     },
-    [snackKey]
+    [snackKey, user]
   );
 
   // const UpdateUserSchema = Yup.object().shape({});
@@ -182,43 +204,43 @@ const ServiceAdditionalFee = forwardRef(({ tutorialTab, incrementTutsTab},ref) =
     [enqueueSnackbar, reset]
   );
 
-    const myRef = useRef(null);
+  const myRef = useRef(null);
 
-    console.log(tutorialTab,'myRefmyRef')
+  console.log(tutorialTab, 'myRefmyRef')
   return (
     <FormProvider methods={methods} onSubmit={handleSubmit(onSubmit)}>
-     <div ref={ref} className={tutorialTab && tutorialTab === 8 ? 'service-fee service-fee-mt':''}>
-     <Card >
-        <CardHeader title="Additional Request Fee (for Telemedicine only)" />
+      <div ref={ref} className={tutorialTab && tutorialTab === 8 ? 'service-fee service-fee-mt' : ''}>
+        <Card >
+          <CardHeader title="Additional Request Fee (for Telemedicine only)" />
 
-        <Stack spacing={3} sx={{ p: 3 }}>
-          <Box
-            gap={1}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              sm: '1fr 3fr',
-            }}
-          >
-            <Typography variant="overline" gutterBottom>
-              Medical Certificate
-            </Typography>
-            <RHFTextField
-              name="certificate"
-              placeholder="0.00"
-              type="number"
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Box component="span" sx={{ color: 'text.disabled' }}>
-                      ₱
-                    </Box>
-                  </InputAdornment>
-                ),
+          <Stack spacing={3} sx={{ p: 3 }}>
+            <Box
+              gap={1}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: '1fr 3fr',
               }}
-            />
-            {/* {loading ? (
+            >
+              <Typography variant="overline" gutterBottom>
+                Medical Certificate
+              </Typography>
+              <RHFTextField
+                name="certificate"
+                placeholder="0.00"
+                type="number"
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box component="span" sx={{ color: 'text.disabled' }}>
+                        ₱
+                      </Box>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              {/* {loading ? (
               <TableCell>
                 <Skeleton
                   height={40}
@@ -233,87 +255,87 @@ const ServiceAdditionalFee = forwardRef(({ tutorialTab, incrementTutsTab},ref) =
             ) : (
               
             )} */}
-          </Box>
+            </Box>
 
-          <Box
-            gap={1}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              sm: '1fr 3fr',
-            }}
-          >
-            <Typography variant="overline" gutterBottom>
-              Medical Clearance
-            </Typography>
-
-            <RHFTextField
-              name="clearance"
-              placeholder="0.00"
-              type="number"
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Box component="span" sx={{ color: 'text.disabled' }}>
-                      ₱
-                    </Box>
-                  </InputAdornment>
-                ),
+            <Box
+              gap={1}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: '1fr 3fr',
               }}
-            />
-          </Box>
+            >
+              <Typography variant="overline" gutterBottom>
+                Medical Clearance
+              </Typography>
 
-          <Box
-            gap={1}
-            display="grid"
-            gridTemplateColumns={{
-              xs: 'repeat(1, 1fr)',
-              sm: '1fr 3fr',
-            }}
-          >
-            <Typography variant="overline" gutterBottom>
-              Medical Abstract
-            </Typography>
+              <RHFTextField
+                name="clearance"
+                placeholder="0.00"
+                type="number"
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box component="span" sx={{ color: 'text.disabled' }}>
+                        ₱
+                      </Box>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
 
-            <RHFTextField
-              name="abstract"
-              placeholder="0.00"
-              type="number"
-              InputLabelProps={{ shrink: true }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <Box component="span" sx={{ color: 'text.disabled' }}>
-                      ₱
-                    </Box>
-                  </InputAdornment>
-                ),
+            <Box
+              gap={1}
+              display="grid"
+              gridTemplateColumns={{
+                xs: 'repeat(1, 1fr)',
+                sm: '1fr 3fr',
               }}
-            />
-          </Box>
+            >
+              <Typography variant="overline" gutterBottom>
+                Medical Abstract
+              </Typography>
 
-          <Stack spacing={3} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between">
-            <RHFSwitch
-              name="isViewable"
-              label="Can patients view fee prior to booking?"
-              sx={{ color: 'text.disabled' }}
-            />
+              <RHFTextField
+                name="abstract"
+                placeholder="0.00"
+                type="number"
+                InputLabelProps={{ shrink: true }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <Box component="span" sx={{ color: 'text.disabled' }}>
+                        ₱
+                      </Box>
+                    </InputAdornment>
+                  ),
+                }}
+              />
+            </Box>
 
-            <Stack spacing={3} alignItems="flex-end">
-              <LoadingButton
-                type="submit"
-                variant="contained"
-                disabled={!isDirty}
-                loading={isSubmitting}
-              >
-                Save Changes
-              </LoadingButton>
+            <Stack spacing={3} direction={{ xs: 'column', md: 'row' }} justifyContent="space-between">
+              <RHFSwitch
+                name="isViewable"
+                label="Can patients view fee prior to booking?"
+                sx={{ color: 'text.disabled' }}
+              />
+
+              <Stack spacing={3} alignItems="flex-end">
+                <LoadingButton
+                  type="submit"
+                  variant="contained"
+                  disabled={!isDirty}
+                  loading={isSubmitting}
+                >
+                  Save Changes
+                </LoadingButton>
+              </Stack>
             </Stack>
           </Stack>
-        </Stack>
-      </Card>
-     </div>
+        </Card>
+      </div>
     </FormProvider>
   );
 })

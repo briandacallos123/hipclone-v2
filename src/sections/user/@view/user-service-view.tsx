@@ -23,6 +23,8 @@ import './circular-highlight.css'; // Import your CSS file
 import { m } from 'framer-motion';
 import { MotionContainer, varFade } from 'src/components/animate';
 import Image from '@/components/image';
+import { useAuthContext } from '@/auth/hooks';
+import { getCurrentStep } from '@/app/dashboard/tutorial-action';
 // ----------------------------------------------------------------------
 
 export default function UserServiceView() {
@@ -30,16 +32,25 @@ export default function UserServiceView() {
 
   const [tutorialTab, setTutsTab] = useState<number | null>(null);
   const targetRef = useRef(null)
+  const { user } = useAuthContext();
 
-  let currentStep = localStorage?.getItem('currentStep')
+
+
+  // let currentStep = localStorage?.getItem('currentStep')
+
+  const [currentStep, setCurrentStepState] = useState(null);
 
   useEffect(() => {
-    let tuts = localStorage?.getItem('currentStep') && Number(localStorage?.getItem('currentStep'));
-
-    if (tuts && tuts >= 7 && tuts <= 11) {
-      setTutsTab(tuts)
-    } else {
-      setTutsTab(null)
+    if (user?.new_doctor) {
+      getCurrentStep(user?.id).then((res) => {
+        const {setup_step:tuts} = res;
+        setCurrentStepState(res.setup_step)
+        if (tuts && tuts >= 7 && tuts <= 11) {
+          setTutsTab(tuts)
+        } else {
+          setTutsTab(null)
+        }
+      })
     }
   }, [])
 
@@ -115,7 +126,7 @@ export default function UserServiceView() {
           zIndex: 99999,
           position: 'absolute',
           bottom: 0,
-          right:upMd ? 100:30
+          right: upMd ? 100 : 30
         }}>
           {/* message */}
           <m.div variants={varFade().inUp}>
@@ -204,7 +215,7 @@ export default function UserServiceView() {
 
       {Number(currentStep) === 7 && step !== 2 && renderFifthTutorial}
 
-      {tutorialTab  && renderTuts}
+      {tutorialTab && renderTuts}
       <Typography
         variant="h5"
         sx={{

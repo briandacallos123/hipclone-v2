@@ -25,6 +25,7 @@ import AccountNotifications from '../account-notifications';
 import AccountSocialLinks from '../account-social-links';
 import AccountInformation from '../account-information';
 import AccountHmoList from '../account-hmo-list';
+import { getCurrentStep } from '@/app/dashboard/tutorial-action';
 
 // ----------------------------------------------------------------------
 
@@ -73,15 +74,22 @@ export default function UserAccountView() {
     setCurrentTab(newValue);
   }, []);
 
+  const [currentStep, setCurrentStepState] = useState(null);
+  
+  useEffect(() => {
+    getCurrentStep(user?.id).then((res) => {
+      setCurrentStepState(res.setup_step)
+    })
+  }, [user?.esig?.filename])
 
   useEffect(()=>{
-    let hasStep = localStorage?.getItem('currentStep');
-    if(hasStep && hasStep === '4'){
+    if(currentStep && Number(currentStep) === 4){
+     
       setCurrentTab('license')
-    }else if(hasStep && hasStep === '5'){
+    }else if(currentStep && Number(currentStep) === 5){
       setCurrentTab('education')
     }
-  },[])
+  },[currentStep])
 
   const handleChangeTabTuts = () => {
     
