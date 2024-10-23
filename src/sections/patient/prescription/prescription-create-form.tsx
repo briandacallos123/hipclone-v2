@@ -227,7 +227,7 @@ const PrescriptionCreateForm = ({
         }
     }, [snackKey, myData]);
 
-    alert("1")
+
 
 
     const onSubmit = useCallback(

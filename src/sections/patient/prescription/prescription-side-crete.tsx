@@ -24,11 +24,11 @@ const PrescriptionSideCreate = ({
         quantity: Yup.number().required('quantity is required'),
         frequency: Yup.string(),
         duration: Yup.string(),
-        form: Yup.string()
-            .required('Form is required')
-            .test('is-valid-form', 'Form is not valid', value =>
-                medicineFormOptions.some(option => option.value === value)
-            ),
+        // form: Yup.string()
+        //     .required('Form is required')
+        //     .test('is-valid-form', 'Form is not valid', value =>
+        //         medicineFormOptions.some(option => option.value === value)
+        //     ),
         brand: Yup.string().required('brand is required'),
     });
 
@@ -55,8 +55,6 @@ const PrescriptionSideCreate = ({
     const { control, handleSubmit, reset, watch, setValue } = methods;
 
     const values = watch();
-
-    console.log(values,'valuesss')
 
     const onSubmit = useCallback(async (data) => {
         try {
@@ -95,7 +93,7 @@ const PrescriptionSideCreate = ({
                     background:'#ededee',
                     border:'1px solid #e1e3e5'
                 }}>
-                   
+                
                    {medicineFormOptions?.map((item) => (
                             <option value={item?.value} key={item?.id} style={{
                                 textTransform: 'capitalize',

@@ -461,7 +461,7 @@ export default function PatientPrescriptionListView({ slug }: Props) {
                   New Prescription
                 </Button>
               ) : (
-                <IconButton onClick={openCreate.onTrue}>
+                <IconButton onClick={openCreateFull.onTrue}>
                   <Iconify icon="mingcute:add-line" />
                 </IconButton>
               )

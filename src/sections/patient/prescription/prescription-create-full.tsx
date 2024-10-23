@@ -173,7 +173,7 @@ function PrescriptionCreateFull(props) {
 
 
     const handleAddPrescription = (item) => {
-        console.log(item, 'itemmmmmmmm')
+     
 
         if (!item?.is_favorite && !item?.prescription_template) {
             console.log("dito sa una")
@@ -332,7 +332,7 @@ function PrescriptionCreateFull(props) {
             })
             enqueueSnackbar('Added Successfully!');
         }
-    }, [toAddData.name, toAddData.dose, toAddData.quantity, toAddData.frequency, toAddData.duration, toAddData.form])
+    }, [toAddData.name, toAddData.dose, toAddData.quantity, toAddData.frequency, toAddData.duration, toAddData.form, mobileOpen])
 
 
     const addDirectPrescriptions = (row: any) => {
@@ -361,11 +361,13 @@ function PrescriptionCreateFull(props) {
     }
 
     const handleSubmitSide = React.useCallback((data) => {
+        
         handleAddPFinal(data)
         // dito bro
-        setMobileOpen(false);
+        setMobileOpen(!mobileOpen);
+        
 
-    }, [])
+    }, [mobileOpen])
 
     const CreateMedicine = () => {
         return (
